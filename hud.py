@@ -195,7 +195,7 @@ def main():
     width, height = screen_size
     pygame.mouse.set_visible(False)
 
-    WHITE = (255, 255, 255)
+    WHITE = (0, 255, 0)
     BLACK = (0, 0, 0)
 
     font = pygame.font.SysFont(None, int(height/20))

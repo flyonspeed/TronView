@@ -6,7 +6,7 @@ case $yn in
 	[Yy]* )echo "Enabling serial port"
 		sudo bash -c 'echo " " >> /boot/config.txt'
 		sudo bash -c 'echo "enable_uart=1" >> /boot/config.txt'
-		sudo apt-get install python-serial python-pygame
+		sudo apt-get -y install python python-serial python-pygame
 		echo "Please reboot your pi now.  Type reboot"
 		;;
 	[Nn]* )echo "Ok. Nothing done."; exit;;

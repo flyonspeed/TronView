@@ -8,9 +8,9 @@ Following install guide if you need help.  https://www.raspberrypi.org/documenta
 
 ## Steps to get the HUD software running
 
-1) WIFI. You’ll want to get the pi on your wifi network so it can download the latest source.  You can google for directions on how to do that.
+1) WIFI. You’ll want to get the pi on your wifi network so it can download the latest source.  Here are some instructions online that might help.  https://www.raspberrypi.org/documentation/configuration/wireless/wireless-cli.md
 
-2) install git command.   running the following on the command line.
+2) install git command.   This will let you get the latest source from github directly onto the pi.
 
 `sudo apt-get -y install git`
 

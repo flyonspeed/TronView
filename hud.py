@@ -114,13 +114,22 @@ def display_init(debug):
 
     return screen, size
 
-def get_line_coords(screen_width, screen_height, ahrs_center, pitch=0, roll=0, deg_ref=0):
-    if deg_ref == 0:
-        length = screen_width*.6
-    elif (deg_ref%10) == 0:
-        length = screen_width*.4
-    elif (deg_ref%5) == 0:
-        length = screen_width*.2
+def get_line_coords(screen_width, screen_height, ahrs_center, pitch=0, roll=0, deg_ref=0,line_mode=1):
+
+    if line_mode == 1:
+        if deg_ref == 0:
+            length = screen_width*.9
+        elif (deg_ref%10) == 0:
+           length = screen_width*.2
+        elif (deg_ref%5) == 0:
+           length = screen_width*.1
+    else:
+        if deg_ref == 0:
+            length = screen_width*.6
+        elif (deg_ref%10) == 0:
+           length = screen_width*.1
+        elif (deg_ref%5) == 0:
+           length = screen_width*.05
 
     ahrs_center_x, ahrs_center_y = ahrs_center
     px_per_deg_y = screen_height / 60
@@ -166,7 +175,7 @@ def readMessage():
         PAltitude,BAltitude,ASI,TAS,AOA,VSI,Baro = struct.unpack("<iiHHhhH", Message)
 
       if msgType == 6 : # Traffic message
-        Message = ser.read(18)
+        Message = ser.read(4)
         TrafficMode,NumOfTraffic,NumMsg,MsgNum = struct.unpack("!BBBB", Message)
 
       if msgType == 4 : # Navigation message
@@ -210,6 +219,10 @@ def main():
 
     done = False
     clock = pygame.time.Clock()
+    myfont = pygame.font.SysFont("monospace", 22) # initialize font; must be called after 'pygame.init()' to avoid 'Font not Initialized' error
+    show_debug = False
+    line_mode = 1
+    alt_box_mode = 0
 
     while not done:
         readMessage();
@@ -218,32 +231,51 @@ def main():
             if event.type == pygame.QUIT:
                 done = True
             if event.type == pygame.KEYDOWN:
-                done = True
+                if event.key == pygame.K_q:
+                    done = True
+                if event.key == pygame.K_d:
+                    show_debug = not show_debug
+                if event.key == pygame.K_EQUALS:
+                    #height = height + 10
+                    width = width + 10
+                if event.key == pygame.K_MINUS:
+                    #height = height - 10
+                    width = width - 10
+                if event.key == pygame.K_SPACE:
+                    line_mode = not line_mode
+                if event.key == pygame.K_a:
+                    alt_box_mode = not alt_box_mode
 
         o = v.get_orientation()
         roll = o['roll']
         pitch = o['pitch']
 
-        debug_print(args.debug, "Roll:  {:.1f}".format(roll))
-        debug_print(args.debug, "Pitch: {:.1f}".format(pitch))
-        debug_print(args.debug, "")
+        #debug_print(args.debug, "Roll:  {:.1f}".format(roll))
+        #debug_print(args.debug, "Pitch: {:.1f}".format(pitch))
+        #debug_print(args.debug, "")
 
         ahrs.fill(BLACK)
 
         # range isn't inclusive of the stop value, so if stop is 60 then there's no line make
         # for 60
         for l in range(-60, 61, 5):
-            line_coords = get_line_coords(width, height, ahrs_bg_center, pitch=pitch, roll=roll, deg_ref=l)
+            line_coords = get_line_coords(width, height, ahrs_bg_center, pitch=pitch, roll=roll, deg_ref=l, line_mode=line_mode)
 
             if abs(l)>45:
                 if l%5 == 0 and l%10 != 0:
                     continue
 
-            debug_print(args.debug, "Deg: {0}".format(l), 2)
-            debug_print(args.debug, "Line Coords: {0}".format(line_coords), 2)
-            debug_print(args.debug, "", 2)
+            #debug_print(args.debug, "Deg: {0}".format(l), 2)
+            #debug_print(args.debug, "Line Coords: {0}".format(line_coords), 2)
+            #debug_print(args.debug, "", 2)
             pygame.draw.lines(ahrs_bg, WHITE, False, line_coords, 2)
 
+            # render debug text
+            #if show_debug:
+            #    label = myfont.render("Deg: %d Line Coord %d" % (l,line_coords), 1, (255,255,0))
+            #    screen.blit(label, (ahrs.get_width()-100, 0))
+
+            # draw degree text
             if l != 0 and l%10 == 0:
                 text = font.render(str(l), False, WHITE)
                 text_width, text_height = text.get_size()
@@ -254,8 +286,20 @@ def main():
         top_left = (-(ahrs.get_width() - width)/2, -(ahrs.get_height() - height)/2)
         screen.blit(ahrs, top_left)
 
-        pygame.draw.lines(screen, WHITE, False, [[0, height/2], [10, height/2]], 2)
-        pygame.draw.lines(screen, WHITE, False, [[width-10, height/2], [width, height/2]], 2)
+        # render debug text
+        if show_debug:
+            label = myfont.render("Pitch: %d" % (pitch), 1, (255,255,0))
+            screen.blit(label, (0, 0))
+            label = myfont.render("Roll: %d" % (roll), 1, (255,255,0))
+            screen.blit(label, (0, 20))
+
+        #pygame.draw.lines(screen, WHITE, False, [[0, height/2], [10, height/2]], 2)
+        #pygame.draw.lines(screen, WHITE, False, [[width-10, height/2], [width, height/2]], 2)
+        if alt_box_mode:
+            pygame.draw.rect(screen,WHITE,(0,height/4,100,height/1.5),1)
+            pygame.draw.rect(screen,WHITE,(width-100,height/4,100,height/1.5),1)
+
+        pygame.draw.circle(screen, WHITE, (width/2,height/2), 15, 1)
         pygame.display.flip()
 
     pygame.quit()

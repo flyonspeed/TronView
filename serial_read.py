@@ -81,7 +81,7 @@ def readMessage():
         print_xy(11,20,"Baro:    %d  " % (Baro))
 
       if msgType == 6 : # Traffic message
-        Message = ser.read(18)
+        Message = ser.read(4)
         TrafficMode,NumOfTraffic,NumMsg,MsgNum = struct.unpack("!BBBB", Message)
         print_xy(9 ,40,bcolors.OKGREEN+"Traffic"+bcolors.ENDC)
         print_xy(10,40,"Mode:  %d  " % (TrafficMode))

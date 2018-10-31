@@ -223,6 +223,8 @@ def main():
     show_debug = False
     line_mode = 1
     alt_box_mode = 0
+    line_thickness = 2
+    center_circle_mode = 0
 
     while not done:
         readMessage();
@@ -245,6 +247,12 @@ def main():
                     line_mode = not line_mode
                 if event.key == pygame.K_a:
                     alt_box_mode = not alt_box_mode
+                if event.key == pygame.K_l:
+                    line_thickness += 1
+                    if line_thickness > 8: line_thickness = 2
+                if event.key == pygame.K_c:
+                    center_circle_mode += 1
+                    if center_circle_mode > 3: center_circle_mode = 0
 
         o = v.get_orientation()
         roll = o['roll']
@@ -268,7 +276,7 @@ def main():
             #debug_print(args.debug, "Deg: {0}".format(l), 2)
             #debug_print(args.debug, "Line Coords: {0}".format(line_coords), 2)
             #debug_print(args.debug, "", 2)
-            pygame.draw.lines(ahrs_bg, WHITE, False, line_coords, 2)
+            pygame.draw.lines(ahrs_bg, WHITE, False, line_coords, line_thickness)
 
             # render debug text
             #if show_debug:
@@ -299,7 +307,14 @@ def main():
             pygame.draw.rect(screen,WHITE,(0,height/4,100,height/1.5),1)
             pygame.draw.rect(screen,WHITE,(width-100,height/4,100,height/1.5),1)
 
-        pygame.draw.circle(screen, WHITE, (width/2,height/2), 15, 1)
+        if center_circle_mode == 0:
+            pygame.draw.circle(screen, WHITE, (width/2,height/2), 15, 1)
+        if center_circle_mode == 1:
+            pygame.draw.circle(screen, WHITE, (width/2,height/2), 3, 1)
+        if center_circle_mode == 2:
+            pygame.draw.circle(screen, WHITE, (width/2,height/2), 50, 1)
+
+
         pygame.display.flip()
 
     pygame.quit()

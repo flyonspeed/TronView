@@ -1,16 +1,24 @@
 # efis_to_hud
-Project for connecting efis data to a HUD
+Project for connecting efis data to a HUD.  
+
+We are using the rapberry pi zero w for taking serial data from a EFIS (MGL) and displaying a graphical HUD out the hdmi output on the pi.  This is plugged into a HUD device like the Hudly Classic.
 
 Get raspbian-stretch-lite SD image for pi. Latest can be gotten here.
 https://downloads.raspberrypi.org/raspbian_lite_latest
+
 Following install guide if you need help.  https://www.raspberrypi.org/documentation/installation/installing-images/README.md
 
+Setup your serial input using the GPIO pins on pi zero.  This page will help you. https://www.instructables.com/id/Read-and-write-from-serial-port-with-Raspberry-Pi/
 
 ## Steps to get the HUD software running
 
-1) WIFI. You’ll want to get the pi on your wifi network so it can download the latest source.  Here are some instructions online that might help.  https://www.raspberrypi.org/documentation/configuration/wireless/wireless-cli.md
+1) WIFI and autologin. You’ll want to get the pi on your wifi network so it can download the latest source.  Here are some instructions online that might help.  https://www.raspberrypi.org/documentation/configuration/wireless/wireless-cli.md
 
-2) install git command.   This will let you get the latest source from github directly onto the pi.
+To setup auto login. (so you don't have to login to pi every time it boots up)
+
+Enter the command `sudo raspi-config` Scroll down to Boot Options and select Console Autologin. Then exit the configuration menu and reboot.
+
+2) Install git command.   This will let you get the latest source from github directly onto the pi.
 
 `sudo apt-get -y install git`
 
@@ -59,5 +67,9 @@ d - show some debug info
 
 space - large/small toggle
 
-a - show alt/airspeed tape (still working on this)
+a - show alt/airspeed tape (work in progress)
+
+l - adjust line thickness
+
+c - center circle mode
 

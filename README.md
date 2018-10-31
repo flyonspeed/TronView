@@ -25,16 +25,20 @@ when done this will create a efis_to_hud dir
 4) run the setup.sh script to finish install.  This will setup serial port (if not allready setup), and install python libraries needed.
 
 go into the efis_to_hud by typing
+
 `cd efis_to_hud`
 
 then to run the script type
+
 `./setup.sh`
 
 5) reboot the device.  type
+
 `reboot`
 
 6) run the serial_read.py script to confirm data being sent is correct.
 go into efis_hud dir then type
+
 `cd efis_hud`
 
 `python serial_read.py`
@@ -48,7 +52,12 @@ to exit hit cntrl-c
 `python hud.py`
 
 current commands are:
+
 q - quit
+
 d - show some debug info
+
 space - large/small toggle
+
 a - show alt/airspeed tape (still working on this)
+

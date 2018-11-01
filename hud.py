@@ -5,6 +5,9 @@ import argparse, pygame
 import time
 import serial
 import struct
+import threading
+
+
 
 class Vehicle(object):
     def __init__(self, data_source="random", network_source=None):
@@ -148,6 +151,28 @@ def get_line_coords(screen_width, screen_height, ahrs_center, pitch=0, roll=0, d
 
     return [[start_x, start_y], [end_x, end_y]]
 
+def read_all(port, chunk_size=200):
+    """Read all characters on the serial port and return them."""
+    if not port.timeout:
+        raise TypeError('Port needs to have a timeout set!')
+
+    read_buffer = b''
+
+    while True:
+        # Read in chunks. Each chunk will wait as long as specified by
+        # timeout. Increase chunk_size to fail quicker
+        byte_chunk = port.read(size=chunk_size)
+        read_buffer += byte_chunk
+        if not len(byte_chunk) == chunk_size:
+            break
+
+    return read_buffer
+
+def readSerial(num):
+    global ser
+    if (ser.inWaiting()>0):
+        t = ser.read(1)
+
 def readMessage():
   global ser
   global efis_pitch, efis_roll
@@ -161,26 +186,32 @@ def readMessage():
     
     if stx == 2:
       MessageHeader = ser.read(6)
-      msgLength,msgLengthXOR,msgType,msgRate,msgCount,msgVerion = struct.unpack("!BBBBBB", MessageHeader)
+      if(len(MessageHeader) == 6):
+        msgLength,msgLengthXOR,msgType,msgRate,msgCount,msgVerion = struct.unpack("!BBBBBB", MessageHeader)
 
-      if msgType == 3 : # attitude information
-        Message = ser.read(25)
-        # use struct to unpack binary data.  https://docs.python.org/2.7/library/struct.html
-        HeadingMag,PitchAngle,BankAngle,YawAngle,TurnRate,Slip,GForce,LRForce,FRForce,BankRate,PitchRate,YawRate,SensorFlags = struct.unpack("<HhhhhhhhhhhhB", Message)
-        efis_pitch = PitchAngle * 0.1 # should this be * 0.1
-        efis_roll = BankAngle * 0.1 # should this be * 0.1
+        if msgType == 3 : # attitude information
+            Message = ser.read(25)
+            if(len(Message) == 25):
+                # use struct to unpack binary data.  https://docs.python.org/2.7/library/struct.html
+                HeadingMag,PitchAngle,BankAngle,YawAngle,TurnRate,Slip,GForce,LRForce,FRForce,BankRate,PitchRate,YawRate,SensorFlags = struct.unpack("<HhhhhhhhhhhhB", Message)
+                efis_pitch = PitchAngle * 0.1 # should this be * 0.1
+                efis_roll = BankAngle * 0.1 # should this be * 0.1
+                ser.flushInput()
 
-      if msgType == 1 : # Primary flight
-        Message = ser.read(18)
-        PAltitude,BAltitude,ASI,TAS,AOA,VSI,Baro = struct.unpack("<iiHHhhH", Message)
+        if msgType == 1 : # Primary flight
+            Message = ser.read(18)
+            if(len(Message) == 18):
+                PAltitude,BAltitude,ASI,TAS,AOA,VSI,Baro = struct.unpack("<iiHHhhH", Message)
 
-      if msgType == 6 : # Traffic message
-        Message = ser.read(4)
-        TrafficMode,NumOfTraffic,NumMsg,MsgNum = struct.unpack("!BBBB", Message)
+        if msgType == 6 : # Traffic message
+            Message = ser.read(4)
+            if(len(Message) == 4):
+                TrafficMode,NumOfTraffic,NumMsg,MsgNum = struct.unpack("!BBBB", Message)
 
-      if msgType == 4 : # Navigation message
-        Message = ser.read(24)
-        Flags,HSISource,VNAVSource,APMode,Padding,HSINeedleAngle,HSIRoseHeading,HSIDeviation,VerticalDeviation,HeadingBug,AltimeterBug,WPDistance = struct.unpack("<HBBBBhHhhhii", Message)
+        if msgType == 4 : # Navigation message
+            Message = ser.read(24)
+            if(len(Message) == 24):
+                Flags,HSISource,VNAVSource,APMode,Padding,HSINeedleAngle,HSIRoseHeading,HSIDeviation,VerticalDeviation,HeadingBug,AltimeterBug,WPDistance = struct.unpack("<HBBBBhHhhhii", Message)
 
     else:
       return
@@ -225,12 +256,14 @@ def main():
     alt_box_mode = 0
     line_thickness = 2
     center_circle_mode = 0
+    thread1 = myThreadSerialReader()
+    thread1.start()
 
     while not done:
-        readMessage();
         clock.tick(args.maxframerate)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
+                thread1.stop()
                 done = True
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_q:
@@ -318,6 +351,15 @@ def main():
         pygame.display.flip()
 
     pygame.quit()
+    os.system('killall python')
+
+class myThreadSerialReader (threading.Thread):
+   def __init__(self):
+      threading.Thread.__init__(self)
+   def run(self):
+      while 1:
+        readMessage();
+
 
 # open serial connection.
 ser = serial.Serial(  
@@ -330,6 +372,7 @@ ser = serial.Serial(
 )
 efis_pitch = 0.1
 efis_roll = 0.1
+
 
 if __name__ == '__main__':
     sys.exit(main())

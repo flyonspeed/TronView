@@ -156,6 +156,7 @@ def readMessage():
 
     else:
       badmessageheaderCount += 1
+      ser.flushInput()
       return
   except serial.serialutil.SerialException:
     print "exception"

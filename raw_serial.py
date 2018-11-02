@@ -29,7 +29,7 @@ def readMessage():
   global ser
   try:
       t = ser.read(1)
-      x = ord(t);
+      x = ord(t)
       print "\t",x,
 
   except serial.serialutil.SerialException:

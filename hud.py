@@ -5,7 +5,7 @@ import argparse, pygame
 import time
 import serial
 import struct
-import threading
+import threading, getopt
 
 
 
@@ -27,7 +27,9 @@ class Vehicle(object):
             self.network_source['requests_session'] = requests.Session()
 
     def get_orientation(self):
-        self.update_orientation()
+        global efis_roll
+        global efis_pitch
+        self.set_orientation(roll=efis_roll, pitch=efis_pitch)
         return {'roll':     self.roll,
                 'pitch':    self.pitch,
                 'yaw':      self.yaw,
@@ -50,35 +52,35 @@ class Vehicle(object):
         if airspeed != None:
             self.airspeed = airspeed
 
-    def update_orientation(self):
-        if self.data_source == "serial":
-            r = self.roll + random.normalvariate(0, 0.5)
-            p = self.pitch + random.normalvariate(0, 0.5)
-            self.set_orientation(roll=r, pitch=p)
-            # global efis_roll
-            # global efis_pitch
-            # self.set_orientation(roll=efis_roll, pitch=efis_pitch)
+    # def update_orientation(self):
+    #     if self.data_source == "serial":
+    #         r = self.roll + random.normalvariate(0, 0.5)
+    #         p = self.pitch + random.normalvariate(0, 0.5)
+    #         self.set_orientation(roll=r, pitch=p)
+    #         # global efis_roll
+    #         # global efis_pitch
+    #         # self.set_orientation(roll=efis_roll, pitch=efis_pitch)
 
-        if self.data_source == "random":
-            r = self.roll + random.normalvariate(0, 0.5)
-            p = self.pitch + random.normalvariate(0, 0.5)
-            #self.set_orientation(roll=r, pitch=p)
-            global efis_roll
-            global efis_pitch
-            self.set_orientation(roll=efis_roll, pitch=efis_pitch)
+    #     if self.data_source == "random":
+    #         #r = self.roll + random.normalvariate(0, 0.5)
+    #         #p = self.pitch + random.normalvariate(0, 0.5)
+    #         #self.set_orientation(roll=r, pitch=p)
+    #         global efis_roll
+    #         global efis_pitch
+    #         self.set_orientation(roll=efis_roll, pitch=efis_pitch)
 
-        elif self.data_source == "manual":
-            r = float(raw_input('Roll? '))
-            p = float(raw_input('Pitch? '))
-            self.set_orientation(roll=r, pitch=p)
+    #     elif self.data_source == "manual":
+    #         r = float(raw_input('Roll? '))
+    #         p = float(raw_input('Pitch? '))
+    #         self.set_orientation(roll=r, pitch=p)
 
-        elif self.data_source == "network":
-            url = "http://{0}/getSituation".format(self.network_source['host'])
-            r = self.network_source['requests_session'].get(url, timeout=2)
-            self.set_orientation(roll=r.json()['AHRSRoll'], pitch=r.json()['AHRSPitch'])
+    #     elif self.data_source == "network":
+    #         url = "http://{0}/getSituation".format(self.network_source['host'])
+    #         r = self.network_source['requests_session'].get(url, timeout=2)
+    #         self.set_orientation(roll=r.json()['AHRSRoll'], pitch=r.json()['AHRSPitch'])
 
-        else:
-            raise ValueError
+    #     else:
+    #         raise ValueError
 
 def debug_print(debug, string, level=1):
     if debug >= level:
@@ -173,9 +175,9 @@ def readSerial(num):
     if (ser.inWaiting()>0):
         t = ser.read(1)
 
-def readMessage():
+def readMGLMessage():
   global ser
-  global efis_pitch, efis_roll
+  global efis_pitch, efis_roll, efis_ias , efis_pres_alt, efis_aoa,efis_mag_head
   try:
     x = 0
     while x != 5:
@@ -196,12 +198,17 @@ def readMessage():
                 HeadingMag,PitchAngle,BankAngle,YawAngle,TurnRate,Slip,GForce,LRForce,FRForce,BankRate,PitchRate,YawRate,SensorFlags = struct.unpack("<HhhhhhhhhhhhB", Message)
                 efis_pitch = PitchAngle * 0.1 # should this be * 0.1
                 efis_roll = BankAngle * 0.1 # should this be * 0.1
+                efis_mag_head = HeadingMag * 0.1
                 ser.flushInput()
 
         if msgType == 1 : # Primary flight
             Message = ser.read(18)
             if(len(Message) == 18):
                 PAltitude,BAltitude,ASI,TAS,AOA,VSI,Baro = struct.unpack("<iiHHhhH", Message)
+                if ASI>0:
+                    efis_ias = ASI * 0.05399565
+                efis_pres_alt = PAltitude
+                efis_aoa = AOA
 
         if msgType == 6 : # Traffic message
             Message = ser.read(4)
@@ -217,6 +224,36 @@ def readMessage():
       return
   except serial.serialutil.SerialException:
     print "exception"
+
+def readSkyviewMessage():
+  global ser
+  global efis_pitch, efis_roll, efis_ias, efis_pres_alt, efis_aoa,efis_mag_head
+  try:
+    x = 0
+    while x != 33:  # 33(!) is start of dynon skyview.
+      t = ser.read(1)
+      if len(t) != 0:
+        x = ord(t)
+    msg = ser.read(91)
+    if len(msg) == 91:
+      msg = (msg[:73]) if len(msg) > 73 else msg
+      dataType,DataVer,SysTime,pitch,roll,HeadingMAG,IAS,PresAlt,TurnRate,LatAccel,VertAccel,AOA,VertSpd,OAT,TAS,Baro,DA,WD,WS,Checksum,CRLF = struct.unpack("cc8s4s5s3s4s6s4s3s3s2s4s3s4s3s6s3s2s2s2s", msg)
+      if ord(CRLF[0]) == 13:
+        if dataType == '1':
+            efis_roll = int(roll) * 0.1
+            efis_pitch = int(pitch) * 0.1
+            efis_ias = int(IAS) * 0.1
+            efis_pres_alt = int(PresAlt)
+            efis_aoa = int(AOA)
+            efis_mag_head = int(HeadingMAG)
+            ser.flushInput()
+
+    else:
+      ser.flushInput()
+      return
+  except serial.serialutil.SerialException:
+    print "exception"
+
 
 class Point:
     # constructed using a normal tupple
@@ -252,18 +289,19 @@ def draw_dashed_line(surf, color, start_pos, end_pos, width=1, dash_length=10):
 
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--datasource", help="Where the orientation information comes from (default: %(default)s)",
-                        choices=["serial","random", "network", "manual"], default="random")
-    parser.add_argument("-n", "--networkhost", help="The name or IP address of the network host used as the data source")
-    parser.add_argument("-f", "--maxframerate", help="The maximum number of frames per second attempted (default: %(default)s)", type=int, default=20)
-    parser.add_argument("-D", "--debug", help="Enable verbose output for debugging purposes", action="count")
-    args = parser.parse_args()
+    global efis_pitch, efis_roll, efis_ias, efis_pres_alt, efis_aoa,efis_mag_head
+    #parser = argparse.ArgumentParser()
+    #parser.add_argument("-d", "--datasource", help="Where the orientation information comes from (default: %(default)s)",
+    #                    choices=["serial","random", "network", "manual"], default="random")
+    #parser.add_argument("-n", "--networkhost", help="The name or IP address of the network host used as the data source")
+    #parser.add_argument("-f", "--maxframerate", help="The maximum number of frames per second attempted (default: %(default)s)", type=int, default=20)
+    #parser.add_argument("-D", "--debug", help="Enable verbose output for debugging purposes", action="count")
+    #args = parser.parse_args()
 
-    if args.datasource == "network" and args.networkhost is None:
-        parser.error("--networkhost is required when --datasource is set to 'network'")
-
-    screen, screen_size = display_init(args.debug)
+    #if args.datasource == "network" and args.networkhost is None:
+    #    parser.error("--networkhost is required when --datasource is set to 'network'")
+    maxframerate = 20
+    screen, screen_size = display_init(0)
     width, height = screen_size
     pygame.mouse.set_visible(False)
 
@@ -272,7 +310,8 @@ def main():
 
     font = pygame.font.SysFont(None, int(height/20))
 
-    v = Vehicle(data_source=args.datasource, network_source={'host': args.networkhost})
+    #v = Vehicle(data_source=args.datasource, network_source={'host': args.networkhost})
+    v = Vehicle()
 
     ahrs_bg = pygame.Surface((width*2, height*2))
     ahrs = ahrs_bg
@@ -288,11 +327,9 @@ def main():
     alt_box_mode = 0
     line_thickness = 2
     center_circle_mode = 0
-    thread1 = myThreadSerialReader()
-    thread1.start()
 
     while not done:
-        clock.tick(args.maxframerate)
+        clock.tick(maxframerate)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 thread1.stop()
@@ -368,6 +405,14 @@ def main():
             screen.blit(label, (0, 0))
             label = myfont.render("Roll: %d" % (roll), 1, (255,255,0))
             screen.blit(label, (0, 20))
+            label = myfont.render("IAS: %d" % (efis_ias), 1, (255,255,0))
+            screen.blit(label, (0, 40))
+            label = myfont.render("PresAlt: %d" % (efis_pres_alt), 1, (255,255,0))
+            screen.blit(label, (0, 60))
+            label = myfont.render("AOA: %d" % (efis_aoa), 1, (255,255,0))
+            screen.blit(label, (0, 80))
+            label = myfont.render("MagHead: %d" % (efis_mag_head), 1, (255,255,0))
+            screen.blit(label, (0, 100))
 
         #pygame.draw.lines(screen, WHITE, False, [[0, height/2], [10, height/2]], 2)
         #pygame.draw.lines(screen, WHITE, False, [[width-10, height/2], [width, height/2]], 2)
@@ -389,11 +434,22 @@ def main():
     os.system('killall python')
 
 class myThreadSerialReader (threading.Thread):
-   def __init__(self):
+   def __init__(self,readTypeArg):
+      readType = readTypeArg
       threading.Thread.__init__(self)
    def run(self):
-      while 1:
-        readMessage();
+        if readType == 'skyview':
+          while 1:
+            readSkyviewMessage()
+        elif readType == 'mgl':
+          while 1:
+            readMGLMessage()
+
+def showArgs():
+  print 'hud.py <options>'
+  print ' -m (MGL iEFIS)'
+  print ' -s (Dynon Skyview)'
+  sys.exit()
 
 
 # open serial connection.
@@ -407,9 +463,30 @@ ser = serial.Serial(
 )
 efis_pitch = 0.1
 efis_roll = 0.1
-
+efis_ias = 0
+efis_pres_alt = 0
+efis_mag_head = 0
 
 if __name__ == '__main__':
+
+    argv = sys.argv[1:]
+    readType = 'none'
+    try:
+      opts, args = getopt.getopt(argv,'hsm', ['skyview=',])
+    except getopt.GetoptError:
+      showArgs()
+    for opt, arg in opts:
+      if opt == '-h':
+        showArgs()
+      elif opt == '-s':
+        readType = 'skyview'
+      elif opt == '-m':
+        readType = 'mgl'
+    if readType == 'none': showArgs()
+
+    thread1 = myThreadSerialReader(readType)
+    thread1.start()
+
     sys.exit(main())
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

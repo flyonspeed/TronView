@@ -5,7 +5,7 @@ import time
 import serial
 import struct
 import sys
-import os
+import os, getopt
 
 version = "0.1"
 
@@ -82,32 +82,21 @@ def readSerial(num):
     if (ser.inWaiting()>num):
       ser.read(ser.inWaiting())
 
-def readMessage():
+def readMGLMessage():
   global ser
   global badmessageheaderCount, sinceLastGoodMessage, goodmessageheaderCount, unkownMsgCount
   try:
-    x = 0
-    while x != 5:
-      t = ser.read(1)
-      sinceLastGoodMessage += 1
-      print_xy(3,0,"SinceGood: %d"%(sinceLastGoodMessage) )
-      print_xy(3,17,"Bad msgHead: %d"%(badmessageheaderCount) )
-      print_xy(3,33,"Good msgHead: %d "%(goodmessageheaderCount) )
-      print_xy(3,50,"unkown Msg: %d "%(unkownMsgCount) )
-
-      if len(t) != 0:
-        x = ord(t)
     stx = ord(ser.read(1))
-    
     if stx == 2:
       MessageHeader = ser.read(6)
       if len(MessageHeader) == 6:
         msgLength,msgLengthXOR,msgType,msgRate,msgCount,msgVerion = struct.unpack("!BBBBBB", MessageHeader)
         sinceLastGoodMessage = 0
         goodmessageheaderCount += 1
-
-
-        #print "found message len:",msgLength
+        print_xy(3,0,"SinceGood: %d"%(sinceLastGoodMessage) )
+        print_xy(3,17,"Bad msgHead: %d"%(badmessageheaderCount) )
+        print_xy(3,33,"Good msgHead: %d "%(goodmessageheaderCount) )
+        print_xy(3,50,"unkown Msg: %d "%(unkownMsgCount) )
 
         if msgType == 3 : # attitude information
           Message = ser.read(25)
@@ -115,11 +104,11 @@ def readMessage():
             # use struct to unpack binary data.  https://docs.python.org/2.7/library/struct.html
             HeadingMag,PitchAngle,BankAngle,YawAngle,TurnRate,Slip,GForce,LRForce,FRForce,BankRate,PitchRate,YawRate,SensorFlags = struct.unpack("<HhhhhhhhhhhhB", Message)
             print_xy(4 ,0,bcolors.OKGREEN+"Attitude(3)"+bcolors.ENDC)
-            print_xy(5 ,0,"HeadingMAG:%d  " % (HeadingMag))
-            print_xy(6 ,0,"Pitch:     %d  " % (PitchAngle))
-            print_xy(7 ,0,"Bank:      %d  " % (BankAngle))
-            print_xy(8 ,0,"Yaw:       %d  " % (YawAngle))
-            print_xy(9 ,0,"TurnRate:  %d  " % (TurnRate))
+            print_xy(5 ,0,"HeadingMAG:%d  " % (HeadingMag * 0.1))
+            print_xy(6 ,0,"Pitch:     %d  " % (PitchAngle * 0.1))
+            print_xy(7 ,0,"Bank:      %d  " % (BankAngle * 0.1))
+            print_xy(8 ,0,"Yaw:       %d  " % (YawAngle * 0.1))
+            print_xy(9 ,0,"TurnRate:  %d  " % (TurnRate * 0.1))
             print_xy(10,0,"Slip:      %d  " % (Slip))
             print_xy(11,0,"GForce:    %d  " % (GForce))
             print_xy(12,0,"SensorFlag:%s  " % (get_bin(SensorFlags)))
@@ -131,8 +120,8 @@ def readMessage():
             print_xy(4 ,21,bcolors.OKGREEN+"Primary flight(1)")
             print_xy(5 ,21,"Pat Alt: %d  " % (PAltitude))
             print_xy(6 ,21,"Bao Alt: %d  " % (BAltitude))
-            print_xy(7 ,21,"ASI:     %d  " % (ASI))
-            print_xy(8 ,21,"TAS:     %d  " % (TAS))
+            print_xy(7 ,21,"ASI:     %dkts  " % (ASI*0.05399565))
+            print_xy(8 ,21,"TAS:     %d  " % (TAS**0.05399565))
             print_xy(9 ,21,"AOA:     %d  " % (AOA))
             print_xy(10,21,"VSI:     %d  " % (VSI))
             print_xy(11,21,"Baro:    %d  " % (Baro))
@@ -167,16 +156,15 @@ def readMessage():
           if len(Message) == 36:
             Latitude,Longitude,GPSAltitude,AGL,NorthV,EastV,DownV,GS,TrackTrue,Variation,GPS,SatsTracked = struct.unpack("<iiiiiiiHHhBB", Message)
             print_xy(15,24,bcolors.OKGREEN+"GPS(2)"+bcolors.ENDC)
-            print_xy(16,24,"Latitude:  %d  " % (Latitude))
-            print_xy(17,24,"Longitude: %d  " % (Longitude))
+            print_xy(16,24,"Latitude:  %f  " % (Latitude))
+            print_xy(17,24,"Longitude: %f  " % (Longitude))
             print_xy(18,24,"GPSAlt:    %d  " % (GPSAltitude))
             print_xy(19,24,"AGL:       %d  " % (AGL))
-            print_xy(20,24,"GS:        %d  " % (GS))
+            print_xy(20,24,"GS:        %dkts " % (GS*0.05399565)) # convert to knots.
             print_xy(21,24,"TrackTrue: %d  " % (TrackTrue))
-            print_xy(22,24,"GS:        %d  " % (GS))
-            print_xy(23,24,"Variation: %d  " % (Variation))
-            print_xy(24,24,"Status:    %s " % (get_bin(GPS)))
-            print_xy(25,24,"SatsTracke:%d  " % (SatsTracked))
+            print_xy(22,24,"Variation: %d  " % (Variation))
+            print_xy(23,24,"Status:    %s " % (get_bin(GPS)))
+            print_xy(24,24,"SatsTracke:%d  " % (SatsTracked))
 
         else:
             unkownMsgCount += 1
@@ -190,15 +178,107 @@ def readMessage():
   except serial.serialutil.SerialException:
     print "exception"
 
+def readSkyviewMessage():
+  global ser
+  global badmessageheaderCount, sinceLastGoodMessage, goodmessageheaderCount, unkownMsgCount
+  try:
+    x = 0
+    while x != 33:  # 33(!) is start of dynon skyview.
+      t = ser.read(1)
+      sinceLastGoodMessage += 1
+      print_xy(3,0,"SinceGood: %d"%(sinceLastGoodMessage) )
+      print_xy(3,17,"Bad msgHead: %d"%(badmessageheaderCount) )
+      print_xy(3,33,"Good msgHead: %d "%(goodmessageheaderCount) )
+      print_xy(3,50,"unkown Msg: %d "%(unkownMsgCount) )
 
+      if len(t) != 0:
+        x = ord(t)
 
+    msg = ser.read(73)
+    if len(msg) == 73:
+      sinceLastGoodMessage = 0
+      msg = (msg[:73]) if len(msg) > 73 else msg
+      dataType,DataVer,SysTime,pitch,roll,HeadingMAG,IAS,PresAlt,TurnRate,LatAccel,VertAccel,AOA,VertSpd,OAT,TAS,Baro,DA,WD,WS,Checksum,CRLF = struct.unpack("cc8s4s5s3s4s6s4s3s3s2s4s3s4s3s6s3s2s2s2s", msg)
+      #dataType,DataVer,SysTime = struct.unpack("cc8s", msg)
+
+      if ord(CRLF[0]) == 13:
+        intCheckSum = int("0x%s"%(Checksum), 0)
+        print_xy(4 ,0,msg)
+        calcChecksum = sum(map(ord, msg[:69])) % 256
+        calcChecksumHex = '0x{:02x}'.format(calcChecksum)
+        if dataType == '1':
+          goodmessageheaderCount += 1
+          print_xy(5 ,0,bcolors.OKGREEN+"ADHRS(1)"+bcolors.ENDC)
+          print_xy(6 ,0,"DataType: %s"%(dataType))
+          print_xy(7 ,0,"Ver:      %s"%(DataVer))
+          print_xy(8 ,0,"SysTime:  %s"%(SysTime))
+          print_xy(9 ,0,"Pitch:    %s"%(pitch))
+          print_xy(10,0,"Roll:     %s"%(roll))
+          print_xy(11,0,"HeadMag:  %s"%(HeadingMAG))
+          print_xy(12,0,"IAS:      %s"%(IAS))
+          print_xy(13,0,"PresAlt:  %s"%(PresAlt))
+          print_xy(14,0,"TurnRate: %s"%(TurnRate))
+          print_xy(15,0,"LatAccel: %s"%(LatAccel))
+          print_xy(16,0,"VertAccel:%s"%(VertAccel))
+          print_xy(17,0,"AOA:      %s"%(AOA))
+          print_xy(18,0,"VertSpd:  %s"%(VertSpd))
+          print_xy(19,0,"OAT:      %s"%(OAT))
+          print_xy(20,0,"TAS:      %s"%(TAS))
+          print_xy(21,0,"Baro:     %s"%(Baro))
+          print_xy(22,0,"DensitAlt:%s"%(DA))
+          print_xy(23,0,"WndDir:   %s"%(WD))
+          print_xy(24,0,"WndSpd:   %s"%(WS))
+          print_xy(25,0,"ChkSum:   0x%s int:%d "%(Checksum,intCheckSum))
+          print_xy(26,0,"CalChkSum:%s int:%d "%(calcChecksumHex,calcChecksum))
+          nextByte = ser.read(1)
+          print_xy(27,0,"endbyte: %d "%(ord(CRLF[0])))
+      else:
+        badmessageheaderCount += 1
+      ser.flushInput()
+
+    else:
+      badmessageheaderCount += 1
+      ser.flushInput()
+      return
+  except serial.serialutil.SerialException:
+    print "exception"
+
+def showArgs():
+  print "EFIS 2 Hud Serial monitor tool. Version: %s" % (version)
+  print 'read_serial.py <options>'
+  print ' -m (MGL iEFIS)'
+  print ' -s (Dynon Skyview)'
+  sys.exit()
 
 #
 # MAIN LOOP
 
+
+argv = sys.argv[1:]
+readType = 'none'
+try:
+  opts, args = getopt.getopt(argv,'hsm', ['skyview=',])
+except getopt.GetoptError:
+  showArgs()
+for opt, arg in opts:
+  if opt == '-h':
+    showArgs()
+  elif opt == '-s':
+    readType = 'skyview'
+  elif opt == '-m':
+    readType = 'mgl'
+
+if readType == 'none':
+  showArgs()
+
 os.system('clear')
 print_xy(1,0,bcolors.HEADER+"HUD serial data monitor."+bcolors.ENDC+"  Version: %s" % (version))
-print_xy(2,0,"Data format: "+bcolors.OKBLUE+"MGL"+bcolors.ENDC)
-while 1:
-  readMessage()
+if readType == 'skyview':
+  print_xy(2,0,"Data format: "+bcolors.OKBLUE+"Dynon Skyview"+bcolors.ENDC)
+  while 1:
+    readSkyviewMessage()
+elif readType == 'mgl':
+  print_xy(2,0,"Data format: "+bcolors.OKBLUE+"MGL"+bcolors.ENDC)
+  while 1:
+    readMGLMessage()
 

@@ -5,7 +5,7 @@ import time
 import serial
 import struct
 import sys
-import os
+import os, getopt
 
 version = "0.1"
 
@@ -25,18 +25,38 @@ def print_xy(x, y, text):
      sys.stdout.flush()
 
 
-def readMessage():
+def readMessage(showBin):
   global ser
   try:
       t = ser.read(1)
-      x = ord(t)
-      print "\t",x,
+      if showBin == 1:
+        x = ord(t)
+      else:
+        x = t;
+
+      print x,
 
   except serial.serialutil.SerialException:
     print "exception"
 
 
 os.system('clear')
+argv = sys.argv[1:]
+showBin = 0
+try:
+  opts, args = getopt.getopt(argv,'hb', ['bin=',])
+except getopt.GetoptError:
+  print 'raw_serial.py -b'
+  sys.exit(2)
+for opt, arg in opts:
+  if opt == '-h':
+     print 'raw_serial.py <options>'
+     print ' -b (show binary)'
+     sys.exit()
+  elif opt == '-b':
+    showBin = 1
+
+
 while 1:
-  readMessage()
+  readMessage(showBin)
 

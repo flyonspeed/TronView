@@ -1,7 +1,7 @@
 # efis_to_hud
 Project for connecting efis data to a HUD.  
 
-We are using the rapberry pi zero w for taking serial data from a EFIS (MGL) and displaying a graphical HUD out the hdmi output on the pi.  This is plugged into a HUD device like the Hudly Classic.
+We are using the rapberry pi zero w for taking serial data from a EFIS (MGL or Dynon Skyview) and displaying a graphical HUD out the hdmi output on the pi.  This is plugged into a HUD device like the Hudly Classic.
 
 Get raspbian-stretch-lite SD image for pi. Latest can be gotten here.
 https://downloads.raspberrypi.org/raspbian_lite_latest
@@ -72,4 +72,30 @@ a - show alt/airspeed tape (work in progress)
 l - adjust line thickness
 
 c - center circle mode
+
+
+
+## Screen resolution for hudly
+
+
+1.        Type “sudo raspi-config”
+2.        Select "Advanced options"
+3.        Select A5 – Resolution  (Screen)  -> Select “CEA Mode 3  720x480  60 Hz  16:9”
+6.        Select “OK”
+7.        Select:  "Finish"
+8.        Select:  "Yes"
+9.        Wait for the reboot
+
+
+
+## hud.cfg
+
+hud.cfg can be created and sit in the same dir as the hud.py python app.  It's used for configuring the hud.
+
+
+`
+[HUD]
+vertical_degrees = 10  # how many degrees to show the vertical attitude indicator in
+efis_data_format = mgl # data format to read serial data in.
+`
 

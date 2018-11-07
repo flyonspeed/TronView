@@ -6,8 +6,23 @@ import time
 import serial
 import struct
 import threading, getopt
+import ConfigParser
 
 
+def readConfig(section,name,defaultValue=0,show_error=False):
+    global configParser
+    try:
+        value = configParser.get(section, name)
+        return value
+    except Exception as e:
+        if show_error == True:
+            print "config error section: ",section," key:",name," -- not found"
+        return defaultValue
+    else:
+        return defaultValue
+
+def readConfigInt(section,name,defaultValue=0):
+    return int(readConfig(section,name,defaultValue=defaultValue))
 
 class Vehicle(object):
     def __init__(self, data_source="random", network_source=None):
@@ -52,36 +67,6 @@ class Vehicle(object):
         if airspeed != None:
             self.airspeed = airspeed
 
-    # def update_orientation(self):
-    #     if self.data_source == "serial":
-    #         r = self.roll + random.normalvariate(0, 0.5)
-    #         p = self.pitch + random.normalvariate(0, 0.5)
-    #         self.set_orientation(roll=r, pitch=p)
-    #         # global efis_roll
-    #         # global efis_pitch
-    #         # self.set_orientation(roll=efis_roll, pitch=efis_pitch)
-
-    #     if self.data_source == "random":
-    #         #r = self.roll + random.normalvariate(0, 0.5)
-    #         #p = self.pitch + random.normalvariate(0, 0.5)
-    #         #self.set_orientation(roll=r, pitch=p)
-    #         global efis_roll
-    #         global efis_pitch
-    #         self.set_orientation(roll=efis_roll, pitch=efis_pitch)
-
-    #     elif self.data_source == "manual":
-    #         r = float(raw_input('Roll? '))
-    #         p = float(raw_input('Pitch? '))
-    #         self.set_orientation(roll=r, pitch=p)
-
-    #     elif self.data_source == "network":
-    #         url = "http://{0}/getSituation".format(self.network_source['host'])
-    #         r = self.network_source['requests_session'].get(url, timeout=2)
-    #         self.set_orientation(roll=r.json()['AHRSRoll'], pitch=r.json()['AHRSPitch'])
-
-    #     else:
-    #         raise ValueError
-
 def debug_print(debug, string, level=1):
     if debug >= level:
         print string
@@ -119,7 +104,7 @@ def display_init(debug):
 
     return screen, size
 
-def get_line_coords(screen_width, screen_height, ahrs_center, pitch=0, roll=0, deg_ref=0,line_mode=1):
+def generateHudReferenceLine(screen_width, screen_height, ahrs_center, pitch=0, roll=0, deg_ref=0,line_mode=1):
 
     if line_mode == 1:
         if deg_ref == 0:
@@ -289,17 +274,10 @@ def draw_dashed_line(surf, color, start_pos, end_pos, width=1, dash_length=10):
 
 
 def main():
-    global efis_pitch, efis_roll, efis_ias, efis_pres_alt, efis_aoa,efis_mag_head
-    #parser = argparse.ArgumentParser()
-    #parser.add_argument("-d", "--datasource", help="Where the orientation information comes from (default: %(default)s)",
-    #                    choices=["serial","random", "network", "manual"], default="random")
-    #parser.add_argument("-n", "--networkhost", help="The name or IP address of the network host used as the data source")
-    #parser.add_argument("-f", "--maxframerate", help="The maximum number of frames per second attempted (default: %(default)s)", type=int, default=20)
-    #parser.add_argument("-D", "--debug", help="Enable verbose output for debugging purposes", action="count")
-    #args = parser.parse_args()
+    global done, efis_pitch, efis_roll, efis_ias, efis_pres_alt, efis_aoa,efis_mag_head
+    ahrs_line_deg = readConfigInt('HUD','vertical_degrees',15)
+    print "ahrs_line_deg = ", ahrs_line_deg;
 
-    #if args.datasource == "network" and args.networkhost is None:
-    #    parser.error("--networkhost is required when --datasource is set to 'network'")
     maxframerate = 20
     screen, screen_size = display_init(0)
     width, height = screen_size
@@ -319,7 +297,6 @@ def main():
     ahrs_bg_height = ahrs_bg.get_height()
     ahrs_bg_center = (ahrs_bg_width/2, ahrs_bg_height/2)
 
-    done = False
     clock = pygame.time.Clock()
     myfont = pygame.font.SysFont("monospace", 22) # initialize font; must be called after 'pygame.init()' to avoid 'Font not Initialized' error
     show_debug = False
@@ -368,8 +345,8 @@ def main():
 
         # range isn't inclusive of the stop value, so if stop is 60 then there's no line make
         # for 60
-        for l in range(-60, 61, 5):
-            line_coords = get_line_coords(width, height, ahrs_bg_center, pitch=pitch, roll=roll, deg_ref=l, line_mode=line_mode)
+        for l in range(-60, 61, ahrs_line_deg):
+            line_coords = generateHudReferenceLine(width, height, ahrs_bg_center, pitch=pitch, roll=roll, deg_ref=l, line_mode=line_mode)
 
             if abs(l)>45:
                 if l%5 == 0 and l%10 != 0:
@@ -434,21 +411,34 @@ def main():
     os.system('killall python')
 
 class myThreadSerialReader (threading.Thread):
-   def __init__(self,readTypeArg):
-      readType = readTypeArg
+   def __init__(self):
       threading.Thread.__init__(self)
    def run(self):
-        if readType == 'skyview':
-          while 1:
+        global done
+        if efis_data_format == 'skyview':
+          while 1 and done==False:
             readSkyviewMessage()
-        elif readType == 'mgl':
-          while 1:
+        elif efis_data_format == 'mgl':
+          while 1 and done==False:
             readMGLMessage()
+        else:
+            done = True
+            print "Unkown efis_data_format: ",efis_data_format
+        pygame.quit()
+        sys.exit()
+
 
 def showArgs():
+  global efis_data_format
   print 'hud.py <options>'
   print ' -m (MGL iEFIS)'
   print ' -s (Dynon Skyview)'
+  if os.path.isfile("hud.cfg") == False:
+    print ' hud.cfg not found (default values will be used)'
+  else:
+    print ' hud.cfg FOUND'
+    print ' hud.cfg efis_data_format=',efis_data_format
+
   sys.exit()
 
 
@@ -461,16 +451,19 @@ ser = serial.Serial(
   bytesize=serial.EIGHTBITS,
   timeout=1
 )
+configParser = ConfigParser.RawConfigParser()   
+configParser.read("hud.cfg")
+
 efis_pitch = 0.1
 efis_roll = 0.1
 efis_ias = 0
 efis_pres_alt = 0
 efis_mag_head = 0
+done = False
 
 if __name__ == '__main__':
-
     argv = sys.argv[1:]
-    readType = 'none'
+    efis_data_format = readConfig("HUD","efis_data_format","none")
     try:
       opts, args = getopt.getopt(argv,'hsm', ['skyview=',])
     except getopt.GetoptError:
@@ -479,14 +472,14 @@ if __name__ == '__main__':
       if opt == '-h':
         showArgs()
       elif opt == '-s':
-        readType = 'skyview'
+        efis_data_format = 'skyview'
       elif opt == '-m':
-        readType = 'mgl'
-    if readType == 'none': showArgs()
+        efis_data_format = 'mgl'
+    if efis_data_format == 'none': showArgs()
 
-    thread1 = myThreadSerialReader(readType)
+    thread1 = myThreadSerialReader()
     thread1.start()
-
+   
     sys.exit(main())
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

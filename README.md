@@ -92,10 +92,22 @@ c - center circle mode
 
 hud.cfg can be created and sit in the same dir as the hud.py python app.  It's used for configuring the hud.
 
+Here is a example hud.cfg file:
 
-`
+<pre>
+
 [HUD]
-vertical_degrees = 10  # how many degrees to show the vertical attitude indicator in
-efis_data_format = mgl # data format to read serial data in.
-`
+#how many degrees to show on the vert hud lines
+vertical_degrees = 10 
+
+[DataInput]
+# format mgl or skyview
+format = mgl
+# port name for serial input. Default is /dev/ttyS0
+port = /dev/ttyS1 
+# baud rate. Default is 115200
+baudrate = 115200 
+
+
+</pre>
 

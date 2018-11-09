@@ -442,15 +442,6 @@ def showArgs():
   sys.exit()
 
 
-# open serial connection.
-ser = serial.Serial(  
-  port='/dev/ttyS0',
-  baudrate = 115200,
-  parity=serial.PARITY_NONE,
-  stopbits=serial.STOPBITS_ONE,
-  bytesize=serial.EIGHTBITS,
-  timeout=1
-)
 configParser = ConfigParser.RawConfigParser()   
 configParser.read("hud.cfg")
 
@@ -461,9 +452,22 @@ efis_pres_alt = 0
 efis_mag_head = 0
 done = False
 
+efis_data_format = readConfig("DataInput","format","none")
+efis_data_port   = readConfig("DataInput","port","/dev/ttyS0")
+efis_data_baudrate   = readConfigInt("DataInput","baudrate",115200)
+
+# open serial connection.
+ser = serial.Serial(  
+  port=efis_data_port,
+  baudrate = efis_data_baudrate,
+  parity=serial.PARITY_NONE,
+  stopbits=serial.STOPBITS_ONE,
+  bytesize=serial.EIGHTBITS,
+  timeout=1
+)
+
 if __name__ == '__main__':
     argv = sys.argv[1:]
-    efis_data_format = readConfig("HUD","efis_data_format","none")
     try:
       opts, args = getopt.getopt(argv,'hsm', ['skyview=',])
     except getopt.GetoptError:

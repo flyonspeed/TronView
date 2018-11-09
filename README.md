@@ -97,14 +97,25 @@ Here is a example hud.cfg file:
 <pre>
 
 [HUD]
-#how many degrees to show on the vert hud lines
+#how many degrees to show on the vert hud lines. 5, 10, or 15
 vertical_degrees = 10 
 
+# line mode.  0 = skinny, 2 = bigger
+line_mode = 1
+
+# line thickness.  1 to 6 
+line_thickness = 2
+
+# center circle.  size of center circle. 0 = none. 1 tiny - 3 large
+center_circle = 2
+
 [DataInput]
-# format mgl or skyview
+# format of serial input. mgl or skyview
 format = mgl
+
 # port name for serial input. Default is /dev/ttyS0
-port = /dev/ttyS1 
+port = /dev/ttyS0 
+
 # baud rate. Default is 115200
 baudrate = 115200 
 

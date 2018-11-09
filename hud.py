@@ -161,7 +161,7 @@ def readSerial(num):
         t = ser.read(1)
 
 def readMGLMessage():
-  global ser
+  global ser, done
   global efis_pitch, efis_roll, efis_ias , efis_pres_alt, efis_aoa,efis_mag_head
   try:
     x = 0
@@ -208,10 +208,11 @@ def readMGLMessage():
     else:
       return
   except serial.serialutil.SerialException:
-    print "exception"
+    print "serial exception"
+    done = True;
 
 def readSkyviewMessage():
-  global ser
+  global ser, done
   global efis_pitch, efis_roll, efis_ias, efis_pres_alt, efis_aoa,efis_mag_head
   try:
     x = 0
@@ -237,7 +238,8 @@ def readSkyviewMessage():
       ser.flushInput()
       return
   except serial.serialutil.SerialException:
-    print "exception"
+    print "serial exception"
+    done = True;
 
 
 class Point:
@@ -278,7 +280,7 @@ def main():
     ahrs_line_deg = readConfigInt('HUD','vertical_degrees',15)
     print "ahrs_line_deg = ", ahrs_line_deg;
 
-    maxframerate = 20
+    maxframerate = readConfigInt('HUD','maxframerate',15)
     screen, screen_size = display_init(0)
     width, height = screen_size
     pygame.mouse.set_visible(False)
@@ -287,8 +289,6 @@ def main():
     BLACK = (0, 0, 0)
 
     font = pygame.font.SysFont(None, int(height/20))
-
-    #v = Vehicle(data_source=args.datasource, network_source={'host': args.networkhost})
     v = Vehicle()
 
     ahrs_bg = pygame.Surface((width*2, height*2))
@@ -300,10 +300,10 @@ def main():
     clock = pygame.time.Clock()
     myfont = pygame.font.SysFont("monospace", 22) # initialize font; must be called after 'pygame.init()' to avoid 'Font not Initialized' error
     show_debug = False
-    line_mode = 1
+    line_mode = readConfigInt('HUD','line_mode',1)
     alt_box_mode = 0
-    line_thickness = 2
-    center_circle_mode = 0
+    line_thickness = readConfigInt('HUD','line_thickness',2)
+    center_circle_mode = readConfigInt('HUD','center_circle',2)
 
     while not done:
         clock.tick(maxframerate)
@@ -397,11 +397,11 @@ def main():
             pygame.draw.rect(screen,WHITE,(0,height/4,100,height/1.5),1)
             pygame.draw.rect(screen,WHITE,(width-100,height/4,100,height/1.5),1)
 
-        if center_circle_mode == 0:
-            pygame.draw.circle(screen, WHITE, (width/2,height/2), 15, 1)
         if center_circle_mode == 1:
             pygame.draw.circle(screen, WHITE, (width/2,height/2), 3, 1)
         if center_circle_mode == 2:
+            pygame.draw.circle(screen, WHITE, (width/2,height/2), 15, 1)
+        if center_circle_mode == 3:
             pygame.draw.circle(screen, WHITE, (width/2,height/2), 50, 1)
 
 
@@ -425,6 +425,8 @@ class myThreadSerialReader (threading.Thread):
             done = True
             print "Unkown efis_data_format: ",efis_data_format
         pygame.quit()
+        #sys.stdout.flush()
+        #sys.stderr.flush()
         sys.exit()
 
 
@@ -442,9 +444,22 @@ def showArgs():
   sys.exit()
 
 
+
+######################################
+#####################################
+# Hud start code.
+#
+#
+
+# redirct output to output.log
+#sys.stdout = open('output.log', 'w')
+#sys.stderr = open('output_error.log', 'w')
+
+# load hud.cfg file if it exists.
 configParser = ConfigParser.RawConfigParser()   
 configParser.read("hud.cfg")
 
+# define local global vars
 efis_pitch = 0.1
 efis_roll = 0.1
 efis_ias = 0
@@ -452,6 +467,7 @@ efis_pres_alt = 0
 efis_mag_head = 0
 done = False
 
+# load some default data from config.
 efis_data_format = readConfig("DataInput","format","none")
 efis_data_port   = readConfig("DataInput","port","/dev/ttyS0")
 efis_data_baudrate   = readConfigInt("DataInput","baudrate",115200)
@@ -481,6 +497,7 @@ if __name__ == '__main__':
         efis_data_format = 'mgl'
     if efis_data_format == 'none': showArgs()
 
+    # start thread to read serial data.
     thread1 = myThreadSerialReader()
     thread1.start()
    

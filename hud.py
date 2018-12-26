@@ -162,7 +162,7 @@ def readSerial(num):
 
 def readMGLMessage():
   global ser, done
-  global efis_pitch, efis_roll, efis_ias , efis_pres_alt, efis_aoa,efis_mag_head
+  global efis_pitch, efis_roll, efis_ias , efis_pres_alt, efis_aoa,efis_mag_head, efis_baro
   try:
     x = 0
     while x != 5:
@@ -192,7 +192,8 @@ def readMGLMessage():
                 PAltitude,BAltitude,ASI,TAS,AOA,VSI,Baro = struct.unpack("<iiHHhhH", Message)
                 if ASI>0:
                     efis_ias = ASI * 0.05399565
-                efis_pres_alt = PAltitude
+                efis_pres_alt = BAltitude
+                efis_baro = Baro * 0.029529983071445
                 efis_aoa = AOA
 
         if msgType == 6 : # Traffic message
@@ -213,7 +214,7 @@ def readMGLMessage():
 
 def readSkyviewMessage():
   global ser, done
-  global efis_pitch, efis_roll, efis_ias, efis_pres_alt, efis_aoa,efis_mag_head
+  global efis_pitch, efis_roll, efis_ias, efis_pres_alt, efis_aoa,efis_mag_head,efis_baro
   try:
     x = 0
     while x != 33:  # 33(!) is start of dynon skyview.
@@ -232,6 +233,7 @@ def readSkyviewMessage():
             efis_pres_alt = int(PresAlt)
             efis_aoa = int(AOA)
             efis_mag_head = int(HeadingMAG)
+            efis_baro = int(Baro) * 0.029529983071445
             ser.flushInput()
 
     else:
@@ -276,7 +278,7 @@ def draw_dashed_line(surf, color, start_pos, end_pos, width=1, dash_length=10):
 
 
 def main():
-    global done, efis_pitch, efis_roll, efis_ias, efis_pres_alt, efis_aoa,efis_mag_head
+    global done, efis_pitch, efis_roll, efis_ias, efis_pres_alt, efis_aoa,efis_mag_head, efis_baro
     ahrs_line_deg = readConfigInt('HUD','vertical_degrees',15)
     print "ahrs_line_deg = ", ahrs_line_deg;
 
@@ -288,7 +290,6 @@ def main():
     WHITE = (0, 255, 0)
     BLACK = (0, 0, 0)
 
-    font = pygame.font.SysFont(None, int(height/20))
     v = Vehicle()
 
     ahrs_bg = pygame.Surface((width*2, height*2))
@@ -298,7 +299,9 @@ def main():
     ahrs_bg_center = (ahrs_bg_width/2, ahrs_bg_height/2)
 
     clock = pygame.time.Clock()
-    myfont = pygame.font.SysFont("monospace", 22) # initialize font; must be called after 'pygame.init()' to avoid 'Font not Initialized' error
+    font = pygame.font.SysFont(None, int(height/20))  # font used by horz lines
+    myfont = pygame.font.SysFont("monospace", 22) # font used by debug. initialize font; must be called after 'pygame.init()' to avoid 'Font not Initialized' error
+    fontIndicator = pygame.font.SysFont("monospace", 40) # font used
     show_debug = False
     line_mode = readConfigInt('HUD','line_mode',1)
     alt_box_mode = 0
@@ -345,6 +348,7 @@ def main():
 
         # range isn't inclusive of the stop value, so if stop is 60 then there's no line make
         # for 60
+        # draw horz lines
         for l in range(-60, 61, ahrs_line_deg):
             line_coords = generateHudReferenceLine(width, height, ahrs_bg_center, pitch=pitch, roll=roll, deg_ref=l, line_mode=line_mode)
 
@@ -390,12 +394,24 @@ def main():
             screen.blit(label, (0, 80))
             label = myfont.render("MagHead: %d" % (efis_mag_head), 1, (255,255,0))
             screen.blit(label, (0, 100))
+            label = myfont.render("Baro: %d" % (efis_baro), 1, (20,255,0))
+            screen.blit(label, (0, 120))
 
         #pygame.draw.lines(screen, WHITE, False, [[0, height/2], [10, height/2]], 2)
         #pygame.draw.lines(screen, WHITE, False, [[width-10, height/2], [width, height/2]], 2)
         if alt_box_mode:
-            pygame.draw.rect(screen,WHITE,(0,height/4,100,height/1.5),1)
-            pygame.draw.rect(screen,WHITE,(width-100,height/4,100,height/1.5),1)
+            pygame.draw.rect(screen,WHITE,(0, (height/2) ,100,35), 1 )
+            label = fontIndicator.render("%d" % (efis_ias), 1, (255,255,0))
+            screen.blit(label, (10, height/2 ) )
+
+            pygame.draw.rect(screen,WHITE,(width-100, (height/2) ,100,35), 1 )
+            label = fontIndicator.render("%d" % (efis_pres_alt), 1, (255,255,0))
+            screen.blit(label, (width-90, height/2 ) )
+            #pygame.draw.rect(screen,WHITE,(width-100,height/4,100,height/1.5),1)
+            
+
+            #pygame.draw.rect(screen,WHITE,(0,height/4,100,height/1.5),1)
+            #pygame.draw.rect(screen,WHITE,(width-100,height/4,100,height/1.5),1)
 
         if center_circle_mode == 1:
             pygame.draw.circle(screen, WHITE, (width/2,height/2), 3, 1)

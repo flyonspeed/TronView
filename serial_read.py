@@ -224,7 +224,10 @@ def readSkyviewMessage():
           print_xy(18,0,"VertSpd:  %s"%(VertSpd))
           print_xy(19,0,"OAT:      %s"%(OAT))
           print_xy(20,0,"TAS:      %s"%(TAS))
-          print_xy(21,0,"Baro:     %s"%(Baro))
+          converted_Baro = (int(Baro) + 27.5) / 10
+          baro_diff = 29.921 - converted_Baro
+          converted_alt = int(int(PresAlt) + (baro_diff / 0.00108))
+          print_xy(21,0,"Baro:     %0.4f  Alt: %d ft   "%(converted_Baro,converted_alt))
           print_xy(22,0,"DensitAlt:%s"%(DA))
           print_xy(23,0,"WndDir:   %s"%(WD))
           print_xy(24,0,"WndSpd:   %s"%(WS))

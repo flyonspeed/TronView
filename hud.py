@@ -162,7 +162,7 @@ def readSerial(num):
 
 def readMGLMessage():
   global ser, done
-  global efis_pitch, efis_roll, efis_ias , efis_pres_alt, efis_aoa,efis_mag_head, efis_baro
+  global efis_pitch, efis_roll, efis_ias , efis_alt, efis_aoa,efis_mag_head, efis_baro, baro_diff, efis_msg_count, efis_vsi, efis_gndspeed, efis_tas, efis_agl, efis_PALT, efis_BALT
   try:
     x = 0
     while x != 5:
@@ -183,29 +183,54 @@ def readMGLMessage():
                 HeadingMag,PitchAngle,BankAngle,YawAngle,TurnRate,Slip,GForce,LRForce,FRForce,BankRate,PitchRate,YawRate,SensorFlags = struct.unpack("<HhhhhhhhhhhhB", Message)
                 efis_pitch = PitchAngle * 0.1 # should this be * 0.1
                 efis_roll = BankAngle * 0.1 # should this be * 0.1
-                efis_mag_head = HeadingMag * 0.1
-                ser.flushInput()
+                if HeadingMag != 0:
+                    efis_mag_head = HeadingMag * 0.1
+                efis_msg_count +=1
+
+        elif msgType == 2 : # GPS Message
+          Message = ser.read(36)
+          if len(Message) == 36:
+            Latitude,Longitude,GPSAltitude,AGL,NorthV,EastV,DownV,GS,TrackTrue,Variation,GPS,SatsTracked = struct.unpack("<iiiiiiiHHhBB", Message)
+            if GS>0:
+                    efis_gndspeed = GS * 0.05399565
+            efis_agl = AGL
+            efis_gndtrack = int(TrackTrue * 0.1)
+            if efis_mag_head == 0:
+                efis_mag_head = efis_gndtrack  
+            efis_msg_count +=1
 
         if msgType == 1 : # Primary flight
-            Message = ser.read(18)
-            if(len(Message) == 18):
-                PAltitude,BAltitude,ASI,TAS,AOA,VSI,Baro = struct.unpack("<iiHHhhH", Message)
+            Message = ser.read(20)
+            if(len(Message) == 20):
+                PAltitude,BAltitude,ASI,TAS,AOA,VSI,Baro,LocalBaro = struct.unpack("<iiHHhhHH", Message)
                 if ASI>0:
                     efis_ias = ASI * 0.05399565
-                efis_pres_alt = BAltitude
-                efis_baro = Baro * 0.029529983071445
+                if TAS>0:
+                    efis_tas = TAS * 0.05399565
+                #efis_alt = BAltitude
+                efis_baro = LocalBaro * 0.0029529983071445 # convert from mbar to inches of mercury.
                 efis_aoa = AOA
+                # 0.00108 of inches of mercury change per foot.
+                baro_diff = 29.921 - efis_baro
+                efis_PALT = PAltitude
+                efis_BALT = BAltitude
+                efis_alt = int(PAltitude - (baro_diff / 0.00108))
+                efis_vsi = VSI
+                efis_msg_count +=1
 
         if msgType == 6 : # Traffic message
             Message = ser.read(4)
             if(len(Message) == 4):
                 TrafficMode,NumOfTraffic,NumMsg,MsgNum = struct.unpack("!BBBB", Message)
+                efis_msg_count +=1
 
         if msgType == 4 : # Navigation message
             Message = ser.read(24)
             if(len(Message) == 24):
                 Flags,HSISource,VNAVSource,APMode,Padding,HSINeedleAngle,HSIRoseHeading,HSIDeviation,VerticalDeviation,HeadingBug,AltimeterBug,WPDistance = struct.unpack("<HBBBBhHhhhii", Message)
+                efis_msg_count +=1
 
+        ser.flushInput()
     else:
       return
   except serial.serialutil.SerialException:
@@ -214,26 +239,31 @@ def readMGLMessage():
 
 def readSkyviewMessage():
   global ser, done
-  global efis_pitch, efis_roll, efis_ias, efis_pres_alt, efis_aoa,efis_mag_head,efis_baro
+  global efis_pitch, efis_roll, efis_ias, efis_alt, efis_aoa,efis_mag_head,efis_baro, baro_diff, efis_msg_count, efis_vsi
   try:
     x = 0
     while x != 33:  # 33(!) is start of dynon skyview.
       t = ser.read(1)
       if len(t) != 0:
         x = ord(t)
-    msg = ser.read(91)
-    if len(msg) == 91:
+    msg = ser.read(73)  #91 ?
+    if len(msg) == 73:
       msg = (msg[:73]) if len(msg) > 73 else msg
       dataType,DataVer,SysTime,pitch,roll,HeadingMAG,IAS,PresAlt,TurnRate,LatAccel,VertAccel,AOA,VertSpd,OAT,TAS,Baro,DA,WD,WS,Checksum,CRLF = struct.unpack("cc8s4s5s3s4s6s4s3s3s2s4s3s4s3s6s3s2s2s2s", msg)
-      if ord(CRLF[0]) == 13:
-        if dataType == '1':
+      #if ord(CRLF[0]) == 13:
+      if dataType == '1':
             efis_roll = int(roll) * 0.1
             efis_pitch = int(pitch) * 0.1
             efis_ias = int(IAS) * 0.1
-            efis_pres_alt = int(PresAlt)
+            
             efis_aoa = int(AOA)
             efis_mag_head = int(HeadingMAG)
-            efis_baro = int(Baro) * 0.029529983071445
+            efis_baro = (int(Baro) + 27.5) / 10
+            baro_diff = 29.921 - efis_baro
+            efis_alt = int(int(PresAlt) + (baro_diff / 0.00108))
+            efis_vsi = int(VertSpd) * 10
+            efis_msg_count +=1
+
             ser.flushInput()
 
     else:
@@ -278,7 +308,7 @@ def draw_dashed_line(surf, color, start_pos, end_pos, width=1, dash_length=10):
 
 
 def main():
-    global done, efis_pitch, efis_roll, efis_ias, efis_pres_alt, efis_aoa,efis_mag_head, efis_baro
+    global done, efis_pitch, efis_roll, efis_ias, efis_alt, efis_aoa,efis_mag_head, efis_baro,baro_diff, efis_msg_count,efis_gndspeed, efis_tas, efis_agl
     ahrs_line_deg = readConfigInt('HUD','vertical_degrees',15)
     print "ahrs_line_deg = ", ahrs_line_deg;
 
@@ -287,7 +317,7 @@ def main():
     width, height = screen_size
     pygame.mouse.set_visible(False)
 
-    WHITE = (0, 255, 0)
+    WHITE = (0, 255, 0) # main color of hud graphics
     BLACK = (0, 0, 0)
 
     v = Vehicle()
@@ -301,19 +331,22 @@ def main():
     clock = pygame.time.Clock()
     font = pygame.font.SysFont(None, int(height/20))  # font used by horz lines
     myfont = pygame.font.SysFont("monospace", 22) # font used by debug. initialize font; must be called after 'pygame.init()' to avoid 'Font not Initialized' error
-    fontIndicator = pygame.font.SysFont("monospace", 40) # font used
+    fontIndicator = pygame.font.SysFont("monospace", 40) # ie IAS and ALT
+    fontIndicatorSmaller = pygame.font.SysFont("monospace", 30) # ie. baro and VSI
     show_debug = False
     line_mode = readConfigInt('HUD','line_mode',1)
-    alt_box_mode = 0
+    alt_box_mode = 1
     line_thickness = readConfigInt('HUD','line_thickness',2)
     center_circle_mode = readConfigInt('HUD','center_circle',2)
 
+    # MAIN loop
     while not done:
         clock.tick(maxframerate)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 thread1.stop()
                 done = True
+            # KEY MAPPINGS
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_q:
                     done = True
@@ -386,29 +419,54 @@ def main():
             screen.blit(label, (0, 0))
             label = myfont.render("Roll: %d" % (roll), 1, (255,255,0))
             screen.blit(label, (0, 20))
-            label = myfont.render("IAS: %d" % (efis_ias), 1, (255,255,0))
+            label = myfont.render("IAS: %d  VSI: %d" % (efis_ias,efis_vsi), 1, (255,255,0))
             screen.blit(label, (0, 40))
-            label = myfont.render("PresAlt: %d" % (efis_pres_alt), 1, (255,255,0))
+            label = myfont.render("Alt: %d  PresALT:%d  BaroAlt:%d   AGL: %d" % (efis_alt,efis_PALT,efis_BALT,efis_agl), 1, (255,255,0))
             screen.blit(label, (0, 60))
             label = myfont.render("AOA: %d" % (efis_aoa), 1, (255,255,0))
             screen.blit(label, (0, 80))
-            label = myfont.render("MagHead: %d" % (efis_mag_head), 1, (255,255,0))
+            label = myfont.render("MagHead: %d  TrueTrack: %d" % (efis_mag_head, efis_gndtrack), 1, (255,255,0))
             screen.blit(label, (0, 100))
-            label = myfont.render("Baro: %d" % (efis_baro), 1, (20,255,0))
+            label = myfont.render("Baro: %0.2f diff: %0.4f" % (efis_baro,baro_diff), 1, (20,255,0))
             screen.blit(label, (0, 120))
+
+            label = myfont.render("efis_msg_count: %d" % (efis_msg_count), 1, (20,255,0))
+            screen.blit(label, (70, 0))
+
 
         #pygame.draw.lines(screen, WHITE, False, [[0, height/2], [10, height/2]], 2)
         #pygame.draw.lines(screen, WHITE, False, [[width-10, height/2], [width, height/2]], 2)
         if alt_box_mode:
+            # IAS
             pygame.draw.rect(screen,WHITE,(0, (height/2) ,100,35), 1 )
             label = fontIndicator.render("%d" % (efis_ias), 1, (255,255,0))
             screen.blit(label, (10, height/2 ) )
-
+            # ALT
             pygame.draw.rect(screen,WHITE,(width-100, (height/2) ,100,35), 1 )
-            label = fontIndicator.render("%d" % (efis_pres_alt), 1, (255,255,0))
+            label = fontIndicator.render("%d" % (efis_BALT), 1, (255,255,0))
             screen.blit(label, (width-90, height/2 ) )
-            #pygame.draw.rect(screen,WHITE,(width-100,height/4,100,height/1.5),1)
+            # baro setting
+            label = fontIndicatorSmaller.render("%0.2f" % (efis_baro), 1, (255,255,0))
+            screen.blit(label, (width-50, (height/2)+35 ) )  
+            # VSI
+            if efis_vsi < 0:
+                label = fontIndicatorSmaller.render("%d" % (efis_vsi), 1, (255,255,0))
+            else:
+                label = fontIndicatorSmaller.render("+%d" % (efis_vsi), 1, (255,255,0))
+            screen.blit(label, (width-50, (height/2)-25 ) )  
+            # True aispeed
+            label = fontIndicatorSmaller.render("TAS %d" % (efis_tas), 1, (255,255,0))
+            screen.blit(label, (25, (height/2)-25 ) )  
+            # Ground speed
+            label = fontIndicatorSmaller.render("GS %d" % (efis_gndspeed), 1, (255,255,0))
+            screen.blit(label, (25, (height/2)+35 ) )
+            #Mag heading
+            pygame.draw.rect(screen,WHITE,((width/2)-40, 0 ,80,35), 1 )
+            label = fontIndicator.render("%d" % (efis_mag_head), 1, (255,255,0))
+            screen.blit(label, ((width/2)-5, 0 ) )
+
             
+
 
             #pygame.draw.rect(screen,WHITE,(0,height/4,100,height/1.5),1)
             #pygame.draw.rect(screen,WHITE,(width-100,height/4,100,height/1.5),1)
@@ -423,7 +481,9 @@ def main():
 
         pygame.display.flip()
 
+    # close down pygame. and exit.
     pygame.quit()
+    pygame.display.quit()
     os.system('killall python')
 
 class myThreadSerialReader (threading.Thread):
@@ -479,8 +539,20 @@ configParser.read("hud.cfg")
 efis_pitch = 0.1
 efis_roll = 0.1
 efis_ias = 0
-efis_pres_alt = 0
+efis_tas = 0
+efis_alt = 0
+efis_PALT = 0
+efis_BALT = 0
+efis_aoa = 0
 efis_mag_head = 0
+efis_gndtrack = 0
+efis_baro = 0
+baro_diff = 0
+efis_msg_count = 0
+efis_vsi = 0
+efis_agl = 0
+efis_gndspeed = 0
+
 done = False
 
 # load some default data from config.

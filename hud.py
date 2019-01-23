@@ -154,7 +154,7 @@ def readSkyviewMessage():
       msg = (msg[:73]) if len(msg) > 73 else msg
       dataType,DataVer,SysTime,pitch,roll,HeadingMAG,IAS,PresAlt,TurnRate,LatAccel,VertAccel,AOA,VertSpd,OAT,TAS,Baro,DA,WD,WS,Checksum,CRLF = struct.unpack("cc8s4s5s3s4s6s4s3s3s2s4s3s4s3s6s3s2s2s2s", msg)
       #if ord(CRLF[0]) == 13:
-      if dataType == '1':
+      if dataType == '1' and ord(CRLF[0]) == 13:
             aircraft.roll = int(roll) * 0.1
             aircraft.pitch = int(pitch) * 0.1
             aircraft.ias = int(IAS) * 0.1
@@ -162,8 +162,8 @@ def readSkyviewMessage():
             aircraft.aoa = int(AOA)
             aircraft.mag_head = int(HeadingMAG)
             aircraft.baro = (int(Baro) + 27.5) / 10
-            aircraft.baro_diff = 29.921 - efis_baro
-            aircraft.alt = int(int(PresAlt) + (baro_diff / 0.00108)) # 0.00108 of inches of mercury change per foot.
+            aircraft.baro_diff = 29.921 - aircraft.baro
+            aircraft.alt = int(int(PresAlt) + (aircraft.baro_diff / 0.00108)) # 0.00108 of inches of mercury change per foot.
             aircraft.vsi = int(VertSpd) * 10
             aircraft.msg_count +=1
 

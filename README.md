@@ -49,7 +49,7 @@ go into efis_hud dir then type
 
 `cd efis_hud`
 
-`python serial_read.py`
+`sudo python serial_read.py`
 
 make sure the data is coming through and looks good.
 
@@ -57,7 +57,18 @@ to exit hit cntrl-c
 
 7) run hud
 
-`python hud.py`
+Note:  You have to run using sudo in order to get access to serial port.
+
+
+`sudo python hud.py`
+
+will show you command line arguments.
+
+`-d {data format input}`
+
+data formats can be mgl or skyview
+
+-s {screen module name to load} (located in the lib/screens folder)
 
 current commands are:
 
@@ -73,6 +84,33 @@ l - adjust line thickness
 
 c - center circle mode
 
+To run with
+
+
+## Creating your own Hud screen file
+
+Screen files are located in lib/screens folder.  For a quick start you can duplicate the DefaultScreen.py file and rename it to your own.  What ever name you give it you must name the Class in that file to the same name.  For exmaple if I create MyHud.py then in that file I must set the class to the following
+
+`class MyHud(Screen):`
+
+
+Functions for custom screens:
+
+### initDisplay(self,pygamescreen,width,height):
+
+this is called once on screen init and tells your class the screen width and height
+
+### draw(self,aircraft):
+
+draw() is called in the main draw loop.  And the current aircraft object is passed in with all current postion values.
+
+### clearScreen(self):
+
+each time the screen is drawn it first has to clear it.  this is called to do that.
+
+### processEvent(self,event):
+
+handles events like key presses.
 
 
 ## Screen resolution for hudly
@@ -98,7 +136,10 @@ Here is a example hud.cfg file:
 
 [HUD]
 #how many degrees to show on the vert hud lines. 5, 10, or 15
-vertical_degrees = 10 
+vertical_degrees = 10
+
+#load a screen file on startup
+screen = default screen module name to load
 
 # line mode.  0 = skinny, 2 = bigger
 line_mode = 1

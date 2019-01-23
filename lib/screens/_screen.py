@@ -6,6 +6,7 @@
 from .. import hud_graphics
 import pygame
 
+
 class Screen:
     def __init__(self):
         self.name = "HUD Screen"
@@ -14,24 +15,22 @@ class Screen:
         self.height = 480
         self.pygamescreen = 0
 
-    def initDisplay(self,pygamescreen,width,height):
-        print "init screen parent"
+    def initDisplay(self, pygamescreen, width, height):
+        print("init screen parent")
         self.pygamescreen = pygamescreen
         self.width = width
         self.height = height
-        self.widthCenter = width/2
-        self.heightCenter = height/2
+        self.widthCenter = width / 2
+        self.heightCenter = height / 2
 
-    def processEvent(self,event):
-    	print "processing Event %s" % (event.key)
+    def processEvent(self, event):
+        print("processing Event %s" % (event.key))
 
-    def draw(self,aircraft):
-        print "parent"
+    def draw(self, aircraft):
+        print("parent")
 
-	def clearScreen(self):
-		print "Clear screen"
-
-
+        def clearScreen(self):
+            print("Clear screen")
 
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

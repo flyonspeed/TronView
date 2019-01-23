@@ -51,11 +51,13 @@ class Aircraft(object):
 def main():
     global aircraft
     # init common things.
-    maxframerate = hud_utils.readConfigInt('HUD','maxframerate',15)
+    maxframerate = hud_utils.readConfigInt("HUD", "maxframerate", 15)
     pygamescreen, screen_size = hud_graphics.initDisplay(0)
     width, height = screen_size
-    pygame.mouse.set_visible(False) # hide the mouse
-    CurrentScreen.initDisplay(pygamescreen,width,height) # tell the screen we are about to start.
+    pygame.mouse.set_visible(False)  # hide the mouse
+    CurrentScreen.initDisplay(
+        pygamescreen, width, height
+    )  # tell the screen we are about to start.
     clock = pygame.time.Clock()
 
     ##########################################
@@ -71,34 +73,38 @@ def main():
                 if event.key == pygame.K_q:
                     aircraft.errorFoundNeedToExit = True
                 else:
-                    CurrentScreen.processEvent(event) # send this key command to the hud screen object
+                    CurrentScreen.processEvent(
+                        event
+                    )  # send this key command to the hud screen object
 
         # main draw loop.. clear screen then draw frame from current screen object.
         CurrentScreen.clearScreen()
-        CurrentScreen.draw(aircraft) # draw method for current screen object
-
+        CurrentScreen.draw(aircraft)  # draw method for current screen object
 
     # once exists main loop, close down pygame. and exit.
     pygame.quit()
     pygame.display.quit()
-    os.system('killall python')
+    os.system("killall python")
+
 
 #############################################
 ## Class: myThreadSerialReader
 ## Read serial input data on seperate thread.
-class myThreadSerialReader (threading.Thread):
-   def __init__(self):
-      threading.Thread.__init__(self)
-   def run(self):
+class myThreadSerialReader(threading.Thread):
+    def __init__(self):
+        threading.Thread.__init__(self)
+
+    def run(self):
         global CurrentInput, aircraft
         while not aircraft.errorFoundNeedToExit:
             aircraft = CurrentInput.readMessage(aircraft)
 
         pygame.display.quit()
         pygame.quit()
-        #sys.stdout.flush()
-        #sys.stderr.flush()
+        # sys.stdout.flush()
+        # sys.stderr.flush()
         sys.exit()
+
 
 #############################################
 #############################################
@@ -107,59 +113,68 @@ class myThreadSerialReader (threading.Thread):
 #
 
 # redirct output to output.log
-#sys.stdout = open('output.log', 'w')
-#sys.stderr = open('output_error.log', 'w')
+# sys.stdout = open('output.log', 'w')
+# sys.stderr = open('output_error.log', 'w')
 
 
 # load hud.cfg file if it exists.
-configParser = ConfigParser.RawConfigParser()   
+configParser = ConfigParser.RawConfigParser()
 configParser.read("hud.cfg")
 aircraft = Aircraft()
-ScreenNameToLoad = hud_utils.readConfig("Hud","screen","DefaultScreen") #default screen to load
-DataInputToLoad = hud_utils.readConfig("DataInput","inputsource","none") #input method
+ScreenNameToLoad = hud_utils.readConfig(
+    "Hud", "screen", "DefaultScreen"
+)  # default screen to load
+DataInputToLoad = hud_utils.readConfig(
+    "DataInput", "inputsource", "none"
+)  # input method
 
 # check args passed in.
-if __name__ == '__main__':
-    #print 'ARGV      :', sys.argv[1:]
+if __name__ == "__main__":
+    # print 'ARGV      :', sys.argv[1:]
     try:
-      opts, args = getopt.getopt(sys.argv[1:],'h:s:i:z', ['help=', 'screen=','inputsource=','zdummy='])
+        opts, args = getopt.getopt(
+            sys.argv[1:], "h:s:i:z", ["help=", "screen=", "inputsource=", "zdummy="]
+        )
     except getopt.GetoptError:
-      hud_utils.showArgs()
-    for opt, arg in opts:
-      #print arg
-      if opt in ('-h', '--help'):
         hud_utils.showArgs()
-      elif opt in ('-i'):
-        DataInputToLoad = arg
-      if opt == '-s' :
-        ScreenNameToLoad = arg
-    if DataInputToLoad == 'none': hud_utils.showArgs()
+    for opt, arg in opts:
+        # print arg
+        if opt in ("-h", "--help"):
+            hud_utils.showArgs()
+        elif opt in ("-i"):
+            DataInputToLoad = arg
+        if opt == "-s":
+            ScreenNameToLoad = arg
+    if DataInputToLoad == "none":
+        hud_utils.showArgs()
 
     # Check and load input source
     if hud_utils.doesInputSourceExist(DataInputToLoad) == False:
-        print "Input module not found: ",DataInputToLoad
+        print("Input module not found: ", DataInputToLoad)
         hud_utils.listInputSources()
         sys.exit()
-    print "Input data module: ",DataInputToLoad
-    module = ".%s"%(DataInputToLoad)
-    mod = importlib.import_module(module,"lib.inputs") #dynamically load class
+    print("Input data module: ", DataInputToLoad)
+    module = ".%s" % (DataInputToLoad)
+    mod = importlib.import_module(module, "lib.inputs")  # dynamically load class
     class_ = getattr(mod, DataInputToLoad)
     CurrentInput = class_()
     CurrentInput.initInput()
 
     # check and load screen module.
     if hud_utils.doesEfisScreenExist(ScreenNameToLoad) == False:
-        print "Screen module not found: ",ScreenNameToLoad
+        print("Screen module not found: ", ScreenNameToLoad)
         hud_utils.listEfisScreens()
         sys.exit()
-    print "Loading screen module: ",ScreenNameToLoad
-    module = ".%s"%(ScreenNameToLoad)
-    mod = importlib.import_module(module,"lib.screens") #dynamically load screen class
+    print("Loading screen module: ", ScreenNameToLoad)
+    module = ".%s" % (ScreenNameToLoad)
+    mod = importlib.import_module(
+        module, "lib.screens"
+    )  # dynamically load screen class
     class_ = getattr(mod, ScreenNameToLoad)
     CurrentScreen = class_()
 
-    thread1 = myThreadSerialReader() # start thread for reading input.
+    thread1 = myThreadSerialReader()  # start thread for reading input.
     thread1.start()
-    sys.exit(main()) # start main loop
+    sys.exit(main())  # start main loop
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

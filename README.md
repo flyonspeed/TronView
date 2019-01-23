@@ -49,7 +49,9 @@ go into efis_hud dir then type
 
 `cd efis_hud`
 
-`sudo python serial_read.py`
+`sudo python util/serial_read.py`
+
+you will have to pass in -m or -s for mgl or skyview data.
 
 make sure the data is coming through and looks good.
 
@@ -59,16 +61,26 @@ to exit hit cntrl-c
 
 Note:  You have to run using sudo in order to get access to serial port.
 
+Example:
 
-`sudo python hud.py`
+`sudo python hud.py -i serial_mgl -s ReallyBigHud`
 
 will show you command line arguments.
 
-`-d {data format input}`
+`-i {input data source module}`
 
-data formats can be mgl or skyview
+load a input module for where to get the air data from. 
 
 -s {screen module name to load} (located in the lib/screens folder)
+
+Run the command with no arguments and it will show you which input modules and screen modules are available to use.
+
+`sudo python hud.py`
+
+
+## DefaultScreen
+
+The default screen has the following keyboard commands.
 
 current commands are:
 
@@ -112,6 +124,10 @@ each time the screen is drawn it first has to clear it.  this is called to do th
 
 handles events like key presses.
 
+## Creating your own Input source module
+
+Input sources are located in lib/inputs folder.  Create your own!
+
 
 ## Screen resolution for hudly
 
@@ -151,8 +167,8 @@ line_thickness = 2
 center_circle = 2
 
 [DataInput]
-# format of serial input. mgl or skyview
-format = mgl
+# input source of data. These modules are located in lib/inputs.  currently supprt 'serial_mgl' or 'serial_skyview'
+inputsource = serial_mgl
 
 # port name for serial input. Default is /dev/ttyS0
 port = /dev/ttyS0 

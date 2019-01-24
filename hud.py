@@ -121,12 +121,8 @@ class myThreadSerialReader(threading.Thread):
 configParser = ConfigParser.RawConfigParser()
 configParser.read("hud.cfg")
 aircraft = Aircraft()
-ScreenNameToLoad = hud_utils.readConfig(
-    "Hud", "screen", "DefaultScreen"
-)  # default screen to load
-DataInputToLoad = hud_utils.readConfig(
-    "DataInput", "inputsource", "none"
-)  # input method
+ScreenNameToLoad = hud_utils.readConfig("Hud", "screen", "DefaultScreen")  # default screen to load
+DataInputToLoad = hud_utils.readConfig("DataInput", "inputsource", "none")  # input method
 
 # check args passed in.
 if __name__ == "__main__":
@@ -149,11 +145,11 @@ if __name__ == "__main__":
         hud_utils.showArgs()
 
     # Check and load input source
-    if hud_utils.doesInputSourceExist(DataInputToLoad) == False:
-        print("Input module not found: ", DataInputToLoad)
-        hud_utils.listInputSources()
+    if hud_utils.findInput(DataInputToLoad) == False:
+        print("Input module not found: %s"%(DataInputToLoad))
+        hud_utils.findInput()
         sys.exit()
-    print("Input data module: ", DataInputToLoad)
+    print("Input data module: %s"%(DataInputToLoad))
     module = ".%s" % (DataInputToLoad)
     mod = importlib.import_module(module, "lib.inputs")  # dynamically load class
     class_ = getattr(mod, DataInputToLoad)
@@ -161,11 +157,11 @@ if __name__ == "__main__":
     CurrentInput.initInput()
 
     # check and load screen module.
-    if hud_utils.doesEfisScreenExist(ScreenNameToLoad) == False:
-        print("Screen module not found: ", ScreenNameToLoad)
-        hud_utils.listEfisScreens()
+    if hud_utils.findScreen(ScreenNameToLoad) == False:
+        print("Screen module not found: %s"%(ScreenNameToLoad))
+        hud_utils.findScreen()
         sys.exit()
-    print("Loading screen module: ", ScreenNameToLoad)
+    print("Loading screen module: %s"%(ScreenNameToLoad))
     module = ".%s" % (ScreenNameToLoad)
     mod = importlib.import_module(
         module, "lib.screens"

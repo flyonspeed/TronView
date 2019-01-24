@@ -24,7 +24,7 @@ class DefaultScreen(Screen):
         self.line_thickness = hud_utils.readConfigInt("HUD", "line_thickness", 2)
         self.center_circle_mode = hud_utils.readConfigInt("HUD", "center_circle", 2)
         self.ahrs_line_deg = hud_utils.readConfigInt("HUD", "vertical_degrees", 15)
-        print("ahrs_line_deg = ", self.ahrs_line_deg)
+        print("ahrs_line_deg = %d"%(self.ahrs_line_deg))
         self.MainColor = (0, 255, 0)  # main color of hud graphics
 
         # called once for setuping up the screen

@@ -26,14 +26,6 @@ def readConfigInt(section, name, defaultValue=0):
 
 
 #############################################
-## Function: printDebug
-## handle debug print out
-def printDebug(debug, string, level=1):
-    if debug >= level:
-        print(string)
-
-
-#############################################
 ## Function: show command Args
 def showArgs():
     print("hud.py <options>")
@@ -43,61 +35,52 @@ def showArgs():
     if os.path.isfile("hud.cfg") == False:
         print(" hud.cfg not found (default values will be used)")
     else:
-        inputsource = readConfig("DataInput", "inputsource", "none")
+        screen = readConfig("Hud", "screen", "Not Set")
+        inputsource = readConfig("DataInput", "inputsource", "Not Set")
         print(" hud.cfg FOUND")
-        print(" hud.cfg inputsource=", inputsource)
+        print(" hud.cfg inputsource=%s"%(inputsource))
+        print(" hud.cfg screen=%s"%(screen))
 
-    listEfisScreens()
-    listInputSources()
+    findScreen() # Show screen modules
+    findInput()  # Show input sources
     sys.exit()
 
 
 ##############################################
-## function: listEfisScreens()
+## function: findScreen()
 ## list python screens available to show in the lib/screens dir.
-def listEfisScreens():
+def findScreen(name=""):
     lst = os.listdir("lib/screens")
-    print("\nAvailable screens modules: (located in lib/screens folder)")
+    if name == "":
+        print("\nAvailable screens modules: (located in lib/screens folder)")
     for d in lst:
         if d.endswith(".py") and not d.startswith("_"):
             screenName = d[:-3]
-            print(screenName)
-
-
-##############################################
-## function: doesEfisScreenExist()
-def doesEfisScreenExist(name):
-    lst = os.listdir("lib/screens")
-    for d in lst:
-        if d.endswith(".py") and not d.startswith("_"):
-            screenName = d[:-3]
-            if screenName == name:
-                return True
-    return False
-
+            if name == "": # if no name passed in then print out all screens.
+                print(screenName)
+            else:
+                if screenName == name: # found screen name.
+                    return True
+    if name != "":
+        return False   
 
 ##############################################
-## function: listInputSources()
+## function: findInput()
 ## list python input source classes available to show in the lib/inputs dir.
-def listInputSources():
+def findInput(name=""):
     lst = os.listdir("lib/inputs")
-    print("\nAvailable input source modules: (located in lib/inputs folder)")
+    if name == "":
+        print("\nAvailable input source modules: (located in lib/inputs folder)")
     for d in lst:
         if d.endswith(".py") and not d.startswith("_"):
             inputName = d[:-3]
-            print(inputName)
-
-
-##############################################
-## function: doesInputSourceExist()
-def doesInputSourceExist(name):
-    lst = os.listdir("lib/inputs")
-    for d in lst:
-        if d.endswith(".py") and not d.startswith("_"):
-            inputName = d[:-3]
-            if inputName == name:
-                return True
-    return False
+            if name == "": # if no name passed in then print out all input sources.
+                print(inputName)
+            else:
+                if inputName == name: # found input
+                    return True
+    if name != "":
+        return False
 
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

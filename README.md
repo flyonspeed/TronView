@@ -34,7 +34,7 @@ when done this will create a efis_to_hud dir
 
 go into the efis_to_hud by typing
 
-`cd efis_to_hud`
+`cd efis_to_hud/util`
 
 then to run the script type
 

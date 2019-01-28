@@ -28,7 +28,7 @@ def print_xy(x, y, text):
 def readMessage(showBin):
     global ser
     try:
-        t = ser.read(1)
+        t = ser.read(1).decode()
         if showBin == 1:
             x = ord(t)
         else:

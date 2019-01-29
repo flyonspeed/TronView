@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+from __future__ import print_function
 
 import time
 import serial
@@ -59,3 +59,4 @@ for opt, arg in opts:
 
 while 1:
     readMessage(showBin)
+

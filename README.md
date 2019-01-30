@@ -186,9 +186,9 @@ baudrate = 115200
   MGL EFIS Serial Protocol Link: https://drive.google.com/open?id=1OYj000ghHJqSfvacaHMO-jOcfd1raoVo
 
 
-  Dynon EFIS Sample Data Link:
+  Dynon Skyview EFIS Sample Data Link:https://drive.google.com/open?id=1jQ0q4wkq31C7BRn7qzMSMClqPw1Opwnp
 
-  Dynon EFIS Serial Protocol Link:
+  Dynon Skyview EFIS Serial Protocol Link: https://drive.google.com/open?id=1isurAOIiTzki4nh59lg6IDsy1XcsJqoG
 
 
   Garmin G3X EFIS Sample Data Link: https://drive.google.com/open?id=1gHPC3OipAs9K06wj5zMw_uXn3_iqZriS

@@ -255,8 +255,9 @@ def readSkyviewMessage():
                     print_xy(19, 0, "OAT:        %s" % (OAT.decode()))
                     print_xy(20, 0, "TAS:        %s" % (TAS.decode()))
                     converted_Baro = (int(Baro) + 2750.0) / 100
-                    baro_diff = 29.92 - converted_Baro
-                    converted_alt = int(int(PresAlt) - (baro_diff)*1000)
+                    baro_diff = converted_Baro - 29.921
+                    converted_alt = int(int(PresAlt) + ((baro_diff) / 0.00108))
+                     #0.00108 of inches of mercury change per foot.
                     print_xy(21, 0, "Baro:       %0.2f  Alt:  %d ft   " % (converted_Baro, converted_alt))
                     print_xy(22, 0, "DensitAlt:  %s" % (DA.decode()))
                     print_xy(23, 0, "WndDir:     %s" % (WD.decode()))
@@ -327,8 +328,9 @@ def readG3XMessage():
                     print_xy(21, 0, "Vertical Speed:        %s" % (VertSpeed.decode()))
                     print_xy(22, 0, "Outside Air Temp:      %s" % (OAT.decode()))
                     converted_Baro = (int(AltSet) + 2750.0) / 100
-                    baro_diff = 29.92 - converted_Baro
-                    converted_alt = int(int(PressAlt) - (baro_diff)*1000)
+                    baro_diff = converted_Baro - 29.921
+                    converted_alt = int(int(PressAlt) + ((baro_diff) / 0.00108))
+                    # 0.00108 of inches of mercury change per foot.           
                     print_xy(23, 0, "Altimeter Setting:     %0.2f  Alt: %d ft   " % (converted_Baro, converted_alt))
                     print_xy(24, 0, "CheckSum:              0x%s   int: %d " % (Checksum.decode(), intCheckSum))
                     print_xy(25, 0, "CalChkSum:             %s   int: %d " % (calcChecksumHex, calcChecksum))
@@ -401,4 +403,5 @@ elif readType == "g3x":
     print_xy(2, 0, "Data format: " + bcolors.OKBLUE + "Garmin G3X" + bcolors.ENDC)
     while 1:
         readG3XMessage()
+
 

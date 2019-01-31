@@ -56,8 +56,8 @@ class serial_skyview(Input):
 
                     aircraft.aoa = int(AOA)
                     aircraft.mag_head = int(HeadingMAG)
-                    aircraft.baro = (int(Baro) + 27.5) / 10
-                    aircraft.baro_diff = 29.921 - aircraft.baro
+                    aircraft.baro = (int(Baro) + 2750.0) / 100
+                    aircraft.baro_diff = aircraft.baro - 29.921
                     aircraft.alt = int(
                         int(PresAlt) + (aircraft.baro_diff / 0.00108)
                     )  # 0.00108 of inches of mercury change per foot.

@@ -2,7 +2,7 @@
 
 # Serial input source
 # Garmin G3X
-# 01/30/2019 Brian Chesteen, credit to Christopher Jones for developing template for input library.
+# 01/30/2019 Brian Chesteen, credit to Christopher Jones for developing template for input modules.
 from __future__ import print_function
 
 from _input import Input
@@ -14,7 +14,7 @@ import struct
 class serial_g3x(Input):
     def __init__(self):
         self.name = "g3x"
-        self.version = 0.1
+        self.version = 1.0
         self.inputtype = "serial"
 
     def initInput(self):
@@ -54,7 +54,7 @@ class serial_g3x(Input):
                     aircraft.roll = int(Roll) * 0.1
                     aircraft.pitch = int(Pitch) * 0.1
                     aircraft.ias = int(Airspeed) * 0.1
-
+                    aircraft.PALT = int(PressAlt) 
                     aircraft.aoa = int(AOA)
                     aircraft.mag_head = int(Heading)
                     aircraft.baro = (int(AltSet) + 2750.0) / 100
@@ -62,7 +62,9 @@ class serial_g3x(Input):
                     aircraft.alt = int(
                         int(PressAlt) + (aircraft.baro_diff / 0.00108)
                     )  # 0.00108 of inches of mercury change per foot.
+                    aircraft.BALT = aircraft.alt
                     aircraft.vsi = int(VertSpeed) * 10
+                    aircraft.tas = ((aircraft.ias * 0.02) * (aircraft.BALT / 1000)) + aircraft.ias
                     aircraft.msg_count += 1
 
                     self.ser.flushInput()

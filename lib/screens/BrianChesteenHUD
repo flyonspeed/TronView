@@ -17,7 +17,7 @@ class BrianChesteenHUD(Screen):
         Screen.__init__(self)
         self.name = "Default Hud Screen"  # set name for this screen
         self.ahrs_bg = 0
-        self.show_debug = True  # default off
+        self.show_debug = False  # default off
         self.line_mode = hud_utils.readConfigInt("HUD", "line_mode", 1)
         self.alt_box_mode = 1  # default on
         self.line_thickness = hud_utils.readConfigInt("HUD", "line_thickness", 2)

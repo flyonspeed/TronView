@@ -1,18 +1,19 @@
 #!/usr/bin/env python
 
 # Serial input source
-# Skyview
-# 1/23/2019 Christopher Jones
+# Garmin G3X
+# 01/30/2019 Brian Chesteen, credit to Christopher Jones for developing template for input modules.
 from __future__ import print_function
+
 from _input import Input
 from lib import hud_utils
 import serial
 import struct
 
 
-class serial_skyview(Input):
+class serial_g3x(Input):
     def __init__(self):
-        self.name = "skyview"
+        self.name = "g3x"
         self.version = 1.0
         self.inputtype = "serial"
 
@@ -38,30 +39,32 @@ class serial_skyview(Input):
     def readMessage(self, aircraft):
         try:
             x = 0
-            while x != 33:  # 33(!) is start of dynon skyview.
+            while x != 61:  # 61(=) is start of garmin g3x.
                 t = self.ser.read(1)
                 if len(t) != 0:
                     x = ord(t)
-            msg = self.ser.read(73)  # 91 ?
-            if len(msg) == 73:
-                msg = (msg[:73]) if len(msg) > 73 else msg
-                dataType, DataVer, SysTime, pitch, roll, HeadingMAG, IAS, PresAlt, TurnRate, LatAccel, VertAccel, AOA, VertSpd, OAT, TAS, Baro, DA, WD, WS, Checksum, CRLF = struct.unpack(
-                    "cc8s4s5s3s4s6s4s3s3s2s4s3s4s3s6s3s2s2s2s", msg
+            msg = self.ser.read(58)  
+            if len(msg) == 58:
+                msg = (msg[:58]) if len(msg) > 58 else msg
+                SentID, SentVer, UTCHour, UTCMin, UTCSec, UTCSecFrac, Pitch, Roll, Heading, Airspeed, PressAlt, RateofTurn, LatAcc, VertAcc, AOA, VertSpeed, OAT, AltSet, Checksum, CRLF = struct.unpack(
+                "cc2s2s2s2s4s5s3s4s6s4s3s3s2s4s3s3s2s2s", msg
                 )
                 # if ord(CRLF[0]) == 13:
-                if dataType == "1" and ord(CRLF[0]) == 13:
-                    aircraft.roll = int(roll) * 0.1
-                    aircraft.pitch = int(pitch) * 0.1
-                    aircraft.ias = int(IAS) * 0.1
-
+                if SentID == "1" and ord(CRLF[0]) == 13:
+                    aircraft.roll = int(Roll) * 0.1
+                    aircraft.pitch = int(Pitch) * 0.1
+                    aircraft.ias = int(Airspeed) * 0.1
+                    aircraft.PALT = int(PressAlt) 
                     aircraft.aoa = int(AOA)
-                    aircraft.mag_head = int(HeadingMAG)
-                    aircraft.baro = (int(Baro) + 2750.0) / 100
+                    aircraft.mag_head = int(Heading)
+                    aircraft.baro = (int(AltSet) + 2750.0) / 100
                     aircraft.baro_diff = aircraft.baro - 29.921
                     aircraft.alt = int(
-                        int(PresAlt) + (aircraft.baro_diff / 0.00108)
+                        int(PressAlt) + (aircraft.baro_diff / 0.00108)
                     )  # 0.00108 of inches of mercury change per foot.
-                    aircraft.vsi = int(VertSpd) * 10
+                    aircraft.BALT = aircraft.alt
+                    aircraft.vsi = int(VertSpeed) * 10
+                    aircraft.tas = ((aircraft.ias * 0.02) * (aircraft.BALT / 1000)) + aircraft.ias
                     aircraft.msg_count += 1
 
                     self.ser.flushInput()
@@ -71,9 +74,10 @@ class serial_skyview(Input):
                 self.ser.flushInput()
                 return aircraft
         except serial.serialutil.SerialException:
-            print("skyview serial exception")
+            print("G3X serial exception")
             aircraft.errorFoundNeedToExit = True
         return aircraft
 
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python
+

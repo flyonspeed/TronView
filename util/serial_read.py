@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+from __future__ import print_function
 
 import time
 import serial
@@ -40,7 +40,7 @@ class bcolors:
 # Smallint (16 bit signed int) = h  (signed short)
 # Word (16 unsigned int) = H  (unsigned short)
 
-# print at location
+#print at location
 def print_xy(x, y, text):
     sys.stdout.write("\x1b7\x1b[%d;%df%s\x1b8" % (x, y, text))
     sys.stdout.flush()
@@ -102,9 +102,9 @@ def readMGLMessage():
                 sinceLastGoodMessage = 0
                 goodmessageheaderCount += 1
                 print_xy(3, 0, "SinceGood: %d" % (sinceLastGoodMessage))
-                print_xy(3, 17, "Bad msgHead: %d" % (badmessageheaderCount))
-                print_xy(3, 33, "Good msgHead: %d " % (goodmessageheaderCount))
-                print_xy(3, 50, "unkown Msg: %d " % (unkownMsgCount))
+                print_xy(3, 24, "Bad msgHead: %d" % (badmessageheaderCount))
+                print_xy(3, 49, "Good msgHead: %d " % (goodmessageheaderCount))
+                print_xy(3, 74, "Unknown Msg: %d " % (unkownMsgCount))
 
                 if msgType == 3:  # attitude information
                     Message = ser.read(25)
@@ -215,9 +215,9 @@ def readSkyviewMessage():
             t = ser.read(1)
             sinceLastGoodMessage += 1
             print_xy(3, 0, "SinceGood: %d" % (sinceLastGoodMessage))
-            print_xy(3, 17, "Bad msgHead: %d" % (badmessageheaderCount))
-            print_xy(3, 33, "Good msgHead: %d " % (goodmessageheaderCount))
-            print_xy(3, 50, "unkown Msg: %d " % (unkownMsgCount))
+            print_xy(3, 24, "Bad msgHead: %d" % (badmessageheaderCount))
+            print_xy(3, 49, "Good msgHead: %d " % (goodmessageheaderCount))
+            print_xy(3, 74, "Unknown Msg: %d " % (unkownMsgCount))
 
             if len(t) != 0:
                 x = ord(t)
@@ -231,47 +231,111 @@ def readSkyviewMessage():
             )
             # dataType,DataVer,SysTime = struct.unpack("cc8s", msg)
 
-            if ord(CRLF[0]) == 13:
-                intCheckSum = int("0x%s" % (Checksum), 0)
-                print_xy(4, 0, msg)
-                calcChecksum = sum(map(ord, msg[:69])) % 256
+            if (CRLF[0]) == 13 or (CRLF[0]) == "\r":
+                intCheckSum = int("0x%s" % (Checksum.decode()), 0)
+                print_xy(4, 0, msg.decode())
+                calcChecksum = 33 + (sum(map(ord, msg[:69].decode())) % 256)
                 calcChecksumHex = "0x{:02x}".format(calcChecksum)
-                if dataType == "1":
+                if dataType.decode() == "1":
                     goodmessageheaderCount += 1
                     print_xy(5, 0, bcolors.OKGREEN + "ADHRS(1)" + bcolors.ENDC)
-                    print_xy(6, 0, "DataType: %s" % (dataType))
-                    print_xy(7, 0, "Ver:      %s" % (DataVer))
-                    print_xy(8, 0, "SysTime:  %s" % (SysTime))
-                    print_xy(9, 0, "Pitch:    %s" % (pitch))
-                    print_xy(10, 0, "Roll:     %s" % (roll))
-                    print_xy(11, 0, "HeadMag:  %s" % (HeadingMAG))
-                    print_xy(12, 0, "IAS:      %s" % (IAS))
-                    print_xy(13, 0, "PresAlt:  %s" % (PresAlt))
-                    print_xy(14, 0, "TurnRate: %s" % (TurnRate))
-                    print_xy(15, 0, "LatAccel: %s" % (LatAccel))
-                    print_xy(16, 0, "VertAccel:%s" % (VertAccel))
-                    print_xy(17, 0, "AOA:      %s" % (AOA))
-                    print_xy(18, 0, "VertSpd:  %s" % (VertSpd))
-                    print_xy(19, 0, "OAT:      %s" % (OAT))
-                    print_xy(20, 0, "TAS:      %s" % (TAS))
-                    converted_Baro = (int(Baro) + 27.5) / 10
-                    baro_diff = 29.921 - converted_Baro
-                    converted_alt = int(int(PresAlt) + (baro_diff / 0.00108))
-                    print_xy(
-                        21,
-                        0,
-                        "Baro:     %0.4f  Alt: %d ft   "
-                        % (converted_Baro, converted_alt),
-                    )
-                    print_xy(22, 0, "DensitAlt:%s" % (DA))
-                    print_xy(23, 0, "WndDir:   %s" % (WD))
-                    print_xy(24, 0, "WndSpd:   %s" % (WS))
-                    print_xy(25, 0, "ChkSum:   0x%s int:%d " % (Checksum, intCheckSum))
-                    print_xy(
-                        26, 0, "CalChkSum:%s int:%d " % (calcChecksumHex, calcChecksum)
-                    )
+                    print_xy(6, 0, "DataType:   %s" % (dataType.decode()))
+                    print_xy(7, 0, "Ver:        %s" % (DataVer.decode()))
+                    print_xy(8, 0, "SysTime:    %s" % (SysTime.decode()))
+                    print_xy(9, 0, "Pitch:      %s" % (pitch.decode()))
+                    print_xy(10, 0, "Roll:       %s" % (roll.decode()))
+                    print_xy(11, 0, "HeadMag:    %s" % (HeadingMAG.decode()))
+                    print_xy(12, 0, "IAS:        %s" % (IAS.decode()))
+                    print_xy(13, 0, "PresAlt:    %s" % (PresAlt.decode()))
+                    print_xy(14, 0, "TurnRate:   %s" % (TurnRate.decode()))
+                    print_xy(15, 0, "LatAccel:   %s" % (LatAccel.decode()))
+                    print_xy(16, 0, "VertAccel:  %s" % (VertAccel.decode()))
+                    print_xy(17, 0, "AOA:        %s" % (AOA.decode()))
+                    print_xy(18, 0, "VertSpd:    %s" % (VertSpd.decode()))
+                    print_xy(19, 0, "OAT:        %s" % (OAT.decode()))
+                    print_xy(20, 0, "TAS:        %s" % (TAS.decode()))
+                    converted_Baro = (int(Baro) + 2750.0) / 100
+                    baro_diff = converted_Baro - 29.921
+                    converted_alt = int(int(PresAlt) + ((baro_diff) / 0.00108))
+                     #0.00108 of inches of mercury change per foot.
+                    print_xy(21, 0, "Baro:       %0.2f  Alt:  %d ft   " % (converted_Baro, converted_alt))
+                    print_xy(22, 0, "DensitAlt:  %s" % (DA.decode()))
+                    print_xy(23, 0, "WndDir:     %s" % (WD.decode()))
+                    print_xy(24, 0, "WndSpd:     %s" % (WS.decode()))
+                    print_xy(25, 0, "ChkSum:     0x%s   int:%d " % (Checksum.decode(), intCheckSum))
+                    print_xy(26, 0, "CalChkSum:  %s   int:%d " % (calcChecksumHex, calcChecksum))
                     nextByte = ser.read(1)
-                    print_xy(27, 0, "endbyte: %d " % (ord(CRLF[0])))
+                    print_xy(27, 0, "endbyte:    %s " % (repr(CRLF[0])))
+            else:
+                badmessageheaderCount += 1
+            ser.flushInput()
+
+        else:
+            badmessageheaderCount += 1
+            ser.flushInput()
+            return
+    except serial.serialutil.SerialException:
+        print("exception")
+  
+
+def readG3XMessage():
+    global ser
+    global badmessageheaderCount, sinceLastGoodMessage, goodmessageheaderCount, unkownMsgCount
+    try:
+        x = 0
+        while x != 61:  # 61(=) is start of Garmin G3X.
+            t = ser.read(1)
+            sinceLastGoodMessage += 1
+            print_xy(3, 0, "SinceGood: %d" % (sinceLastGoodMessage))
+            print_xy(3, 24, "Bad msgHead: %d" % (badmessageheaderCount))
+            print_xy(3, 49, "Good msgHead: %d " % (goodmessageheaderCount))
+            print_xy(3, 74, "Unknown Msg: %d " % (unkownMsgCount))
+
+            if len(t) != 0:
+                x = ord(t)
+
+        msg = ser.read(58)
+                        
+        if len(msg) == 58:
+            sinceLastGoodMessage = 0
+            msg = (msg[:58]) if len(msg) > 58 else msg
+            SentID, SentVer, UTCHour, UTCMin, UTCSec, UTCSecFrac, Pitch, Roll, Heading, Airspeed, PressAlt, RateofTurn, LatAcc, VertAcc, AOA, VertSpeed, OAT, AltSet, Checksum, CRLF = struct.unpack(
+                "cc2s2s2s2s4s5s3s4s6s4s3s3s2s4s3s3s2s2s", msg
+            )
+            if (CRLF[0]) == 13 or (CRLF[0]) == "\r":
+                intCheckSum = int("0x%s" % (Checksum.decode()), 0)
+                print_xy(4, 0, msg.decode())
+                calcChecksum = 61+(sum(map(ord, msg[:54].decode())) % 256)
+                calcChecksumHex = "0x{:02X}".format(calcChecksum)
+                if SentID.decode() == "1":
+                    goodmessageheaderCount += 1
+                    print_xy(5, 0, bcolors.OKGREEN + "ADHRS(1)" + bcolors.ENDC)
+                    print_xy(6, 0, "Sentence ID:           %s" % (SentID.decode()))
+                    print_xy(7, 0, "Sentence Ver:          %s" % (SentVer.decode()))
+                    print_xy(8, 0, "UTC Hour:              %s" % (UTCHour.decode()))
+                    print_xy(9, 0, "UTC Minute:            %s" % (UTCMin.decode()))
+                    print_xy(10, 0, "UTC Second:            %s" % (UTCSec.decode()))
+                    print_xy(11, 0, "UTC Second Fraction:   %s" % (UTCSecFrac.decode()))
+                    print_xy(12, 0, "Pitch:                 %s" % (Pitch.decode()))
+                    print_xy(13, 0, "Roll:                  %s" % (Roll.decode()))
+                    print_xy(14, 0, "Heading:               %s" % (Heading.decode()))
+                    print_xy(15, 0, "Airspeed:              %s" % (Airspeed.decode()))
+                    print_xy(16, 0, "Pressure Altitude:     %s" % (PressAlt.decode()))
+                    print_xy(17, 0, "Rate of Turn:          %s" % (RateofTurn.decode()))
+                    print_xy(18, 0, "Lateral Acceleration:  %s" % (LatAcc.decode()))
+                    print_xy(19, 0, "Vertical Acceleration: %s" % (VertAcc.decode()))
+                    print_xy(20, 0, "AOA:                   %s" % (AOA.decode()))
+                    print_xy(21, 0, "Vertical Speed:        %s" % (VertSpeed.decode()))
+                    print_xy(22, 0, "Outside Air Temp:      %s" % (OAT.decode()))
+                    converted_Baro = (int(AltSet) + 2750.0) / 100
+                    baro_diff = converted_Baro - 29.921
+                    converted_alt = int(int(PressAlt) + ((baro_diff) / 0.00108))
+                    # 0.00108 of inches of mercury change per foot.           
+                    print_xy(23, 0, "Altimeter Setting:     %0.2f  Alt: %d ft   " % (converted_Baro, converted_alt))
+                    print_xy(24, 0, "CheckSum:              0x%s   int: %d " % (Checksum.decode(), intCheckSum))
+                    print_xy(25, 0, "CalChkSum:             %s   int: %d " % (calcChecksumHex, calcChecksum))
+                    nextByte = ser.read(1)
+                    print_xy(26, 0, "endbyte:               %s " % (repr(CRLF[0])))
             else:
                 badmessageheaderCount += 1
             ser.flushInput()
@@ -284,12 +348,15 @@ def readSkyviewMessage():
         print("exception")
 
 
+
 def showArgs():
     print("EFIS 2 Hud Serial monitor tool. Version: %s" % (version))
     print("read_serial.py <options>")
     print(" -m (MGL iEFIS)")
     print(" -s (Dynon Skyview)")
+    print(" -g (Garmin G3X)")
     sys.exit()
+
 
 
 #
@@ -299,7 +366,7 @@ def showArgs():
 argv = sys.argv[1:]
 readType = "none"
 try:
-    opts, args = getopt.getopt(argv, "hsm", ["skyview="])
+    opts, args = getopt.getopt(argv, "hsmg", ["skyview="])
 except getopt.GetoptError:
     showArgs()
 for opt, arg in opts:
@@ -309,6 +376,8 @@ for opt, arg in opts:
         readType = "skyview"
     elif opt == "-m":
         readType = "mgl"
+    elif opt == "-g":
+        readType = "g3x"    
 
 if readType == "none":
     showArgs()
@@ -330,3 +399,9 @@ elif readType == "mgl":
     print_xy(2, 0, "Data format: " + bcolors.OKBLUE + "MGL" + bcolors.ENDC)
     while 1:
         readMGLMessage()
+elif readType == "g3x":
+    print_xy(2, 0, "Data format: " + bcolors.OKBLUE + "Garmin G3X" + bcolors.ENDC)
+    while 1:
+        readG3XMessage()
+
+

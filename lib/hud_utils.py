@@ -29,8 +29,7 @@ def readConfigInt(section, name, defaultValue=0):
 ## Function: show command Args
 def showArgs():
     print("hud.py <options>")
-    print(" -d mgl (MGL iEFIS)")
-    print(" -d skyview (Dynon Skyview)")
+    print(" -i <Input Module Name")
     print(" -s <Screen Module Name>")
     if os.path.isfile("hud.cfg") == False:
         print(" hud.cfg not found (default values will be used)")
@@ -84,3 +83,4 @@ def findInput(name=""):
 
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python
+

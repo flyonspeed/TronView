@@ -293,53 +293,78 @@ def readG3XMessage():
 
             if len(t) != 0:
                 x = ord(t)
+        SentID = ser.read(1)
+            
+        if SentID.decode() == "1": #atittude/air data message
+            msg = ser.read(57)
+            if len(msg) == 57:
+                sinceLastGoodMessage = 0
+                msg = (msg[:57]) if len(msg) > 57 else msg
+                SentVer, UTCHour, UTCMin, UTCSec, UTCSecFrac, Pitch, Roll, Heading, Airspeed, PressAlt, RateofTurn, LatAcc, VertAcc, AOA, VertSpeed, OAT, AltSet, Checksum, CRLF = struct.unpack(
+                    "c2s2s2s2s4s5s3s4s6s4s3s3s2s4s3s3s2s2s", msg
+                )
+                if (CRLF[0]) == 13 or (CRLF[0]) == "\r":
+                    intCheckSum = int("0x%s" % (Checksum.decode()), 0)
+                    print_xy(4, 0, msg.decode())
+                    calcChecksum = 61 + 49 + (sum(map(ord, msg[:53].decode())) % 256)
+                    calcChecksumHex = "0x{:02X}".format(calcChecksum)
+                    if SentVer.decode() == "1":
+                        goodmessageheaderCount += 1
+                        print_xy(5, 0, bcolors.OKGREEN + "ATTITUDE/AIR DATA MESSAGE" + bcolors.ENDC)
+                        print_xy(6, 0, "Sentence ID:           1")
+                        print_xy(7, 0, "Sentence Ver:          %s" % (SentVer.decode()))
+                        print_xy(8, 0, "UTC Hour:              %s" % (UTCHour.decode()))
+                        print_xy(9, 0, "UTC Minute:            %s" % (UTCMin.decode()))
+                        print_xy(10, 0, "UTC Second:            %s" % (UTCSec.decode()))
+                        print_xy(11, 0, "UTC Second Fraction:   %s" % (UTCSecFrac.decode()))
+                        print_xy(12, 0, "Pitch:                 %s" % (Pitch.decode()))
+                        print_xy(13, 0, "Roll:                  %s" % (Roll.decode()))
+                        print_xy(14, 0, "Heading:               %s" % (Heading.decode()))
+                        print_xy(15, 0, "Airspeed:              %s" % (Airspeed.decode()))
+                        print_xy(16, 0, "Pressure Altitude:     %s" % (PressAlt.decode()))
+                        print_xy(17, 0, "Rate of Turn:          %s" % (RateofTurn.decode()))
+                        print_xy(18, 0, "Lateral Acceleration:  %s" % (LatAcc.decode()))
+                        print_xy(19, 0, "Vertical Acceleration: %s" % (VertAcc.decode()))
+                        print_xy(20, 0, "AOA:                   %s" % (AOA.decode()))
+                        print_xy(21, 0, "Vertical Speed:        %s" % (VertSpeed.decode()))
+                        print_xy(22, 0, "Outside Air Temp:      %s" % (OAT.decode()))
+                        converted_Baro = (int(AltSet) + 2750.0) / 100
+                        baro_diff = converted_Baro - 29.921
+                        converted_alt = int(int(PressAlt) + ((baro_diff) / 0.00108))
+                        # 0.00108 of inches of mercury change per foot.           
+                        print_xy(23, 0, "Altimeter Setting:     %0.2f  Alt: %d ft   " % (converted_Baro, converted_alt))
+                        print_xy(24, 0, "CheckSum:              0x%s   int: %d " % (Checksum.decode(), intCheckSum))
+                        print_xy(25, 0, "CalChkSum:             %s   int: %d " % (calcChecksumHex, calcChecksum))
+                        nextByte = ser.read(1)
+                        print_xy(26, 0, "endbyte:               %s " % (repr(CRLF[0])))
 
-        msg = ser.read(58)
-                        
-        if len(msg) == 58:
-            sinceLastGoodMessage = 0
-            msg = (msg[:58]) if len(msg) > 58 else msg
-            SentID, SentVer, UTCHour, UTCMin, UTCSec, UTCSecFrac, Pitch, Roll, Heading, Airspeed, PressAlt, RateofTurn, LatAcc, VertAcc, AOA, VertSpeed, OAT, AltSet, Checksum, CRLF = struct.unpack(
-                "cc2s2s2s2s4s5s3s4s6s4s3s3s2s4s3s3s2s2s", msg
-            )
-            if (CRLF[0]) == 13 or (CRLF[0]) == "\r":
-                intCheckSum = int("0x%s" % (Checksum.decode()), 0)
-                print_xy(4, 0, msg.decode())
-                calcChecksum = 61+(sum(map(ord, msg[:54].decode())) % 256)
-                calcChecksumHex = "0x{:02X}".format(calcChecksum)
-                if SentID.decode() == "1":
-                    goodmessageheaderCount += 1
-                    print_xy(5, 0, bcolors.OKGREEN + "ADHRS(1)" + bcolors.ENDC)
-                    print_xy(6, 0, "Sentence ID:           %s" % (SentID.decode()))
-                    print_xy(7, 0, "Sentence Ver:          %s" % (SentVer.decode()))
-                    print_xy(8, 0, "UTC Hour:              %s" % (UTCHour.decode()))
-                    print_xy(9, 0, "UTC Minute:            %s" % (UTCMin.decode()))
-                    print_xy(10, 0, "UTC Second:            %s" % (UTCSec.decode()))
-                    print_xy(11, 0, "UTC Second Fraction:   %s" % (UTCSecFrac.decode()))
-                    print_xy(12, 0, "Pitch:                 %s" % (Pitch.decode()))
-                    print_xy(13, 0, "Roll:                  %s" % (Roll.decode()))
-                    print_xy(14, 0, "Heading:               %s" % (Heading.decode()))
-                    print_xy(15, 0, "Airspeed:              %s" % (Airspeed.decode()))
-                    print_xy(16, 0, "Pressure Altitude:     %s" % (PressAlt.decode()))
-                    print_xy(17, 0, "Rate of Turn:          %s" % (RateofTurn.decode()))
-                    print_xy(18, 0, "Lateral Acceleration:  %s" % (LatAcc.decode()))
-                    print_xy(19, 0, "Vertical Acceleration: %s" % (VertAcc.decode()))
-                    print_xy(20, 0, "AOA:                   %s" % (AOA.decode()))
-                    print_xy(21, 0, "Vertical Speed:        %s" % (VertSpeed.decode()))
-                    print_xy(22, 0, "Outside Air Temp:      %s" % (OAT.decode()))
-                    converted_Baro = (int(AltSet) + 2750.0) / 100
-                    baro_diff = converted_Baro - 29.921
-                    converted_alt = int(int(PressAlt) + ((baro_diff) / 0.00108))
-                    # 0.00108 of inches of mercury change per foot.           
-                    print_xy(23, 0, "Altimeter Setting:     %0.2f  Alt: %d ft   " % (converted_Baro, converted_alt))
-                    print_xy(24, 0, "CheckSum:              0x%s   int: %d " % (Checksum.decode(), intCheckSum))
-                    print_xy(25, 0, "CalChkSum:             %s   int: %d " % (calcChecksumHex, calcChecksum))
-                    nextByte = ser.read(1)
-                    print_xy(26, 0, "endbyte:               %s " % (repr(CRLF[0])))
-            else:
-                badmessageheaderCount += 1
-            ser.flushInput()
-
+        elif SentID.decode() == "7": #GPS AGL data message
+            msg = ser.read(16)  
+            if len(msg) == 16:
+                sinceLastGoodMessage = 0
+                msg = (msg[:16]) if len(msg) > 16 else msg
+                SentVer, UTCHour, UTCMin, UTCSec, UTCSecFrac, HeightAGL, Checksum, CRLF = struct.unpack(
+                "c2s2s2s2s3s2s2s", msg
+                )
+                if (CRLF[0]) == 13 or (CRLF[0]) == "\r":
+                    intCheckSum = int("0x%s" % (Checksum.decode()), 0)
+                    print_xy(28, 0, msg.decode())
+                    calcChecksum = 61 + 55 + (sum(map(ord, msg[:12].decode())) % 256)
+                    calcChecksumHex = "0x{:02X}".format(calcChecksum)
+                    if SentVer.decode() == "1":
+                        goodmessageheaderCount += 1
+                        print_xy(29, 0, bcolors.OKGREEN + "GPS AGL DATA MESSAGE" + bcolors.ENDC)
+                        print_xy(30, 0, "Sentence ID:           1")
+                        print_xy(31, 0, "Sentence Ver:          %s" % (SentVer.decode()))
+                        print_xy(32, 0, "UTC Hour:              %s" % (UTCHour.decode()))
+                        print_xy(33, 0, "UTC Minute:            %s" % (UTCMin.decode()))
+                        print_xy(34, 0, "UTC Second:            %s" % (UTCSec.decode()))
+                        print_xy(35, 0, "UTC Second Fraction:   %s" % (UTCSecFrac.decode()))
+                        print_xy(36, 0, "GPS Height AGL:        %s" % (HeightAGL.decode())) 
+                        print_xy(37, 0, "CheckSum:              0x%s   int: %d " % (Checksum.decode(), intCheckSum))
+                        print_xy(38, 0, "CalChkSum:             %s   int: %d " % (calcChecksumHex, calcChecksum))
+                        nextByte = ser.read(1)
+                        print_xy(39, 0, "endbyte:               %s " % (repr(CRLF[0])))
         else:
             badmessageheaderCount += 1
             ser.flushInput()

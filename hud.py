@@ -20,6 +20,8 @@ import ConfigParser
 import importlib
 from lib import hud_graphics
 from lib import hud_utils
+from lib import hud_text
+import curses
 
 #############################################
 ## Class: Aircraft
@@ -42,7 +44,11 @@ class Aircraft(object):
         self.gndspeed = 0
 
         self.msg_count = 0
+        self.msg_bad = 0
+        self.msg_unkown = 0
+        self.msg_last = ""
         self.errorFoundNeedToExit = False
+
 
 
 #############################################
@@ -72,6 +78,10 @@ def main():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_q:
                     aircraft.errorFoundNeedToExit = True
+                elif event.key == pygame.K_t:
+                    pygame.quit()
+                    pygame.display.quit()
+                    main_text_mode()
                 else:
                     CurrentScreen.processEvent(
                         event
@@ -86,6 +96,13 @@ def main():
     pygame.display.quit()
     os.system("killall python")
 
+#############################################
+# Text mode Main loop
+def main_text_mode():
+    global aircraft
+    hud_text.print_Clear()
+    while not aircraft.errorFoundNeedToExit:
+        CurrentInput.printTextModeData(aircraft)
 
 #############################################
 ## Class: myThreadSerialReader
@@ -101,10 +118,27 @@ class myThreadSerialReader(threading.Thread):
 
         pygame.display.quit()
         pygame.quit()
-        # sys.stdout.flush()
-        # sys.stderr.flush()
         sys.exit()
 
+#############################################
+## Class: threadReadKeyboard
+# thread for reading in data.  used during text mode.  curses module used for keyboard input.
+class threadReadKeyboard(threading.Thread):
+    def __init__(self):
+        threading.Thread.__init__(self)
+        self.stdscr = curses.initscr()
+
+    def run(self):
+        global aircraft
+        while not aircraft.errorFoundNeedToExit:
+            key = self.stdscr.getch()
+            if key==ord('q'):
+                aircraft.errorFoundNeedToExit = True
+                curses.endwin()
+                sys.exit()
+            elif key==27:  # escape key.
+                main()
+        
 
 #############################################
 #############################################
@@ -112,7 +146,7 @@ class myThreadSerialReader(threading.Thread):
 #
 #
 
-# redirct output to output.log
+# redirct output to output.log (not working.)
 # sys.stdout = open('output.log', 'w')
 # sys.stderr = open('output_error.log', 'w')
 
@@ -123,21 +157,25 @@ configParser.read("hud.cfg")
 aircraft = Aircraft()
 ScreenNameToLoad = hud_utils.readConfig("Hud", "screen", "DefaultScreen")  # default screen to load
 DataInputToLoad = hud_utils.readConfig("DataInput", "inputsource", "none")  # input method
+TextMode = False
 
 # check args passed in.
 if __name__ == "__main__":
-    # print 'ARGV      :', sys.argv[1:]
+    #print 'ARGV      :', sys.argv[1:]
     try:
         opts, args = getopt.getopt(
-            sys.argv[1:], "h:s:i:z", ["help=", "screen=", "inputsource=", "zdummy="]
+            sys.argv[1:], "hs:i:t"
         )
     except getopt.GetoptError:
+        print("Unkown command line args given..")
         hud_utils.showArgs()
     for opt, arg in opts:
-        # print arg
+        #print("opt: %s  arg: %s"%(opt,arg))
+        if opt == '-t':
+            TextMode = True
         if opt in ("-h", "--help"):
             hud_utils.showArgs()
-        elif opt in ("-i"):
+        if opt in ("-i"):
             DataInputToLoad = arg
         if opt == "-s":
             ScreenNameToLoad = arg
@@ -171,6 +209,11 @@ if __name__ == "__main__":
 
     thread1 = myThreadSerialReader()  # start thread for reading input.
     thread1.start()
-    sys.exit(main())  # start main loop
+    threadKey = threadReadKeyboard()
+    threadKey.start()
+    if TextMode == True:
+        sys.exit(main_text_mode())  # start main text loop
+    else:
+        sys.exit(main())  # start main graphical loop
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

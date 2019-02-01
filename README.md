@@ -73,6 +73,8 @@ load a input module for where to get the air data from.
 
 -s {screen module name to load} (located in the lib/screens folder)
 
+-t (optional) will let you see the data in text mode
+
 Run the command with no arguments and it will show you which input modules and screen modules are available to use.
 
 `sudo python hud.py`

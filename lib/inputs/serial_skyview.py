@@ -8,7 +8,7 @@ from _input import Input
 from lib import hud_utils
 import serial
 import struct
-
+from lib import hud_text
 
 class serial_skyview(Input):
     def __init__(self):
@@ -45,6 +45,7 @@ class serial_skyview(Input):
             msg = self.ser.read(73)  # 91 ?
             if len(msg) == 73:
                 msg = (msg[:73]) if len(msg) > 73 else msg
+                aircraft.msg_last = msg
                 dataType, DataVer, SysTime, pitch, roll, HeadingMAG, IAS, PresAlt, TurnRate, LatAccel, VertAccel, AOA, VertSpd, OAT, TAS, Baro, DA, WD, WS, Checksum, CRLF = struct.unpack(
                     "cc8s4s5s3s4s6s4s3s3s2s4s3s4s3s6s3s2s2s2s", msg
                 )
@@ -66,8 +67,11 @@ class serial_skyview(Input):
 
                     self.ser.flushInput()
                     return aircraft
+                else:
+                    aircraft.msg_unkown += 1 # unkown message found.
 
             else:
+                aircraft.msg_bad += 1 # count this as a bad message
                 self.ser.flushInput()
                 return aircraft
         except serial.serialutil.SerialException:
@@ -75,5 +79,13 @@ class serial_skyview(Input):
             aircraft.errorFoundNeedToExit = True
         return aircraft
 
+
+
+    #############################################
+    ## Function: printTextModeData
+    def printTextModeData(self, aircraft):
+        hud_text.print_header("Decoded data from Input Module: %s"%(self.name))
+        hud_text.print_object(aircraft)
+        hud_text.print_DoneWithPage()
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

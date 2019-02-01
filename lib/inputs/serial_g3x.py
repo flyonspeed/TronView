@@ -10,7 +10,7 @@ from lib import hud_utils
 import serial
 import struct
 import math
-
+from lib import hud_text
 
 class serial_g3x(Input):
     def __init__(self):
@@ -44,10 +44,12 @@ class serial_g3x(Input):
                 t = self.ser.read(1)
                 if len(t) != 0:
                     x = ord(t)
+
             SentID = self.ser.read(1)
             
             if SentID == "1": #atittude/air data message
-                msg = self.ser.read(57)  
+                msg = self.ser.read(57)
+                aircraft.msg_last = msg
                 if len(msg) == 57:
                     msg = (msg[:57]) if len(msg) > 57 else msg
                     SentVer, UTCHour, UTCMin, UTCSec, UTCSecFrac, Pitch, Roll, Heading, Airspeed, PressAlt, RateofTurn, LatAcc, VertAcc, AOA, VertSpeed, OAT, AltSet, Checksum, CRLF = struct.unpack(
@@ -70,9 +72,12 @@ class serial_g3x(Input):
                         aircraft.vsi = int(VertSpeed) * 10
                         aircraft.tas = aircraft.ias * (math.sqrt((273.0 + aircraft.oat) / 288.0)) * ((1.0 - aircraft.PALT / 144000.0) ** -2.75)
                         aircraft.msg_count += 1
+                else:
+                    aircraft.msg_bad += 1
 
             elif SentID == "7": #GPS AGL data message
                 msg = self.ser.read(16)  
+                aircraft.msg_last = msg
                 if len(msg) == 16:
                     msg = (msg[:16]) if len(msg) > 16 else msg
                     SentVer, UTCHour, UTCMin, UTCSec, UTCSecFrac, HeightAGL, Checksum, CRLF = struct.unpack(
@@ -81,8 +86,14 @@ class serial_g3x(Input):
                     if SentVer == "1" and ord(CRLF[0]) == 13:
                         aircraft.agl = int(HeightAGL) * 100
                         aircraft.msg_count += 1
+                else:
+                    aircraft.msg_bad += 1
+            else:
+                aircraft.msg_unkown += 1 # else unkown message.
+
 
             else:
+                aircraft.msg_bad += 1  # count this as a bad message
                 self.ser.flushInput()
                 return aircraft
         except serial.serialutil.SerialException:
@@ -90,6 +101,13 @@ class serial_g3x(Input):
             aircraft.errorFoundNeedToExit = True
         return aircraft
 
+
+    #############################################
+    ## Function: printTextModeData
+    def printTextModeData(self, aircraft):
+        hud_text.print_header("Decoded data from Input Module: %s"%(self.name))
+        hud_text.print_object(aircraft)
+        hud_text.print_DoneWithPage()
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python
 

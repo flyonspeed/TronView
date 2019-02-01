@@ -29,16 +29,19 @@ def readConfigInt(section, name, defaultValue=0):
 ## Function: show command Args
 def showArgs():
     print("hud.py <options>")
-    print(" -i <Input Module Name")
-    print(" -s <Screen Module Name>")
+    print(" -i <Input Module Name> (Required)")
+    print(" -s <Screen Module Name> (Required)")
+    print(" -t Show text mode only (Optional)")
+
     if os.path.isfile("hud.cfg") == False:
         print(" hud.cfg not found (default values will be used)")
     else:
         screen = readConfig("Hud", "screen", "Not Set")
         inputsource = readConfig("DataInput", "inputsource", "Not Set")
-        print(" hud.cfg FOUND")
-        print(" hud.cfg inputsource=%s"%(inputsource))
-        print(" hud.cfg screen=%s"%(screen))
+        print("-------------")
+        print("hud.cfg FOUND")
+        print("hud.cfg inputsource=%s"%(inputsource))
+        print("hud.cfg screen=%s"%(screen))
 
     findScreen() # Show screen modules
     findInput()  # Show input sources

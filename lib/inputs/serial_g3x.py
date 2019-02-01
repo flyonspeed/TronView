@@ -9,7 +9,7 @@ from _input import Input
 from lib import hud_utils
 import serial
 import struct
-
+from lib import hud_text
 
 class serial_g3x(Input):
     def __init__(self):
@@ -45,6 +45,7 @@ class serial_g3x(Input):
                     x = ord(t)
             msg = self.ser.read(58)  
             if len(msg) == 58:
+                aircraft.msg_last = msg
                 msg = (msg[:58]) if len(msg) > 58 else msg
                 SentID, SentVer, UTCHour, UTCMin, UTCSec, UTCSecFrac, Pitch, Roll, Heading, Airspeed, PressAlt, RateofTurn, LatAcc, VertAcc, AOA, VertSpeed, OAT, AltSet, Checksum, CRLF = struct.unpack(
                 "cc2s2s2s2s4s5s3s4s6s4s3s3s2s4s3s3s2s2s", msg
@@ -69,8 +70,11 @@ class serial_g3x(Input):
 
                     self.ser.flushInput()
                     return aircraft
+                else
+                    aircraft.msg_unkown += 1 # else unkown message.
 
             else:
+                aircraft.msg_bad += 1  # count this as a bad message
                 self.ser.flushInput()
                 return aircraft
         except serial.serialutil.SerialException:
@@ -78,6 +82,13 @@ class serial_g3x(Input):
             aircraft.errorFoundNeedToExit = True
         return aircraft
 
+
+    #############################################
+    ## Function: printTextModeData
+    def printTextModeData(self, aircraft):
+        hud_text.print_header("Decoded data from Input Module: %s"%(self.name))
+        hud_text.print_object(aircraft)
+        hud_text.print_DoneWithPage()
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python
 

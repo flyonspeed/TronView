@@ -8,7 +8,8 @@ from _input import Input
 from lib import hud_utils
 import serial
 import struct
-
+from lib import hud_text
+import binascii
 
 class serial_mgl(Input):
     def __init__(self):
@@ -46,6 +47,7 @@ class serial_mgl(Input):
 
             if stx == 2:
                 MessageHeader = self.ser.read(6)
+                Message = ""
                 if len(MessageHeader) == 6:
                     msgLength, msgLengthXOR, msgType, msgRate, msgCount, msgVerion = struct.unpack(
                         "!BBBBBB", MessageHeader
@@ -80,7 +82,7 @@ class serial_mgl(Input):
                                 aircraft.mag_head = aircraft.gndtrack
                             aircraft.msg_count += 1
 
-                    if msgType == 1:  # Primary flight
+                    elif msgType == 1:  # Primary flight
                         Message = self.ser.read(20)
                         if len(Message) == 20:
                             PAltitude, BAltitude, ASI, TAS, AOA, VSI, Baro, LocalBaro = struct.unpack(
@@ -104,7 +106,7 @@ class serial_mgl(Input):
                             aircraft.vsi = VSI
                             aircraft.msg_count += 1
 
-                    if msgType == 6:  # Traffic message
+                    elif msgType == 6:  # Traffic message
                         Message = self.ser.read(4)
                         if len(Message) == 4:
                             TrafficMode, NumOfTraffic, NumMsg, MsgNum = struct.unpack(
@@ -112,7 +114,7 @@ class serial_mgl(Input):
                             )
                             aircraft.msg_count += 1
 
-                    if msgType == 4:  # Navigation message
+                    elif msgType == 4:  # Navigation message
                         Message = self.ser.read(24)
                         if len(Message) == 24:
                             Flags, HSISource, VNAVSource, APMode, Padding, HSINeedleAngle, HSIRoseHeading, HSIDeviation, VerticalDeviation, HeadingBug, AltimeterBug, WPDistance = struct.unpack(
@@ -120,14 +122,31 @@ class serial_mgl(Input):
                             )
                             aircraft.msg_count += 1
 
+                    else:
+                        aircraft.msg_unkown += 1 #else unkown message.
+
+                    aircraft.msg_last = binascii.hexlify(Message) # save last message.
                     self.ser.flushInput()
                     return aircraft
+
+                else: # bad message header found.
+                    aircraft.msg_bad += 1
+
             else:
+                aircraft.msg_bad += 1 #bad message found.
+
                 return aircraft
         except serial.serialutil.SerialException:
             print("serial exception")
             aircraft.errorFoundNeedToExit = True
             return aircraft
 
+
+    #############################################
+    ## Function: printTextModeData
+    def printTextModeData(self, aircraft):
+        hud_text.print_header("Decoded data from Input Module: %s"%(self.name))
+        hud_text.print_object(aircraft)
+        hud_text.print_DoneWithPage()
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

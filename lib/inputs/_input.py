@@ -3,6 +3,7 @@
 # Input class.
 # All input types should inherit from this class.
 
+from lib import hud_text
 
 class Input:
     def __init__(self):

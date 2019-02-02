@@ -12,7 +12,7 @@ import struct
 import math
 from lib import hud_text
 
-class serial_g3x_tmp(Input):
+class serial_g3x(Input):
     def __init__(self):
         self.name = "g3x"
         self.version = 1.0

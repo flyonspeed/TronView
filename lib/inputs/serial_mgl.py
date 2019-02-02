@@ -144,7 +144,7 @@ class serial_mgl(Input):
                             aircraft.msg_count += 1
 
                     else:
-                        aircraft.msg_unkown += 1 #else unkown message.
+                        aircraft.msg_unknown += 1 #else unknown message.
 
                     aircraft.msg_last = binascii.hexlify(Message) # save last message.
                     #self.ser.flushInput()

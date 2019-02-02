@@ -74,7 +74,7 @@ class serial_skyview(Input):
                     self.ser.flushInput()
                     return aircraft
                 else:
-                    aircraft.msg_unkown += 1 # unkown message found.
+                    aircraft.msg_unknown += 1 # unknown message found.
 
             else:
                 aircraft.msg_bad += 1 # count this as a bad message

@@ -72,6 +72,9 @@ class serial_g3x(Input):
                         aircraft.vsi = int(VertSpeed) * 10
                         aircraft.tas = aircraft.ias * (math.sqrt((273.0 + aircraft.oat) / 288.0)) * ((1.0 - aircraft.PALT / 144000.0) ** -2.75)
                         aircraft.msg_count += 1
+                    else:
+                        aircraft.msg_bad += 1
+                        
                 else:
                     aircraft.msg_bad += 1
 
@@ -86,19 +89,21 @@ class serial_g3x(Input):
                     if SentVer == "1" and ord(CRLF[0]) == 13:
                         aircraft.agl = int(HeightAGL) * 100
                         aircraft.msg_count += 1
+                    else:
+                        aircraft.msg_bad += 1
+                        
                 else:
-                    aircraft.msg_bad += 1
-            else:
-                aircraft.msg_unkown += 1 # else unkown message.
-
+                    aircraft.msg_bad += 1                        
 
             else:
-                aircraft.msg_bad += 1  # count this as a bad message
+                aircraft.msg_unknown += 1 #else unknown message.
                 self.ser.flushInput()
                 return aircraft
+            
         except serial.serialutil.SerialException:
             print("G3X serial exception")
             aircraft.errorFoundNeedToExit = True
+        
         return aircraft
 
 

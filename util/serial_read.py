@@ -21,7 +21,7 @@ counter = 0
 badmessageheaderCount = 0
 goodmessageheaderCount = 0
 sinceLastGoodMessage = 0
-unkownMsgCount = 0
+unknownMsgCount = 0
 
 
 class bcolors:
@@ -90,7 +90,7 @@ def readSerial(num):
 
 def readMGLMessage():
     global ser
-    global badmessageheaderCount, sinceLastGoodMessage, goodmessageheaderCount, unkownMsgCount
+    global badmessageheaderCount, sinceLastGoodMessage, goodmessageheaderCount, unknownMsgCount
     try:
         stx = ord(ser.read(1))
         if stx == 2:
@@ -104,7 +104,7 @@ def readMGLMessage():
                 print_xy(3, 0, "SinceGood: %d" % (sinceLastGoodMessage))
                 print_xy(3, 24, "Bad msgHead: %d" % (badmessageheaderCount))
                 print_xy(3, 49, "Good msgHead: %d " % (goodmessageheaderCount))
-                print_xy(3, 74, "Unknown Msg: %d " % (unkownMsgCount))
+                print_xy(3, 74, "Unknown Msg: %d " % (unknownMsgCount))
 
                 if msgType == 3:  # attitude information
                     Message = ser.read(25)
@@ -189,7 +189,7 @@ def readMGLMessage():
                         print_xy(24, 24, "SatsTracke:%d  " % (SatsTracked))
 
                 else:
-                    unkownMsgCount += 1
+                    unknownMsgCount += 1
                     print_xy(
                         4,
                         40,
@@ -208,7 +208,7 @@ def readMGLMessage():
 
 def readSkyviewMessage():
     global ser
-    global badmessageheaderCount, sinceLastGoodMessage, goodmessageheaderCount, unkownMsgCount
+    global badmessageheaderCount, sinceLastGoodMessage, goodmessageheaderCount, unknownMsgCount
     try:
         x = 0
         while x != 33:  # 33(!) is start of dynon skyview.
@@ -217,7 +217,7 @@ def readSkyviewMessage():
             print_xy(3, 0, "SinceGood: %d" % (sinceLastGoodMessage))
             print_xy(3, 24, "Bad msgHead: %d" % (badmessageheaderCount))
             print_xy(3, 49, "Good msgHead: %d " % (goodmessageheaderCount))
-            print_xy(3, 74, "Unknown Msg: %d " % (unkownMsgCount))
+            print_xy(3, 74, "Unknown Msg: %d " % (unknownMsgCount))
 
             if len(t) != 0:
                 x = ord(t)
@@ -280,7 +280,7 @@ def readSkyviewMessage():
 
 def readG3XMessage():
     global ser
-    global badmessageheaderCount, sinceLastGoodMessage, goodmessageheaderCount, unkownMsgCount
+    global badmessageheaderCount, sinceLastGoodMessage, goodmessageheaderCount, unknownMsgCount
     try:
         x = 0
         while x != 61:  # 61(=) is start of Garmin G3X.
@@ -289,7 +289,7 @@ def readG3XMessage():
             print_xy(3, 0, "SinceGood: %d" % (sinceLastGoodMessage))
             print_xy(3, 24, "Bad msgHead: %d" % (badmessageheaderCount))
             print_xy(3, 49, "Good msgHead: %d " % (goodmessageheaderCount))
-            print_xy(3, 74, "Unknown Msg: %d " % (unkownMsgCount))
+            print_xy(3, 74, "Unknown Msg: %d " % (unknownMsgCount))
 
             if len(t) != 0:
                 x = ord(t)

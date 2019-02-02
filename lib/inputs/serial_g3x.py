@@ -40,10 +40,23 @@ class serial_g3x(Input):
     def readMessage(self, aircraft):
         try:
             x = 0
-            while x != 61:  # 61(=) is start of garmin g3x.
+            while x != 61:  # 61(=) is start of garmin g3x sentence.
                 t = self.ser.read(1)
                 if len(t) != 0:
                     x = ord(t)
+                    if x == 64:   # 64(@) is start of garmin g3x GPS sentence.
+                        msg = self.ser.read(56)  
+                        aircraft.msg_last = msg
+                        if len(msg) == 56:
+                            msg = (msg[:56]) if len(msg) > 56 else msg
+                            UTCYear, UTCMonth, UTCDay, UTCHour, UTCMin, UTCSec, LatHemi, LatDeg, LatMin, LonHemi, LonDeg, LonMin, PosStat, HPE, GPSAlt, EWVelDir, EWVelmag, NSVelDir, NSVelmag, VVelDir, VVelmag, CRLF = struct.unpack(
+                            "2s2s2s2s2s2sc2s5sc3s5sc3s6sc4sc4sc4s2s", msg
+                            )                    
+                            if ord(CRLF[0]) ==13:
+                                aircraft.msg_count += 1
+                                aircraft.gndspeed = (math.sqrt(((int(EWVelmag) * 0.1)**2) + ((int(NSVelmag) * 0.1)**2))) * 1.94384
+                            else:
+                                aircraft.msg_bad += 1 
 
             SentID = self.ser.read(1)
             
@@ -72,6 +85,9 @@ class serial_g3x(Input):
                         aircraft.vsi = int(VertSpeed) * 10
                         aircraft.tas = aircraft.ias * (math.sqrt((273.0 + aircraft.oat) / 288.0)) * ((1.0 - aircraft.PALT / 144000.0) ** -2.75)
                         aircraft.msg_count += 1
+                    else:
+                        aircraft.msg_bad += 1
+                        
                 else:
                     aircraft.msg_bad += 1
 
@@ -86,19 +102,21 @@ class serial_g3x(Input):
                     if SentVer == "1" and ord(CRLF[0]) == 13:
                         aircraft.agl = int(HeightAGL) * 100
                         aircraft.msg_count += 1
+                    else:
+                        aircraft.msg_bad += 1
+                        
                 else:
-                    aircraft.msg_bad += 1
-            else:
-                aircraft.msg_unkown += 1 # else unkown message.
-
+                    aircraft.msg_bad += 1                        
 
             else:
-                aircraft.msg_bad += 1  # count this as a bad message
+                aircraft.msg_unknown += 1 #else unknown message.
                 self.ser.flushInput()
                 return aircraft
+            
         except serial.serialutil.SerialException:
             print("G3X serial exception")
             aircraft.errorFoundNeedToExit = True
+        
         return aircraft
 
 

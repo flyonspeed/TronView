@@ -42,10 +42,11 @@ class Aircraft(object):
         self.baro_diff = 0
         self.vsi = 0
         self.gndspeed = 0
+        self.oat = 0
 
         self.msg_count = 0
         self.msg_bad = 0
-        self.msg_unkown = 0
+        self.msg_unknown = 0
         self.msg_last = ""
         self.errorFoundNeedToExit = False
 
@@ -167,7 +168,7 @@ if __name__ == "__main__":
             sys.argv[1:], "hs:i:t"
         )
     except getopt.GetoptError:
-        print("Unkown command line args given..")
+        print("unknown command line args given..")
         hud_utils.showArgs()
     for opt, arg in opts:
         #print("opt: %s  arg: %s"%(opt,arg))

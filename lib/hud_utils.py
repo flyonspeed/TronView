@@ -28,10 +28,11 @@ def readConfigInt(section, name, defaultValue=0):
 #############################################
 ## Function: show command Args
 def showArgs():
-    print("hud.py <options>")
+    print("hud.py -i <inputmodule> - s <screenmodule> <more options>")
     print(" -i <Input Module Name> (Required)")
     print(" -s <Screen Module Name> (Required)")
     print(" -t Show text mode only (Optional)")
+    print(" -e Use example data for input module (Optional)")
 
     if os.path.isfile("hud.cfg") == False:
         print(" hud.cfg not found (default values will be used)")
@@ -49,20 +50,46 @@ def showArgs():
 
 
 ##############################################
-## function: findScreen()
-## list python screens available to show in the lib/screens dir.
-def findScreen(name=""):
+## function: getScreens()
+## return list of screens available in lib/screens dir.
+def getScreens():
+    screens = []
     lst = os.listdir("lib/screens")
-    if name == "":
-        print("\nAvailable screens modules: (located in lib/screens folder)")
     for d in lst:
         if d.endswith(".py") and not d.startswith("_"):
             screenName = d[:-3]
-            if name == "": # if no name passed in then print out all screens.
-                print(screenName)
-            else:
-                if screenName == name: # found screen name.
-                    return True
+            screens.append(screenName)
+    return screens
+
+##############################################
+## function: findScreen()
+## list python screens available to show in the lib/screens dir.
+## if you pass in "next" then it will try to load the next screen from the last loaded screen.
+selectedScreenPos = 0
+def findScreen(name=""):
+    global selectedScreenPos
+    lst = getScreens()
+    if name == "prev":  # load previous screen
+        selectedScreenPos -= 1
+        if selectedScreenPos < 0:
+            selectedScreenPos = len(lst) -1
+        return lst[selectedScreenPos]
+    if name == "next":  # check if we should just load the next screen in the screen list.
+        selectedScreenPos += 1
+        if selectedScreenPos +1 > len(lst):
+            selectedScreenPos = 0
+        return lst[selectedScreenPos]
+    if name == "":
+        print("\nAvailable screens modules: (located in lib/screens folder)")
+    count = -1
+    for screenName in lst:
+        count+=1
+        if name == "": # if no name passed in then print out all screens.
+            print(screenName)
+        else:
+            if screenName == name: # found screen name.
+                selectedScreenPos = count
+                return True
     if name != "":
         return False   
 

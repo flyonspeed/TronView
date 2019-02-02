@@ -48,6 +48,7 @@ class Aircraft(object):
         self.msg_unkown = 0
         self.msg_last = ""
         self.errorFoundNeedToExit = False
+        self.demoMode = False
 
 
 
@@ -58,12 +59,6 @@ def main():
     global aircraft
     # init common things.
     maxframerate = hud_utils.readConfigInt("HUD", "maxframerate", 15)
-    pygamescreen, screen_size = hud_graphics.initDisplay(0)
-    width, height = screen_size
-    pygame.mouse.set_visible(False)  # hide the mouse
-    CurrentScreen.initDisplay(
-        pygamescreen, width, height
-    )  # tell the screen we are about to start.
     clock = pygame.time.Clock()
 
     ##########################################
@@ -72,12 +67,15 @@ def main():
         clock.tick(maxframerate)
         for event in pygame.event.get():  # check for event like keyboard input.
             if event.type == pygame.QUIT:
-                thread1.stop()
                 aircraft.errorFoundNeedToExit = True
             # KEY MAPPINGS
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_q:
                     aircraft.errorFoundNeedToExit = True
+                elif event.key == pygame.K_PAGEUP:
+                    loadScreen(hud_utils.findScreen("prev"))
+                elif event.key == pygame.K_PAGEDOWN:
+                    loadScreen(hud_utils.findScreen("next"))
                 elif event.key == pygame.K_t:
                     pygame.quit()
                     pygame.display.quit()
@@ -94,7 +92,6 @@ def main():
     # once exists main loop, close down pygame. and exit.
     pygame.quit()
     pygame.display.quit()
-    os.system("killall python")
 
 #############################################
 # Text mode Main loop
@@ -105,9 +102,9 @@ def main_text_mode():
         CurrentInput.printTextModeData(aircraft)
 
 #############################################
-## Class: myThreadSerialReader
-## Read serial input data on seperate thread.
-class myThreadSerialReader(threading.Thread):
+## Class: myThreadEfisInputReader
+## Read input data on seperate thread.
+class myThreadEfisInputReader(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
 
@@ -116,10 +113,6 @@ class myThreadSerialReader(threading.Thread):
         while not aircraft.errorFoundNeedToExit:
             aircraft = CurrentInput.readMessage(aircraft)
 
-        pygame.display.quit()
-        pygame.quit()
-        sys.exit()
-
 #############################################
 ## Class: threadReadKeyboard
 # thread for reading in data.  used during text mode.  curses module used for keyboard input.
@@ -127,6 +120,7 @@ class threadReadKeyboard(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
         self.stdscr = curses.initscr()
+        self.stdscr.keypad(1)
 
     def run(self):
         global aircraft
@@ -135,21 +129,34 @@ class threadReadKeyboard(threading.Thread):
             if key==ord('q'):
                 aircraft.errorFoundNeedToExit = True
                 curses.endwin()
-                sys.exit()
-            elif key==27:  # escape key.
-                main()
-        
+            #elif key==27:  # escape key.
+            #elif key==339: #page up
+            #elif key==338: #page up
+            else:
+                print("Key: %d \r\n"%(key))
+
+#############################################
+## Function: loadScreen
+# load screen module name.  And init screen with screen size.
+def loadScreen(ScreenNameToLoad):
+    global CurrentScreen, pygamescreen, screen_size
+    print("Loading screen module: %s"%(ScreenNameToLoad))
+    module = ".%s" % (ScreenNameToLoad)
+    mod = importlib.import_module(
+        module, "lib.screens"
+    )  # dynamically load screen class
+    class_ = getattr(mod, ScreenNameToLoad)
+    CurrentScreen = class_()
+    width, height = screen_size
+    pygame.mouse.set_visible(False)  # hide the mouse
+    CurrentScreen.initDisplay(
+        pygamescreen, width, height
+    )  # tell the screen we are about to start.    
 
 #############################################
 #############################################
 # Hud start code.
 #
-#
-
-# redirct output to output.log (not working.)
-# sys.stdout = open('output.log', 'w')
-# sys.stderr = open('output_error.log', 'w')
-
 
 # load hud.cfg file if it exists.
 configParser = ConfigParser.RawConfigParser()
@@ -164,7 +171,7 @@ if __name__ == "__main__":
     #print 'ARGV      :', sys.argv[1:]
     try:
         opts, args = getopt.getopt(
-            sys.argv[1:], "hs:i:t"
+            sys.argv[1:], "hs:i:te"
         )
     except getopt.GetoptError:
         print("Unkown command line args given..")
@@ -173,6 +180,8 @@ if __name__ == "__main__":
         #print("opt: %s  arg: %s"%(opt,arg))
         if opt == '-t':
             TextMode = True
+        if opt == '-e':
+            aircraft.demoMode = True
         if opt in ("-h", "--help"):
             hud_utils.showArgs()
         if opt in ("-i"):
@@ -185,35 +194,32 @@ if __name__ == "__main__":
     # Check and load input source
     if hud_utils.findInput(DataInputToLoad) == False:
         print("Input module not found: %s"%(DataInputToLoad))
-        hud_utils.findInput()
+        hud_utils.findInput() # show available inputs
         sys.exit()
     print("Input data module: %s"%(DataInputToLoad))
     module = ".%s" % (DataInputToLoad)
     mod = importlib.import_module(module, "lib.inputs")  # dynamically load class
     class_ = getattr(mod, DataInputToLoad)
     CurrentInput = class_()
-    CurrentInput.initInput()
+    CurrentInput.initInput(aircraft)
 
     # check and load screen module.
     if hud_utils.findScreen(ScreenNameToLoad) == False:
         print("Screen module not found: %s"%(ScreenNameToLoad))
-        hud_utils.findScreen()
+        hud_utils.findScreen() # show available screens
         sys.exit()
-    print("Loading screen module: %s"%(ScreenNameToLoad))
-    module = ".%s" % (ScreenNameToLoad)
-    mod = importlib.import_module(
-        module, "lib.screens"
-    )  # dynamically load screen class
-    class_ = getattr(mod, ScreenNameToLoad)
-    CurrentScreen = class_()
+    pygamescreen, screen_size = hud_graphics.initDisplay(0)
+    loadScreen(ScreenNameToLoad) # load and init screen
 
-    thread1 = myThreadSerialReader()  # start thread for reading input.
+    thread1 = myThreadEfisInputReader()  # start thread for reading efis input.
     thread1.start()
-    threadKey = threadReadKeyboard()
+    threadKey = threadReadKeyboard() # read keyboard input for text mode using curses
     threadKey.start()
     if TextMode == True:
-        sys.exit(main_text_mode())  # start main text loop
+        main_text_mode()  # start main text loop
     else:
-        sys.exit(main())  # start main graphical loop
-
+        main()  # start main graphical loop
+    CurrentInput.closeInput(aircraft) # close the input source
+    curses.endwin() # close curses (used for keyboard input in text mode)
+    sys.exit()
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

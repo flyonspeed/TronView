@@ -10,6 +10,7 @@ import serial
 import struct
 from lib import hud_text
 import binascii
+import time
 
 class serial_mgl(Input):
     def __init__(self):
@@ -17,32 +18,52 @@ class serial_mgl(Input):
         self.version = 1.0
         self.inputtype = "serial"
 
-    def initInput(self):
-        self.efis_data_format = hud_utils.readConfig("DataInput", "format", "none")
-        self.efis_data_port = hud_utils.readConfig("DataInput", "port", "/dev/ttyS0")
-        self.efis_data_baudrate = hud_utils.readConfigInt(
-            "DataInput", "baudrate", 115200
-        )
+    def initInput(self,aircraft):
+        Input.initInput( self, aircraft )  # call parent init Input.
 
-        # open serial connection.
-        self.ser = serial.Serial(
-            port=self.efis_data_port,
-            baudrate=self.efis_data_baudrate,
-            parity=serial.PARITY_NONE,
-            stopbits=serial.STOPBITS_ONE,
-            bytesize=serial.EIGHTBITS,
-            timeout=1,
-        )
+        if aircraft.demoMode:
+            # if in demo mode then load example data file.
+            self.ser = open("lib/inputs/_example_data/mgl_data1.txt", "r") 
+        else:
+            self.efis_data_format = hud_utils.readConfig("DataInput", "format", "none")
+            self.efis_data_port = hud_utils.readConfig("DataInput", "port", "/dev/ttyS0")
+            self.efis_data_baudrate = hud_utils.readConfigInt(
+                "DataInput", "baudrate", 115200
+            )
+
+            # open serial connection.
+            self.ser = serial.Serial(
+                port=self.efis_data_port,
+                baudrate=self.efis_data_baudrate,
+                parity=serial.PARITY_NONE,
+                stopbits=serial.STOPBITS_ONE,
+                bytesize=serial.EIGHTBITS,
+                timeout=1,
+            )
+
+
+    def closeInput(self,aircraft):
+        if aircraft.demoMode:
+            self.ser.close()
+        else:
+            self.ser.close()
+
 
     #############################################
     ## Function: readMessage
     def readMessage(self, aircraft):
+        if aircraft.errorFoundNeedToExit:
+            return aircraft;
         try:
             x = 0
             while x != 5:
                 t = self.ser.read(1)
                 if len(t) != 0:
                     x = ord(t)
+                else:
+                    if aircraft.demoMode:
+                        self.ser.seek(0)
+                    return aircraft
             stx = ord(self.ser.read(1))
 
             if stx == 2:
@@ -126,7 +147,9 @@ class serial_mgl(Input):
                         aircraft.msg_unkown += 1 #else unkown message.
 
                     aircraft.msg_last = binascii.hexlify(Message) # save last message.
-                    self.ser.flushInput()
+                    #self.ser.flushInput()
+                    if aircraft.demoMode:
+                        time.sleep(.01)
                     return aircraft
 
                 else: # bad message header found.

@@ -58,5 +58,11 @@ def print_object(obj):
     for attr, value in vars(obj).items():
         print_data(attr,value)
 
+#############################################
+## old school function for printing value at x,y
+def print_xy(x, y, text):
+    sys.stdout.write("\x1b7\x1b[%d;%df%s\x1b8" % (x, y, text))
+    sys.stdout.flush()
+
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python
 

@@ -121,7 +121,7 @@ class threadReadKeyboard(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
         self.stdscr = curses.initscr()
-        self.stdscr.keypad(1)
+        self.stdscr.keypad(1)    
 
     def run(self):
         global aircraft

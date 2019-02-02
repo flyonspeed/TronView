@@ -18,7 +18,11 @@ class serial_g3x(Input):
         self.version = 1.0
         self.inputtype = "serial"
 
-    def initInput(self):
+    def initInput(self,aircraft):
+        Input.initInput( self, aircraft )  # call parent init Input.
+
+        # TODO: if aircraft.demoMode then load example demo data instead of opening serial data.
+
         self.efis_data_format = hud_utils.readConfig("DataInput", "format", "none")
         self.efis_data_port = hud_utils.readConfig("DataInput", "port", "/dev/ttyS0")
         self.efis_data_baudrate = hud_utils.readConfigInt(
@@ -34,6 +38,13 @@ class serial_g3x(Input):
             bytesize=serial.EIGHTBITS,
             timeout=1,
         )
+
+    # close this input source
+    def closeInput(self,aircraft):
+        if aircraft.demoMode:
+            self.ser.close()
+        else:
+            self.ser.close()
 
     #############################################
     ## Function: readMessage

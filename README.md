@@ -1,7 +1,7 @@
 # efis_to_hud
-Project for connecting efis data to a HUD.  
+Project for connecting efis/flight data to a HUD or 2nd screen.  
 
-We are using the rapberry pi zero w for taking serial data from a EFIS (MGL or Dynon Skyview) and displaying a graphical HUD out the hdmi output on the pi.  This is plugged into a HUD device like the Hudly Classic.
+We are using the rapberry pi zero w for taking serial data from a EFIS (MGL or Dynon Skyview) and displaying a graphical HUD out the hdmi output on the pi.  This is plugged into a HUD device like the Hudly Classic.  Any sort of HDMI screen could be hooked to the Pi for displaying this flight data.
 
 Get raspbian-stretch-lite SD image for pi. Latest can be gotten here.
 https://downloads.raspberrypi.org/raspbian_lite_latest
@@ -75,6 +75,8 @@ load a input module for where to get the air data from.
 
 -t (optional) will let you see the data in text mode
 
+-e (optional) load example demo data for input source selected.
+
 Run the command with no arguments and it will show you which input modules and screen modules are available to use.
 
 `sudo python hud.py`
@@ -97,6 +99,10 @@ a - show alt/airspeed tape (work in progress)
 l - adjust line thickness
 
 c - center circle mode
+
+PAGE UP - jump to next screen
+
+PAGE DOWN - go to previous screen
 
 To run with
 
@@ -182,6 +188,10 @@ baudrate = 115200
 </pre>
 
 # Sample EFIS Data
+
+  Demo data is saved in lib/inputs/_example_data
+
+  More data and details can be found in the following locations:
 
   MGL EFIS Sample Data Link: https://drive.google.com/open?id=1mPOmQuIT-Q5IvIoVmyfRCtvBxCsLUuvz
 

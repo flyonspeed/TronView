@@ -69,6 +69,8 @@ selectedScreenPos = 0
 def findScreen(name=""):
     global selectedScreenPos
     lst = getScreens()
+    if name == "current":  # re-load current screen
+        return lst[selectedScreenPos]
     if name == "prev":  # load previous screen
         selectedScreenPos -= 1
         if selectedScreenPos < 0:

@@ -41,8 +41,9 @@ class Aircraft(object):
 ## Class: NavData
 class NavData(object):
     def __init__(self):
-        self.navstatus = ""
-        self.navsource = 0
+        self.NavStatus = ""
+        self.HSISource = 0
+        self.VNAVSource = 0
         self.AP = 0
         self.HSINeedle = 0
         self.HSIRoseHeading = 0

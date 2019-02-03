@@ -87,6 +87,7 @@ class serial_mgl(Input):
                             if HeadingMag != 0:
                                 aircraft.mag_head = HeadingMag * 0.1
                             aircraft.msg_count += 1
+                            aircraft.msg_last = binascii.hexlify(Message) # save last message.
 
                     elif msgType == 2:  # GPS Message
                         Message = self.ser.read(36)
@@ -103,6 +104,7 @@ class serial_mgl(Input):
                             ):  # if no mag heading use ground track
                                 aircraft.mag_head = aircraft.gndtrack
                             aircraft.msg_count += 1
+                            aircraft.msg_last = binascii.hexlify(Message) # save last message.
 
                     elif msgType == 1:  # Primary flight
                         Message = self.ser.read(20)
@@ -127,6 +129,7 @@ class serial_mgl(Input):
                             )  # 0.00108 of inches of mercury change per foot.
                             aircraft.vsi = VSI
                             aircraft.msg_count += 1
+                            aircraft.msg_last = binascii.hexlify(Message) # save last message.
 
                     elif msgType == 6:  # Traffic message
                         Message = self.ser.read(4)
@@ -140,7 +143,8 @@ class serial_mgl(Input):
                             aircraft.traffic.MsgNum = ThisMsgNum
 
                             aircraft.traffic.msg_count += 1
-                            aircraft.traffic.msg_last = Message
+                            aircraft.traffic.msg_last = binascii.hexlify(Message) # save last message.
+
 
                     elif msgType == 4:  # Navigation message
                         Message = self.ser.read(50)
@@ -149,7 +153,8 @@ class serial_mgl(Input):
                                 "<HBBBBhHhhhiiiihhhHHhhhh", Message
                             )
                             aircraft.nav.NavStatus = hud_utils.get_bin(Flags)
-                            aircraft.nav.NavSource = HSISource
+                            aircraft.nav.HSISource = HSISource
+                            aircraft.nav.VNAVSource = VNAVSource
                             aircraft.nav.AP = APMode
                             aircraft.nav.HSINeedle = HSINeedleAngle
                             aircraft.nav.HSIRoseHeading = HSIRoseHeading
@@ -168,12 +173,10 @@ class serial_mgl(Input):
                             aircraft.nav.GLSVert = GLSVert
 
                             aircraft.nav.msg_count += 1
-                            #aircraft.nav.msg_last = Message
+                            aircraft.nav.msg_last = binascii.hexlify(Message) # save nav message.
 
                     else:
                         aircraft.msg_unknown += 1 #else unknown message.
-
-                    aircraft.msg_last = binascii.hexlify(Message) # save last message.
                     
                     if aircraft.demoMode:  #if demo mode then add a delay.  Else reading a file is way to fast.
                         time.sleep(.01)

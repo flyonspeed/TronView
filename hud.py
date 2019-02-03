@@ -18,43 +18,11 @@ import time
 import threading, getopt
 import ConfigParser
 import importlib
+import curses
 from lib import hud_graphics
 from lib import hud_utils
 from lib import hud_text
-import curses
-
-#############################################
-## Class: Aircraft
-class Aircraft(object):
-    def __init__(self):
-        self.pitch = 0.0
-        self.roll = 0.0
-        self.ias = 0
-        self.tas = 0
-        self.alt = 0
-        self.agl = 0
-        self.PALT = 0
-        self.BALT = 0
-        self.aoa = 0
-        self.mag_head = 0
-        self.gndtrack = 0
-        self.baro = 0
-        self.baro_diff = 0
-        self.vsi = 0
-        self.gndspeed = 0
-        self.oat = 0
-        self.vert_G = 0
-        self.turn_rate = 0
-
-        self.msg_count = 0
-        self.msg_bad = 0
-        self.msg_unknown = 0
-        self.msg_last = ""
-        self.errorFoundNeedToExit = False
-        self.demoMode = False
-        self.textMode = False
-
-
+from lib import aircraft
 
 #############################################
 ## Function: main
@@ -170,7 +138,7 @@ def loadScreen(ScreenNameToLoad):
 # load hud.cfg file if it exists.
 configParser = ConfigParser.RawConfigParser()
 configParser.read("hud.cfg")
-aircraft = Aircraft()
+aircraft = aircraft.Aircraft()
 ScreenNameToLoad = hud_utils.readConfig("Hud", "screen", "DefaultScreen")  # default screen to load
 DataInputToLoad = hud_utils.readConfig("DataInput", "inputsource", "none")  # input method
 

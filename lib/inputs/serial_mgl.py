@@ -141,7 +141,19 @@ class serial_mgl(Input):
                             Flags, HSISource, VNAVSource, APMode, Padding, HSINeedleAngle, HSIRoseHeading, HSIDeviation, VerticalDeviation, HeadingBug, AltimeterBug, WPDistance = struct.unpack(
                                 "<HBBBBhHhhhii", Message
                             )
-                            aircraft.msg_count += 1
+                            aircraft.nav.NavSource = HSISource
+                            aircraft.nav.AP = APMode
+                            aircraft.nav.HSINeedle = HSINeedleAngle
+                            aircraft.nav.HSIRoseHeading = HSIRoseHeading
+                            aircraft.nav.HSIHorzDev = HSIDeviation
+                            aircraft.nav.HSIVertDev = VerticalDeviation
+
+                            aircraft.nav.HeadBug = HeadingBug
+                            aircraft.nav.AltBug = AltimeterBug
+
+                            aircraft.nav.WPDist = WPDistance
+
+                            aircraft.nav.msg_count += 1
 
                     else:
                         aircraft.msg_unknown += 1 #else unknown message.
@@ -164,7 +176,7 @@ class serial_mgl(Input):
         except serial.serialutil.SerialException:
             print("serial exception")
             aircraft.errorFoundNeedToExit = True
-            return aircraft
+        return aircraft
 
 
     #############################################
@@ -172,6 +184,9 @@ class serial_mgl(Input):
     def printTextModeData(self, aircraft):
         hud_text.print_header("Decoded data from Input Module: %s"%(self.name))
         hud_text.print_object(aircraft)
+
+        hud_text.print_header("Decoded Nav Data")
+        hud_text.print_object(aircraft.nav)
         hud_text.print_DoneWithPage()
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

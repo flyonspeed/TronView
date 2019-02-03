@@ -40,9 +40,13 @@ class Aircraft(object):
 ## Class: NavData
 class NavData(object):
     def __init__(self):
+        self.navsource = 0
         self.AP = 0
         self.HSINeedle = 0
         self.HSIRoseHeading = 0
+        self.HSIHorzDev = 0
+        self.HSIVertDev = 0
+
         self.HeadBug = 0
         self.AltBug = 0
 
@@ -53,6 +57,9 @@ class NavData(object):
         self.GSDev = 0
         self.GLSHorz = 0
         self.GLSVert = 0
+
+        self.msg_count = 0
+        self.msg_last = ""
 
 
 #############################################

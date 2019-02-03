@@ -143,25 +143,32 @@ class serial_mgl(Input):
                             aircraft.traffic.msg_last = Message
 
                     elif msgType == 4:  # Navigation message
-                        Message = self.ser.read(24)
-                        if len(Message) == 24:
-                            Flags, HSISource, VNAVSource, APMode, Padding, HSINeedleAngle, HSIRoseHeading, HSIDeviation, VerticalDeviation, HeadingBug, AltimeterBug, WPDistance = struct.unpack(
-                                "<HBBBBhHhhhii", Message
+                        Message = self.ser.read(50)
+                        if len(Message) == 50:
+                            Flags, HSISource, VNAVSource, APMode, Padding, HSINeedleAngle, HSIRoseHeading, HSIDev, VDev, HeadBug, AltBug, WPDist, WPLat,WPLon,WPTrack,vor1r,vor2r,dme1,dme2,ILSDev,GSDev,GLSHoriz,GLSVert = struct.unpack(
+                                "<HBBBBhHhhhiiiihhhHHhhhh", Message
                             )
+                            aircraft.nav.NavStatus = hud_utils.get_bin(Flags)
                             aircraft.nav.NavSource = HSISource
                             aircraft.nav.AP = APMode
                             aircraft.nav.HSINeedle = HSINeedleAngle
                             aircraft.nav.HSIRoseHeading = HSIRoseHeading
-                            aircraft.nav.HSIHorzDev = HSIDeviation
-                            aircraft.nav.HSIVertDev = VerticalDeviation
+                            aircraft.nav.HSIHorzDev = HSIDev
+                            aircraft.nav.HSIVertDev = VDev
 
-                            aircraft.nav.HeadBug = HeadingBug
-                            aircraft.nav.AltBug = AltimeterBug
+                            aircraft.nav.HeadBug = HeadBug
+                            aircraft.nav.AltBug = AltBug
 
-                            aircraft.nav.WPDist = WPDistance
+                            aircraft.nav.WPDist = WPDist
+                            aircraft.nav.WPTrack = WPTrack
+
+                            aircraft.nav.ILSDev = ILSDev
+                            aircraft.nav.GSDev = GSDev
+                            aircraft.nav.GLSHoriz = GLSHoriz
+                            aircraft.nav.GLSVert = GLSVert
 
                             aircraft.nav.msg_count += 1
-                            aircraft.nav.msg_last = Message
+                            #aircraft.nav.msg_last = Message
 
                     else:
                         aircraft.msg_unknown += 1 #else unknown message.

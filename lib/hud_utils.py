@@ -24,6 +24,23 @@ def readConfig(section, name, defaultValue=0, show_error=False):
 def readConfigInt(section, name, defaultValue=0):
     return int(readConfig(section, name, defaultValue=defaultValue))
 
+# https://stackoverflow.com/questions/699866/python-int-to-binary#699891
+def get_bin(x, n=8):
+    """
+    Get the binary representation of x.
+
+    Parameters
+    ----------
+    x : int
+    n : int
+        Minimum number of digits. If x needs less digits in binary, the rest
+        is filled with zeros.
+
+    Returns
+    -------
+    str
+    """
+    return format(x, "b").zfill(n)
 
 #############################################
 ## Function: show command Args

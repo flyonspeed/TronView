@@ -33,7 +33,7 @@ class DefaultScreen(Screen):
         Screen.initDisplay(
             self, pygamescreen, width, height
         )  # call parent init screen.
-        print("Init ", self.name)
+        print("Init %s"%(self.name))
         print(self.width)
         print(self.height)
 

@@ -9,6 +9,7 @@ from lib import hud_utils
 import serial
 import struct
 from lib import hud_text
+import time
 
 class serial_skyview(Input):
     def __init__(self):
@@ -21,21 +22,25 @@ class serial_skyview(Input):
         
         # TODO: if aircraft.demoMode then load example demo data instead of opening serial data.
 
-        self.efis_data_format = hud_utils.readConfig("DataInput", "format", "none")
-        self.efis_data_port = hud_utils.readConfig("DataInput", "port", "/dev/ttyS0")
-        self.efis_data_baudrate = hud_utils.readConfigInt(
-            "DataInput", "baudrate", 115200
-        )
+        if aircraft.demoMode:
+            # if in demo mode then load example data file.
+            self.ser = open("lib/inputs/_example_data/skyview_data1.txt", "r") 
+        else:
+            self.efis_data_format = hud_utils.readConfig("DataInput", "format", "none")
+            self.efis_data_port = hud_utils.readConfig("DataInput", "port", "/dev/ttyS0")
+            self.efis_data_baudrate = hud_utils.readConfigInt(
+                "DataInput", "baudrate", 115200
+            )
 
-        # open serial connection.
-        self.ser = serial.Serial(
-            port=self.efis_data_port,
-            baudrate=self.efis_data_baudrate,
-            parity=serial.PARITY_NONE,
-            stopbits=serial.STOPBITS_ONE,
-            bytesize=serial.EIGHTBITS,
-            timeout=1,
-        )
+            # open serial connection.
+            self.ser = serial.Serial(
+                port=self.efis_data_port,
+                baudrate=self.efis_data_baudrate,
+                parity=serial.PARITY_NONE,
+                stopbits=serial.STOPBITS_ONE,
+                bytesize=serial.EIGHTBITS,
+                timeout=1,
+            )
 
     # close this data input 
     def closeInput(self,aircraft):
@@ -47,12 +52,18 @@ class serial_skyview(Input):
     #############################################
     ## Function: readMessage
     def readMessage(self, aircraft):
+        if aircraft.errorFoundNeedToExit:
+            return aircraft;
         try:
             x = 0
             while x != 33:  # 33(!) is start of dynon skyview.
                 t = self.ser.read(1)
                 if len(t) != 0:
                     x = ord(t)
+                else:
+                    if aircraft.demoMode:  # if no bytes read and in demo mode.  then reset the file pointer to the start of the file.
+                        self.ser.seek(0)
+                    return aircraft
             msg = self.ser.read(73)  # 91 ?
             if len(msg) == 73:
                 msg = (msg[:73]) if len(msg) > 73 else msg
@@ -76,14 +87,20 @@ class serial_skyview(Input):
                     aircraft.vsi = int(VertSpd) * 10
                     aircraft.msg_count += 1
 
-                    self.ser.flushInput()
+                    if aircraft.demoMode:  #if demo mode then add a delay.  Else reading a file is way to fast.
+                        time.sleep(.05)
+                    else:
+                        self.ser.flushInput()  # flush the serial after every message else we see delays
                     return aircraft
                 else:
                     aircraft.msg_unknown += 1 # unknown message found.
 
             else:
                 aircraft.msg_bad += 1 # count this as a bad message
-                self.ser.flushInput()
+                if aircraft.demoMode:  #if demo mode then add a delay.  Else reading a file is way to fast.
+                    time.sleep(.01)
+                else:
+                    self.ser.flushInput()  # flush the serial after every message else we see delays
                 return aircraft
         except serial.serialutil.SerialException:
             print("skyview serial exception")

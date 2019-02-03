@@ -143,7 +143,7 @@ class threadReadKeyboard(threading.Thread):
 ## Function: loadScreen
 # load screen module name.  And init screen with screen size.
 def loadScreen(ScreenNameToLoad):
-    global CurrentScreen, pygamescreen, screen_size
+    global CurrentScreen
     print("Loading screen module: %s"%(ScreenNameToLoad))
     module = ".%s" % (ScreenNameToLoad)
     mod = importlib.import_module(
@@ -151,7 +151,6 @@ def loadScreen(ScreenNameToLoad):
     )  # dynamically load screen class
     class_ = getattr(mod, ScreenNameToLoad)
     CurrentScreen = class_()
-    #if 'pygamescreen' not in vars() or 'pygamescreen' not in globals()
     pygamescreen, screen_size = hud_graphics.initDisplay(0)
     width, height = screen_size
     pygame.mouse.set_visible(False)  # hide the mouse

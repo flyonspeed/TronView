@@ -61,7 +61,7 @@ class serial_mgl(Input):
                 if len(t) != 0:
                     x = ord(t)
                 else:
-                    if aircraft.demoMode:
+                    if aircraft.demoMode:  # if no bytes read and in demo mode.  then reset the file pointer to the start of the file.
                         self.ser.seek(0)
                     return aircraft
             stx = ord(self.ser.read(1))
@@ -147,9 +147,11 @@ class serial_mgl(Input):
                         aircraft.msg_unknown += 1 #else unknown message.
 
                     aircraft.msg_last = binascii.hexlify(Message) # save last message.
-                    #self.ser.flushInput()
-                    if aircraft.demoMode:
+                    
+                    if aircraft.demoMode:  #if demo mode then add a delay.  Else reading a file is way to fast.
                         time.sleep(.01)
+                    else:
+                        self.ser.flushInput()  # flush the serial after every message else we see delays
                     return aircraft
 
                 else: # bad message header found.

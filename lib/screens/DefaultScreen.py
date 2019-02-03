@@ -33,9 +33,7 @@ class DefaultScreen(Screen):
         Screen.initDisplay(
             self, pygamescreen, width, height
         )  # call parent init screen.
-        print("Init ", self.name)
-        print(self.width)
-        print(self.height)
+        print("Init Screen: %s %dx%d"%(self.name,self.width,self.height))
 
         self.ahrs_bg = pygame.Surface((self.width * 2, self.height * 2))
         self.ahrs_bg_width = self.ahrs_bg.get_width()
@@ -115,7 +113,7 @@ class DefaultScreen(Screen):
             )
             self.pygamescreen.blit(label, (70, 20))
             label = self.myfont.render(
-                "msg_count: %d" % (aircraft.msg_count), 1, (20, 255, 0)
+                "msgcount: %d" % (aircraft.msg_count), 1, (20, 255, 0)
             )
             self.pygamescreen.blit(label, (200, 0))
 

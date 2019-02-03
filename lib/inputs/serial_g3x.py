@@ -11,6 +11,7 @@ import serial
 import struct
 import math
 from lib import hud_text
+import time
 
 class serial_g3x(Input):
     def __init__(self):
@@ -21,23 +22,24 @@ class serial_g3x(Input):
     def initInput(self,aircraft):
         Input.initInput( self, aircraft )  # call parent init Input.
 
-        # TODO: if aircraft.demoMode then load example demo data instead of opening serial data.
-
-        self.efis_data_format = hud_utils.readConfig("DataInput", "format", "none")
-        self.efis_data_port = hud_utils.readConfig("DataInput", "port", "/dev/ttyS0")
-        self.efis_data_baudrate = hud_utils.readConfigInt(
-            "DataInput", "baudrate", 115200
-        )
-
-        # open serial connection.
-        self.ser = serial.Serial(
-            port=self.efis_data_port,
-            baudrate=self.efis_data_baudrate,
-            parity=serial.PARITY_NONE,
-            stopbits=serial.STOPBITS_ONE,
-            bytesize=serial.EIGHTBITS,
-            timeout=1,
-        )
+        if aircraft.demoMode:
+            # if in demo mode then load example data file.
+            self.ser = open("lib/inputs/_example_data/garmin_g3x_data1.txt", "r") 
+        else:
+            self.efis_data_format = hud_utils.readConfig("DataInput", "format", "none")
+            self.efis_data_port = hud_utils.readConfig("DataInput", "port", "/dev/ttyS0")
+            self.efis_data_baudrate = hud_utils.readConfigInt(
+                "DataInput", "baudrate", 115200
+            )
+            # open serial connection.
+            self.ser = serial.Serial(
+                port=self.efis_data_port,
+                baudrate=self.efis_data_baudrate,
+                parity=serial.PARITY_NONE,
+                stopbits=serial.STOPBITS_ONE,
+                bytesize=serial.EIGHTBITS,
+                timeout=1,
+            )
 
     # close this input source
     def closeInput(self,aircraft):
@@ -49,6 +51,8 @@ class serial_g3x(Input):
     #############################################
     ## Function: readMessage
     def readMessage(self, aircraft):
+        if aircraft.errorFoundNeedToExit:
+            return aircraft;
         try:
             x = 0
             while x != 61:  # 61(=) is start of garmin g3x sentence.
@@ -80,6 +84,10 @@ class serial_g3x(Input):
                                     
                             else:
                                 aircraft.msg_bad += 1 
+                else:
+                    if aircraft.demoMode:  # if no bytes read and in demo mode.  then reset the file pointer to the start of the file.
+                        self.ser.seek(0)
+                    return aircraft
 
             SentID = self.ser.read(1)
             
@@ -133,9 +141,15 @@ class serial_g3x(Input):
                 else:
                     aircraft.msg_bad += 1                        
 
+                if aircraft.demoMode:  #if demo mode then add a delay.  Else reading a file is way to fast.
+                    time.sleep(.11)
+
             else:
                 aircraft.msg_unknown += 1 #else unknown message.
-                self.ser.flushInput()
+                if aircraft.demoMode:  
+                    time.sleep(.01)
+                else:
+                    self.ser.flushInput()  # flush the serial after every message else we see delays
                 return aircraft
             
         except serial.serialutil.SerialException:

@@ -49,7 +49,7 @@ def print_header(header):
 ## Function print at next location
 def print_data(label,value):
     global lastTextX, lastTextY
-    sys.stdout.write("\x1b7\x1b[%d;%df%s : %s \x1b8" % (lastTextX, lastTextY, bcolors.UNDERLINE + label + bcolors.ENDC, bcolors.OKGREEN + str(value) + bcolors.ENDC))
+    sys.stdout.write("\x1b7\x1b[%d;%df%s : %s        \x1b8" % (lastTextX, lastTextY, bcolors.UNDERLINE + label + bcolors.ENDC, bcolors.OKGREEN + str(value) + bcolors.ENDC))
     lastTextX = lastTextX + 1 #increment the text postion to next location for next time this is called.
 
 #############################################
@@ -57,6 +57,13 @@ def print_data(label,value):
 def print_object(obj):
     for attr, value in vars(obj).items():
         print_data(attr,value)
+
+#############################################
+## Function change the x,y postions to start printing from.
+def changePos(x,y):
+    global lastTextX, lastTextY
+    lastTextX = x
+    lastTextY = y
 
 #############################################
 ## old school function for printing value at x,y

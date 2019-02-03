@@ -23,7 +23,8 @@ class serial_mgl(Input):
 
         if aircraft.demoMode:
             # if in demo mode then load example data file.
-            self.ser = open("lib/inputs/_example_data/mgl_data1.txt", "r") 
+            demofile = hud_utils.readConfig(self.name, "demofile", "mgl_data1.txt")  # get demo file to read from config.  else default to..
+            self.ser = open("lib/inputs/_example_data/%s"%(demofile), "r") 
         else:
             self.efis_data_format = hud_utils.readConfig("DataInput", "format", "none")
             self.efis_data_port = hud_utils.readConfig("DataInput", "port", "/dev/ttyS0")
@@ -61,7 +62,7 @@ class serial_mgl(Input):
                 if len(t) != 0:
                     x = ord(t)
                 else:
-                    if aircraft.demoMode:
+                    if aircraft.demoMode:  # if no bytes read and in demo mode.  then reset the file pointer to the start of the file.
                         self.ser.seek(0)
                     return aircraft
             stx = ord(self.ser.read(1))
@@ -86,6 +87,7 @@ class serial_mgl(Input):
                             if HeadingMag != 0:
                                 aircraft.mag_head = HeadingMag * 0.1
                             aircraft.msg_count += 1
+                            aircraft.msg_last = binascii.hexlify(Message) # save last message.
 
                     elif msgType == 2:  # GPS Message
                         Message = self.ser.read(36)
@@ -102,6 +104,7 @@ class serial_mgl(Input):
                             ):  # if no mag heading use ground track
                                 aircraft.mag_head = aircraft.gndtrack
                             aircraft.msg_count += 1
+                            aircraft.msg_last = binascii.hexlify(Message) # save last message.
 
                     elif msgType == 1:  # Primary flight
                         Message = self.ser.read(20)
@@ -126,6 +129,7 @@ class serial_mgl(Input):
                             )  # 0.00108 of inches of mercury change per foot.
                             aircraft.vsi = VSI
                             aircraft.msg_count += 1
+                            aircraft.msg_last = binascii.hexlify(Message) # save last message.
 
                     elif msgType == 6:  # Traffic message
                         Message = self.ser.read(4)
@@ -133,23 +137,51 @@ class serial_mgl(Input):
                             TrafficMode, NumOfTraffic, NumMsg, MsgNum = struct.unpack(
                                 "!BBBB", Message
                             )
-                            aircraft.msg_count += 1
+                            aircraft.traffic.TrafficMode = TrafficMode
+                            aircraft.traffic.TrafficCount = NumOfTraffic
+                            aircraft.traffic.NumMsg = NumMsg
+                            aircraft.traffic.MsgNum = ThisMsgNum
+
+                            aircraft.traffic.msg_count += 1
+                            aircraft.traffic.msg_last = binascii.hexlify(Message) # save last message.
+
 
                     elif msgType == 4:  # Navigation message
-                        Message = self.ser.read(24)
-                        if len(Message) == 24:
-                            Flags, HSISource, VNAVSource, APMode, Padding, HSINeedleAngle, HSIRoseHeading, HSIDeviation, VerticalDeviation, HeadingBug, AltimeterBug, WPDistance = struct.unpack(
-                                "<HBBBBhHhhhii", Message
+                        Message = self.ser.read(50)
+                        if len(Message) == 50:
+                            Flags, HSISource, VNAVSource, APMode, Padding, HSINeedleAngle, HSIRoseHeading, HSIDev, VDev, HeadBug, AltBug, WPDist, WPLat,WPLon,WPTrack,vor1r,vor2r,dme1,dme2,ILSDev,GSDev,GLSHoriz,GLSVert = struct.unpack(
+                                "<HBBBBhHhhhiiiihhhHHhhhh", Message
                             )
-                            aircraft.msg_count += 1
+                            aircraft.nav.NavStatus = hud_utils.get_bin(Flags)
+                            aircraft.nav.HSISource = HSISource
+                            aircraft.nav.VNAVSource = VNAVSource
+                            aircraft.nav.AP = APMode
+                            aircraft.nav.HSINeedle = HSINeedleAngle
+                            aircraft.nav.HSIRoseHeading = HSIRoseHeading
+                            aircraft.nav.HSIHorzDev = HSIDev
+                            aircraft.nav.HSIVertDev = VDev
+
+                            aircraft.nav.HeadBug = HeadBug
+                            aircraft.nav.AltBug = AltBug
+
+                            aircraft.nav.WPDist = WPDist
+                            aircraft.nav.WPTrack = WPTrack
+
+                            aircraft.nav.ILSDev = ILSDev
+                            aircraft.nav.GSDev = GSDev
+                            aircraft.nav.GLSHoriz = GLSHoriz
+                            aircraft.nav.GLSVert = GLSVert
+
+                            aircraft.nav.msg_count += 1
+                            aircraft.nav.msg_last = binascii.hexlify(Message) # save nav message.
 
                     else:
                         aircraft.msg_unknown += 1 #else unknown message.
-
-                    aircraft.msg_last = binascii.hexlify(Message) # save last message.
-                    #self.ser.flushInput()
-                    if aircraft.demoMode:
+                    
+                    if aircraft.demoMode:  #if demo mode then add a delay.  Else reading a file is way to fast.
                         time.sleep(.01)
+                    else:
+                        self.ser.flushInput()  # flush the serial after every message else we see delays
                     return aircraft
 
                 else: # bad message header found.
@@ -162,7 +194,7 @@ class serial_mgl(Input):
         except serial.serialutil.SerialException:
             print("serial exception")
             aircraft.errorFoundNeedToExit = True
-            return aircraft
+        return aircraft
 
 
     #############################################
@@ -170,6 +202,14 @@ class serial_mgl(Input):
     def printTextModeData(self, aircraft):
         hud_text.print_header("Decoded data from Input Module: %s"%(self.name))
         hud_text.print_object(aircraft)
+
+        hud_text.print_header("Decoded Nav Data")
+        hud_text.print_object(aircraft.nav)
+
+        hud_text.changePos(1,100)
+        hud_text.print_header("Decoded Traffic Data")
+        hud_text.print_object(aircraft.traffic)
+
         hud_text.print_DoneWithPage()
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

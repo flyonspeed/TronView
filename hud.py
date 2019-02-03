@@ -43,6 +43,8 @@ class Aircraft(object):
         self.vsi = 0
         self.gndspeed = 0
         self.oat = 0
+        self.vert_G = 0
+        self.turn_rate = 0
 
         self.msg_count = 0
         self.msg_bad = 0

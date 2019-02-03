@@ -66,6 +66,18 @@ class serial_g3x(Input):
                             if ord(CRLF[0]) ==13:
                                 aircraft.msg_count += 1
                                 aircraft.gndspeed = (math.sqrt(((int(EWVelmag) * 0.1)**2) + ((int(NSVelmag) * 0.1)**2))) * 1.94384
+                                if EWVelDir == "W":
+                                    EWVelmag = int(EWVelmag) * -0.1
+                                else:
+                                    EWVelmag = int(EWVelmag) * 0.1
+                                if NSVelDir == "S":
+                                    NSVelmag = int(NSVelmag) * -0.1
+                                else:
+                                    NSVelmag = int(NSVelmag) * 0.1
+                                aircraft.gndtrack = math.degrees(math.atan2(EWVelmag, NSVelmag))
+                                if aircraft.gndtrack < 0:
+                                    aircraft.gndtrack = aircraft.gndtrack + 360
+                                    
                             else:
                                 aircraft.msg_bad += 1 
 
@@ -95,6 +107,8 @@ class serial_g3x(Input):
                         aircraft.BALT = aircraft.alt
                         aircraft.vsi = int(VertSpeed) * 10
                         aircraft.tas = aircraft.ias * (math.sqrt((273.0 + aircraft.oat) / 288.0)) * ((1.0 - aircraft.PALT / 144000.0) ** -2.75)
+                        aircraft.vert_G = int(VertAcc) * 0.1
+                        aircraft.turn_rate = int(RateofTurn) * 0.1
                         aircraft.msg_count += 1
                     else:
                         aircraft.msg_bad += 1

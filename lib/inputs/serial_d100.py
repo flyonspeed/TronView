@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 # Serial input source
-# Skyview
-# 1/23/2019 Christopher Jones
+# Dynon D10 and D100
+# 2/2/2019 Christopher Jones
 from __future__ import print_function
 from _input import Input
 from lib import hud_utils
@@ -11,9 +11,9 @@ import struct
 from lib import hud_text
 import time
 
-class serial_skyview(Input):
+class serial_d100(Input):
     def __init__(self):
-        self.name = "skyview"
+        self.name = "D100"
         self.version = 1.0
         self.inputtype = "serial"
 
@@ -22,7 +22,7 @@ class serial_skyview(Input):
         
         if aircraft.demoMode:
             # if in demo mode then load example data file.
-            self.ser = open("lib/inputs/_example_data/dynon_skyview_data1.txt", "r") 
+            self.ser = open("lib/inputs/_example_data/dynon_d100_data1.txt", "r") 
         else:
             self.efis_data_format = hud_utils.readConfig("DataInput", "format", "none")
             self.efis_data_port = hud_utils.readConfig("DataInput", "port", "/dev/ttyS0")
@@ -54,7 +54,7 @@ class serial_skyview(Input):
             return aircraft;
         try:
             x = 0
-            while x != 33:  # 33(!) is start of dynon skyview.
+            while x != 10:  # wait for CR (10) because this is the end of line for a message. (there is no start of a line char on the d10/100 series )
                 t = self.ser.read(1)
                 if len(t) != 0:
                     x = ord(t)
@@ -62,25 +62,28 @@ class serial_skyview(Input):
                     if aircraft.demoMode:  # if no bytes read and in demo mode.  then reset the file pointer to the start of the file.
                         self.ser.seek(0)
                     return aircraft
-            msg = self.ser.read(73)  # 91 ?
-            if len(msg) == 73:
-                msg = (msg[:73]) if len(msg) > 73 else msg
+            msg = self.ser.read(51)  
+            if len(msg) == 51:
+                msg = (msg[:51]) if len(msg) > 51 else msg
                 aircraft.msg_last = msg
-                dataType, DataVer, SysTime, pitch, roll, HeadingMAG, IAS, PresAlt, TurnRate, LatAccel, VertAccel, AOA, VertSpd, OAT, TAS, Baro, DA, WD, WS, Checksum, CRLF = struct.unpack(
-                    "cc8s4s5s3s4s6s4s3s3s2s4s3s4s3s6s3s2s2s2s", msg
+                # 8b      4b    5b   3b  4b   5b   4b        3b        3b         2b   6b         2b          2s  
+                timechunk,pitch,roll,yaw,IAS, Alt, TurnRate, LatAccel, VertAccel, AOA, StatusBit, InteralUse, Checksum = struct.unpack(
+                    "8s4s5s3s4s5s4s3s3s2s6s2s2s", msg
                 )
-                # if ord(CRLF[0]) == 13:
-                if dataType == "1" and ord(CRLF[0]) == 13:
+
+                if True:
+                    
                     aircraft.roll = int(roll) * 0.1
                     aircraft.pitch = int(pitch) * 0.1
-                    aircraft.ias = int(IAS) * 0.1
+                    aircraft.ias = int(IAS) * 0.224  # airspeed in units of 1/10 m/s (1555 = 155.5 m/s) convert to MPH
 
                     aircraft.aoa = int(AOA)
-                    aircraft.mag_head = int(HeadingMAG)
-                    aircraft.baro = (int(Baro) + 2750.0) / 100
-                    aircraft.baro_diff = aircraft.baro - 29.921
-                    aircraft.alt = int( int(PresAlt) + (aircraft.baro_diff / 0.00108) )  # 0.00108 of inches of mercury change per foot.
-                    aircraft.vsi = int(VertSpd) * 10
+                    aircraft.mag_head = int(yaw)
+                    #aircraft.baro = (int(Baro) + 2750.0) / 100
+                    #aircraft.baro_diff = aircraft.baro - 29.921
+                    #aircraft.alt = int( int(Alt) + (aircraft.baro_diff / 0.00108) )  # 0.00108 of inches of mercury change per foot.
+                    aircraft.alt = int(Alt)
+                    #aircraft.vsi = int(VertSpd) * 10
                     aircraft.msg_count += 1
 
                     if aircraft.demoMode:  #if demo mode then add a delay.  Else reading a file is way to fast.
@@ -99,7 +102,7 @@ class serial_skyview(Input):
                     self.ser.flushInput()  # flush the serial after every message else we see delays
                 return aircraft
         except serial.serialutil.SerialException:
-            print("skyview serial exception")
+            print("dynon serial exception")
             aircraft.errorFoundNeedToExit = True
         return aircraft
 

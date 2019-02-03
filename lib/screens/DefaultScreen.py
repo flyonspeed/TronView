@@ -115,7 +115,7 @@ class DefaultScreen(Screen):
             )
             self.pygamescreen.blit(label, (70, 20))
             label = self.myfont.render(
-                "msg_count: %d" % (aircraft.msg_count), 1, (20, 255, 0)
+                "msgcount: %d" % (aircraft.msg_count), 1, (20, 255, 0)
             )
             self.pygamescreen.blit(label, (200, 0))
 

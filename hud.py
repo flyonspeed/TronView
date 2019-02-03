@@ -78,8 +78,10 @@ def main_graphical():
                     loadScreen(hud_utils.findScreen("prev"))
                 elif event.key == pygame.K_PAGEDOWN:
                     loadScreen(hud_utils.findScreen("next"))
+                elif event.key == pygame.K_HOME:
+                    loadScreen(hud_utils.findScreen("current"))
                 elif event.key == pygame.K_t:
-                    aircraft.textMode = True
+                    aircraft.textMode = True # switch to text mode?
                 else:
                     CurrentScreen.processEvent(event)  # send this key command to the hud screen object
 

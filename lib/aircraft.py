@@ -26,6 +26,7 @@ class Aircraft(object):
 
         self.engine = EngineData()
         self.nav = NavData()
+        self.traffic = TrafficData()
 
         self.msg_count = 0
         self.msg_bad = 0
@@ -75,6 +76,22 @@ class EngineData(object):
         self.FL1 = 0
         self.FL2 = 0
 
+        self.msg_count = 0
+        self.msg_last = ""
+
+
+#############################################
+## Class: TrafficData
+class TrafficData(object):
+    def __init__(self):
+        self.TrafficCount = 0
+
+        self.TrafficMode = 0
+        self.NumMsg = 0
+        self.ThisMsgNum = 0
+
+        self.msg_count = 0
+        self.msg_last = ""
 
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

@@ -59,6 +59,13 @@ def print_object(obj):
         print_data(attr,value)
 
 #############################################
+## Function change the x,y postions to start printing from.
+def changePos(x,y):
+    global lastTextX, lastTextY
+    lastTextX = x
+    lastTextY = y
+
+#############################################
 ## old school function for printing value at x,y
 def print_xy(x, y, text):
     sys.stdout.write("\x1b7\x1b[%d;%df%s\x1b8" % (x, y, text))

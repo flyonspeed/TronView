@@ -23,7 +23,8 @@ class serial_mgl(Input):
 
         if aircraft.demoMode:
             # if in demo mode then load example data file.
-            self.ser = open("lib/inputs/_example_data/mgl_data1.txt", "r") 
+            demofile = hud_utils.readConfig(self.name, "demofile", "mgl_data1.txt")  # get demo file to read from config.  else default to..
+            self.ser = open("lib/inputs/_example_data/%s"%(demofile), "r") 
         else:
             self.efis_data_format = hud_utils.readConfig("DataInput", "format", "none")
             self.efis_data_port = hud_utils.readConfig("DataInput", "port", "/dev/ttyS0")
@@ -133,7 +134,13 @@ class serial_mgl(Input):
                             TrafficMode, NumOfTraffic, NumMsg, MsgNum = struct.unpack(
                                 "!BBBB", Message
                             )
-                            aircraft.msg_count += 1
+                            aircraft.traffic.TrafficMode = TrafficMode
+                            aircraft.traffic.TrafficCount = NumOfTraffic
+                            aircraft.traffic.NumMsg = NumMsg
+                            aircraft.traffic.MsgNum = ThisMsgNum
+
+                            aircraft.traffic.msg_count += 1
+                            aircraft.traffic.msg_last = Message
 
                     elif msgType == 4:  # Navigation message
                         Message = self.ser.read(24)
@@ -154,6 +161,7 @@ class serial_mgl(Input):
                             aircraft.nav.WPDist = WPDistance
 
                             aircraft.nav.msg_count += 1
+                            aircraft.nav.msg_last = Message
 
                     else:
                         aircraft.msg_unknown += 1 #else unknown message.
@@ -187,6 +195,11 @@ class serial_mgl(Input):
 
         hud_text.print_header("Decoded Nav Data")
         hud_text.print_object(aircraft.nav)
+
+        hud_text.changePos(1,100)
+        hud_text.print_header("Decoded Traffic Data")
+        hud_text.print_object(aircraft.traffic)
+
         hud_text.print_DoneWithPage()
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

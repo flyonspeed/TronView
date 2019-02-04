@@ -49,7 +49,9 @@ def showArgs():
     print(" -i <Input Module Name> (Required)")
     print(" -s <Screen Module Name> (Required)")
     print(" -t Show text mode only (Optional)")
-    print(" -e Use example data for input module (Optional)")
+    print(" -e demo mode. Use default example data for input module (Optional)")
+    print(" -c <example data filename> use custom example data file for demo mode (Optional)")
+
 
     if os.path.isfile("hud.cfg") == False:
         print(" hud.cfg not found (default values will be used)")

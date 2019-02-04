@@ -36,6 +36,7 @@ class Aircraft(object):
         self.msg_last = ""
         self.errorFoundNeedToExit = False
         self.demoMode = False
+        self.demoFile = ""
         self.textMode = False
 
 

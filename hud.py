@@ -147,7 +147,7 @@ if __name__ == "__main__":
     #print 'ARGV      :', sys.argv[1:]
     try:
         opts, args = getopt.getopt(
-            sys.argv[1:], "hs:i:te"
+            sys.argv[1:], "hs:i:tec:"
         )
     except getopt.GetoptError:
         print("unknown command line args given..")
@@ -158,6 +158,9 @@ if __name__ == "__main__":
             aircraft.textMode = True
         if opt == '-e':
             aircraft.demoMode = True
+        if opt == '-c':  #custom example file name.
+            aircraft.demoMode = True
+            aircraft.demoFile = arg
         if opt in ("-h", "--help"):
             hud_utils.showArgs()
         if opt in ("-i"):

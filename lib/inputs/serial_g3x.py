@@ -69,7 +69,7 @@ class serial_g3x(Input):
                             )                    
                             if ord(CRLF[0]) ==13:
                                 aircraft.msg_count += 1
-                                aircraft.gndspeed = (math.sqrt(((int(EWVelmag) * 0.1)**2) + ((int(NSVelmag) * 0.1)**2))) * 1.94384
+                                aircraft.gndspeed = int((math.sqrt(((int(EWVelmag) * 0.1)**2) + ((int(NSVelmag) * 0.1)**2))) * 1.94384)
                                 if EWVelDir == "W":
                                     EWVelmag = int(EWVelmag) * -0.1
                                 else:
@@ -78,10 +78,26 @@ class serial_g3x(Input):
                                     NSVelmag = int(NSVelmag) * -0.1
                                 else:
                                     NSVelmag = int(NSVelmag) * 0.1
-                                aircraft.gndtrack = math.degrees(math.atan2(EWVelmag, NSVelmag))
+                                aircraft.gndtrack = int(math.degrees(math.atan2(EWVelmag, NSVelmag)))
                                 if aircraft.gndtrack < 0:
                                     aircraft.gndtrack = aircraft.gndtrack + 360
-                                   
+                                if aircraft.tas > 30 and aircraft.gndspeed > 30:
+                                    crs = (math.pi/180) * aircraft.gndtrack #convert degrees to radians
+                                    head = (math.pi/180) * aircraft.mag_head #convert degrees to radians
+                                    aircraft.wind_speed = int(math.sqrt(math.pow(aircraft.tas - aircraft.gndspeed, 2) + 4 * aircraft.tas * aircraft.gndspeed * math.pow(math.sin((head - crs) / 2), 2)))
+                                    aircraft.wind_dir = crs + math.atan2(aircraft.tas * math.sin(head-crs), aircraft.tas * math.cos(head-crs) - aircraft.gndspeed)
+                                    if aircraft.wind_dir < 0:
+                                        aircraft.wind_dir = aircraft.wind_dir + 2 * math.pi
+                                    if aircraft.wind_dir > 2 * math.pi:
+                                        aircraft.wind_dir = aircraft.wind_dir - 2 * math.pi
+                                    aircraft.wind_dir = int(aircraft.wind_dir * (180/math.pi)) #convert radians to degrees
+                                    aircraft.norm_wind_dir = aircraft.wind_dir + aircraft.mag_head #normalize the wind direction to the airplane heading
+                                    if aircraft.norm_wind_dir > 359:
+                                        aircraft.norm_wind_dir = aircraft.norm_wind_dir - 360 
+                                else:
+                                    aircraft.wind_speed = 0
+                                    aircraft.wind_dir = 0
+                        
                             else:
                                 aircraft.msg_bad += 1 
                 else:
@@ -102,7 +118,7 @@ class serial_g3x(Input):
                     if SentVer == "1" and ord(CRLF[0]) == 13:
                         aircraft.roll = int(Roll) * 0.1
                         aircraft.pitch = int(Pitch) * 0.1
-                        aircraft.ias = int(Airspeed) * 0.1
+                        aircraft.ias = int(int(Airspeed) * 0.1)
                         aircraft.PALT = int(PressAlt)
                         aircraft.oat = int(OAT)
                         aircraft.aoa = int(AOA)
@@ -114,7 +130,7 @@ class serial_g3x(Input):
                         )  # 0.00108 of inches of mercury change per foot.
                         aircraft.BALT = aircraft.alt
                         aircraft.vsi = int(VertSpeed) * 10
-                        aircraft.tas = aircraft.ias * (math.sqrt((273.0 + aircraft.oat) / 288.0)) * ((1.0 - aircraft.PALT / 144000.0) ** -2.75)
+                        aircraft.tas = int(aircraft.ias * (math.sqrt((273.0 + aircraft.oat) / 288.0)) * ((1.0 - aircraft.PALT / 144000.0) ** -2.75))
                         aircraft.vert_G = int(VertAcc) * 0.1
                         aircraft.turn_rate = int(RateofTurn) * 0.1
                         aircraft.msg_count += 1

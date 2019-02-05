@@ -25,6 +25,9 @@ class Aircraft(object):
         self.oat = 0
         self.vert_G = 0
         self.turn_rate = 0
+        self.wind_speed = 0
+        self.wind_dir = 0
+        self.norm_wind_dir = 0 #corrected for aircraft heading for wind direction pointer
 
         self.engine = EngineData()
         self.nav = NavData()

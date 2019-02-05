@@ -197,15 +197,27 @@ class BrianChesteenHUD(Screen):
             )
             self.pygamescreen.blit(label, (1, (self.heightCenter) - 120))
              # Wind Speed
-            label = self.myfont.render(
-                "WS %d" % (aircraft.wind_speed), 1, (255, 255, 0)
-            )
-            self.pygamescreen.blit(label, (1, (self.heightCenter) - 140))            
+            if aircraft.wind_speed != None:
+                label = self.myfont.render(
+                    "WS %d" % (aircraft.wind_speed), 1, (255, 255, 0)
+                )
+                self.pygamescreen.blit(label, (1, (self.heightCenter) - 140))
+            else:
+                label = self.myfont.render(
+                    "WS --" , 1, (255, 255, 0)
+                )
+                self.pygamescreen.blit(label, (1, (self.heightCenter) - 140))                
              # Wind Dir
-            label = self.myfont.render(
-                "WD %d" % (aircraft.wind_dir), 1, (255, 255, 0)
-            )
-            self.pygamescreen.blit(label, (1, (self.heightCenter) - 160))            
+            if aircraft.wind_dir != None:
+                label = self.myfont.render(
+                    "WD %d" % (aircraft.wind_dir), 1, (255, 255, 0)
+                )
+                self.pygamescreen.blit(label, (1, (self.heightCenter) - 160))            
+            else:                
+                label = self.myfont.render(
+                    "WD --", 1, (255, 255, 0)
+                )
+                self.pygamescreen.blit(label, (1, (self.heightCenter) - 160))            
             # Mag heading
             hud_graphics.hud_draw_box_text(
                 self.pygamescreen,

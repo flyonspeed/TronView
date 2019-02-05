@@ -70,7 +70,7 @@ class BrianChesteenHUD(Screen):
             self.line_mode,
             self.font,
         )
-
+       
         # render debug text
         if self.show_debug:
             label = self.myfont.render("Pitch: %d" % (aircraft.pitch), 1, (255, 255, 0))
@@ -195,7 +195,17 @@ class BrianChesteenHUD(Screen):
             label = self.myfont.render(
                 "OAT %dc %df" % (aircraft.oat, ((aircraft.oat * 9.0/5.0) + 32.0)), 1, (255, 255, 0)
             )
-            self.pygamescreen.blit(label, (1, (self.heightCenter) - 120))              
+            self.pygamescreen.blit(label, (1, (self.heightCenter) - 120))
+             # Wind Speed
+            label = self.myfont.render(
+                "WS %d" % (aircraft.wind_speed), 1, (255, 255, 0)
+            )
+            self.pygamescreen.blit(label, (1, (self.heightCenter) - 140))            
+             # Wind Dir
+            label = self.myfont.render(
+                "WD %d" % (aircraft.wind_dir), 1, (255, 255, 0)
+            )
+            self.pygamescreen.blit(label, (1, (self.heightCenter) - 160))            
             # Mag heading
             hud_graphics.hud_draw_box_text(
                 self.pygamescreen,
@@ -238,6 +248,8 @@ class BrianChesteenHUD(Screen):
                 1,
             )
 
+        
+               
         pygame.display.flip()
         # print Screen.name
 

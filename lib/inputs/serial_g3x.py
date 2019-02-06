@@ -8,11 +8,11 @@ from __future__ import print_function
 from _input import Input
 from lib import hud_utils
 from lib import hud_text
+from lib.geomag import geomag
 import serial
 import struct
 import math
 import time
-import geomag
 
 
 class serial_g3x(Input):

@@ -28,7 +28,7 @@ class Aircraft(object):
         self.wind_speed = None
         self.wind_dir = None
         self.norm_wind_dir = 0 #corrected for aircraft heading for wind direction pointer TODO: Add wind direction pointer to HUD screen
-        self.mag_decl = -6 #magnetic declination (-6) for East TN.  TODO: Integrate function to lookup declination based on lat/lon
+        self.mag_decl = None #magnetic declination
 
         self.gps = GPSData()
         self.engine = EngineData()

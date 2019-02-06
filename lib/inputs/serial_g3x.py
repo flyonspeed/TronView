@@ -7,11 +7,13 @@
 from __future__ import print_function
 from _input import Input
 from lib import hud_utils
+from lib import hud_text
 import serial
 import struct
 import math
-from lib import hud_text
 import time
+import geomag
+
 
 class serial_g3x(Input):
     def __init__(self):
@@ -70,10 +72,10 @@ class serial_g3x(Input):
                             if ord(CRLF[0]) ==13:
                                 aircraft.msg_count += 1
                                 aircraft.gps.LatHemi = LatHemi # North or South
-                                aircraft.gps.LatDeg = LatDeg
+                                aircraft.gps.LatDeg = int(LatDeg)
                                 aircraft.gps.LatMin = int(LatMin) * 0.001  # x.xxx
                                 aircraft.gps.LonHemi = LonHemi # East or West
-                                aircraft.gps.LonDeg = LonDeg
+                                aircraft.gps.LonDeg = int(LonDeg)
                                 aircraft.gps.LonMin = int(LonMin) * 0.001  # x.xxx       
                                 aircraft.gps.GPSAlt = int(GPSAlt) * 3.28084 
                                 aircraft.gps.EWVelDir = EWVelDir # E or W
@@ -82,6 +84,17 @@ class serial_g3x(Input):
                                 aircraft.gps.NSVelmag = int(NSVelmag) * 0.1
                                 aircraft.gps.VVelDir = VVelDir # U or D
                                 aircraft.gps.VVelmag = int(VVelmag) * 0.1
+                                if aircraft.gps.LatHemi == "N":
+                                    GeoMagLat = aircraft.gps.LatDeg + (aircraft.gps.LatMin / 60)
+                                else:
+                                    GeoMagLat = ((aircraft.gps.LatDeg + (aircraft.gps.LatMin / 60))  * -1)
+                                if aircraft.gps.LonHemi == "W":
+                                    GeoMagLon = ((aircraft.gps.LonDeg + (aircraft.gps.LonMin/60))  * -1)
+                                else:
+                                    GeoMagLon = aircraft.gps.LonDeg + (aircraft.gps.LonMin/60)
+                                gm = geomag.GeoMag("WMM.COF")
+                                mag = gm.GeoMag(GeoMagLat, GeoMagLon)
+                                aircraft.mag_decl = mag.dec
                                 aircraft.gndspeed = (math.sqrt(((int(EWVelmag) * 0.1)**2) + ((int(NSVelmag) * 0.1)**2))) * 1.94384
                                 if EWVelDir == "W":
                                     EWVelmag = int(EWVelmag) * -0.1

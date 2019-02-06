@@ -15,7 +15,7 @@ class BrianChesteenHUD(Screen):
     # called only when object is first created.
     def __init__(self):
         Screen.__init__(self)
-        self.name = "Default Hud Screen"  # set name for this screen
+        self.name = "Brian Chesteen Hud Screen"  # set name for this screen
         self.ahrs_bg = 0
         self.show_debug = False  # default off
         self.line_mode = hud_utils.readConfigInt("HUD", "line_mode", 1)

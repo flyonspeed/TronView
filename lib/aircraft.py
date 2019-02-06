@@ -17,18 +17,20 @@ class Aircraft(object):
         self.BALT = 0
         self.aoa = 0
         self.mag_head = 0
-        self.gndtrack = 0
+        self.gndtrack = 0 #TODO: Move to GPSData class?
         self.baro = 0
         self.baro_diff = 0
         self.vsi = 0
-        self.gndspeed = 0
+        self.gndspeed = 0 #TODO: Move to GPSData class?
         self.oat = 0
         self.vert_G = 0
         self.turn_rate = 0
         self.wind_speed = None
         self.wind_dir = None
-        self.norm_wind_dir = 0 #corrected for aircraft heading for wind direction pointer
+        self.norm_wind_dir = 0 #corrected for aircraft heading for wind direction pointer TODO: Add wind direction pointer to HUD screen
+        self.mag_decl = -6 #magnetic declination (-6) for East TN.  TODO: Integrate function to lookup declination based on lat/lon
 
+        self.gps = GPSData()
         self.engine = EngineData()
         self.nav = NavData()
         self.traffic = TrafficData()
@@ -41,6 +43,25 @@ class Aircraft(object):
         self.demoMode = False
         self.demoFile = ""
         self.textMode = False
+
+
+#############################################
+## Class: GPSData
+class GPSData(object):
+    def __init__(self):
+        self.LatHemi = None # North or South
+        self.LatDeg = None
+        self.LatMin = None  # x.xxx
+        self.LonHemi = None # East or West
+        self.LonDeg = None
+        self.LonMin = None  # x.xxx       
+        self.GPSAlt = None  # ft MSL
+        self.EWVelDir = None  # E or W
+        self.EWVelmag = None  # x.x m/s
+        self.NSVelDir = None  # N or S
+        self.NSVelmag = None  # x.x m/s
+        self.VVelDir = None  # U or D
+        self.VVelmag = None  # x.xx m/s
 
 
 #############################################

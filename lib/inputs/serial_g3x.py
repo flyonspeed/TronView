@@ -69,6 +69,19 @@ class serial_g3x(Input):
                             )                    
                             if ord(CRLF[0]) ==13:
                                 aircraft.msg_count += 1
+                                aircraft.gps.LatHemi = LatHemi # North or South
+                                aircraft.gps.LatDeg = LatDeg
+                                aircraft.gps.LatMin = int(LatMin) * 0.001  # x.xxx
+                                aircraft.gps.LonHemi = LonHemi # East or West
+                                aircraft.gps.LonDeg = LonDeg
+                                aircraft.gps.LonMin = int(LonMin) * 0.001  # x.xxx       
+                                aircraft.gps.GPSAlt = int(GPSAlt) * 3.28084 
+                                aircraft.gps.EWVelDir = EWVelDir # E or W
+                                aircraft.gps.EWVelmag = int(EWVelmag) * 0.1
+                                aircraft.gps.NSVelDir = NSVelDir # N or S
+                                aircraft.gps.NSVelmag = int(NSVelmag) * 0.1
+                                aircraft.gps.VVelDir = VVelDir # U or D
+                                aircraft.gps.VVelmag = int(VVelmag) * 0.1
                                 aircraft.gndspeed = (math.sqrt(((int(EWVelmag) * 0.1)**2) + ((int(NSVelmag) * 0.1)**2))) * 1.94384
                                 if EWVelDir == "W":
                                     EWVelmag = int(EWVelmag) * -0.1
@@ -78,12 +91,10 @@ class serial_g3x(Input):
                                     NSVelmag = int(NSVelmag) * -0.1
                                 else:
                                     NSVelmag = int(NSVelmag) * 0.1
-                                aircraft.gndtrack = math.degrees(math.atan2(EWVelmag, NSVelmag))
-                                if aircraft.gndtrack < 0:
-                                    aircraft.gndtrack = aircraft.gndtrack + 360
+                                aircraft.gndtrack = (math.degrees(math.atan2(EWVelmag, NSVelmag))) % 360
                                 if aircraft.tas > 30 and aircraft.gndspeed > 30:
                                     crs = math.radians(aircraft.gndtrack) #convert degrees to radians
-                                    head = math.radians(aircraft.mag_head) #convert degrees to radians
+                                    head = math.radians(aircraft.mag_head + aircraft.mag_decl) #convert degrees to radians
                                     aircraft.wind_speed = math.sqrt(math.pow(aircraft.tas - aircraft.gndspeed, 2) + 4 * aircraft.tas * aircraft.gndspeed * math.pow(math.sin((head - crs) / 2), 2))
                                     aircraft.wind_dir = crs + math.atan2(aircraft.tas * math.sin(head-crs), aircraft.tas * math.cos(head-crs) - aircraft.gndspeed)
                                     if aircraft.wind_dir < 0:
@@ -91,9 +102,8 @@ class serial_g3x(Input):
                                     if aircraft.wind_dir > 2 * math.pi:
                                         aircraft.wind_dir = aircraft.wind_dir - 2 * math.pi
                                     aircraft.wind_dir = math.degrees(aircraft.wind_dir) #convert radians to degrees
-                                    aircraft.norm_wind_dir = aircraft.wind_dir + aircraft.mag_head #normalize the wind direction to the airplane heading
-                                    if aircraft.norm_wind_dir > 359:
-                                        aircraft.norm_wind_dir = aircraft.norm_wind_dir - 360 
+                                    aircraft.norm_wind_dir = (aircraft.wind_dir + aircraft.mag_head + aircraft.mag_decl) % 360 #normalize the wind direction to the airplane heading
+
                                 else:
                                     aircraft.wind_speed = None
                                     aircraft.wind_dir = None
@@ -181,6 +191,7 @@ class serial_g3x(Input):
     def printTextModeData(self, aircraft):
         hud_text.print_header("Decoded data from Input Module: %s"%(self.name))
         hud_text.print_object(aircraft)
+        hud_text.print_object(aircraft.gps)
         hud_text.print_DoneWithPage()
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

@@ -8,7 +8,7 @@ from __future__ import print_function
 from _input import Input
 from lib import hud_utils
 from lib import hud_text
-from lib.geomag import geomag
+from lib import geomag
 import serial
 import struct
 import math
@@ -92,9 +92,7 @@ class serial_g3x(Input):
                                     GeoMagLon = ((aircraft.gps.LonDeg + (aircraft.gps.LonMin/60))  * -1)
                                 else:
                                     GeoMagLon = aircraft.gps.LonDeg + (aircraft.gps.LonMin/60)
-                                gm = geomag.GeoMag("WMM.COF")
-                                mag = gm.GeoMag(GeoMagLat, GeoMagLon)
-                                aircraft.mag_decl = mag.dec
+                                aircraft.mag_decl = geomag.declination(GeoMagLat, GeoMagLon)
                                 aircraft.gndspeed = (math.sqrt(((int(EWVelmag) * 0.1)**2) + ((int(NSVelmag) * 0.1)**2))) * 1.94384
                                 if EWVelDir == "W":
                                     EWVelmag = int(EWVelmag) * -0.1

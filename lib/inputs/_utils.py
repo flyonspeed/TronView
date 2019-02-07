@@ -1,10 +1,13 @@
 #!/usr/bin/env python
 
+##Library of useful functions that can be used inside of input modules
+##02/06/2019 Brian Chesteen
+
 import math
 from lib.geomag import declination
 
 #############################################
-## Function: ias2tas
+## Function: ias2tas By: Brian Chesteen
 ## Converts indicated airspeed to true airspeed based on
 ## outside air temp and pressure altitude.
 
@@ -14,7 +17,8 @@ def ias2tas(ias, oat, palt):
     return tas
 
 #############################################
-## Function: geomag
+## Function: geomag By: Brian Chesteen 
+## Called Function By: Christopher Weiss cmweiss@gmail.com
 ## Looks up magnetic declination dynamically from GPS Lat and Lon
 ## Uses coefficients from the World Magnetic Model of the NOAA
 ## Satellite and Information Service, National Geophysical Data Center
@@ -34,7 +38,7 @@ def geomag(LatHemi, LatDeg, LatMin, LonHemi, LonDeg, LonMin):
     return mag_decl
 
 #############################################
-## Function: gndspeed
+## Function: gndspeed By: Brian Chesteen
 ## Calculates GPS ground speed in knots from GPS EW NS velocities in meters/sec.
 
 def gndspeed(EWVelmag, NSVelmag):
@@ -43,7 +47,7 @@ def gndspeed(EWVelmag, NSVelmag):
     return gndspeed
 
 #############################################
-## Function: gndtrack
+## Function: gndtrack By: Brian Chesteen
 ## Calculates GPS ground track in knots from GPS EW NS quadrant direction and
 ## velocities in meters/sec.
 
@@ -62,7 +66,7 @@ def gndtrack(EWVelDir, EWVelmag, NSVelDir, NSVelmag):
     return gndtrack
 
 #############################################
-## Function: windSpdDir
+## Function: windSpdDir By: Brian Chesteen
 ## Calculates wind speed and direction
 
 def windSpdDir(tas, gndspeed, gndtrack, mag_head, mag_decl):

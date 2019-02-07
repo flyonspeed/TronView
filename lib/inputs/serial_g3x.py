@@ -9,6 +9,7 @@ from _input import Input
 from lib import hud_utils
 from lib import hud_text
 from lib import geomag
+import utils
 import serial
 import struct
 import math
@@ -84,40 +85,14 @@ class serial_g3x(Input):
                                 aircraft.gps.NSVelmag = int(NSVelmag) * 0.1
                                 aircraft.gps.VVelDir = VVelDir # U or D
                                 aircraft.gps.VVelmag = int(VVelmag) * 0.1
-                                if aircraft.gps.LatHemi == "N":
-                                    GeoMagLat = aircraft.gps.LatDeg + (aircraft.gps.LatMin / 60)
-                                else:
-                                    GeoMagLat = ((aircraft.gps.LatDeg + (aircraft.gps.LatMin / 60))  * -1)
-                                if aircraft.gps.LonHemi == "W":
-                                    GeoMagLon = ((aircraft.gps.LonDeg + (aircraft.gps.LonMin/60))  * -1)
-                                else:
-                                    GeoMagLon = aircraft.gps.LonDeg + (aircraft.gps.LonMin/60)
-                                aircraft.mag_decl = geomag.declination(GeoMagLat, GeoMagLon)
-                                aircraft.gndspeed = (math.sqrt(((int(EWVelmag) * 0.1)**2) + ((int(NSVelmag) * 0.1)**2))) * 1.94384
-                                if EWVelDir == "W":
-                                    EWVelmag = int(EWVelmag) * -0.1
-                                else:
-                                    EWVelmag = int(EWVelmag) * 0.1
-                                if NSVelDir == "S":
-                                    NSVelmag = int(NSVelmag) * -0.1
-                                else:
-                                    NSVelmag = int(NSVelmag) * 0.1
-                                aircraft.gndtrack = (math.degrees(math.atan2(EWVelmag, NSVelmag))) % 360
-                                if aircraft.tas > 30 and aircraft.gndspeed > 30:
-                                    crs = math.radians(aircraft.gndtrack) #convert degrees to radians
-                                    head = math.radians(aircraft.mag_head + aircraft.mag_decl) #convert degrees to radians
-                                    aircraft.wind_speed = math.sqrt(math.pow(aircraft.tas - aircraft.gndspeed, 2) + 4 * aircraft.tas * aircraft.gndspeed * math.pow(math.sin((head - crs) / 2), 2))
-                                    aircraft.wind_dir = crs + math.atan2(aircraft.tas * math.sin(head-crs), aircraft.tas * math.cos(head-crs) - aircraft.gndspeed)
-                                    if aircraft.wind_dir < 0:
-                                        aircraft.wind_dir = aircraft.wind_dir + 2 * math.pi
-                                    if aircraft.wind_dir > 2 * math.pi:
-                                        aircraft.wind_dir = aircraft.wind_dir - 2 * math.pi
-                                    aircraft.wind_dir = math.degrees(aircraft.wind_dir) #convert radians to degrees
-                                    aircraft.norm_wind_dir = (aircraft.wind_dir + aircraft.mag_head + aircraft.mag_decl) % 360 #normalize the wind direction to the airplane heading
-
-                                else:
-                                    aircraft.wind_speed = None
-                                    aircraft.wind_dir = None
+                                aircraft.mag_decl = utils.geomag(aircraft.gps.LatHemi, aircraft.gps.LatDeg,
+                                                                 aircraft.gps.LatMin, aircraft.gps.LonHemi,
+                                                                 aircraft.gps.LonDeg, aircraft.gps.LonMin)  
+                                aircraft.gndspeed = utils.gndspeed(EWVelmag, NSVelmag)
+                                aircraft.gndtrack = utils.gndtrack(EWVelDir, EWVelmag, NSVelDir, NSVelmag)
+                                aircraft.wind_speed, aircraft.wind_dir, aircraft.norm_wind_dir = utils.windSpdDir(aircraft.tas, aircraft.gndspeed,
+                                                                                                                  aircraft.gndtrack, aircraft.mag_head,
+                                                                                                                  aircraft.mag_decl)
                         
                             else:
                                 aircraft.msg_bad += 1 
@@ -151,7 +126,7 @@ class serial_g3x(Input):
                         )  # 0.00108 of inches of mercury change per foot.
                         aircraft.BALT = aircraft.alt
                         aircraft.vsi = int(VertSpeed) * 10
-                        aircraft.tas = aircraft.ias * (math.sqrt((273.0 + aircraft.oat) / 288.0)) * ((1.0 - aircraft.PALT / 144000.0) ** -2.75)
+                        aircraft.tas = utils.ias2tas(aircraft.ias, aircraft.oat, aircraft.PALT)
                         aircraft.vert_G = int(VertAcc) * 0.1
                         aircraft.turn_rate = int(RateofTurn) * 0.1
                         aircraft.msg_count += 1

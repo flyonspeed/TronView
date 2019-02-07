@@ -9,7 +9,7 @@ from _input import Input
 from lib import hud_utils
 from lib import hud_text
 from lib import geomag
-import utils
+import _utils
 import serial
 import struct
 import math
@@ -85,12 +85,12 @@ class serial_g3x(Input):
                                 aircraft.gps.NSVelmag = int(NSVelmag) * 0.1
                                 aircraft.gps.VVelDir = VVelDir # U or D
                                 aircraft.gps.VVelmag = int(VVelmag) * 0.1
-                                aircraft.mag_decl = utils.geomag(aircraft.gps.LatHemi, aircraft.gps.LatDeg,
+                                aircraft.mag_decl = _utils.geomag(aircraft.gps.LatHemi, aircraft.gps.LatDeg,
                                                                  aircraft.gps.LatMin, aircraft.gps.LonHemi,
                                                                  aircraft.gps.LonDeg, aircraft.gps.LonMin)  
-                                aircraft.gndspeed = utils.gndspeed(EWVelmag, NSVelmag)
-                                aircraft.gndtrack = utils.gndtrack(EWVelDir, EWVelmag, NSVelDir, NSVelmag)
-                                aircraft.wind_speed, aircraft.wind_dir, aircraft.norm_wind_dir = utils.windSpdDir(aircraft.tas, aircraft.gndspeed,
+                                aircraft.gndspeed = _utils.gndspeed(EWVelmag, NSVelmag)
+                                aircraft.gndtrack = _utils.gndtrack(EWVelDir, EWVelmag, NSVelDir, NSVelmag)
+                                aircraft.wind_speed, aircraft.wind_dir, aircraft.norm_wind_dir = _utils.windSpdDir(aircraft.tas, aircraft.gndspeed,
                                                                                                                   aircraft.gndtrack, aircraft.mag_head,
                                                                                                                   aircraft.mag_decl)
                         
@@ -126,7 +126,7 @@ class serial_g3x(Input):
                         )  # 0.00108 of inches of mercury change per foot.
                         aircraft.BALT = aircraft.alt
                         aircraft.vsi = int(VertSpeed) * 10
-                        aircraft.tas = utils.ias2tas(aircraft.ias, aircraft.oat, aircraft.PALT)
+                        aircraft.tas = _utils.ias2tas(aircraft.ias, aircraft.oat, aircraft.PALT)
                         aircraft.vert_G = int(VertAcc) * 0.1
                         aircraft.turn_rate = int(RateofTurn) * 0.1
                         aircraft.msg_count += 1

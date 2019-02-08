@@ -80,7 +80,7 @@ def windSpdDir(tas, gndspeed, gndtrack, mag_head, mag_decl):
         if wind_dir > 2 * math.pi:
             wind_dir = wind_dir - 2 * math.pi
         wind_dir = math.degrees(wind_dir) #convert radians to degrees
-        norm_wind_dir = (wind_dir + mag_head + mag_decl) % 360 #normalize the wind direction to the airplane heading
+        norm_wind_dir = (mag_head - wind_dir + mag_decl) % 360 #normalize the wind direction to the airplane heading
 
     else:
         wind_speed = None

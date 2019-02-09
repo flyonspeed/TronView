@@ -3,6 +3,7 @@
 ##Library of useful functions that can be used inside of input modules
 ##02/06/2019 Brian Chesteen
 
+from __future__ import print_function
 import math
 from lib.geomag import declination
 

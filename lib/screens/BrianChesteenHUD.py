@@ -8,8 +8,9 @@ from __future__ import print_function
 from _screen import Screen
 from .. import hud_graphics
 from lib import hud_utils
+import _hsi
 import pygame
-
+import math
 
 
 class BrianChesteenHUD(Screen):
@@ -41,10 +42,11 @@ class BrianChesteenHUD(Screen):
         self.ahrs_bg_width = self.ahrs_bg.get_width()
         self.ahrs_bg_height = self.ahrs_bg.get_height()
         self.ahrs_bg_center = (self.ahrs_bg_width / 2, self.ahrs_bg_height / 2)
-        
+
         #images
         self.arrow = pygame.image.load("lib/screens/_images/arrow_g.bmp")
         self.arrow.set_colorkey((255,255,255))
+        self.arrow_scaled = pygame.transform.scale(self.arrow, (50, 50))
 
         # fonts
         self.font = pygame.font.SysFont(
@@ -58,8 +60,14 @@ class BrianChesteenHUD(Screen):
             "monospace", 30
         )  # ie. baro and VSI
 
-        # called every redraw for the screen
+        #set up the HSI
+        _hsi.hsi_init(
+            self,
+            350,  # HSI size
+            (255,0,0)  # HSI color
+         )
 
+    # called every redraw for the screen
     def draw(self, aircraft):
         # draw horz lines
         hud_graphics.hud_draw_horz_lines(
@@ -75,7 +83,7 @@ class BrianChesteenHUD(Screen):
             self.line_mode,
             self.font,
         )
-       
+
         # render debug text
         if self.show_debug:
             label = self.myfont.render("Pitch: %d" % (aircraft.pitch), 1, (255, 255, 0))
@@ -180,12 +188,12 @@ class BrianChesteenHUD(Screen):
             label = self.myfont.render(
                 "G   %0.1f" % (aircraft.vert_G), 1, (255, 255, 0)
             )
-            self.pygamescreen.blit(label, (1, (self.heightCenter) + 120))           
+            self.pygamescreen.blit(label, (1, (self.heightCenter) + 120))
              # AOA
             label = self.myfont.render(
                 "AOA %d" % (aircraft.aoa), 1, (255, 255, 0)
             )
-            self.pygamescreen.blit(label, (1, (self.heightCenter) + 100))            
+            self.pygamescreen.blit(label, (1, (self.heightCenter) + 100))
              # AGL
             label = self.myfont.render(
                 "AGL %dFT" % (aircraft.agl), 1, (255, 255, 0)
@@ -193,9 +201,9 @@ class BrianChesteenHUD(Screen):
             self.pygamescreen.blit(label, (1, (self.heightCenter) - 100))
              # Gnd Track
             label = self.myfont.render(
-                "TRK %d\xb0"  % (aircraft.gndtrack), 50, (255, 255, 0)
+                "TRK %d\xb0"  % (aircraft.gndtrack), 1, (255, 255, 0)
             )
-            self.pygamescreen.blit(label, (self.width / 2 - 45, (self.heightCenter) - 165))             
+            self.pygamescreen.blit(label, (self.width / 2 - 45, (self.heightCenter) - 175))
              # OAT
             label = self.myfont.render(
                 "OAT %d\xb0C %d\xb0F" % (aircraft.oat, ((aircraft.oat * 9.0/5.0) + 32.0)), 1, (255, 255, 0)
@@ -206,23 +214,23 @@ class BrianChesteenHUD(Screen):
                 label = self.myfont.render(
                     "%dKT" % (aircraft.wind_speed), 1, (255, 255, 0)
                 )
-                self.pygamescreen.blit(label, (self.width / 2 + 225, (self.heightCenter) - 200))
+                self.pygamescreen.blit(label, (self.width - 100, (self.heightCenter) - 200))
             else:
                 label = self.myfont.render(
                     "--KT" , 1, (255, 255, 0)
                 )
-                self.pygamescreen.blit(label, (self.width / 2 + 225, (self.heightCenter) - 200))                
+                self.pygamescreen.blit(label, (self.width - 100, (self.heightCenter) - 200))
              # Wind Dir
             if aircraft.wind_dir != None:
                 label = self.myfont.render(
                     "%d\xb0" % (aircraft.wind_dir), 1, (255, 255, 0)
                 )
-                self.pygamescreen.blit(label, (self.width / 2 + 225, (self.heightCenter) - 120))            
+                self.pygamescreen.blit(label, (self.width - 100, (self.heightCenter) - 120))
             else:                
                 label = self.myfont.render(
                     "--\xb0", 1, (255, 255, 0)
                 )
-                self.pygamescreen.blit(label, (self.width / 2 + 225, (self.heightCenter) - 120))            
+                self.pygamescreen.blit(label, (self.width - 100, (self.heightCenter) - 120))
             # Mag heading
             hud_graphics.hud_draw_box_text(
                 self.pygamescreen,
@@ -230,16 +238,12 @@ class BrianChesteenHUD(Screen):
                 "%d\xb0" % (aircraft.mag_head),
                 (255, 255, 0),
                 (self.width / 2) - 40,
-                40,
+                30,
                 95,
                 35,
                 self.MainColor,
                 1,
             )
-
-            # pygame.draw.rect(self.pygamescreen,self.MainColor,(0,height/4,100,height/1.5),1)
-            # pygame.draw.rect(self.pygamescreen,self.MainColor,(width-100,height/4,100,height/1.5),1)
-
         if self.center_circle_mode == 1:
             pygame.draw.circle(
                 self.pygamescreen,
@@ -265,22 +269,26 @@ class BrianChesteenHUD(Screen):
                 1,
             )
 
-        arrow_scaled = pygame.transform.scale(self.arrow, (50, 50))
         if aircraft.norm_wind_dir != None:
-            arrow_rotated = pygame.transform.rotate(arrow_scaled, aircraft.norm_wind_dir)
+            arrow_rotated = pygame.transform.rotate(self.arrow_scaled, aircraft.norm_wind_dir)
             arrow_rect = arrow_rotated.get_rect()
-            self.pygamescreen.blit(arrow_rotated, ((self.width / 2 + 250) - arrow_rect.center[0], (self.height / 2 - 150) - arrow_rect.center[1]))
-               
-        pygame.display.flip()
+            self.pygamescreen.blit(arrow_rotated, ((self.width - 70) - arrow_rect.center[0], (self.height / 2 - 150) - arrow_rect.center[1]))
+
+        # main HSI processing
+        _hsi.hsi_main(
+            self, 
+            aircraft.mag_head
+        )
+
         # print Screen.name
+        pygame.display.flip()
 
-        # called before screen draw.  To clear the screen to your favorite color.
-
+    # called before screen draw.  To clear the screen to your favorite color.
     def clearScreen(self):
         self.ahrs_bg.fill((0, 0, 0))  # clear screen
 
-        # handle key events
 
+        # handle key events
     def processEvent(self, event):
         if event.key == pygame.K_d:
             self.show_debug = not self.show_debug

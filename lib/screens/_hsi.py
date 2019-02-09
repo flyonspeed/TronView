@@ -95,7 +95,7 @@ def hsi_main(self, hsi_hdg):
         x1 = roint(self.hsi_size / 2 + self.hsi_size / 2.8 * cos)
         y1 = roint(self.hsi_size / 2 + self.hsi_size / 2.8 * sin)
         pygame.draw.line(self.rose, self.color, [x0, y0], [x1, y1], 3)
-        tick_rotated = pygame.transform.rotate(self.rose, hsi_hdg)
+    tick_rotated = pygame.transform.rotate(self.rose, hsi_hdg)
     tick_rect = tick_rotated.get_rect()
     self.pygamescreen.blit(tick_rotated, (self.width / 2 - tick_rect.center[0], self.height / 2 - tick_rect.center[1]))
 

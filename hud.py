@@ -58,7 +58,7 @@ def main_graphical():
         # main draw loop.. clear screen then draw frame from current screen object.
         CurrentScreen.clearScreen()
         CurrentScreen.draw(aircraft)  # draw method for current screen object
-    
+        
     # once exists main loop, close down pygame. and exit.
     pygame.quit()
     pygame.display.quit()

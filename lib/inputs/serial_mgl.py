@@ -25,8 +25,8 @@ class serial_mgl(Input):
             # if in demo mode then load example data file.
             # get demo file to read from config.  else default to..
             if not len(aircraft.demoFile):
-                defaultTo = "mgl_data1.bin"
-                #defaultTo = "mgl_G430_v6_HSI_Nedl_2degsRtt_Vert_2Degs_Up.bin"
+                #defaultTo = "mgl_data1.bin"
+                defaultTo = "mgl_G430_v6_HSI_Nedl_2degsRtt_Vert_2Degs_Up.bin"
                 #defaultTo = "mgl_G430_v7_Horz_Vert_Nedl_come to center.bin"
                 aircraft.demoFile = hud_utils.readConfig(self.name, "demofile", defaultTo)
             self.ser = open("lib/inputs/_example_data/%s"%(aircraft.demoFile), "r")

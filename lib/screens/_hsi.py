@@ -7,17 +7,42 @@ from __future__ import print_function
 import pygame
 import math
 
-def hsi_init(self, hsi_size, color):
+def hsi_init(self, hsi_size, gnd_trk_tick_size, color):
     self.myfont1 = pygame.font.SysFont(
         "Comic Sans MS", 30
     )  # hsi
 
     # HSI Setup
     self.hsi_size = hsi_size
+    self.gnd_trk_tick_size = gnd_trk_tick_size
     self.color = color
     self.rose = pygame.Surface((self.hsi_size, self.hsi_size), pygame.SRCALPHA)
     self.labels = pygame.Surface((self.hsi_size, self.hsi_size), pygame.SRCALPHA)
+    self.ticks = pygame.Surface((self.hsi_size, self.hsi_size), pygame.SRCALPHA)
+    global old_hsi_hdg
+    old_hsi_hdg = None
 
+    # Setup Compass Rose
+    # Major Tick Marks
+    for big_tick in range(36):
+        cos = math.cos(math.radians(360.0 / 36 * big_tick))
+        sin = math.sin(math.radians(360.0 / 36 * big_tick))
+        x0 = roint(self.hsi_size / 2 + self.hsi_size / 15 * cos * 4)
+        y0 = roint(self.hsi_size / 2 + self.hsi_size / 15 * sin * 4)
+        x1 = roint(self.hsi_size / 2 + self.hsi_size / 2.8 * cos)
+        y1 = roint(self.hsi_size / 2 + self.hsi_size / 2.8 * sin)
+        pygame.draw.line(self.rose, self.color, [x0, y0], [x1, y1], 3)
+    
+    # Setup Compass Rose
+    # Minor Tick Marks
+    for little_tick in range(72):
+        cos = math.cos(math.radians(360.0 / 72 * little_tick))
+        sin = math.sin(math.radians(360.0 / 72 * little_tick))
+        x0 = roint(self.hsi_size / 2 + self.hsi_size / 13 * cos * 4)
+        y0 = roint(self.hsi_size / 2 + self.hsi_size / 13 * sin * 4)
+        x1 = roint(self.hsi_size / 2 + self.hsi_size / 3 * cos)
+        y1 = roint(self.hsi_size / 2 + self.hsi_size / 3 * sin)
+        pygame.draw.line(self.rose, self.color, [x0, y0], [x1, y1], 2)
 
     # Setup Labels
     self.N = self.myfont1.render("N", False, (self.color))
@@ -45,6 +70,19 @@ def hsi_init(self, hsi_size, color):
     self.R33 = self.myfont1.render("33", False, (self.color))
     self.R33_rect = self.R33.get_rect()
 
+    # Setup Ground Track Tick
+    self.gnd_trk_tick = pygame.image.load("lib/screens/_images/tick_m.png").convert()
+    self.gnd_trk_tick.set_colorkey((255,255,255))
+    self.gnd_trk_tick_scaled = pygame.transform.scale(self.gnd_trk_tick,
+                                                        (self.gnd_trk_tick_size,
+                                                        self.gnd_trk_tick_size))
+    self.gnd_trk_tick_scaled_rect = self.gnd_trk_tick_scaled.get_rect()
+    
+    self.ticks.fill((pygame.SRCALPHA))
+    self.ticks.blit(self.gnd_trk_tick_scaled,
+                    ((self.hsi_size / 2)
+                    - self.gnd_trk_tick_scaled_rect.center[0],
+                    (self.hsi_size / 2) - 130 - self.gnd_trk_tick_scaled_rect[1]))
 
 def roint(num):
     return int(round(num))
@@ -83,36 +121,34 @@ def labeler(self, hsi_hdg):
         if label == (hsi_hdg + 30) % 360:
             self.labels.blit(self.R6, (x - self.R6_rect.center[0], y - self.R6_rect.center[1]))
 
-        
-def hsi_main(self, hsi_hdg):
-    # Draw Major Tick marks
+def gnd_trk_tick(self, gnd_trk):
+    # Draw Ground Track Tick
+
+    gnd_trk_tick_rotated = pygame.transform.rotate(self.ticks, gnd_trk)
+    gnd_trk__rect = gnd_trk_tick_rotated.get_rect()   
+    self.pygamescreen.blit(gnd_trk_tick_rotated,
+                            (self.width / 2 - gnd_trk__rect.center[0],
+                            self.height / 2 - gnd_trk__rect.center[1]))
+
+def hsi_main(self, hsi_hdg, gnd_trk):
     hsi_hdg = (hsi_hdg + 90) % 360
-    for big_tick in range(36):
-        cos = math.cos(math.radians(360.0 / 36 * big_tick))
-        sin = math.sin(math.radians(360.0 / 36 * big_tick))
-        x0 = roint(self.hsi_size / 2 + self.hsi_size / 15 * cos * 4)
-        y0 = roint(self.hsi_size / 2 + self.hsi_size / 15 * sin * 4)
-        x1 = roint(self.hsi_size / 2 + self.hsi_size / 2.8 * cos)
-        y1 = roint(self.hsi_size / 2 + self.hsi_size / 2.8 * sin)
-        pygame.draw.line(self.rose, self.color, [x0, y0], [x1, y1], 3)
+    gnd_trk = roint(hsi_hdg - gnd_trk - 90 ) % 360
+
+    # Draw Compass Rose Tick Marks
     tick_rotated = pygame.transform.rotate(self.rose, hsi_hdg)
     tick_rect = tick_rotated.get_rect()
-    self.pygamescreen.blit(tick_rotated, (self.width / 2 - tick_rect.center[0], self.height / 2 - tick_rect.center[1]))
-
-    # Draw Minor Tick Marks
-    for little_tick in range(72):
-        cos = math.cos(math.radians(360.0 / 72 * little_tick))
-        sin = math.sin(math.radians(360.0 / 72 * little_tick))
-        x0 = roint(self.hsi_size / 2 + self.hsi_size / 13 * cos * 4)
-        y0 = roint(self.hsi_size / 2 + self.hsi_size / 13 * sin * 4)
-        x1 = roint(self.hsi_size / 2 + self.hsi_size / 3 * cos)
-        y1 = roint(self.hsi_size / 2 + self.hsi_size / 3 * sin)
-        pygame.draw.line(self.rose, self.color, [x0, y0], [x1, y1], 2)
-    tock_rotated = pygame.transform.rotate(self.rose, hsi_hdg)
-    tock_rect = tock_rotated.get_rect()
-    self.pygamescreen.blit(tock_rotated, (self.width / 2 - tock_rect.center[0], self.height / 2 - tock_rect.center[1]))
+    self.pygamescreen.blit(tick_rotated, (self.width / 2 - tick_rect.center[0],
+                            self.height / 2 - tick_rect.center[1]))
 
     # Draw Labels
-    labeler(self, hsi_hdg)   
+    global old_hsi_hdg
+    if old_hsi_hdg != hsi_hdg: # Don't waste time recalculating/redrawing until the variable changes
+        labeler(self, hsi_hdg)
     label_rect = self.labels.get_rect()
-    self.pygamescreen.blit(self.labels, (self.width / 2 - label_rect.center[0], self.height / 2 - label_rect.center[1]))
+    self.pygamescreen.blit(self.labels, (self.width / 2 - label_rect.center[0],
+                            self.height / 2 - label_rect.center[1]))
+    old_hsi_hdg = hsi_hdg
+
+    # Draw Ticks
+    gnd_trk_tick(self, gnd_trk)
+

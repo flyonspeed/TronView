@@ -56,9 +56,9 @@ def main_graphical():
                     CurrentScreen.processEvent(event)  # send this key command to the hud screen object
 
         # main draw loop.. clear screen then draw frame from current screen object.
+        FPS = clock.get_fps()
         CurrentScreen.clearScreen()
-        CurrentScreen.draw(aircraft)  # draw method for current screen object
-
+        CurrentScreen.draw(aircraft, FPS)  # draw method for current screen object
     # once exists main loop, close down pygame. and exit.
     pygame.quit()
     pygame.display.quit()

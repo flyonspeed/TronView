@@ -17,6 +17,7 @@ class ReallyBigHud(Screen):
         self.name = "Really Big Hud Screen"  # set name for this screen
         self.ahrs_bg = 0
         self.show_debug = False  # default off
+        self.show_FPS = False #show screen refresh rate in frames per second for performance tuning
         self.line_mode = hud_utils.readConfigInt("HUD", "line_mode", 1)
         self.alt_box_mode = 1  # default on
         self.line_thickness = hud_utils.readConfigInt("HUD", "line_thickness", 5)
@@ -50,7 +51,7 @@ class ReallyBigHud(Screen):
             "monospace", int(self.height / 20)
         )  # ie. baro and VSI
 
-    def draw(self, aircraft):
+    def draw(self, aircraft, FPS):
         # draw horz lines
         hud_graphics.hud_draw_horz_lines(
             self.pygamescreen,
@@ -112,6 +113,12 @@ class ReallyBigHud(Screen):
                 "msg_count: %d" % (aircraft.msg_count), 1, (20, 255, 0)
             )
             self.pygamescreen.blit(label, (0, 500))
+
+        if self.show_FPS:
+            label = self.myfont.render(
+                "%0.2f FPS" % (FPS), 1, (20, 255, 0)
+            )
+            self.pygamescreen.blit(label, (self.width/2 - 130, self.height - 45))
 
         if self.alt_box_mode:
             # IAS
@@ -200,6 +207,8 @@ class ReallyBigHud(Screen):
     def processEvent(self, event):
         if event.key == pygame.K_d:
             self.show_debug = not self.show_debug
+        if event.key == pygame.K_f:
+            self.show_FPS = not self.show_FPS #show screen refresh rate in frames per second for performance tuning
         if event.key == pygame.K_EQUALS:
             self.width = self.width + 10
         if event.key == pygame.K_MINUS:

@@ -42,7 +42,7 @@ class OnSpeed(Screen):
         self.bigFontPosX = self.widthCenter - (self.bigfontSize/2) - 15
         self.bigFontPosY = self.heightCenter - (self.bigfontSize/2) + 30
 
-    def draw(self, aircraft):
+    def draw(self, aircraft, FPS):
 
         # draw horz lines
         hud_graphics.hud_draw_horz_lines(

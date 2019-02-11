@@ -131,7 +131,7 @@ class BrianChesteenHUD(Screen):
                 "msg_count: %d" % (aircraft.msg_count), 1, (20, 255, 0)
             )
             self.pygamescreen.blit(label, (0, 180))
-        
+
         if self.show_FPS:
             label = self.myfont.render(
                 "%0.2f FPS" % (FPS), 1, (20, 255, 0)

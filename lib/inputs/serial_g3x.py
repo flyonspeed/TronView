@@ -130,7 +130,7 @@ class serial_g3x(Input):
                         aircraft.vert_G = int(VertAcc) * 0.1
                         aircraft.turn_rate = int(RateofTurn) * 0.1
                         aircraft.msg_count += 1
-                    
+                        
                         if aircraft.demoMode:  #if demo mode then add a delay.  Else reading a file is way to fast.
                             time.sleep(.08)                    
                     else:

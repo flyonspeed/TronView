@@ -43,6 +43,7 @@ class Aircraft(object):
         self.demoMode = False
         self.demoFile = ""
         self.textMode = False
+        self.show_FPS = False #show screen refresh rate in frames per second for performance tuning
 
 
 #############################################
@@ -54,7 +55,7 @@ class GPSData(object):
         self.LatMin = None  # x.xxx
         self.LonHemi = None # East or West
         self.LonDeg = None
-        self.LonMin = None  # x.xxx       
+        self.LonMin = None  # x.xxx
         self.GPSAlt = None  # ft MSL
         self.EWVelDir = None  # E or W
         self.EWVelmag = None  # x.x m/s

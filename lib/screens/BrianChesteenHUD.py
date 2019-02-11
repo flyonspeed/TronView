@@ -20,6 +20,7 @@ class BrianChesteenHUD(Screen):
         self.name = "Brian Chesteen Hud Screen"  # set name for this screen
         self.ahrs_bg = 0
         self.show_debug = False  # default off
+        self.show_FPS = False #show screen refresh rate in frames per second for performance tuning
         self.line_mode = hud_utils.readConfigInt("HUD", "line_mode", 1)
         self.alt_box_mode = 1  # default on
         self.line_thickness = hud_utils.readConfigInt("HUD", "line_thickness", 2)
@@ -69,7 +70,7 @@ class BrianChesteenHUD(Screen):
         )
 
     # called every redraw for the screen
-    def draw(self, aircraft):
+    def draw(self, aircraft, FPS):
         # draw horz lines
         hud_graphics.hud_draw_horz_lines(
             self.pygamescreen,
@@ -116,7 +117,6 @@ class BrianChesteenHUD(Screen):
                 (255, 255, 0),
             )
             self.pygamescreen.blit(label, (0, 120))
-
             label = self.myfont.render(
                 "size: %d,%d" % (self.width, self.height), 1, (20, 255, 0)
             )
@@ -131,6 +131,12 @@ class BrianChesteenHUD(Screen):
                 "msg_count: %d" % (aircraft.msg_count), 1, (20, 255, 0)
             )
             self.pygamescreen.blit(label, (0, 180))
+        
+        if self.show_FPS:
+            label = self.myfont.render(
+                "%0.2f FPS" % (FPS), 1, (20, 255, 0)
+            )
+            self.pygamescreen.blit(label, (self.width/2 - 55, self.height - 25))
 
         if self.alt_box_mode:
             # IAS
@@ -295,6 +301,8 @@ class BrianChesteenHUD(Screen):
     def processEvent(self, event):
         if event.key == pygame.K_d:
             self.show_debug = not self.show_debug
+        if event.key == pygame.K_f:
+            self.show_FPS = not self.show_FPS #show screen refresh rate in frames per second for performance tuning
         if event.key == pygame.K_EQUALS:
             self.width = self.width + 10
         if event.key == pygame.K_MINUS:

@@ -74,13 +74,22 @@ class serial_skyview(Input):
                     aircraft.roll = int(roll) * 0.1
                     aircraft.pitch = int(pitch) * 0.1
                     aircraft.ias = int(IAS) * 0.1
-
+                    aircraft.PALT = int(PresAlt)
+                    aircraft.OAT = int(OAT)
+                    aircraft.tas = int(TAS) * 0.1
                     aircraft.aoa = int(AOA)
                     aircraft.mag_head = int(HeadingMAG)
                     aircraft.baro = (int(Baro) + 2750.0) / 100
                     aircraft.baro_diff = aircraft.baro - 29.921
+                    aircraft.DA = int(DA)
                     aircraft.alt = int( int(PresAlt) + (aircraft.baro_diff / 0.00108) )  # 0.00108 of inches of mercury change per foot.
+                    aircraft.BALT = aircraft.alt
+                    aircraft.turn_rate = int(TurnRate) * 0.1
                     aircraft.vsi = int(VertSpd) * 10
+                    aircraft.vert_G = int(VertAccel) * 0.1
+                    aircraft.wind_dir = int(WD)
+                    aircraft.wind_speed = int(WS)
+                    aircraft.norm_wind_dir = (aircraft.mag_head - aircraft.wind_dir) % 360 #normalize the wind direction to the airplane heading
                     aircraft.msg_count += 1
 
                     if aircraft.demoMode:  #if demo mode then add a delay.  Else reading a file is way to fast.

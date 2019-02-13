@@ -19,7 +19,7 @@ def ias2tas(ias, oat, palt):
 
 #############################################
 ## Function: geomag By: Brian Chesteen 
-## Called Function By: Christopher Weiss cmweiss@gmail.com
+## Called Module By: Christopher Weiss cmweiss@gmail.com
 ## Looks up magnetic declination dynamically from GPS Lat and Lon
 ## Uses coefficients from the World Magnetic Model of the NOAA
 ## Satellite and Information Service, National Geophysical Data Center

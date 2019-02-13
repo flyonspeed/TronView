@@ -114,21 +114,22 @@ class serial_g3x(Input):
                     if SentVer == "1" and ord(CRLF[0]) == 13:
                         aircraft.roll = int(Roll) * 0.1
                         aircraft.pitch = int(Pitch) * 0.1
-                        aircraft.ias = int(int(Airspeed) * 0.1)
+                        aircraft.ias = int(Airspeed) * 0.1
                         aircraft.PALT = int(PressAlt)
                         aircraft.oat = int(OAT)
                         aircraft.aoa = int(AOA)
                         aircraft.mag_head = int(Heading)
                         aircraft.baro = (int(AltSet) + 2750.0) / 100.0
                         aircraft.baro_diff = aircraft.baro - 29.9213
+                        aircraft.DA = None #TODO
                         aircraft.alt = int(
                             int(PressAlt) + (aircraft.baro_diff / 0.00108)
                         )  # 0.00108 of inches of mercury change per foot.
                         aircraft.BALT = aircraft.alt
                         aircraft.vsi = int(VertSpeed) * 10
                         aircraft.tas = _utils.ias2tas(aircraft.ias, aircraft.oat, aircraft.PALT)
-                        aircraft.vert_G = int(VertAcc) * 0.1
                         aircraft.turn_rate = int(RateofTurn) * 0.1
+                        aircraft.vert_G = int(VertAcc) * 0.1
                         aircraft.msg_count += 1
                         
                         if aircraft.demoMode:  #if demo mode then add a delay.  Else reading a file is way to fast.

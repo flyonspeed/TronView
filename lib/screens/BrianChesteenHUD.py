@@ -210,7 +210,7 @@ class BrianChesteenHUD(Screen):
             label = self.myfont.render(
                 "TRK %d\xb0"  % (aircraft.gndtrack), 1, (255, 255, 0)
             )
-            self.pygamescreen.blit(label, (self.width / 2 - 45, (self.heightCenter) - 175))
+            self.pygamescreen.blit(label, (self.width / 2 - 45, (self.heightCenter) - 180))
              # OAT
             label = self.myfont.render(
                 "OAT %d\xb0C %d\xb0F" % (aircraft.oat, ((aircraft.oat * 9.0/5.0) + 32.0)), 1, (255, 255, 0)
@@ -245,7 +245,7 @@ class BrianChesteenHUD(Screen):
                 "%d\xb0" % (aircraft.mag_head),
                 (255, 255, 0),
                 (self.width / 2) - 40,
-                30,
+                25,
                 95,
                 35,
                 self.MainColor,
@@ -286,7 +286,8 @@ class BrianChesteenHUD(Screen):
         _hsi.hsi_main(
             self, 
             aircraft.mag_head,
-            aircraft.gndtrack
+            aircraft.gndtrack,
+            aircraft.turn_rate
         )
 
         # print Screen.name

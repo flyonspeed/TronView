@@ -167,27 +167,27 @@ class BrianChesteenHUD(Screen):
             )
 
             # baro setting
-            label = self.fontIndicatorSmaller.render(
+            label = self.myfont.render(
                 "%0.2f" % (aircraft.baro), 1, (255, 255, 0)
             )
-            self.pygamescreen.blit(label, (self.width - 100, (self.heightCenter) + 35))
+            self.pygamescreen.blit(label, (self.width - 75, (self.heightCenter) + 35))
             # VSI
             if aircraft.vsi < 0:
-                label = self.fontIndicatorSmaller.render(
+                label = self.myfont.render(
                     "%d" % (aircraft.vsi), 1, (255, 255, 0)
                 )
             else:
-                label = self.fontIndicatorSmaller.render(
+                label = self.myfont.render(
                     "+%d" % (aircraft.vsi), 1, (255, 255, 0)
                 )
-            self.pygamescreen.blit(label, (self.width - 100, (self.heightCenter) - 30))
+            self.pygamescreen.blit(label, (self.width - 75, (self.heightCenter) - 25))
             # True aispeed
-            label = self.fontIndicatorSmaller.render(
+            label = self.myfont.render(
                 "TAS %dKT" % (aircraft.tas), 1, (255, 255, 0)
             )
-            self.pygamescreen.blit(label, (1, (self.heightCenter) - 30))
+            self.pygamescreen.blit(label, (1, (self.heightCenter) - 25))
             # Ground speed
-            label = self.fontIndicatorSmaller.render(
+            label = self.myfont.render(
                 "GS  %dKT" % (aircraft.gndspeed), 1, (255, 255, 0)
             )
             self.pygamescreen.blit(label, (1, (self.heightCenter) + 35))
@@ -195,17 +195,33 @@ class BrianChesteenHUD(Screen):
             label = self.myfont.render(
                 "G   %0.1f" % (aircraft.vert_G), 1, (255, 255, 0)
             )
-            self.pygamescreen.blit(label, (1, (self.heightCenter) + 120))
-             # AOA
-            label = self.myfont.render(
-                "AOA %d" % (aircraft.aoa), 1, (255, 255, 0)
-            )
             self.pygamescreen.blit(label, (1, (self.heightCenter) + 100))
+             # AOA value
+            if aircraft.ias < 20:
+                aircraft.aoa = None
+            if aircraft.aoa != None:
+                label = self.myfont.render(
+                    "%d" % (aircraft.aoa), 1, (255, 255, 0)
+                )
+                self.pygamescreen.blit(label, (80, (self.heightCenter) - 160))
+             # AOA label
+            label = self.myfont.render(
+                "AOA", 1, (255, 255, 0)
+            )
+            self.pygamescreen.blit(label, (25, (self.heightCenter) - 100))
              # AGL
             label = self.myfont.render(
                 "AGL %dFT" % (aircraft.agl), 1, (255, 255, 0)
             )
-            self.pygamescreen.blit(label, (1, (self.heightCenter) - 100))
+            if abs(aircraft.agl) < 99:
+                aglPos = 100
+            elif abs(aircraft.agl) < 999:
+                aglPos = 125
+            elif abs(aircraft.agl) < 9999:
+                aglPos = 137
+            else:
+                aglPos = 149
+            self.pygamescreen.blit(label, (self.width - aglPos, (self.heightCenter) + 120))
              # Gnd Track
             label = self.myfont.render(
                 "TRK %d\xb0"  % (aircraft.gndtrack), 1, (255, 255, 0)
@@ -215,7 +231,7 @@ class BrianChesteenHUD(Screen):
             label = self.myfont.render(
                 "OAT %d\xb0C %d\xb0F" % (aircraft.oat, ((aircraft.oat * 9.0/5.0) + 32.0)), 1, (255, 255, 0)
             )
-            self.pygamescreen.blit(label, (1, (self.heightCenter) - 120))
+            self.pygamescreen.blit(label, (1, (self.heightCenter) + 120))
              # Wind Speed
             if aircraft.wind_speed != None:
                 label = self.myfont.render(
@@ -238,6 +254,50 @@ class BrianChesteenHUD(Screen):
                     "--\xb0", 1, (255, 255, 0)
                 )
                 self.pygamescreen.blit(label, (self.width - 100, (self.heightCenter) - 120))
+            
+            #AOA Indicator
+            pygame.draw.circle(
+                self.pygamescreen,
+                self.MainColor,
+                (45, self.heightCenter - 150 ),
+                15,
+                5,
+            )
+            pygame.draw.circle(
+               self.pygamescreen,
+               self.MainColor,
+               (44, self.heightCenter - 150 ),
+               15,
+               5,
+            )
+
+            pygame.draw.line(self.pygamescreen, (0, 255, 0),
+            ( 25, self.heightCenter - 100),
+            ( 35, self.heightCenter - 133), 5)
+            pygame.draw.line(self.pygamescreen, (0, 255, 0),
+            ( 63, self.heightCenter - 100),
+            ( 53, self.heightCenter - 133), 5)
+            pygame.draw.line(self.pygamescreen, (255, 0, 0),
+            ( 63, self.heightCenter - 200),
+            ( 53, self.heightCenter - 167), 5)
+            pygame.draw.line(self.pygamescreen, (255, 0, 0),
+            ( 35, self.heightCenter - 167),
+            ( 25, self.heightCenter - 200), 5)
+
+            if aircraft.aoa <= 40:
+                aoa_color = (0, 255, 0)
+            elif aircraft.aoa > 40 and aircraft.aoa <= 60:
+                aoa_color = (255, 255, 255)
+            elif aircraft.aoa > 60:
+                aoa_color = (255, 0, 0)
+
+            if aircraft.aoa != None:
+                label = self.myfont.render("%d" % (aircraft.aoa), 1, (255, 255, 0))
+                self.pygamescreen.blit(label, (80, (self.heightCenter) - 160))
+                pygame.draw.line(self.pygamescreen, (aoa_color),
+                                ( 23, self.heightCenter - 100 - aircraft.aoa),
+                                ( 65, self.heightCenter - 100 - aircraft.aoa), 5)
+
             # Mag heading
             hud_graphics.hud_draw_box_text(
                 self.pygamescreen,

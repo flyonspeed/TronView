@@ -24,8 +24,8 @@ class Aircraft(object):
         self.vsi = 0
         self.gndspeed = 0 #TODO: Move to GPSData class?
         self.oat = 0
-        self.vert_G = None
-        self.turn_rate = None
+        self.vert_G = 0
+        self.turn_rate = 0
         self.wind_speed = None
         self.wind_dir = None
         self.norm_wind_dir = None #corrected for aircraft heading for wind direction pointer TODO: Add wind direction pointer to HUD screen

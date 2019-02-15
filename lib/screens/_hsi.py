@@ -19,6 +19,7 @@ def hsi_init(self, hsi_size, gnd_trk_tick_size, color):
     self.rose = pygame.Surface((self.hsi_size, self.hsi_size), pygame.SRCALPHA)
     self.labels = pygame.Surface((self.hsi_size, self.hsi_size), pygame.SRCALPHA)
     self.ticks = pygame.Surface((self.hsi_size, self.hsi_size), pygame.SRCALPHA)
+
     global old_hsi_hdg
     old_hsi_hdg = None
 
@@ -123,14 +124,18 @@ def labeler(self, hsi_hdg):
 
 def gnd_trk_tick(self, gnd_trk):
     # Draw Ground Track Tick
-
     gnd_trk_tick_rotated = pygame.transform.rotate(self.ticks, gnd_trk)
     gnd_trk__rect = gnd_trk_tick_rotated.get_rect()   
     self.pygamescreen.blit(gnd_trk_tick_rotated,
                             (self.width / 2 - gnd_trk__rect.center[0],
                             self.height / 2 - gnd_trk__rect.center[1]))
 
-def hsi_main(self, hsi_hdg, gnd_trk):
+def turn_rate_disp(self, turn_rate):
+    if abs(turn_rate) > 0.2:
+        pygame.draw.line(self.pygamescreen, (255, 0, 255), (self.width / 2, 85), (self.width / 2 + (turn_rate * 10), 85), 10)
+
+
+def hsi_main(self, hsi_hdg, gnd_trk, turn_rate):    
     hsi_hdg = (hsi_hdg + 90) % 360
     gnd_trk = roint(hsi_hdg - gnd_trk - 90 ) % 360
 
@@ -151,4 +156,7 @@ def hsi_main(self, hsi_hdg, gnd_trk):
 
     # Draw Ticks
     gnd_trk_tick(self, gnd_trk)
+
+    # Draw Turn Rate
+    turn_rate_disp(self, turn_rate)
 

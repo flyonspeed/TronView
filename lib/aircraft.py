@@ -25,6 +25,7 @@ class Aircraft(object):
         self.gndspeed = 0 #TODO: Move to GPSData class?
         self.oat = 0
         self.vert_G = 0
+        self.slip_skid = None
         self.turn_rate = 0
         self.wind_speed = None
         self.wind_dir = None

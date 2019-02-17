@@ -297,7 +297,35 @@ class BrianChesteenHUD(Screen):
                     "--\xb0", 1, (255, 255, 0)
                 )
                 self.pygamescreen.blit(label, (self.width - 70, (self.heightCenter) - 120))
-            
+
+            #Slip/Skid Indicator
+            if aircraft.slip_skid != None:
+                pygame.draw.circle(
+                    self.pygamescreen,
+                    (255, 255, 255),
+                    (self.width/2 - int(aircraft.slip_skid * 15), self.heightCenter + 170 ),
+                    10,
+                    0,
+                )
+            pygame.draw.line(self.pygamescreen, (255, 255, 255),
+            ( self.width/2 + 13, self.heightCenter + 159),
+            ( self.width/2 + 13, self.heightCenter + 181), 3)
+            pygame.draw.line(self.pygamescreen, (255, 255, 255),
+            ( self.width/2 - 13, self.heightCenter + 159),
+            ( self.width/2 - 13, self.heightCenter + 181), 3)
+            pygame.draw.line(self.pygamescreen, (0, 0, 0),
+            ( self.width/2 + 11, self.heightCenter + 159),
+            ( self.width/2 + 11, self.heightCenter + 181), 1)
+            pygame.draw.line(self.pygamescreen, (0, 0, 0),
+            ( self.width/2 + 15, self.heightCenter + 159),
+            ( self.width/2 + 15, self.heightCenter + 181), 1)
+            pygame.draw.line(self.pygamescreen, (0, 0, 0),
+            ( self.width/2 - 11, self.heightCenter + 159),
+            ( self.width/2 - 11, self.heightCenter + 181), 1)
+            pygame.draw.line(self.pygamescreen, (0, 0, 0),
+            ( self.width/2 - 15, self.heightCenter + 159),
+            ( self.width/2 - 15, self.heightCenter + 181), 1)
+
             #AOA Indicator
             pygame.draw.circle(
                 self.pygamescreen,

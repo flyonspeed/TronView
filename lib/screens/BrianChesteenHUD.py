@@ -272,7 +272,7 @@ class BrianChesteenHUD(Screen):
                 self.pygamescreen.blit(label, (self.width / 2 - 45, (self.heightCenter) - 180))
              # OAT
             label = self.myfont.render(
-                "OAT %d\xb0f  %d\xb0c" % (aircraft.oat, ((aircraft.oat * 9.0/5.0) + 32.0)), 1, (255, 255, 0)
+                "OAT %d\xb0c  %d\xb0f" % (aircraft.oat, ((aircraft.oat * 9.0/5.0) + 32.0)), 1, (255, 255, 0)
             )
             self.pygamescreen.blit(label, (1, (self.heightCenter) + 160))
              # Wind Speed

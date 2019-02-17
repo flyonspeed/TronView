@@ -133,7 +133,8 @@ def gnd_trk_tick(self, gnd_trk):
 def turn_rate_disp(self, turn_rate):
     if abs(turn_rate) > 0.2:
         pygame.draw.line(self.pygamescreen, (255, 0, 255), (self.width / 2, 85), (self.width / 2 + (turn_rate * 10), 85), 10)
-
+    pygame.draw.line(self.pygamescreen, (255, 255, 255), (self.width / 2 + 31, 80), (self.width / 2 + 31, 90), 2)
+    pygame.draw.line(self.pygamescreen, (255, 255, 255), (self.width / 2 - 31, 80), (self.width / 2 - 31, 90), 2)
 
 def hsi_main(self, hsi_hdg, gnd_trk, turn_rate):    
     hsi_hdg = (hsi_hdg + 90) % 360

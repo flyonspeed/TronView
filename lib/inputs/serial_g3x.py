@@ -93,7 +93,7 @@ class serial_g3x(Input):
                                 aircraft.wind_speed, aircraft.wind_dir, aircraft.norm_wind_dir = _utils.windSpdDir(aircraft.tas, aircraft.gndspeed,
                                                                                                                   aircraft.gndtrack, aircraft.mag_head,
                                                                                                                   aircraft.mag_decl)
-                        
+
                             else:
                                 aircraft.msg_bad += 1 
                 else:
@@ -130,10 +130,12 @@ class serial_g3x(Input):
                         aircraft.tas = _utils.ias2tas(aircraft.ias, aircraft.oat, aircraft.PALT)
                         aircraft.turn_rate = int(RateofTurn) * 0.1
                         aircraft.vert_G = int(VertAcc) * 0.1
+                        aircraft.slip_skid = int(LatAcc) * 0.1
                         aircraft.msg_count += 1
-                        
+
                         if aircraft.demoMode:  #if demo mode then add a delay.  Else reading a file is way to fast.
                             time.sleep(.08)                    
+
                     else:
                         aircraft.msg_bad += 1
                         
@@ -151,7 +153,6 @@ class serial_g3x(Input):
                     if SentVer == "1" and ord(CRLF[0]) == 13:
                         aircraft.agl = int(HeightAGL) * 100
                         aircraft.msg_count += 1
-                  
                     else:
                         aircraft.msg_bad += 1
                         
@@ -162,8 +163,8 @@ class serial_g3x(Input):
                 aircraft.msg_unknown += 1 #else unknown message.
                 if aircraft.demoMode:  
                     time.sleep(.01)
-                else:
-                    self.ser.flushInput()  # flush the serial after every message else we see delays
+                #else:
+                #    self.ser.flushInput()  # flush the serial after every message else we see delays
                 return aircraft
             
         except serial.serialutil.SerialException:

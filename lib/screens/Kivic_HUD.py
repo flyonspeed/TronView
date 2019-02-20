@@ -2,7 +2,7 @@
 
 #################################################
 #Custom HUD Screen by Brian Chesteen. 01/31/2019
-#Optimized for Garmin G3X Systems.
+#Optimized for Garmin G3X System and Kivic HUD using Composite Video Output.
 #Credit for original module template goes to Christopher Jones.
 from __future__ import print_function
 from _screen import Screen
@@ -13,11 +13,11 @@ import pygame
 import math
 
 
-class BrianChesteenHUD(Screen):
+class Kivic_HUD(Screen):
     # called only when object is first created.
     def __init__(self):
         Screen.__init__(self)
-        self.name = "Brian Chesteen Hud Screen"  # set name for this screen
+        self.name = "Kivic Hud Screen"  # set name for this screen
         self.ahrs_bg = 0
         self.show_debug = False  # default off
         self.show_FPS = False #show screen refresh rate in frames per second for performance tuning
@@ -54,14 +54,14 @@ class BrianChesteenHUD(Screen):
             None, int(self.height / 20)
         )  # font used by horz lines
         self.myfont = pygame.font.SysFont(
-            "monospace", 22
+            "monospace", 22, bold = True
         )  # font used by debug. initialize font; must be called after 'pygame.init()' to avoid 'Font not Initialized' error
-        self.fontIndicator = pygame.font.SysFont("monospace", 40)  # ie IAS and ALT
+        self.fontIndicator = pygame.font.SysFont("monospace", 40, bold = True)  # ie IAS and ALT
         self.fontIndicatorSmaller = pygame.font.SysFont(
-            "monospace", 30
+            "monospace", 30, bold = True
         )  # ie. baro and VSI
         self.fontsmallest = pygame.font.SysFont(
-            "monospace", 16
+            "monospace", 16, bold = True
         )  # units
 
         #set up the HSI
@@ -69,7 +69,8 @@ class BrianChesteenHUD(Screen):
             self,
             350, #HSI size
             20, #Gnd Trk Tick size
-            (255,0,0) # HSI color
+            (255, 0, 0), # HSI rose color
+            (255, 255, 255) #HSI label color
         )
 
     # called every redraw for the screen
@@ -183,7 +184,7 @@ class BrianChesteenHUD(Screen):
                     self.MainColor,
                     1,
                 )
-                
+
             # ALT
             hud_graphics.hud_draw_box_text(
                 self.pygamescreen,
@@ -259,17 +260,17 @@ class BrianChesteenHUD(Screen):
                 label = self.myfont.render(
                     "TRK   %d\xb0"  % (aircraft.gndtrack), 1, (255, 255, 0)
                 )
-                self.pygamescreen.blit(label, (self.width / 2 - 45, (self.heightCenter) - 180))
+                self.pygamescreen.blit(label, (self.width / 2 - 45, (self.heightCenter) - 185))
             elif aircraft.gndtrack < 100:
                 label = self.myfont.render(
                     "TRK  %d\xb0"  % (aircraft.gndtrack), 1, (255, 255, 0)
                 )
-                self.pygamescreen.blit(label, (self.width / 2 - 45, (self.heightCenter) - 180))
+                self.pygamescreen.blit(label, (self.width / 2 - 45, (self.heightCenter) - 185))
             else:
                 label = self.myfont.render(
                     "TRK %d\xb0"  % (aircraft.gndtrack), 1, (255, 255, 0)
                 )
-                self.pygamescreen.blit(label, (self.width / 2 - 45, (self.heightCenter) - 180))
+                self.pygamescreen.blit(label, (self.width / 2 - 45, (self.heightCenter) - 185))
              # OAT
             label = self.myfont.render(
                 "OAT %d\xb0c  %d\xb0f" % (aircraft.oat, ((aircraft.oat * 9.0/5.0) + 32.0)), 1, (255, 255, 0)
@@ -303,7 +304,7 @@ class BrianChesteenHUD(Screen):
                 pygame.draw.circle(
                     self.pygamescreen,
                     (255, 255, 255),
-                    (self.width/2 - int(aircraft.slip_skid * 15), self.heightCenter + 170 ),
+                    (self.width/2 - int(aircraft.slip_skid * 150), self.heightCenter + 170 ),
                     10,
                     0,
                 )
@@ -376,7 +377,7 @@ class BrianChesteenHUD(Screen):
                 "  %d\xb0" % (aircraft.mag_head),
                     (255, 255, 0),
                     (self.width / 2) - 40,
-                    25,
+                    (self.heightCenter) - 220,
                     95,
                     35,
                     self.MainColor,
@@ -389,7 +390,7 @@ class BrianChesteenHUD(Screen):
                 " %d\xb0" % (aircraft.mag_head),
                 (255, 255, 0),
                 (self.width / 2) - 40,
-                25,
+                (self.heightCenter) - 220,
                 95,
                 35,
                 self.MainColor,
@@ -402,7 +403,7 @@ class BrianChesteenHUD(Screen):
                 "%d\xb0" % (aircraft.mag_head),
                 (255, 255, 0),
                 (self.width / 2) - 40,
-                25,
+                (self.heightCenter) - 220,
                 95,
                 35,
                 self.MainColor,
@@ -412,7 +413,7 @@ class BrianChesteenHUD(Screen):
             label = self.fontsmallest.render(
                 "M", 1, (255, 255, 255)
             )
-            self.pygamescreen.blit(label, (self.width / 2 + 39, (self.heightCenter) - 195))
+            self.pygamescreen.blit(label, (self.width / 2 + 39, (self.heightCenter) - 200))
 
             if aircraft.norm_wind_dir != None:
                 arrow_rotated = pygame.transform.rotate(self.arrow_scaled, aircraft.norm_wind_dir)

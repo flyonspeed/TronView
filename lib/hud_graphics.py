@@ -2,6 +2,7 @@
 
 import math, os, sys, random
 import argparse, pygame
+from operator import add
 
 #############################################
 ## Function: initDisplay
@@ -42,26 +43,26 @@ def initDisplay(debug):
 ## Function: generateHudReferenceLineArray
 ## create array of horz lines based on pitch, roll, etc.
 def hud_generateHudReferenceLineArray(
-    screen_width, screen_height, ahrs_center, pitch=0, roll=0, deg_ref=0, line_mode=1
+    screen_width, screen_height, ahrs_center, pxy_div, pitch=0, roll=0, deg_ref=0, line_mode=1,
 ):
 
     if line_mode == 1:
         if deg_ref == 0:
             length = screen_width * 0.9
         elif (deg_ref % 10) == 0:
-            length = screen_width * 0.2
+            length = screen_width * 0.4
         elif (deg_ref % 5) == 0:
-            length = screen_width * 0.1
+            length = screen_width * 0.2
     else:
         if deg_ref == 0:
             length = screen_width * 0.6
         elif (deg_ref % 10) == 0:
-            length = screen_width * 0.1
+            length = screen_width * 0.2
         elif (deg_ref % 5) == 0:
-            length = screen_width * 0.05
+            length = screen_width * 0.1
 
     ahrs_center_x, ahrs_center_y = ahrs_center
-    px_per_deg_y = screen_height / 60
+    px_per_deg_y = screen_height / pxy_div
     pitch_offset = px_per_deg_y * (-pitch + deg_ref)
 
     center_x = ahrs_center_x - (pitch_offset * math.cos(math.radians(90 - roll)))
@@ -152,6 +153,7 @@ def hud_draw_horz_lines(
     line_thickness,
     line_mode,
     font,
+    pxy_div,
 ):
 
     for l in range(-60, 61, ahrs_line_deg):
@@ -159,6 +161,7 @@ def hud_draw_horz_lines(
             width,
             height,
             ahrs_center,
+            pxy_div,
             pitch=aircraft.pitch,
             roll=aircraft.roll,
             deg_ref=l,
@@ -179,11 +182,48 @@ def hud_draw_horz_lines(
                 width=line_thickness,
                 dash_length=5,
             )
+            #WORK IN PROGRESS
+            # pygame.draw.lines(surface,
+                # color,
+                # False,
+                # (line_coords[0],
+                # tuple(map(add, line_coords[0], (0,-12)))),
+                # line_thickness
+            # )
+            # pygame.draw.lines(surface,
+                # color,
+                # False,
+                # (line_coords[1],
+                # tuple(map(add, line_coords[1], (0,-12)))),
+                # line_thickness
+            # )
         else:
-            pygame.draw.lines(surface, color, False, line_coords, line_thickness)
+            pygame.draw.lines(
+                surface,
+                color,
+                False,
+                line_coords,
+                line_thickness
+            )
+            
+            #WORK IN PROGRESS
+            # pygame.draw.lines(surface,
+                # color,
+                # False,
+                # (line_coords[0],
+                # tuple(map(add, line_coords[0], (0,12)))),
+                # line_thickness
+            # )
+            # pygame.draw.lines(surface,
+                # color,
+                # False,
+                # (line_coords[1],
+                # tuple(map(add, line_coords[1], (0,12)))),
+                # line_thickness
+            # )
 
         # draw degree text
-        if l != 0 and l % 10 == 0:
+        if l != 0 and l % 5 == 0:
             text = font.render(str(l), False, color)
             text_width, text_height = text.get_size()
             left = int(line_coords[0][0]) - (text_width + int(width / 100))

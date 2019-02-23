@@ -27,6 +27,7 @@ class DefaultScreen(Screen):
         self.ahrs_line_deg = hud_utils.readConfigInt("HUD", "vertical_degrees", 15)
         print("ahrs_line_deg = %d"%(self.ahrs_line_deg))
         self.MainColor = (0, 255, 0)  # main color of hud graphics
+        self.pxy_div = 60 # Y axis number of pixels per degree divisor
 
         # called once for setuping up the screen
 
@@ -69,6 +70,7 @@ class DefaultScreen(Screen):
             self.line_thickness,
             self.line_mode,
             self.font,
+            self.pxy_div,
         )
 
         # render debug text
@@ -88,8 +90,9 @@ class DefaultScreen(Screen):
                 (255, 255, 0),
             )
             self.pygamescreen.blit(label, (0, 60))
-            label = self.myfont.render("AOA: %d" % (aircraft.aoa), 1, (255, 255, 0))
-            self.pygamescreen.blit(label, (0, 80))
+            if aircraft.aoa != None:
+                label = self.myfont.render("AOA: %d" % (aircraft.aoa), 1, (255, 255, 0))
+                self.pygamescreen.blit(label, (0, 80))
             label = self.myfont.render(
                 "MagHead: %d  TrueTrack: %d" % (aircraft.mag_head, aircraft.gndtrack),
                 1,

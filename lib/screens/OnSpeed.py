@@ -18,6 +18,7 @@ class OnSpeed(Screen):
         self.ahrs_bg = 0
         self.MainColor = (0, 255, 0)  # main color
         self.TextColor = (255, 255, 0)  # main color
+        self.pxy_div = 60 # Y axis number of pixels per degree divisor
 
     def initDisplay(self, pygamescreen, width, height):
         Screen.initDisplay(
@@ -57,6 +58,7 @@ class OnSpeed(Screen):
             3,
             1,
             self.font,
+            self.pxy_div,
         )
 
         #Draw airspeed

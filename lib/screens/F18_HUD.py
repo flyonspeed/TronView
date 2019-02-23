@@ -66,15 +66,6 @@ class F18_HUD(Screen):
             "monospace", 16, bold = True
         )  # units
 
-        # set up the HSI
-        # _hsi.hsi_init(
-            # self,
-            # 350, #HSI size
-            # 20, #Gnd Trk Tick size
-            # (255, 0, 0), # HSI rose color
-            # (255, 255, 255) #HSI label color
-        # )
-        
         # set up the HDG
         _hdg.hdg_init(
             self,
@@ -249,40 +240,7 @@ class F18_HUD(Screen):
                     "%d" % (aircraft.aoa), 1, (255, 255, 0)
                 )
                 self.pygamescreen.blit(label, (70, (self.heightCenter - 10)))
-            # AOA label
-            # label = self.myfont.render(
-                # "AOA", 1, (255, 255, 0)
-            # )
-            # self.pygamescreen.blit(label, (25, (self.heightCenter) + 70))
-             # AGL
-            # label = self.myfont.render(
-                # "AGL %dft" % (aircraft.agl), 1, (255, 255, 0)
-            # )
-            # if abs(aircraft.agl) < 99:
-                # aglPos = 100
-            # elif abs(aircraft.agl) < 999:
-                # aglPos = 125
-            # elif abs(aircraft.agl) < 9999:
-                # aglPos = 137
-            # else:
-                # aglPos = 149
-            # self.pygamescreen.blit(label, (self.width - aglPos, (self.heightCenter) + 160))
-             # Gnd Track
-            # if aircraft.gndtrack < 10:
-                # label = self.myfont.render(
-                    # "TRK   %d\xb0"  % (aircraft.gndtrack), 1, (255, 255, 0)
-                # )
-                # self.pygamescreen.blit(label, (self.width / 2 - 45, (self.heightCenter) - 185))
-            # elif aircraft.gndtrack < 100:
-                # label = self.myfont.render(
-                    # "TRK  %d\xb0"  % (aircraft.gndtrack), 1, (255, 255, 0)
-                # )
-                # self.pygamescreen.blit(label, (self.width / 2 - 45, (self.heightCenter) - 185))
-            # else:
-                # label = self.myfont.render(
-                    # "TRK %d\xb0"  % (aircraft.gndtrack), 1, (255, 255, 0)
-                # )
-                # self.pygamescreen.blit(label, (self.width / 2 - 45, (self.heightCenter) - 185))
+
              # OAT
             label = self.myfont.render(
                 "OAT %d\xb0c" % (aircraft.oat), 1, (255, 255, 0)
@@ -310,34 +268,6 @@ class F18_HUD(Screen):
                     "--\xb0", 1, (255, 255, 0)
                 )
                 self.pygamescreen.blit(label, (20, (self.heightCenter) + 120))
-
-            #Slip/Skid Indicator
-            # if aircraft.slip_skid != None:
-                # pygame.draw.circle(
-                    # self.pygamescreen,
-                    # (255, 255, 255),
-                    # (self.width/2 - int(aircraft.slip_skid * 150), self.heightCenter + 170 ),
-                    # 10,
-                    # 0,
-                # )
-            # pygame.draw.line(self.pygamescreen, (255, 255, 255),
-            # ( self.width/2 + 13, self.heightCenter + 159),
-            # ( self.width/2 + 13, self.heightCenter + 181), 3)
-            # pygame.draw.line(self.pygamescreen, (255, 255, 255),
-            # ( self.width/2 - 13, self.heightCenter + 159),
-            # ( self.width/2 - 13, self.heightCenter + 181), 3)
-            # pygame.draw.line(self.pygamescreen, (0, 0, 0),
-            # ( self.width/2 + 11, self.heightCenter + 159),
-            # ( self.width/2 + 11, self.heightCenter + 181), 1)
-            # pygame.draw.line(self.pygamescreen, (0, 0, 0),
-            # ( self.width/2 + 15, self.heightCenter + 159),
-            # ( self.width/2 + 15, self.heightCenter + 181), 1)
-            # pygame.draw.line(self.pygamescreen, (0, 0, 0),
-            # ( self.width/2 - 11, self.heightCenter + 159),
-            # ( self.width/2 - 11, self.heightCenter + 181), 1)
-            # pygame.draw.line(self.pygamescreen, (0, 0, 0),
-            # ( self.width/2 - 15, self.heightCenter + 159),
-            # ( self.width/2 - 15, self.heightCenter + 181), 1)
 
             #AOA Indicator
             pygame.draw.circle(
@@ -381,52 +311,6 @@ class F18_HUD(Screen):
                                 ( 23, self.heightCenter + 70 - aircraft.aoa * 1.4),
                                 ( 65, self.heightCenter + 70 - aircraft.aoa * 1.4), 5)
 
-            # Mag heading
-            # if aircraft.mag_head < 10:
-                # hud_graphics.hud_draw_box_text(
-                # self.pygamescreen,
-                # self.fontIndicator,
-                # "  %d\xb0" % (aircraft.mag_head),
-                    # (255, 255, 0),
-                    # (self.width / 2) - 40,
-                    # (self.heightCenter) - 220,
-                    # 95,
-                    # 35,
-                    # self.MainColor,
-                    # 1,
-                # )
-            # elif aircraft.mag_head < 100:
-                # hud_graphics.hud_draw_box_text(
-                # self.pygamescreen,
-                # self.fontIndicator,
-                # " %d\xb0" % (aircraft.mag_head),
-                # (255, 255, 0),
-                # (self.width / 2) - 40,
-                # (self.heightCenter) - 220,
-                # 95,
-                # 35,
-                # self.MainColor,
-                # 1,
-                # )
-            # else:
-                # hud_graphics.hud_draw_box_text(
-                # self.pygamescreen,
-                # self.fontIndicator,
-                # "%d\xb0" % (aircraft.mag_head),
-                # (255, 255, 0),
-                # (self.width / 2) - 40,
-                # (self.heightCenter) - 220,
-                # 95,
-                # 35,
-                # self.MainColor,
-                # 1,
-                # )
-
-            # label = self.fontsmallest.render(
-                # "M", 1, (255, 255, 255)
-            # )
-            # self.pygamescreen.blit(label, (self.width / 2 + 39, (self.heightCenter) - 200))
-
             if aircraft.norm_wind_dir != None:
                 arrow_rotated = pygame.transform.rotate(self.arrow_scaled, aircraft.norm_wind_dir)
                 arrow_rect = arrow_rotated.get_rect()
@@ -465,7 +349,7 @@ class F18_HUD(Screen):
             pygame.draw.line(self.pygamescreen, self.MainColor,[self.width / 2 + 50 + 10,self.heightCenter + 20],[self.width / 2 + 50 + 20,self.heightCenter],3)
             pygame.draw.line(self.pygamescreen, self.MainColor,[self.width / 2 + 50 + 35,self.heightCenter],[self.width / 2 + 50 + 20, self.heightCenter],3)
 
-        # main HSI processing
+        # main HDG processing
         _hdg.hdg_main(
             self, 
             aircraft.mag_head,

@@ -7,21 +7,33 @@ from __future__ import print_function
 import pygame
 import math
 
-def hsi_init(self, hsi_size, gnd_trk_tick_size, color):
+def hsi_init(self, hsi_size, gnd_trk_tick_size, rose_color, label_color):
     self.myfont1 = pygame.font.SysFont(
-        "Comic Sans MS", 30
+        "Comic Sans MS", 30, bold = True
     )  # hsi
 
     # HSI Setup
     self.hsi_size = hsi_size
     self.gnd_trk_tick_size = gnd_trk_tick_size
-    self.color = color
+    self.color = rose_color
+    self.label_color = label_color
     self.rose = pygame.Surface((self.hsi_size, self.hsi_size), pygame.SRCALPHA)
     self.labels = pygame.Surface((self.hsi_size, self.hsi_size), pygame.SRCALPHA)
     self.ticks = pygame.Surface((self.hsi_size, self.hsi_size), pygame.SRCALPHA)
 
     global old_hsi_hdg
     old_hsi_hdg = None
+
+    # Setup Compass Rose
+    # Minor Tick Marks
+    for little_tick in range(72):
+        cos = math.cos(math.radians(360.0 / 72 * little_tick))
+        sin = math.sin(math.radians(360.0 / 72 * little_tick))
+        x0 = roint(self.hsi_size / 2 + self.hsi_size / 13 * cos * 4)
+        y0 = roint(self.hsi_size / 2 + self.hsi_size / 13 * sin * 4)
+        x1 = roint(self.hsi_size / 2 + self.hsi_size / 3 * cos)
+        y1 = roint(self.hsi_size / 2 + self.hsi_size / 3 * sin)
+        pygame.draw.line(self.rose, self.color, [x0, y0], [x1, y1], 4)
 
     # Setup Compass Rose
     # Major Tick Marks
@@ -32,43 +44,32 @@ def hsi_init(self, hsi_size, gnd_trk_tick_size, color):
         y0 = roint(self.hsi_size / 2 + self.hsi_size / 15 * sin * 4)
         x1 = roint(self.hsi_size / 2 + self.hsi_size / 2.8 * cos)
         y1 = roint(self.hsi_size / 2 + self.hsi_size / 2.8 * sin)
-        pygame.draw.line(self.rose, self.color, [x0, y0], [x1, y1], 3)
-    
-    # Setup Compass Rose
-    # Minor Tick Marks
-    for little_tick in range(72):
-        cos = math.cos(math.radians(360.0 / 72 * little_tick))
-        sin = math.sin(math.radians(360.0 / 72 * little_tick))
-        x0 = roint(self.hsi_size / 2 + self.hsi_size / 13 * cos * 4)
-        y0 = roint(self.hsi_size / 2 + self.hsi_size / 13 * sin * 4)
-        x1 = roint(self.hsi_size / 2 + self.hsi_size / 3 * cos)
-        y1 = roint(self.hsi_size / 2 + self.hsi_size / 3 * sin)
-        pygame.draw.line(self.rose, self.color, [x0, y0], [x1, y1], 2)
+        pygame.draw.line(self.rose, self.color, [x0, y0], [x1, y1], 4)
 
     # Setup Labels
-    self.N = self.myfont1.render("N", False, (self.color))
+    self.N = self.myfont1.render("N", False, (self.label_color))
     self.N_rect = self.N.get_rect()
-    self.R3 = self.myfont1.render("3", False, (self.color))
+    self.R3 = self.myfont1.render("3", False, (self.label_color))
     self.R3_rect = self.R3.get_rect()
-    self.R6 = self.myfont1.render("6", False, (self.color))
+    self.R6 = self.myfont1.render("6", False, (self.label_color))
     self.R6_rect = self.R6.get_rect()
-    self.E = self.myfont1.render("E", False, (self.color))
+    self.E = self.myfont1.render("E", False, (self.label_color))
     self.E_rect = self.E.get_rect()
-    self.R12 = self.myfont1.render("12", False, (self.color))
+    self.R12 = self.myfont1.render("12", False, (self.label_color))
     self.R12_rect = self.R12.get_rect()
-    self.R15 = self.myfont1.render("15", False, (self.color))
+    self.R15 = self.myfont1.render("15", False, (self.label_color))
     self.R15_rect = self.R15.get_rect()
-    self.S = self.myfont1.render("S", False, (self.color))
+    self.S = self.myfont1.render("S", False, (self.label_color))
     self.S_rect = self.S.get_rect()
-    self.R21 = self.myfont1.render("21", False, (self.color))
+    self.R21 = self.myfont1.render("21", False, (self.label_color))
     self.R21_rect = self.R21.get_rect()
-    self.R24 = self.myfont1.render("24", False, (self.color))
+    self.R24 = self.myfont1.render("24", False, (self.label_color))
     self.R24_rect = self.R24.get_rect()
-    self.W = self.myfont1.render("W", False, (self.color))
+    self.W = self.myfont1.render("W", False, (self.label_color))
     self.W_rect = self.W.get_rect()
-    self.R30 = self.myfont1.render("30", False, (self.color))
+    self.R30 = self.myfont1.render("30", False, (self.label_color))
     self.R30_rect = self.R30.get_rect()
-    self.R33 = self.myfont1.render("33", False, (self.color))
+    self.R33 = self.myfont1.render("33", False, (self.label_color))
     self.R33_rect = self.R33.get_rect()
 
     # Setup Ground Track Tick
@@ -132,9 +133,27 @@ def gnd_trk_tick(self, gnd_trk):
 
 def turn_rate_disp(self, turn_rate):
     if abs(turn_rate) > 0.2:
-        pygame.draw.line(self.pygamescreen, (255, 0, 255), (self.width / 2, 85), (self.width / 2 + (turn_rate * 10), 85), 10)
-    pygame.draw.line(self.pygamescreen, (255, 255, 255), (self.width / 2 + 31, 80), (self.width / 2 + 31, 90), 2)
-    pygame.draw.line(self.pygamescreen, (255, 255, 255), (self.width / 2 - 31, 80), (self.width / 2 - 31, 90), 2)
+        pygame.draw.line(self.pygamescreen, (255, 0, 255),
+        (self.width / 2, self.height / 2 - 158), (self.width / 2 + 
+        (turn_rate * 10), self.height / 2 - 158), 10)
+    pygame.draw.line(self.pygamescreen, (255, 255, 255),
+    (self.width / 2 + 31, self.height / 2 - 153), 
+    (self.width / 2 + 31, self.height / 2 - 163), 3)
+    pygame.draw.line(self.pygamescreen, (255, 255, 255), 
+    (self.width / 2 - 31, self.height / 2 - 153), 
+    (self.width / 2 - 31, self.height / 2 - 163), 3)
+    pygame.draw.line(self.pygamescreen, (0, 0, 0), 
+    ( self.width/2 + 33, self.height / 2 - 153), 
+    ( self.width/2 + 33, self.height / 2 - 163), 1)
+    pygame.draw.line(self.pygamescreen, (0, 0, 0), 
+    ( self.width/2 + 29, self.height / 2 - 153), 
+    ( self.width/2 + 29, self.height / 2 - 163), 1)
+    pygame.draw.line(self.pygamescreen, (0, 0, 0), 
+    ( self.width/2 - 33, self.height / 2 - 153), 
+    ( self.width/2 - 33, self.height / 2 - 163), 1)
+    pygame.draw.line(self.pygamescreen, (0, 0, 0), 
+    ( self.width/2 - 29, self.height / 2 - 153), 
+    ( self.width/2 - 29, self.height / 2 - 163), 1)
 
 def hsi_main(self, hsi_hdg, gnd_trk, turn_rate):    
     hsi_hdg = (hsi_hdg + 90) % 360

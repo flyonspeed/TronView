@@ -17,10 +17,17 @@ import time
 
 
 class serial_g3x(Input):
+
     def __init__(self):
         self.name = "g3x"
         self.version = 1.0
         self.inputtype = "serial"
+        
+        #Setup moving averages to smooth a bit
+        self.readings = [] 
+        self.max_samples =10
+        self.readings1 = []
+        self.max_samples1 =20
 
     def initInput(self,aircraft):
         Input.initInput( self, aircraft )  # call parent init Input.
@@ -54,6 +61,9 @@ class serial_g3x(Input):
     #############################################
     ## Function: readMessage
     def readMessage(self, aircraft):
+
+        def mean(nums):
+            return float(sum(nums)) / max(len(nums), 1)
         if aircraft.errorFoundNeedToExit:
             return aircraft;
         try:
@@ -118,6 +128,10 @@ class serial_g3x(Input):
                         aircraft.PALT = int(PressAlt)
                         aircraft.oat = int(OAT)
                         aircraft.aoa = int(AOA)
+                        self.readings1.append(aircraft.aoa)
+                        aircraft.aoa = mean(self.readings1) #Moving average to smooth a bit
+                        if len(self.readings1) == self.max_samples1:
+                            self.readings1.pop(0)
                         aircraft.mag_head = int(Heading)
                         aircraft.baro = (int(AltSet) + 2750.0) / 100.0
                         aircraft.baro_diff = aircraft.baro - 29.9213
@@ -130,9 +144,12 @@ class serial_g3x(Input):
                         aircraft.tas = _utils.ias2tas(aircraft.ias, aircraft.oat, aircraft.PALT)
                         aircraft.turn_rate = int(RateofTurn) * 0.1
                         aircraft.vert_G = int(VertAcc) * 0.1
-                        aircraft.slip_skid = int(LatAcc) * 0.1
+                        aircraft.slip_skid = int(LatAcc) * 0.01
+                        self.readings.append(aircraft.slip_skid)
+                        aircraft.slip_skid = mean(self.readings) #Moving average to smooth a bit
+                        if len(self.readings) == self.max_samples:
+                            self.readings.pop(0)
                         aircraft.msg_count += 1
-
                         if aircraft.demoMode:  #if demo mode then add a delay.  Else reading a file is way to fast.
                             time.sleep(.08)                    
 

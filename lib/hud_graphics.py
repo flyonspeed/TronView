@@ -2,6 +2,7 @@
 
 import math, os, sys, random
 import argparse, pygame
+from operator import add
 
 #############################################
 ## Function: initDisplay
@@ -42,26 +43,26 @@ def initDisplay(debug):
 ## Function: generateHudReferenceLineArray
 ## create array of horz lines based on pitch, roll, etc.
 def hud_generateHudReferenceLineArray(
-    screen_width, screen_height, ahrs_center, pitch=0, roll=0, deg_ref=0, line_mode=1
+    screen_width, screen_height, ahrs_center, pxy_div, pitch=0, roll=0, deg_ref=0, line_mode=1,
 ):
 
     if line_mode == 1:
         if deg_ref == 0:
             length = screen_width * 0.9
         elif (deg_ref % 10) == 0:
-            length = screen_width * 0.2
+            length = screen_width * 0.4
         elif (deg_ref % 5) == 0:
-            length = screen_width * 0.1
+            length = screen_width * 0.2
     else:
         if deg_ref == 0:
             length = screen_width * 0.6
         elif (deg_ref % 10) == 0:
-            length = screen_width * 0.1
+            length = screen_width * 0.2
         elif (deg_ref % 5) == 0:
-            length = screen_width * 0.05
+            length = screen_width * 0.1
 
     ahrs_center_x, ahrs_center_y = ahrs_center
-    px_per_deg_y = screen_height / 60
+    px_per_deg_y = screen_height / pxy_div
     pitch_offset = px_per_deg_y * (-pitch + deg_ref)
 
     center_x = ahrs_center_x - (pitch_offset * math.cos(math.radians(90 - roll)))
@@ -75,7 +76,17 @@ def hud_generateHudReferenceLineArray(
     start_y = center_y + (y_len / 2)
     end_y = center_y - (y_len / 2)
 
-    return [[start_x, start_y], [end_x, end_y]]
+    xRot = center_x + math.cos(math.radians(-10)) * (start_x - center_x) - math.sin(math.radians(-10)) * (start_y - center_y)
+    yRot = center_y + math.sin(math.radians(-10)) * (start_x - center_x) + math.cos(math.radians(-10)) * (start_y - center_y)
+    xRot1 = center_x + math.cos(math.radians(+10)) * (end_x - center_x) - math.sin(math.radians(+10)) * (end_y - center_y)
+    yRot1 = center_y + math.sin(math.radians(+10)) * (end_x - center_x) + math.cos(math.radians(+10)) * (end_y - center_y)
+
+    xRot2 = center_x + math.cos(math.radians(-10)) * (end_x - center_x) - math.sin(math.radians(-10)) * (end_y - center_y)
+    yRot2 = center_y + math.sin(math.radians(-10)) * (end_x - center_x) + math.cos(math.radians(-10)) * (end_y - center_y)
+    xRot3 = center_x + math.cos(math.radians(+10)) * (start_x - center_x) - math.sin(math.radians(+10)) * (start_y - center_y)
+    yRot3 = center_y + math.sin(math.radians(+10)) * (start_x - center_x) + math.cos(math.radians(+10)) * (start_y - center_y)
+
+    return [[xRot, yRot],[start_x, start_y],[end_x, end_y],[xRot1, yRot1],[xRot2, yRot2],[xRot3, yRot3]]
 
 
 #############################################
@@ -152,6 +163,7 @@ def hud_draw_horz_lines(
     line_thickness,
     line_mode,
     font,
+    pxy_div,
 ):
 
     for l in range(-60, 61, ahrs_line_deg):
@@ -159,6 +171,7 @@ def hud_draw_horz_lines(
             width,
             height,
             ahrs_center,
+            pxy_div,
             pitch=aircraft.pitch,
             roll=aircraft.roll,
             deg_ref=l,
@@ -171,23 +184,47 @@ def hud_draw_horz_lines(
 
         # draw below or above the horz
         if l < 0:
+            z=1+1
             hud_draw_dashed_line(
                 surface,
                 color,
-                line_coords[0],
                 line_coords[1],
+                line_coords[2],
                 width=line_thickness,
                 dash_length=5,
             )
+            pygame.draw.lines(surface,
+                color,
+                False,
+                (line_coords[2],
+                line_coords[4]),
+                line_thickness
+            )
+            pygame.draw.lines(surface,
+                color,
+                False,
+                (line_coords[1],
+                line_coords[5]),
+                line_thickness
+            )
         else:
-            pygame.draw.lines(surface, color, False, line_coords, line_thickness)
+            pygame.draw.lines(
+                surface,
+                color,
+                False,
+                (line_coords[0],
+                line_coords[1],
+                line_coords[2],
+                line_coords[3]),
+                line_thickness
+            )
 
         # draw degree text
-        if l != 0 and l % 10 == 0:
+        if l != 0 and l % 5 == 0:
             text = font.render(str(l), False, color)
             text_width, text_height = text.get_size()
-            left = int(line_coords[0][0]) - (text_width + int(width / 100))
-            top = int(line_coords[0][1]) - text_height / 2
+            left = int(line_coords[1][0]) - (text_width + int(width / 100))
+            top = int(line_coords[1][1]) - text_height / 2
             surface.blit(text, (left, top))
 
     top_left = (

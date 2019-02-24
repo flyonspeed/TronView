@@ -273,6 +273,34 @@ class F18_HUD(Screen):
                 )
                 self.pygamescreen.blit(label, (20, (self.heightCenter) + 120))
 
+            #Slip/Skid Indicator
+            if aircraft.slip_skid != None:
+                pygame.draw.circle(
+                    self.pygamescreen,
+                    (255, 255, 255),
+                    ((self.width/2 + 50) - int(aircraft.slip_skid * 150), self.heightCenter + 170 ),
+                    10,
+                    0,
+                )
+            pygame.draw.line(self.pygamescreen, (255, 255, 255),
+            ( self.width/2 + 63, self.heightCenter + 159),
+            ( self.width/2 + 63, self.heightCenter + 181), 3)
+            pygame.draw.line(self.pygamescreen, (255, 255, 255),
+            ( self.width/2 + 37, self.heightCenter + 159),
+            ( self.width/2 + 37, self.heightCenter + 181), 3)
+            pygame.draw.line(self.pygamescreen, (0, 0, 0),
+            ( self.width/2 + 61, self.heightCenter + 159),
+            ( self.width/2 + 61, self.heightCenter + 181), 1)
+            pygame.draw.line(self.pygamescreen, (0, 0, 0),
+            ( self.width/2 + 65, self.heightCenter + 159),
+            ( self.width/2 + 65, self.heightCenter + 181), 1)
+            pygame.draw.line(self.pygamescreen, (0, 0, 0),
+            ( self.width/2 + 39, self.heightCenter + 159),
+            ( self.width/2 + 39, self.heightCenter + 181), 1)
+            pygame.draw.line(self.pygamescreen, (0, 0, 0),
+            ( self.width/2 + 35, self.heightCenter + 159),
+            ( self.width/2 + 35, self.heightCenter + 181), 1)
+
             #AOA Indicator
             pygame.draw.circle(
                 self.pygamescreen,

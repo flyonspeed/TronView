@@ -116,14 +116,14 @@ def hdg_main(self, hdg_hdg, gnd_trk, turn_rate):
         x1 = roint(hdg_ticks * 120)
         y1 = roint(60)
 
-        pygame.draw.line(self.hdg, (0,0,0),[x0-4440-d,y0],[x1-4440-d,y1],3)
+        pygame.draw.line(self.hdg, (0,255,0),[x0-4440-d,y0],[x1-4440-d,y1],3)
 
     for hdg_lticks in range (88):
         x3 = roint(hdg_lticks * 60)
         y3 = roint(45)
         x4 = roint(hdg_lticks * 60)
         y4 = roint(60)
-        pygame.draw.line(self.hdg, (0,0,0),[x3-4440-d,y3],[x4-4440-d,y4],3)
+        pygame.draw.line(self.hdg, (0,255,0),[x3-4440-d,y3],[x4-4440-d,y4],3)
         
     for hdg_tick_label in range (361):
         x2 = roint(hdg_tick_label)

@@ -76,7 +76,17 @@ def hud_generateHudReferenceLineArray(
     start_y = center_y + (y_len / 2)
     end_y = center_y - (y_len / 2)
 
-    return [[start_x, start_y], [end_x, end_y]]
+    xRot = center_x + math.cos(math.radians(-10)) * (start_x - center_x) - math.sin(math.radians(-10)) * (start_y - center_y)
+    yRot = center_y + math.sin(math.radians(-10)) * (start_x - center_x) + math.cos(math.radians(-10)) * (start_y - center_y)
+    xRot1 = center_x + math.cos(math.radians(+10)) * (end_x - center_x) - math.sin(math.radians(+10)) * (end_y - center_y)
+    yRot1 = center_y + math.sin(math.radians(+10)) * (end_x - center_x) + math.cos(math.radians(+10)) * (end_y - center_y)
+
+    xRot2 = center_x + math.cos(math.radians(-10)) * (end_x - center_x) - math.sin(math.radians(-10)) * (end_y - center_y)
+    yRot2 = center_y + math.sin(math.radians(-10)) * (end_x - center_x) + math.cos(math.radians(-10)) * (end_y - center_y)
+    xRot3 = center_x + math.cos(math.radians(+10)) * (start_x - center_x) - math.sin(math.radians(+10)) * (start_y - center_y)
+    yRot3 = center_y + math.sin(math.radians(+10)) * (start_x - center_x) + math.cos(math.radians(+10)) * (start_y - center_y)
+
+    return [[xRot, yRot],[start_x, start_y],[end_x, end_y],[xRot1, yRot1],[xRot2, yRot2],[xRot3, yRot3]]
 
 
 #############################################
@@ -174,60 +184,47 @@ def hud_draw_horz_lines(
 
         # draw below or above the horz
         if l < 0:
+            z=1+1
             hud_draw_dashed_line(
                 surface,
                 color,
-                line_coords[0],
                 line_coords[1],
+                line_coords[2],
                 width=line_thickness,
                 dash_length=5,
             )
-            #WORK IN PROGRESS
-            # pygame.draw.lines(surface,
-                # color,
-                # False,
-                # (line_coords[0],
-                # tuple(map(add, line_coords[0], (0,-12)))),
-                # line_thickness
-            # )
-            # pygame.draw.lines(surface,
-                # color,
-                # False,
-                # (line_coords[1],
-                # tuple(map(add, line_coords[1], (0,-12)))),
-                # line_thickness
-            # )
+            pygame.draw.lines(surface,
+                color,
+                False,
+                (line_coords[2],
+                line_coords[4]),
+                line_thickness
+            )
+            pygame.draw.lines(surface,
+                color,
+                False,
+                (line_coords[1],
+                line_coords[5]),
+                line_thickness
+            )
         else:
             pygame.draw.lines(
                 surface,
                 color,
                 False,
-                line_coords,
+                (line_coords[0],
+                line_coords[1],
+                line_coords[2],
+                line_coords[3]),
                 line_thickness
             )
-            
-            #WORK IN PROGRESS
-            # pygame.draw.lines(surface,
-                # color,
-                # False,
-                # (line_coords[0],
-                # tuple(map(add, line_coords[0], (0,12)))),
-                # line_thickness
-            # )
-            # pygame.draw.lines(surface,
-                # color,
-                # False,
-                # (line_coords[1],
-                # tuple(map(add, line_coords[1], (0,12)))),
-                # line_thickness
-            # )
 
         # draw degree text
         if l != 0 and l % 5 == 0:
             text = font.render(str(l), False, color)
             text_width, text_height = text.get_size()
-            left = int(line_coords[0][0]) - (text_width + int(width / 100))
-            top = int(line_coords[0][1]) - text_height / 2
+            left = int(line_coords[1][0]) - (text_width + int(width / 100))
+            top = int(line_coords[1][1]) - text_height / 2
             surface.blit(text, (left, top))
 
     top_left = (

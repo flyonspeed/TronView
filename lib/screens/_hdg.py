@@ -23,7 +23,6 @@ def hdg_init(self, hsi_size, gnd_trk_tick_size, rose_color, label_color):
     self.hdg1 = pygame.Surface((640, 80))
     self.hdg1.fill((0, 0, 0))
 
-
     ## Setup Labels
     self.N = self.myfont.render('360', False, (self.label_color))
     self.N_rect = self.N.get_rect()
@@ -98,12 +97,8 @@ def hdg_init(self, hsi_size, gnd_trk_tick_size, rose_color, label_color):
     self.R35 = self.myfont.render('350', False, (self.label_color))
     self.R35_rect = self.R35.get_rect()
 
-
 def roint(num):
     return int(round(num))
-
-
-
 
 def hdg_main(self, hdg_hdg, gnd_trk, turn_rate):    
     hdg_hdg = hdg_hdg
@@ -121,14 +116,14 @@ def hdg_main(self, hdg_hdg, gnd_trk, turn_rate):
         x1 = roint(hdg_ticks * 120)
         y1 = roint(60)
 
-        pygame.draw.line(self.hdg, (0,255,0),[x0-4440-d,y0],[x1-4440-d,y1],3)
+        pygame.draw.line(self.hdg, (0,0,0),[x0-4440-d,y0],[x1-4440-d,y1],3)
 
     for hdg_lticks in range (88):
         x3 = roint(hdg_lticks * 60)
         y3 = roint(45)
         x4 = roint(hdg_lticks * 60)
         y4 = roint(60)
-        pygame.draw.line(self.hdg, (0,255,0),[x3-4440-d,y3],[x4-4440-d,y4],3)
+        pygame.draw.line(self.hdg, (0,0,0),[x3-4440-d,y3],[x4-4440-d,y4],3)
         
     for hdg_tick_label in range (361):
         x2 = roint(hdg_tick_label)

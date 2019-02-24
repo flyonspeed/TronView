@@ -30,6 +30,8 @@ class F18_HUD(Screen):
         print("ahrs_line_deg = %d"%(self.ahrs_line_deg))
         self.MainColor = (0, 255, 0)  # main color of hud graphics
         self.pxy_div = 30 # Y axis number of pixels per degree divisor
+        self.readings = [] #Setup moving averages to smooth a bit
+        self.max_samples =20
 
         # called once for setuping up the screen
 
@@ -77,6 +79,8 @@ class F18_HUD(Screen):
 
     # called every redraw for the screen
     def draw(self, aircraft, FPS):
+        def mean(nums):
+            return float(sum(nums)) / max(len(nums), 1)
         # draw horz lines
         hud_graphics.hud_draw_horz_lines(
             self.pygamescreen,
@@ -342,12 +346,30 @@ class F18_HUD(Screen):
                 1,
             )
         if self.center_circle_mode == 4:
-            pygame.draw.line(self.pygamescreen, self.MainColor,[self.width / 2 + 50 - 10,self.heightCenter + 20],[self.width / 2 + 50, self.heightCenter],3)
-            pygame.draw.line(self.pygamescreen, self.MainColor,[self.width / 2 + 50 - 10,self.heightCenter + 20],[self.width / 2 + 50 -20, self.heightCenter],3)
-            pygame.draw.line(self.pygamescreen, self.MainColor,[self.width / 2 + 50 - 35,self.heightCenter],[self.width / 2 + 50 - 20, self.heightCenter],3)
-            pygame.draw.line(self.pygamescreen, self.MainColor,[self.width / 2 + 50 + 10,self.heightCenter + 20],[self.width / 2 + 50,self.heightCenter],3)
-            pygame.draw.line(self.pygamescreen, self.MainColor,[self.width / 2 + 50 + 10,self.heightCenter + 20],[self.width / 2 + 50 + 20,self.heightCenter],3)
-            pygame.draw.line(self.pygamescreen, self.MainColor,[self.width / 2 + 50 + 35,self.heightCenter],[self.width / 2 + 50 + 20, self.heightCenter],3)
+            pygame.draw.line(self.pygamescreen,
+                self.MainColor,[self.width / 2 + 50 - 10,self.heightCenter + 20]
+                ,[self.width / 2 + 50, self.heightCenter],3
+            )
+            pygame.draw.line(self.pygamescreen, 
+                self.MainColor,[self.width / 2 + 50 - 10,self.heightCenter + 20],
+                [self.width / 2 + 50 -20, self.heightCenter],3
+            )
+            pygame.draw.line(self.pygamescreen, 
+                self.MainColor,[self.width / 2 + 50 - 35,self.heightCenter],
+                [self.width / 2 + 50 - 20, self.heightCenter],3
+            )
+            pygame.draw.line(self.pygamescreen,
+                self.MainColor,[self.width / 2 + 50 + 10,self.heightCenter + 20],
+                [self.width / 2 + 50,self.heightCenter],3
+            )
+            pygame.draw.line(self.pygamescreen, 
+                self.MainColor,[self.width / 2 + 50 + 10,self.heightCenter + 20],
+                [self.width / 2 + 50 + 20,self.heightCenter],3
+            )
+            pygame.draw.line(self.pygamescreen, self.MainColor,
+                [self.width / 2 + 50 + 35,self.heightCenter],
+                [self.width / 2 + 50 + 20, self.heightCenter],3
+            )
 
         # main HDG processing
         _hdg.hdg_main(
@@ -355,6 +377,48 @@ class F18_HUD(Screen):
             aircraft.mag_head,
             aircraft.gndtrack,
             aircraft.turn_rate
+        )
+
+        #flight path indicator
+        self.readings.append(aircraft.gndtrack)
+        gndtrack = mean(self.readings) #Moving average to smooth a bit
+        if len(self.readings) == self.max_samples:
+            self.readings.pop(0)
+        fpv_x = (((aircraft.mag_head/360) - (gndtrack/360))  -  (aircraft.turn_rate*5))
+        pygame.draw.circle(
+            self.pygamescreen,
+            (255, 0, 255),
+            ((self.width / 2 + 50) - (int(fpv_x) * 5), 
+            self.heightCenter - (aircraft.vsi / 15)),
+            15,
+            2,
+        )
+        pygame.draw.circle(
+            self.pygamescreen,
+            (255, 0, 255),
+            ((self.width / 2 + 51) - (int(fpv_x) * 5), 
+            self.heightCenter - (aircraft.vsi / 15)),
+            15,
+            2,
+        )
+        pygame.draw.line(
+        self.pygamescreen, (255, 0, 255),
+            [(self.width / 2 + 50) - (int(fpv_x) * 5) - 15, 
+            self.heightCenter - (aircraft.vsi / 15)],
+            [(self.width / 2 + 50) - (int(fpv_x) * 5) - 30, 
+            self.heightCenter - (aircraft.vsi / 15)],2
+        )
+        pygame.draw.line(self.pygamescreen, 
+            (255, 0, 255),[(self.width / 2 + 50) - (int(fpv_x) * 5) + 15,
+            self.heightCenter - (aircraft.vsi / 15)],
+            [(self.width / 2 + 50) - (int(fpv_x) * 5) + 30,
+            self.heightCenter - (aircraft.vsi / 15)],2
+        )
+        pygame.draw.line(self.pygamescreen,
+            (255, 0, 255),[(self.width / 2 + 50) - (int(fpv_x) * 5),
+            self.heightCenter - (aircraft.vsi / 15) - 15],
+            [(self.width / 2 + 50) - (int(fpv_x) * 5),
+            self.heightCenter - (aircraft.vsi / 15) - 30],2
         )
 
         # print Screen.name

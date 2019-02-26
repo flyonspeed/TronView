@@ -97,37 +97,45 @@ class F18_HUD(Screen):
                     - self.roll_point_scaled_rect.center[0],
                     (self.hsi_size / 2) + 120 - self.roll_point_scaled_rect[1]))
 
-        for big_tick in range(1, 6):
-            cos = math.cos(math.radians(360.0 / 12 * big_tick))
-            sin = math.sin(math.radians(360.0 / 12 * big_tick))
+        for big_tick in range(6, 13):
+            cos = math.cos(math.radians(360.0 / 36 * big_tick))
+            sin = math.sin(math.radians(360.0 / 36 * big_tick))
             x0 = roint(self.hsi_size / 2 + self.hsi_size / 15 * cos * 6)
             y0 = roint(self.hsi_size / 2 + self.hsi_size / 15 * sin * 6)
             x1 = roint(self.hsi_size / 2 + self.hsi_size / 2.1 * cos)
             y1 = roint(self.hsi_size / 2 + self.hsi_size / 2.1 * sin)
             pygame.draw.line(self.roll_tick, (255, 255, 255), [x0, y0], [x1, y1], 4)
-        for big_tick in range(6, 12):
-            cos = math.cos(math.radians(360.0 / 36 * big_tick))
-            sin = math.sin(math.radians(360.0 / 36 * big_tick))
+        for big_tick in range(12, 25):
+            cos = math.cos(math.radians(360.0 / 72 * big_tick))
+            sin = math.sin(math.radians(360.0 / 72 * big_tick))
+            x0 = roint(self.hsi_size / 2 + self.hsi_size / 15 * cos * 6)
+            y0 = roint(self.hsi_size / 2 + self.hsi_size / 15 * sin * 6)
+            x1 = roint(self.hsi_size / 2 + self.hsi_size / 2.3 * cos)
+            y1 = roint(self.hsi_size / 2 + self.hsi_size / 2.3 * sin)
+            pygame.draw.line(self.roll_tick, (255, 255, 255), [x0, y0], [x1, y1], 4)
+        for big_tick in range(1, 4):
+            cos = math.cos(math.radians(360.0 / 8 * big_tick))
+            sin = math.sin(math.radians(360.0 / 8 * big_tick))
             x0 = roint(self.hsi_size / 2 + self.hsi_size / 15 * cos * 6)
             y0 = roint(self.hsi_size / 2 + self.hsi_size / 15 * sin * 6)
             x1 = roint(self.hsi_size / 2 + self.hsi_size / 2.3 * cos)
             y1 = roint(self.hsi_size / 2 + self.hsi_size / 2.3 * sin)
             pygame.draw.line(self.roll_tick, (255, 255, 255), [x0, y0], [x1, y1], 4)
         for big_tick in range(3, 4):
-            cos = math.cos(math.radians(360.0 / 24 * big_tick))
-            sin = math.sin(math.radians(360.0 / 24 * big_tick))
+            cos = math.cos(math.radians(360.0 / 36 * big_tick))
+            sin = math.sin(math.radians(360.0 / 36 * big_tick))
             x0 = roint(self.hsi_size / 2 + self.hsi_size / 15 * cos * 6)
             y0 = roint(self.hsi_size / 2 + self.hsi_size / 15 * sin * 6)
-            x1 = roint(self.hsi_size / 2 + self.hsi_size / 2.3 * cos)
-            y1 = roint(self.hsi_size / 2 + self.hsi_size / 2.3 * sin)
+            x1 = roint(self.hsi_size / 2 + self.hsi_size / 2.1 * cos)
+            y1 = roint(self.hsi_size / 2 + self.hsi_size / 2.1 * sin)
             pygame.draw.line(self.roll_tick, (255, 255, 255), [x0, y0], [x1, y1], 4)
-        for big_tick in range(9, 10):
-            cos = math.cos(math.radians(360.0 / 24 * big_tick))
-            sin = math.sin(math.radians(360.0 / 24 * big_tick))
+        for big_tick in range(15, 16):
+            cos = math.cos(math.radians(360.0 / 36 * big_tick))
+            sin = math.sin(math.radians(360.0 / 36 * big_tick))
             x0 = roint(self.hsi_size / 2 + self.hsi_size / 15 * cos * 6)
             y0 = roint(self.hsi_size / 2 + self.hsi_size / 15 * sin * 6)
-            x1 = roint(self.hsi_size / 2 + self.hsi_size / 2.3 * cos)
-            y1 = roint(self.hsi_size / 2 + self.hsi_size / 2.3 * sin)
+            x1 = roint(self.hsi_size / 2 + self.hsi_size / 2.1 * cos)
+            y1 = roint(self.hsi_size / 2 + self.hsi_size / 2.1 * sin)
             pygame.draw.line(self.roll_tick, (255, 255, 255), [x0, y0], [x1, y1], 4)
 
     # called every redraw for the screen
@@ -470,8 +478,6 @@ class F18_HUD(Screen):
                                 (self.width / 2 - roll_point_rect.center[0] + 50,
                                 self.height / 2 - roll_point_rect.center[1]))
 
-
-
         #flight path indicator
         self.readings.append(aircraft.gndtrack)
         gndtrack = mean(self.readings) #Moving average to smooth a bit
@@ -481,7 +487,7 @@ class F18_HUD(Screen):
         pygame.draw.circle(
             self.pygamescreen,
             (255, 0, 255),
-            ((self.width / 2 + 50) - (int(fpv_x) * 5), 
+            ((self.width / 2 + 50) - (int(fpv_x) * 5),
             self.heightCenter - (aircraft.vsi / 15)),
             15,
             2,
@@ -489,7 +495,7 @@ class F18_HUD(Screen):
         pygame.draw.circle(
             self.pygamescreen,
             (255, 0, 255),
-            ((self.width / 2 + 51) - (int(fpv_x) * 5), 
+            ((self.width / 2 + 51) - (int(fpv_x) * 5),
             self.heightCenter - (aircraft.vsi / 15)),
             15,
             2,
@@ -520,7 +526,6 @@ class F18_HUD(Screen):
     # called before screen draw.  To clear the screen to your favorite color.
     def clearScreen(self):
         self.ahrs_bg.fill((0, 0, 0))  # clear screen
-
 
         # handle key events
     def processEvent(self, event):

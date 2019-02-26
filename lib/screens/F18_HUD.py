@@ -32,6 +32,8 @@ class F18_HUD(Screen):
         self.pxy_div = 30 # Y axis number of pixels per degree divisor
         self.readings = [] #Setup moving averages to smooth a bit
         self.max_samples =20
+        self.hsi_size = 360
+        self.roll_point_size = 20
 
         # called once for setuping up the screen
 
@@ -43,6 +45,9 @@ class F18_HUD(Screen):
         print(self.width)
         print(self.height)
 
+        def roint(num):
+            return int(round(num))
+
         self.ahrs_bg = pygame.Surface((self.width * 2, self.height * 2))
         self.ahrs_bg_width = self.ahrs_bg.get_width()
         self.ahrs_bg_height = self.ahrs_bg.get_height()
@@ -50,8 +55,15 @@ class F18_HUD(Screen):
 
         #images
         self.arrow = pygame.image.load("lib/screens/_images/arrow_g.png").convert()
-        self.arrow.set_colorkey((255,255,255))
+        self.arrow.set_colorkey((255, 255, 255))
         self.arrow_scaled = pygame.transform.scale(self.arrow, (50, 50))
+        self.roll_point = pygame.image.load("lib/screens/_images/tick_w.png").convert()
+        self.roll_point.set_colorkey((0, 0, 0))
+        self.roll_point_scaled = pygame.transform.scale(self.roll_point,
+                                                        (self.roll_point_size,
+                                                        self.roll_point_size))
+        self.roll_point_scaled_rect = self.roll_point_scaled.get_rect()
+
 
         # fonts
         self.font = pygame.font.SysFont(
@@ -76,6 +88,47 @@ class F18_HUD(Screen):
             (0, 255, 0), # hdg rose color
             (255, 255, 0) #hdg label color
         )
+
+        # set up the roll indicator
+        self.roll_tick = pygame.Surface((self.hsi_size, self.hsi_size), pygame.SRCALPHA)
+        self.roll_point = pygame.Surface((self.hsi_size, self.hsi_size), pygame.SRCALPHA)
+        self.roll_point.blit(self.roll_point_scaled,
+                    ((self.hsi_size / 2)
+                    - self.roll_point_scaled_rect.center[0],
+                    (self.hsi_size / 2) + 120 - self.roll_point_scaled_rect[1]))
+
+        for big_tick in range(1, 6):
+            cos = math.cos(math.radians(360.0 / 12 * big_tick))
+            sin = math.sin(math.radians(360.0 / 12 * big_tick))
+            x0 = roint(self.hsi_size / 2 + self.hsi_size / 15 * cos * 6)
+            y0 = roint(self.hsi_size / 2 + self.hsi_size / 15 * sin * 6)
+            x1 = roint(self.hsi_size / 2 + self.hsi_size / 2.1 * cos)
+            y1 = roint(self.hsi_size / 2 + self.hsi_size / 2.1 * sin)
+            pygame.draw.line(self.roll_tick, (255, 255, 255), [x0, y0], [x1, y1], 4)
+        for big_tick in range(6, 12):
+            cos = math.cos(math.radians(360.0 / 36 * big_tick))
+            sin = math.sin(math.radians(360.0 / 36 * big_tick))
+            x0 = roint(self.hsi_size / 2 + self.hsi_size / 15 * cos * 6)
+            y0 = roint(self.hsi_size / 2 + self.hsi_size / 15 * sin * 6)
+            x1 = roint(self.hsi_size / 2 + self.hsi_size / 2.3 * cos)
+            y1 = roint(self.hsi_size / 2 + self.hsi_size / 2.3 * sin)
+            pygame.draw.line(self.roll_tick, (255, 255, 255), [x0, y0], [x1, y1], 4)
+        for big_tick in range(3, 4):
+            cos = math.cos(math.radians(360.0 / 24 * big_tick))
+            sin = math.sin(math.radians(360.0 / 24 * big_tick))
+            x0 = roint(self.hsi_size / 2 + self.hsi_size / 15 * cos * 6)
+            y0 = roint(self.hsi_size / 2 + self.hsi_size / 15 * sin * 6)
+            x1 = roint(self.hsi_size / 2 + self.hsi_size / 2.3 * cos)
+            y1 = roint(self.hsi_size / 2 + self.hsi_size / 2.3 * sin)
+            pygame.draw.line(self.roll_tick, (255, 255, 255), [x0, y0], [x1, y1], 4)
+        for big_tick in range(9, 10):
+            cos = math.cos(math.radians(360.0 / 24 * big_tick))
+            sin = math.sin(math.radians(360.0 / 24 * big_tick))
+            x0 = roint(self.hsi_size / 2 + self.hsi_size / 15 * cos * 6)
+            y0 = roint(self.hsi_size / 2 + self.hsi_size / 15 * sin * 6)
+            x1 = roint(self.hsi_size / 2 + self.hsi_size / 2.3 * cos)
+            y1 = roint(self.hsi_size / 2 + self.hsi_size / 2.3 * sin)
+            pygame.draw.line(self.roll_tick, (255, 255, 255), [x0, y0], [x1, y1], 4)
 
     # called every redraw for the screen
     def draw(self, aircraft, FPS):
@@ -273,6 +326,34 @@ class F18_HUD(Screen):
                 )
                 self.pygamescreen.blit(label, (20, (self.heightCenter) + 120))
 
+            #Slip/Skid Indicator
+            if aircraft.slip_skid != None:
+                pygame.draw.circle(
+                    self.pygamescreen,
+                    (255, 255, 255),
+                    ((self.width/2 + 50) - int(aircraft.slip_skid * 150), self.heightCenter + 190 ),
+                    10,
+                    0,
+                )
+            pygame.draw.line(self.pygamescreen, (255, 255, 255),
+            ( self.width/2 + 63, self.heightCenter + 179),
+            ( self.width/2 + 63, self.heightCenter + 201), 3)
+            pygame.draw.line(self.pygamescreen, (255, 255, 255),
+            ( self.width/2 + 37, self.heightCenter + 179),
+            ( self.width/2 + 37, self.heightCenter + 201), 3)
+            pygame.draw.line(self.pygamescreen, (0, 0, 0),
+            ( self.width/2 + 61, self.heightCenter + 179),
+            ( self.width/2 + 61, self.heightCenter + 201), 1)
+            pygame.draw.line(self.pygamescreen, (0, 0, 0),
+            ( self.width/2 + 65, self.heightCenter + 179),
+            ( self.width/2 + 65, self.heightCenter + 201), 1)
+            pygame.draw.line(self.pygamescreen, (0, 0, 0),
+            ( self.width/2 + 39, self.heightCenter + 179),
+            ( self.width/2 + 39, self.heightCenter + 201), 1)
+            pygame.draw.line(self.pygamescreen, (0, 0, 0),
+            ( self.width/2 + 35, self.heightCenter + 179),
+            ( self.width/2 + 35, self.heightCenter + 201), 1)
+
             #AOA Indicator
             pygame.draw.circle(
                 self.pygamescreen,
@@ -347,28 +428,28 @@ class F18_HUD(Screen):
             )
         if self.center_circle_mode == 4:
             pygame.draw.line(self.pygamescreen,
-                self.MainColor,[self.width / 2 + 50 - 10,self.heightCenter + 20]
+                self.MainColor,[self.width / 2 + 40,self.heightCenter + 20]
                 ,[self.width / 2 + 50, self.heightCenter],3
             )
             pygame.draw.line(self.pygamescreen, 
-                self.MainColor,[self.width / 2 + 50 - 10,self.heightCenter + 20],
-                [self.width / 2 + 50 -20, self.heightCenter],3
+                self.MainColor,[self.width / 2 + 40,self.heightCenter + 20],
+                [self.width / 2 + 30, self.heightCenter],3
             )
             pygame.draw.line(self.pygamescreen, 
-                self.MainColor,[self.width / 2 + 50 - 35,self.heightCenter],
-                [self.width / 2 + 50 - 20, self.heightCenter],3
+                self.MainColor,[self.width / 2 + 15,self.heightCenter],
+                [self.width / 2 + 30, self.heightCenter],3
             )
             pygame.draw.line(self.pygamescreen,
-                self.MainColor,[self.width / 2 + 50 + 10,self.heightCenter + 20],
+                self.MainColor,[self.width / 2 + 60,self.heightCenter + 20],
                 [self.width / 2 + 50,self.heightCenter],3
             )
             pygame.draw.line(self.pygamescreen, 
-                self.MainColor,[self.width / 2 + 50 + 10,self.heightCenter + 20],
-                [self.width / 2 + 50 + 20,self.heightCenter],3
+                self.MainColor,[self.width / 2 + 60,self.heightCenter + 20],
+                [self.width / 2 + 70,self.heightCenter],3
             )
             pygame.draw.line(self.pygamescreen, self.MainColor,
-                [self.width / 2 + 50 + 35,self.heightCenter],
-                [self.width / 2 + 50 + 20, self.heightCenter],3
+                [self.width / 2 + 85,self.heightCenter],
+                [self.width / 2 + 70, self.heightCenter],3
             )
 
         # main HDG processing
@@ -378,6 +459,18 @@ class F18_HUD(Screen):
             aircraft.gndtrack,
             aircraft.turn_rate
         )
+
+        # draw roll indicator
+        self.pygamescreen.blit(self.roll_tick, (self.width / 2 - 130,
+                                self.height / 2 - 180))
+
+        roll_point_rotated = pygame.transform.rotate(self.roll_point, aircraft.roll)
+        roll_point_rect = roll_point_rotated.get_rect()   
+        self.pygamescreen.blit(roll_point_rotated,
+                                (self.width / 2 - roll_point_rect.center[0] + 50,
+                                self.height / 2 - roll_point_rect.center[1]))
+
+
 
         #flight path indicator
         self.readings.append(aircraft.gndtrack)

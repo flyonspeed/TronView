@@ -50,16 +50,16 @@ def hud_generateHudReferenceLineArray(
         if deg_ref == 0:
             length = screen_width * 0.9
         elif (deg_ref % 10) == 0:
-            length = screen_width * 0.4
+            length = screen_width * 0.49
         elif (deg_ref % 5) == 0:
-            length = screen_width * 0.2
+            length = screen_width * 0.25
     else:
         if deg_ref == 0:
-            length = screen_width * 0.6
+            length = screen_width * 0.5
         elif (deg_ref % 10) == 0:
-            length = screen_width * 0.2
+            length = screen_width * 0.25
         elif (deg_ref % 5) == 0:
-            length = screen_width * 0.1
+            length = screen_width * 0.11
 
     ahrs_center_x, ahrs_center_y = ahrs_center
     px_per_deg_y = screen_height / pxy_div

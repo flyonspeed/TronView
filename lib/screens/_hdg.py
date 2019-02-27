@@ -13,15 +13,12 @@ def hdg_init(self, hsi_size, gnd_trk_tick_size, rose_color, label_color):
     )  # hdg
 
     # hdg Setup
-    #self.hsi_size = hsi_size
-    #self.gnd_trk_tick_size = gnd_trk_tick_size
-    #self.color = rose_color
     self.label_color = label_color
-
     self.hdg = pygame.Surface((360, 80))
     self.hdg.fill((0, 0, 0))
     self.hdg1 = pygame.Surface((640, 80))
     self.hdg1.fill((0, 0, 0))
+    self.trk = pygame.Surface((640, 80), pygame.SRCALPHA)
 
     ## Setup Labels
     self.N = self.myfont.render('360', False, (self.label_color))
@@ -97,112 +94,132 @@ def hdg_init(self, hsi_size, gnd_trk_tick_size, rose_color, label_color):
     self.R35 = self.myfont.render('350', False, (self.label_color))
     self.R35_rect = self.R35.get_rect()
 
+    global old_hdg_hdg
+    old_hdg_hdg = None
+    global old_gnd_trk
+    old_gnd_trk = None
+
 def roint(num):
     return int(round(num))
 
 def hdg_main(self, hdg_hdg, gnd_trk, turn_rate):    
     hdg_hdg = hdg_hdg
-    #gnd_trk = roint(hsi_hdg - gnd_trk - 90 ) % 360
+    gnd_trk = roint(gnd_trk)
 
-  ## Draw Labels
-    q = (-hdg_hdg)%360
-    d = (-q + 5) * 12
-    p = q * 12
+    global old_hdg_hdg
+    global old_gnd_trk
+    if old_hdg_hdg != hdg_hdg or old_gnd_trk != gnd_trk: # Don't waste time recalculating/redrawing until the variable changes
 
-    self.hdg.fill((pygame.SRCALPHA))
-    for hdg_ticks in range(44):
-        x0 = roint(hdg_ticks * 120)
-        y0 = roint(30)
-        x1 = roint(hdg_ticks * 120)
-        y1 = roint(60)
+        ## Draw Labels
+        q = (-hdg_hdg)%360
+        d = (-q + 5) * 12
+        p = q * 12
+        t=p-(((-gnd_trk)%360)*12)%4320
 
-        pygame.draw.line(self.hdg, (0,255,0),[x0-4440-d,y0],[x1-4440-d,y1],3)
 
-    for hdg_lticks in range (88):
-        x3 = roint(hdg_lticks * 60)
-        y3 = roint(45)
-        x4 = roint(hdg_lticks * 60)
-        y4 = roint(60)
-        pygame.draw.line(self.hdg, (0,255,0),[x3-4440-d,y3],[x4-4440-d,y4],3)
-        
-    for hdg_tick_label in range (361):
-        x2 = roint(hdg_tick_label)
-        y2 = roint(30)
-        if hdg_tick_label == (p+180)%4320:
-            self.hdg.blit(self.N,(x2 - self.N_rect.center[0],y2 - self.N_rect.center[1] - 12))
-        if hdg_tick_label == (p+300)%4320:            
-            self.hdg.blit(self.R1,(x2 - self.R1_rect.center[0],y2 - self.R1_rect.center[1] - 12))
-        if hdg_tick_label == (p+420)%4320:
-            self.hdg.blit(self.R2,(x2 - self.R2_rect.center[0],y2 - self.R2_rect.center[1] - 12))
-        if hdg_tick_label == (p+540)%4320:
-            self.hdg.blit(self.R3,(x2 - self.R3_rect.center[0],y2 - self.R3_rect.center[1] - 12))
-        if hdg_tick_label == (p+660)%4320:
-            self.hdg.blit(self.R4,(x2 - self.R4_rect.center[0],y2 - self.R4_rect.center[1] - 12))
-        if hdg_tick_label == (p+780)%4320:
-            self.hdg.blit(self.R5,(x2 - self.R5_rect.center[0],y2 - self.R5_rect.center[1] - 12))
-        if hdg_tick_label == (p+900)%4320:
-            self.hdg.blit(self.R6,(x2 - self.R6_rect.center[0],y2 - self.R6_rect.center[1] - 12))
-        if hdg_tick_label == (p+1020)%4320:
-            self.hdg.blit(self.R7,(x2 - self.R7_rect.center[0],y2 - self.R7_rect.center[1] - 12))
-        if hdg_tick_label == (p+1140)%4320:
-            self.hdg.blit(self.R8,(x2 - self.R8_rect.center[0],y2 - self.R8_rect.center[1] - 12))
-        if hdg_tick_label == (p+1260)%4320:
-            self.hdg.blit(self.E,(x2 - self.E_rect.center[0],y2 - self.E_rect.center[1] - 12))
-        if hdg_tick_label == (p+1380)%4320:
-            self.hdg.blit(self.R10,(x2 - self.R10_rect.center[0],y2 - self.R10_rect.center[1] - 12))
-        if hdg_tick_label == (p+1500)%4320:
-            self.hdg.blit(self.R11,(x2 - self.R11_rect.center[0],y2 - self.R11_rect.center[1] - 12))
-        if hdg_tick_label == (p+1620)%4320:
-            self.hdg.blit(self.R12,(x2 - self.R12_rect.center[0],y2 - self.R12_rect.center[1] - 12))
-        if hdg_tick_label == (p+1740)%4320:
-            self.hdg.blit(self.R13,(x2 - self.R13_rect.center[0],y2 - self.R13_rect.center[1] - 12))
-        if hdg_tick_label == (p+1860)%4320:
-            self.hdg.blit(self.R14,(x2 - self.R14_rect.center[0],y2 - self.R14_rect.center[1] - 12))
-        if hdg_tick_label == (p+1980)%4320:
-            self.hdg.blit(self.R15,(x2 - self.R15_rect.center[0],y2 - self.R15_rect.center[1] - 12))
-        if hdg_tick_label == (p+2100)%4320:
-            self.hdg.blit(self.R16,(x2 - self.R16_rect.center[0],y2 - self.R16_rect.center[1] - 12))
-        if hdg_tick_label == (p+2220)%4320:
-            self.hdg.blit(self.R17,(x2 - self.R17_rect.center[0],y2 - self.R17_rect.center[1] - 12))
-        if hdg_tick_label == (p+2340)%4320:
-            self.hdg.blit(self.S,(x2 - self.S_rect.center[0],y2 - self.S_rect.center[1] - 12))
-        if hdg_tick_label == (p+2460)%4320:
-            self.hdg.blit(self.R19,(x2 - self.R19_rect.center[0],y2 - self.R19_rect.center[1] - 12))
-        if hdg_tick_label == (p+2580)%4320:
-            self.hdg.blit(self.R20,(x2 - self.R20_rect.center[0],y2 - self.R20_rect.center[1] - 12))
-        if hdg_tick_label == (p+2700)%4320:
-            self.hdg.blit(self.R21,(x2 - self.R21_rect.center[0],y2 - self.R21_rect.center[1] - 12))
-        if hdg_tick_label == (p+2820)%4320:
-            self.hdg.blit(self.R22,(x2 - self.R22_rect.center[0],y2 - self.R22_rect.center[1] - 12))
-        if hdg_tick_label == (p+2940)%4320:
-            self.hdg.blit(self.R23,(x2 - self.R23_rect.center[0],y2 - self.R23_rect.center[1] - 12))
-        if hdg_tick_label == (p+3060)%4320:
-            self.hdg.blit(self.R24,(x2 - self.R24_rect.center[0],y2 - self.R24_rect.center[1] - 12))
-        if hdg_tick_label == (p+3180)%4320:
-            self.hdg.blit(self.R25,(x2 - self.R25_rect.center[0],y2 - self.R25_rect.center[1] - 12))
-        if hdg_tick_label == (p+3300)%4320:
-            self.hdg.blit(self.R26,(x2 - self.R26_rect.center[0],y2 - self.R26_rect.center[1] - 12))
-        if hdg_tick_label == (p+3420)%4320:
-            self.hdg.blit(self.W,(x2 - self.W_rect.center[0],y2 - self.W_rect.center[1] - 12))
-        if hdg_tick_label == (p+3540)%4320:
-            self.hdg.blit(self.R28,(x2 - self.R28_rect.center[0],y2 - self.R28_rect.center[1] - 12))
-        if hdg_tick_label == (p+3660)%4320:
-            self.hdg.blit(self.R29,(x2 - self.R29_rect.center[0],y2 - self.R29_rect.center[1] - 12))
-        if hdg_tick_label == (p+3780)%4320:
-            self.hdg.blit(self.R30,(x2 - self.R30_rect.center[0],y2 - self.R30_rect.center[1] - 12))
-        if hdg_tick_label == (p+3900)%4320:
-            self.hdg.blit(self.R31,(x2 - self.R31_rect.center[0],y2 - self.R31_rect.center[1] - 12))
-        if hdg_tick_label == (p+4020)%4320:
-            self.hdg.blit(self.R32,(x2 - self.R32_rect.center[0],y2 - self.R32_rect.center[1] - 12))
-        if hdg_tick_label == (p+4140)%4320:
-            self.hdg.blit(self.R33,(x2 - self.R33_rect.center[0],y2 - self.R33_rect.center[1] - 12))
-        if hdg_tick_label == (p+4260)%4320:
-            self.hdg.blit(self.R34,(x2 - self.R34_rect.center[0],y2 - self.R34_rect.center[1] - 12))
-        if hdg_tick_label == (p+4380)%4320:
-            self.hdg.blit(self.R35,(x2 - self.R35_rect.center[0],y2 - self.R35_rect.center[1] - 12))
+        self.hdg.fill((pygame.SRCALPHA))
+        self.trk.fill((pygame.SRCALPHA))
+        for hdg_ticks in range(44):
+            x0 = roint(hdg_ticks * 120)
+            y0 = roint(30)
+            x1 = roint(hdg_ticks * 120)
+            y1 = roint(60)
 
-    pygame.draw.line(self.hdg, (0,255,0),[170,80],[180,60],3)
-    pygame.draw.line(self.hdg, (0,255,0),[180,60],[190,80],3)
-    
+            pygame.draw.line(self.hdg, (0,255,0),[x0-4440-d,y0],[x1-4440-d,y1],3)
+
+        for hdg_lticks in range (88):
+            x3 = roint(hdg_lticks * 60)
+            y3 = roint(45)
+            x4 = roint(hdg_lticks * 60)
+            y4 = roint(60)
+            pygame.draw.line(self.hdg, (0,255,0),[x3-4440-d,y3],[x4-4440-d,y4],3)
+            
+        for hdg_tick_label in range (641):
+            x2 = roint(hdg_tick_label)
+            y2 = roint(30)
+            if hdg_tick_label == (t+320)%4320:
+                pygame.draw.line(self.trk, (255,0,255),[x2,60],[x2,80],3)
+                pygame.draw.line(self.trk, (255,0,255),[x2-10,60],[x2+10,60],3)
+            if hdg_tick_label == (p+180)%4320:
+                self.hdg.blit(self.N,(x2 - self.N_rect.center[0],y2 - self.N_rect.center[1] - 12))
+            if hdg_tick_label == (p+300)%4320:            
+                self.hdg.blit(self.R1,(x2 - self.R1_rect.center[0],y2 - self.R1_rect.center[1] - 12))
+            if hdg_tick_label == (p+420)%4320:
+                self.hdg.blit(self.R2,(x2 - self.R2_rect.center[0],y2 - self.R2_rect.center[1] - 12))
+            if hdg_tick_label == (p+540)%4320:
+                self.hdg.blit(self.R3,(x2 - self.R3_rect.center[0],y2 - self.R3_rect.center[1] - 12))
+            if hdg_tick_label == (p+660)%4320:
+                self.hdg.blit(self.R4,(x2 - self.R4_rect.center[0],y2 - self.R4_rect.center[1] - 12))
+            if hdg_tick_label == (p+780)%4320:
+                self.hdg.blit(self.R5,(x2 - self.R5_rect.center[0],y2 - self.R5_rect.center[1] - 12))
+            if hdg_tick_label == (p+900)%4320:
+                self.hdg.blit(self.R6,(x2 - self.R6_rect.center[0],y2 - self.R6_rect.center[1] - 12))
+            if hdg_tick_label == (p+1020)%4320:
+                self.hdg.blit(self.R7,(x2 - self.R7_rect.center[0],y2 - self.R7_rect.center[1] - 12))
+            if hdg_tick_label == (p+1140)%4320:
+                self.hdg.blit(self.R8,(x2 - self.R8_rect.center[0],y2 - self.R8_rect.center[1] - 12))
+            if hdg_tick_label == (p+1260)%4320:
+                self.hdg.blit(self.E,(x2 - self.E_rect.center[0],y2 - self.E_rect.center[1] - 12))
+            if hdg_tick_label == (p+1380)%4320:
+                self.hdg.blit(self.R10,(x2 - self.R10_rect.center[0],y2 - self.R10_rect.center[1] - 12))
+            if hdg_tick_label == (p+1500)%4320:
+                self.hdg.blit(self.R11,(x2 - self.R11_rect.center[0],y2 - self.R11_rect.center[1] - 12))
+            if hdg_tick_label == (p+1620)%4320:
+                self.hdg.blit(self.R12,(x2 - self.R12_rect.center[0],y2 - self.R12_rect.center[1] - 12))
+            if hdg_tick_label == (p+1740)%4320:
+                self.hdg.blit(self.R13,(x2 - self.R13_rect.center[0],y2 - self.R13_rect.center[1] - 12))
+            if hdg_tick_label == (p+1860)%4320:
+                self.hdg.blit(self.R14,(x2 - self.R14_rect.center[0],y2 - self.R14_rect.center[1] - 12))
+            if hdg_tick_label == (p+1980)%4320:
+                self.hdg.blit(self.R15,(x2 - self.R15_rect.center[0],y2 - self.R15_rect.center[1] - 12))
+            if hdg_tick_label == (p+2100)%4320:
+                self.hdg.blit(self.R16,(x2 - self.R16_rect.center[0],y2 - self.R16_rect.center[1] - 12))
+            if hdg_tick_label == (p+2220)%4320:
+                self.hdg.blit(self.R17,(x2 - self.R17_rect.center[0],y2 - self.R17_rect.center[1] - 12))
+            if hdg_tick_label == (p+2340)%4320:
+                self.hdg.blit(self.S,(x2 - self.S_rect.center[0],y2 - self.S_rect.center[1] - 12))
+            if hdg_tick_label == (p+2460)%4320:
+                self.hdg.blit(self.R19,(x2 - self.R19_rect.center[0],y2 - self.R19_rect.center[1] - 12))
+            if hdg_tick_label == (p+2580)%4320:
+                self.hdg.blit(self.R20,(x2 - self.R20_rect.center[0],y2 - self.R20_rect.center[1] - 12))
+            if hdg_tick_label == (p+2700)%4320:
+                self.hdg.blit(self.R21,(x2 - self.R21_rect.center[0],y2 - self.R21_rect.center[1] - 12))
+            if hdg_tick_label == (p+2820)%4320:
+                self.hdg.blit(self.R22,(x2 - self.R22_rect.center[0],y2 - self.R22_rect.center[1] - 12))
+            if hdg_tick_label == (p+2940)%4320:
+                self.hdg.blit(self.R23,(x2 - self.R23_rect.center[0],y2 - self.R23_rect.center[1] - 12))
+            if hdg_tick_label == (p+3060)%4320:
+                self.hdg.blit(self.R24,(x2 - self.R24_rect.center[0],y2 - self.R24_rect.center[1] - 12))
+            if hdg_tick_label == (p+3180)%4320:
+                self.hdg.blit(self.R25,(x2 - self.R25_rect.center[0],y2 - self.R25_rect.center[1] - 12))
+            if hdg_tick_label == (p+3300)%4320:
+                self.hdg.blit(self.R26,(x2 - self.R26_rect.center[0],y2 - self.R26_rect.center[1] - 12))
+            if hdg_tick_label == (p+3420)%4320:
+                self.hdg.blit(self.W,(x2 - self.W_rect.center[0],y2 - self.W_rect.center[1] - 12))
+            if hdg_tick_label == (p+3540)%4320:
+                self.hdg.blit(self.R28,(x2 - self.R28_rect.center[0],y2 - self.R28_rect.center[1] - 12))
+            if hdg_tick_label == (p+3660)%4320:
+                self.hdg.blit(self.R29,(x2 - self.R29_rect.center[0],y2 - self.R29_rect.center[1] - 12))
+            if hdg_tick_label == (p+3780)%4320:
+                self.hdg.blit(self.R30,(x2 - self.R30_rect.center[0],y2 - self.R30_rect.center[1] - 12))
+            if hdg_tick_label == (p+3900)%4320:
+                self.hdg.blit(self.R31,(x2 - self.R31_rect.center[0],y2 - self.R31_rect.center[1] - 12))
+            if hdg_tick_label == (p+4020)%4320:
+                self.hdg.blit(self.R32,(x2 - self.R32_rect.center[0],y2 - self.R32_rect.center[1] - 12))
+            if hdg_tick_label == (p+4140)%4320:
+                self.hdg.blit(self.R33,(x2 - self.R33_rect.center[0],y2 - self.R33_rect.center[1] - 12))
+            if hdg_tick_label == (p+4260)%4320:
+                self.hdg.blit(self.R34,(x2 - self.R34_rect.center[0],y2 - self.R34_rect.center[1] - 12))
+            if hdg_tick_label == (p+4380)%4320:
+                self.hdg.blit(self.R35,(x2 - self.R35_rect.center[0],y2 - self.R35_rect.center[1] - 12))
+
+        pygame.draw.line(self.hdg, (0,255,0),[170,80],[180,60],3)
+        pygame.draw.line(self.hdg, (0,255,0),[180,60],[190,80],3)
+        old_hdg_hdg = hdg_hdg
+        old_gnd_trk = gnd_trk
+
     self.pygamescreen.blit(self.hdg1, (0,0))
     self.pygamescreen.blit(self.hdg, (self.width / 2 - 130,0))
+    self.pygamescreen.blit(self.trk, (self.width / 2 - 270,0))
+
+

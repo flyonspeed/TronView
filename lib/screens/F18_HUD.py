@@ -242,11 +242,11 @@ class F18_HUD(Screen):
                 hud_graphics.hud_draw_box_text(
                     self.pygamescreen,
                     self.fontIndicator,
-                    "    %d" % (aircraft.ias),
+                    "  %d" % (aircraft.ias),
                     (255, 255, 0),
                     100,
                     self.heightCenter-75,
-                    120,
+                    75,
                     35,
                     self.MainColor,
                     1,
@@ -255,11 +255,11 @@ class F18_HUD(Screen):
                 hud_graphics.hud_draw_box_text(
                     self.pygamescreen,
                     self.fontIndicator,
-                    "   %d" % (aircraft.ias),
+                    " %d" % (aircraft.ias),
                     (255, 255, 0),
                     100,
                     self.heightCenter-75,
-                    120,
+                    75,
                     35,
                     self.MainColor,
                     1,
@@ -268,29 +268,82 @@ class F18_HUD(Screen):
                 hud_graphics.hud_draw_box_text(
                     self.pygamescreen,
                     self.fontIndicator,
-                    "  %d" % (aircraft.ias),
+                    "%d" % (aircraft.ias),
                     (255, 255, 0),
                     100,
                     self.heightCenter-75,
-                    120,
+                    75,
                     35,
                     self.MainColor,
                     1,
                 )
 
             # ALT
-            hud_graphics.hud_draw_box_text(
-                self.pygamescreen,
-                self.fontIndicator,
-                "%d" % (aircraft.BALT),
-                (255, 255, 0),
-                self.width - 120,
-                self.heightCenter -75,
-                120,
-                35,
-                self.MainColor,
-                1,
-            )
+            if aircraft.BALT < 10:
+                hud_graphics.hud_draw_box_text(
+                    self.pygamescreen,
+                    self.fontIndicator,
+                    "    %d" % (aircraft.BALT),
+                    (255, 255, 0),
+                    self.width - 120,
+                    self.heightCenter -75,
+                    120,
+                    35,
+                    self.MainColor,
+                    1,
+                )
+            elif aircraft.BALT < 100:
+                hud_graphics.hud_draw_box_text(
+                    self.pygamescreen,
+                    self.fontIndicator,
+                    "   %d" % (aircraft.BALT),
+                    (255, 255, 0),
+                    self.width - 120,
+                    self.heightCenter -75,
+                    120,
+                    35,
+                    self.MainColor,
+                    1,
+                )
+            elif aircraft.BALT < 1000:
+                hud_graphics.hud_draw_box_text(
+                    self.pygamescreen,
+                    self.fontIndicator,
+                    "  %d" % (aircraft.BALT),
+                    (255, 255, 0),
+                    self.width - 120,
+                    self.heightCenter -75,
+                    120,
+                    35,
+                    self.MainColor,
+                    1,
+                )
+            elif aircraft.BALT < 10000:
+                hud_graphics.hud_draw_box_text(
+                    self.pygamescreen,
+                    self.fontIndicator,
+                    " %d" % (aircraft.BALT),
+                    (255, 255, 0),
+                    self.width - 120,
+                    self.heightCenter -75,
+                    120,
+                    35,
+                    self.MainColor,
+                    1,
+                )
+            elif aircraft.BALT < 100000:
+                hud_graphics.hud_draw_box_text(
+                    self.pygamescreen,
+                    self.fontIndicator,
+                    "%d" % (aircraft.BALT),
+                    (255, 255, 0),
+                    self.width - 120,
+                    self.heightCenter -75,
+                    120,
+                    35,
+                    self.MainColor,
+                    1,
+                )
 
             # baro setting
             label = self.myfont.render(

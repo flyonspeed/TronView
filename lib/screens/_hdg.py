@@ -4,13 +4,21 @@
 ## HDG Module by Brian Chesteen. 02/08/2019
 
 from __future__ import print_function
+from .. import hud_graphics
 import pygame
 import math
 
 def hdg_init(self, hsi_size, gnd_trk_tick_size, rose_color, label_color):
     self.myfont = pygame.font.SysFont(
         "Arial", 20, bold = True
-    )  # hdg
+    )
+    self.myfont1 = pygame.font.SysFont(
+        "Arial", 30, bold = True
+    )
+
+    # Setup mask
+    self.mask = pygame.Surface((66, 30))
+    self.mask.fill((0, 0, 0))
 
     # hdg Setup
     self.label_color = label_color
@@ -215,6 +223,52 @@ def hdg_main(self, hdg_hdg, gnd_trk, turn_rate):
 
         pygame.draw.line(self.hdg, (0,255,0),[170,80],[180,60],3)
         pygame.draw.line(self.hdg, (0,255,0),[180,60],[190,80],3)
+        
+        # Mag heading
+        # Draw Mask
+        self.hdg.blit(self.mask, (147, 6))
+
+        if hdg_hdg < 10:
+            hud_graphics.hud_draw_box_text(
+            self.hdg,
+            self.myfont1,
+            "   %d" % (hdg_hdg),
+                (255, 255, 0),
+                147,
+                6,
+                66,
+                30,
+                (0, 255, 0),
+                1,
+            )
+        elif hdg_hdg < 100:
+            hud_graphics.hud_draw_box_text(
+            self.hdg,
+            self.myfont1,
+            "  %d" % (hdg_hdg),
+            (255, 255, 0),
+            147,
+            6,
+            66,
+            30,
+            (0, 255, 0),
+            1,
+            )
+        else:
+            hud_graphics.hud_draw_box_text(
+            self.hdg,
+            self.myfont1,
+            " %d" % (hdg_hdg),
+            (255, 255, 0),
+            147,
+            6,
+            66,
+            30,
+            (0, 255, 0),
+            1,
+            )
+
+
         old_hdg_hdg = hdg_hdg
         old_gnd_trk = gnd_trk
 

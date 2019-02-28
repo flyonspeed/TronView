@@ -53,6 +53,16 @@ class F18_HUD(Screen):
         self.ahrs_bg_height = self.ahrs_bg.get_height()
         self.ahrs_bg_center = (self.ahrs_bg_width / 2 + 160, self.ahrs_bg_height / 2)
 
+        self.mask = pygame.Surface((100, self.height))
+        self.mask.fill((0, 0, 0))
+        self.mask1 = pygame.Surface((122, 80))
+        self.mask1.fill((0, 0, 0))
+        self.mask2 = pygame.Surface((125, 80))
+        self.mask2.fill((0, 0, 0))
+        self.mask3 = pygame.Surface((92, 40))
+        self.mask3.fill((0, 0, 0))
+
+
         #images
         self.arrow = pygame.image.load("lib/screens/_images/arrow_g.png").convert()
         self.arrow.set_colorkey((255, 255, 255))
@@ -137,11 +147,20 @@ class F18_HUD(Screen):
             x1 = roint(self.hsi_size / 2 + self.hsi_size / 2.1 * cos)
             y1 = roint(self.hsi_size / 2 + self.hsi_size / 2.1 * sin)
             pygame.draw.line(self.roll_tick, (255, 255, 255), [x0, y0], [x1, y1], 4)
+        for big_tick in range(1, 2):
+            cos = math.cos(math.radians(360.0 / 4 * big_tick))
+            sin = math.sin(math.radians(360.0 / 4 * big_tick))
+            x0 = roint(self.hsi_size / 2 + self.hsi_size / 15 * cos * 4.5)
+            y0 = roint(self.hsi_size / 2 + self.hsi_size / 15 * sin * 4.5)
+            x1 = roint(self.hsi_size / 2 + self.hsi_size / 2.1 * cos)
+            y1 = roint(self.hsi_size / 2 + self.hsi_size / 2.1 * sin)
+            pygame.draw.line(self.roll_tick, (255, 255, 255), [x0, y0], [x1, y1], 2)
 
     # called every redraw for the screen
     def draw(self, aircraft, FPS):
         def mean(nums):
             return float(sum(nums)) / max(len(nums), 1)
+
         # draw horz lines
         hud_graphics.hud_draw_horz_lines(
             self.pygamescreen,
@@ -157,6 +176,12 @@ class F18_HUD(Screen):
             self.font,
             self.pxy_div,
         )
+
+        # draw mask
+        self.pygamescreen.blit(self.mask, (0, 0))
+        self.pygamescreen.blit(self.mask1, (100, self.heightCenter - 100))
+        self.pygamescreen.blit(self.mask2, (self.width - 122, self.heightCenter - 100))
+        self.pygamescreen.blit(self.mask3, (100, self.heightCenter + 40))
 
         # render debug text
         if self.show_debug:
@@ -217,11 +242,11 @@ class F18_HUD(Screen):
                 hud_graphics.hud_draw_box_text(
                     self.pygamescreen,
                     self.fontIndicator,
-                    "    %d" % (aircraft.ias),
+                    "  %d" % (aircraft.ias),
                     (255, 255, 0),
                     100,
                     self.heightCenter-75,
-                    120,
+                    75,
                     35,
                     self.MainColor,
                     1,
@@ -230,11 +255,11 @@ class F18_HUD(Screen):
                 hud_graphics.hud_draw_box_text(
                     self.pygamescreen,
                     self.fontIndicator,
-                    "   %d" % (aircraft.ias),
+                    " %d" % (aircraft.ias),
                     (255, 255, 0),
                     100,
                     self.heightCenter-75,
-                    120,
+                    75,
                     35,
                     self.MainColor,
                     1,
@@ -243,29 +268,82 @@ class F18_HUD(Screen):
                 hud_graphics.hud_draw_box_text(
                     self.pygamescreen,
                     self.fontIndicator,
-                    "  %d" % (aircraft.ias),
+                    "%d" % (aircraft.ias),
                     (255, 255, 0),
                     100,
                     self.heightCenter-75,
-                    120,
+                    75,
                     35,
                     self.MainColor,
                     1,
                 )
 
             # ALT
-            hud_graphics.hud_draw_box_text(
-                self.pygamescreen,
-                self.fontIndicator,
-                "%d" % (aircraft.BALT),
-                (255, 255, 0),
-                self.width - 120,
-                self.heightCenter -75,
-                120,
-                35,
-                self.MainColor,
-                1,
-            )
+            if aircraft.BALT < 10:
+                hud_graphics.hud_draw_box_text(
+                    self.pygamescreen,
+                    self.fontIndicator,
+                    "    %d" % (aircraft.BALT),
+                    (255, 255, 0),
+                    self.width - 120,
+                    self.heightCenter -75,
+                    120,
+                    35,
+                    self.MainColor,
+                    1,
+                )
+            elif aircraft.BALT < 100:
+                hud_graphics.hud_draw_box_text(
+                    self.pygamescreen,
+                    self.fontIndicator,
+                    "   %d" % (aircraft.BALT),
+                    (255, 255, 0),
+                    self.width - 120,
+                    self.heightCenter -75,
+                    120,
+                    35,
+                    self.MainColor,
+                    1,
+                )
+            elif aircraft.BALT < 1000:
+                hud_graphics.hud_draw_box_text(
+                    self.pygamescreen,
+                    self.fontIndicator,
+                    "  %d" % (aircraft.BALT),
+                    (255, 255, 0),
+                    self.width - 120,
+                    self.heightCenter -75,
+                    120,
+                    35,
+                    self.MainColor,
+                    1,
+                )
+            elif aircraft.BALT < 10000:
+                hud_graphics.hud_draw_box_text(
+                    self.pygamescreen,
+                    self.fontIndicator,
+                    " %d" % (aircraft.BALT),
+                    (255, 255, 0),
+                    self.width - 120,
+                    self.heightCenter -75,
+                    120,
+                    35,
+                    self.MainColor,
+                    1,
+                )
+            elif aircraft.BALT < 100000:
+                hud_graphics.hud_draw_box_text(
+                    self.pygamescreen,
+                    self.fontIndicator,
+                    "%d" % (aircraft.BALT),
+                    (255, 255, 0),
+                    self.width - 120,
+                    self.heightCenter -75,
+                    120,
+                    35,
+                    self.MainColor,
+                    1,
+                )
 
             # baro setting
             label = self.myfont.render(

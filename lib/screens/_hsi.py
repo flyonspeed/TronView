@@ -9,9 +9,7 @@ import math
 
 
 def hsi_init(self, hsi_size, gnd_trk_tick_size, rose_color, label_color):
-    self.myfont1 = pygame.font.SysFont(
-        "Comic Sans MS", 30, bold=True
-    )  # hsi
+    self.myfont1 = pygame.font.SysFont("Comic Sans MS", 30, bold=True)  # hsi
 
     # HSI Setup
     self.hsi_size = hsi_size
@@ -76,16 +74,19 @@ def hsi_init(self, hsi_size, gnd_trk_tick_size, rose_color, label_color):
     # Setup Ground Track Tick
     self.gnd_trk_tick = pygame.image.load("lib/screens/_images/tick_m.png").convert()
     self.gnd_trk_tick.set_colorkey((255, 255, 255))
-    self.gnd_trk_tick_scaled = pygame.transform.scale(self.gnd_trk_tick,
-                                                      (self.gnd_trk_tick_size,
-                                                       self.gnd_trk_tick_size))
+    self.gnd_trk_tick_scaled = pygame.transform.scale(
+        self.gnd_trk_tick, (self.gnd_trk_tick_size, self.gnd_trk_tick_size)
+    )
     self.gnd_trk_tick_scaled_rect = self.gnd_trk_tick_scaled.get_rect()
 
     self.ticks.fill(pygame.SRCALPHA)
-    self.ticks.blit(self.gnd_trk_tick_scaled,
-                    ((self.hsi_size / 2)
-                     - self.gnd_trk_tick_scaled_rect.center[0],
-                     (self.hsi_size / 2) - 130 - self.gnd_trk_tick_scaled_rect[1]))
+    self.ticks.blit(
+        self.gnd_trk_tick_scaled,
+        (
+            (self.hsi_size / 2) - self.gnd_trk_tick_scaled_rect.center[0],
+            (self.hsi_size / 2) - 130 - self.gnd_trk_tick_scaled_rect[1],
+        ),
+    )
 
 
 def roint(num):
@@ -102,63 +103,119 @@ def labeler(self, hsi_hdg):
         x = roint(self.hsi_size / 2 + self.hsi_size / 2.5 * sin)
 
         if label == hsi_hdg:
-            self.labels.blit(self.E, (x - self.E_rect.center[0], y - self.E_rect.center[1]))
+            self.labels.blit(
+                self.E, (x - self.E_rect.center[0], y - self.E_rect.center[1])
+            )
         if label == (hsi_hdg + 330) % 360:
-            self.labels.blit(self.R12, (x - self.R12_rect.center[0], y - self.R12_rect.center[1]))
+            self.labels.blit(
+                self.R12, (x - self.R12_rect.center[0], y - self.R12_rect.center[1])
+            )
         if label == (hsi_hdg + 300) % 360:
-            self.labels.blit(self.R15, (x - self.R15_rect.center[0], y - self.R15_rect.center[1]))
+            self.labels.blit(
+                self.R15, (x - self.R15_rect.center[0], y - self.R15_rect.center[1])
+            )
         if label == (hsi_hdg + 270) % 360:
-            self.labels.blit(self.S, (x - self.S_rect.center[0], y - self.S_rect.center[1]))
+            self.labels.blit(
+                self.S, (x - self.S_rect.center[0], y - self.S_rect.center[1])
+            )
         if label == (hsi_hdg + 240) % 360:
-            self.labels.blit(self.R21, (x - self.R21_rect.center[0], y - self.R21_rect.center[1]))
+            self.labels.blit(
+                self.R21, (x - self.R21_rect.center[0], y - self.R21_rect.center[1])
+            )
         if label == (hsi_hdg + 210) % 360:
-            self.labels.blit(self.R24, (x - self.R24_rect.center[0], y - self.R24_rect.center[1]))
+            self.labels.blit(
+                self.R24, (x - self.R24_rect.center[0], y - self.R24_rect.center[1])
+            )
         if label == (hsi_hdg + 180) % 360:
-            self.labels.blit(self.W, (x - self.W_rect.center[0], y - self.W_rect.center[1]))
+            self.labels.blit(
+                self.W, (x - self.W_rect.center[0], y - self.W_rect.center[1])
+            )
         if label == (hsi_hdg + 150) % 360:
-            self.labels.blit(self.R30, (x - self.R30_rect.center[0], y - self.R30_rect.center[1]))
+            self.labels.blit(
+                self.R30, (x - self.R30_rect.center[0], y - self.R30_rect.center[1])
+            )
         if label == (hsi_hdg + 120) % 360:
-            self.labels.blit(self.R33, (x - self.R33_rect.center[0], y - self.R33_rect.center[1]))
+            self.labels.blit(
+                self.R33, (x - self.R33_rect.center[0], y - self.R33_rect.center[1])
+            )
         if label == (hsi_hdg + 90) % 360:
-            self.labels.blit(self.N, (x - self.N_rect.center[0], y - self.N_rect.center[1]))
+            self.labels.blit(
+                self.N, (x - self.N_rect.center[0], y - self.N_rect.center[1])
+            )
         if label == (hsi_hdg + 60) % 360:
-            self.labels.blit(self.R3, (x - self.R3_rect.center[0], y - self.R3_rect.center[1]))
+            self.labels.blit(
+                self.R3, (x - self.R3_rect.center[0], y - self.R3_rect.center[1])
+            )
         if label == (hsi_hdg + 30) % 360:
-            self.labels.blit(self.R6, (x - self.R6_rect.center[0], y - self.R6_rect.center[1]))
+            self.labels.blit(
+                self.R6, (x - self.R6_rect.center[0], y - self.R6_rect.center[1])
+            )
 
 
 def gnd_trk_tick(self, gnd_trk):
     # Draw Ground Track Tick
     gnd_trk_tick_rotated = pygame.transform.rotate(self.ticks, gnd_trk)
     gnd_trk__rect = gnd_trk_tick_rotated.get_rect()
-    self.pygamescreen.blit(gnd_trk_tick_rotated,
-                           (self.width / 2 - gnd_trk__rect.center[0],
-                            self.height / 2 - gnd_trk__rect.center[1]))
+    self.pygamescreen.blit(
+        gnd_trk_tick_rotated,
+        (
+            self.width / 2 - gnd_trk__rect.center[0],
+            self.height / 2 - gnd_trk__rect.center[1],
+        ),
+    )
 
 
 def turn_rate_disp(self, turn_rate):
     if abs(turn_rate) > 0.2:
-        pygame.draw.line(self.pygamescreen, (255, 0, 255),
-                         (self.width / 2, self.height / 2 - 158), (self.width / 2 +
-                                                                   (turn_rate * 10), self.height / 2 - 158), 10)
-    pygame.draw.line(self.pygamescreen, (255, 255, 255),
-                     (self.width / 2 + 31, self.height / 2 - 153),
-                     (self.width / 2 + 31, self.height / 2 - 163), 3)
-    pygame.draw.line(self.pygamescreen, (255, 255, 255),
-                     (self.width / 2 - 31, self.height / 2 - 153),
-                     (self.width / 2 - 31, self.height / 2 - 163), 3)
-    pygame.draw.line(self.pygamescreen, (0, 0, 0),
-                     (self.width / 2 + 33, self.height / 2 - 153),
-                     (self.width / 2 + 33, self.height / 2 - 163), 1)
-    pygame.draw.line(self.pygamescreen, (0, 0, 0),
-                     (self.width / 2 + 29, self.height / 2 - 153),
-                     (self.width / 2 + 29, self.height / 2 - 163), 1)
-    pygame.draw.line(self.pygamescreen, (0, 0, 0),
-                     (self.width / 2 - 33, self.height / 2 - 153),
-                     (self.width / 2 - 33, self.height / 2 - 163), 1)
-    pygame.draw.line(self.pygamescreen, (0, 0, 0),
-                     (self.width / 2 - 29, self.height / 2 - 153),
-                     (self.width / 2 - 29, self.height / 2 - 163), 1)
+        pygame.draw.line(
+            self.pygamescreen,
+            (255, 0, 255),
+            (self.width / 2, self.height / 2 - 158),
+            (self.width / 2 + (turn_rate * 10), self.height / 2 - 158),
+            10,
+        )
+    pygame.draw.line(
+        self.pygamescreen,
+        (255, 255, 255),
+        (self.width / 2 + 31, self.height / 2 - 153),
+        (self.width / 2 + 31, self.height / 2 - 163),
+        3,
+    )
+    pygame.draw.line(
+        self.pygamescreen,
+        (255, 255, 255),
+        (self.width / 2 - 31, self.height / 2 - 153),
+        (self.width / 2 - 31, self.height / 2 - 163),
+        3,
+    )
+    pygame.draw.line(
+        self.pygamescreen,
+        (0, 0, 0),
+        (self.width / 2 + 33, self.height / 2 - 153),
+        (self.width / 2 + 33, self.height / 2 - 163),
+        1,
+    )
+    pygame.draw.line(
+        self.pygamescreen,
+        (0, 0, 0),
+        (self.width / 2 + 29, self.height / 2 - 153),
+        (self.width / 2 + 29, self.height / 2 - 163),
+        1,
+    )
+    pygame.draw.line(
+        self.pygamescreen,
+        (0, 0, 0),
+        (self.width / 2 - 33, self.height / 2 - 153),
+        (self.width / 2 - 33, self.height / 2 - 163),
+        1,
+    )
+    pygame.draw.line(
+        self.pygamescreen,
+        (0, 0, 0),
+        (self.width / 2 - 29, self.height / 2 - 153),
+        (self.width / 2 - 29, self.height / 2 - 163),
+        1,
+    )
 
 
 def hsi_main(self, hsi_hdg, gnd_trk, turn_rate):
@@ -168,16 +225,22 @@ def hsi_main(self, hsi_hdg, gnd_trk, turn_rate):
     # Draw Compass Rose Tick Marks
     tick_rotated = pygame.transform.rotate(self.rose, hsi_hdg)
     tick_rect = tick_rotated.get_rect()
-    self.pygamescreen.blit(tick_rotated, (self.width / 2 - tick_rect.center[0],
-                                          self.height / 2 - tick_rect.center[1]))
+    self.pygamescreen.blit(
+        tick_rotated,
+        (self.width / 2 - tick_rect.center[0], self.height / 2 - tick_rect.center[1]),
+    )
 
     # Draw Labels
     global old_hsi_hdg
-    if old_hsi_hdg != hsi_hdg:  # Don't waste time recalculating/redrawing until the variable changes
+    if (
+        old_hsi_hdg != hsi_hdg
+    ):  # Don't waste time recalculating/redrawing until the variable changes
         labeler(self, hsi_hdg)
     label_rect = self.labels.get_rect()
-    self.pygamescreen.blit(self.labels, (self.width / 2 - label_rect.center[0],
-                                         self.height / 2 - label_rect.center[1]))
+    self.pygamescreen.blit(
+        self.labels,
+        (self.width / 2 - label_rect.center[0], self.height / 2 - label_rect.center[1]),
+    )
     old_hsi_hdg = hsi_hdg
 
     # Draw Ticks

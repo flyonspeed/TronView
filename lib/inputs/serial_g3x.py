@@ -17,7 +17,6 @@ import time
 
 
 class serial_g3x(Input):
-
     def __init__(self):
         self.name = "g3x"
         self.version = 1.0
@@ -37,7 +36,9 @@ class serial_g3x(Input):
             self.ser = open("lib/inputs/_example_data/garmin_g3x_data1.txt", "r")
         else:
             self.efis_data_format = hud_utils.readConfig("DataInput", "format", "none")
-            self.efis_data_port = hud_utils.readConfig("DataInput", "port", "/dev/ttyS0")
+            self.efis_data_port = hud_utils.readConfig(
+                "DataInput", "port", "/dev/ttyS0"
+            )
             self.efis_data_baudrate = hud_utils.readConfigInt(
                 "DataInput", "baudrate", 115200
             )
@@ -61,12 +62,11 @@ class serial_g3x(Input):
     #############################################
     ## Function: readMessage
     def readMessage(self, aircraft):
-
         def mean(nums):
             return float(sum(nums)) / max(len(nums), 1)
 
         if aircraft.errorFoundNeedToExit:
-            return aircraft;
+            return aircraft
         try:
             x = 0
             while x != 61:  # 61(=) is start of garmin g3x sentence.
@@ -88,7 +88,7 @@ class serial_g3x(Input):
                                 aircraft.gps.LatMin = int(LatMin) * 0.001  # x.xxx
                                 aircraft.gps.LonHemi = LonHemi  # East or West
                                 aircraft.gps.LonDeg = int(LonDeg)
-                                aircraft.gps.LonMin = int(LonMin) * 0.001  # x.xxx       
+                                aircraft.gps.LonMin = int(LonMin) * 0.001  # x.xxx
                                 aircraft.gps.GPSAlt = int(GPSAlt) * 3.28084
                                 aircraft.gps.EWVelDir = EWVelDir  # E or W
                                 aircraft.gps.EWVelmag = int(EWVelmag) * 0.1
@@ -96,20 +96,32 @@ class serial_g3x(Input):
                                 aircraft.gps.NSVelmag = int(NSVelmag) * 0.1
                                 aircraft.gps.VVelDir = VVelDir  # U or D
                                 aircraft.gps.VVelmag = int(VVelmag) * 0.1
-                                aircraft.mag_decl = _utils.geomag(aircraft.gps.LatHemi, aircraft.gps.LatDeg,
-                                                                  aircraft.gps.LatMin, aircraft.gps.LonHemi,
-                                                                  aircraft.gps.LonDeg, aircraft.gps.LonMin)
+                                aircraft.mag_decl = _utils.geomag(
+                                    aircraft.gps.LatHemi,
+                                    aircraft.gps.LatDeg,
+                                    aircraft.gps.LatMin,
+                                    aircraft.gps.LonHemi,
+                                    aircraft.gps.LonDeg,
+                                    aircraft.gps.LonMin,
+                                )
                                 aircraft.gndspeed = _utils.gndspeed(EWVelmag, NSVelmag)
-                                aircraft.gndtrack = _utils.gndtrack(EWVelDir, EWVelmag, NSVelDir, NSVelmag)
+                                aircraft.gndtrack = _utils.gndtrack(
+                                    EWVelDir, EWVelmag, NSVelDir, NSVelmag
+                                )
                                 aircraft.wind_speed, aircraft.wind_dir, aircraft.norm_wind_dir = _utils.windSpdDir(
-                                    aircraft.tas, aircraft.gndspeed,
-                                    aircraft.gndtrack, aircraft.mag_head,
-                                    aircraft.mag_decl)
+                                    aircraft.tas,
+                                    aircraft.gndspeed,
+                                    aircraft.gndtrack,
+                                    aircraft.mag_head,
+                                    aircraft.mag_decl,
+                                )
 
                             else:
                                 aircraft.msg_bad += 1
                 else:
-                    if aircraft.demoMode:  # if no bytes read and in demo mode.  then reset the file pointer to the start of the file.
+                    if (
+                        aircraft.demoMode
+                    ):  # if no bytes read and in demo mode.  then reset the file pointer to the start of the file.
                         self.ser.seek(0)
                     return aircraft
 
@@ -131,7 +143,9 @@ class serial_g3x(Input):
                         aircraft.oat = int(OAT)
                         aircraft.aoa = int(AOA)
                         self.readings1.append(aircraft.aoa)
-                        aircraft.aoa = mean(self.readings1)  # Moving average to smooth a bit
+                        aircraft.aoa = mean(
+                            self.readings1
+                        )  # Moving average to smooth a bit
                         if len(self.readings1) == self.max_samples1:
                             self.readings1.pop(0)
                         aircraft.mag_head = int(Heading)
@@ -143,17 +157,23 @@ class serial_g3x(Input):
                         )  # 0.00108 of inches of mercury change per foot.
                         aircraft.BALT = aircraft.alt
                         aircraft.vsi = int(VertSpeed) * 10
-                        aircraft.tas = _utils.ias2tas(aircraft.ias, aircraft.oat, aircraft.PALT)
+                        aircraft.tas = _utils.ias2tas(
+                            aircraft.ias, aircraft.oat, aircraft.PALT
+                        )
                         aircraft.turn_rate = int(RateofTurn) * 0.1
                         aircraft.vert_G = int(VertAcc) * 0.1
                         aircraft.slip_skid = int(LatAcc) * 0.01
                         self.readings.append(aircraft.slip_skid)
-                        aircraft.slip_skid = mean(self.readings)  # Moving average to smooth a bit
+                        aircraft.slip_skid = mean(
+                            self.readings
+                        )  # Moving average to smooth a bit
                         if len(self.readings) == self.max_samples:
                             self.readings.pop(0)
                         aircraft.msg_count += 1
-                        if aircraft.demoMode:  # if demo mode then add a delay.  Else reading a file is way to fast.
-                            time.sleep(.08)
+                        if (
+                            aircraft.demoMode
+                        ):  # if demo mode then add a delay.  Else reading a file is way to fast.
+                            time.sleep(0.08)
 
                     else:
                         aircraft.msg_bad += 1
@@ -181,7 +201,7 @@ class serial_g3x(Input):
             else:
                 aircraft.msg_unknown += 1  # else unknown message.
                 if aircraft.demoMode:
-                    time.sleep(.01)
+                    time.sleep(0.01)
                 # else:
                 #    self.ser.flushInput()  # flush the serial after every message else we see delays
                 return aircraft
@@ -199,5 +219,6 @@ class serial_g3x(Input):
         hud_text.print_object(aircraft)
         hud_text.print_object(aircraft.gps)
         hud_text.print_DoneWithPage()
+
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

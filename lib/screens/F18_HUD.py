@@ -27,6 +27,7 @@ class F18_HUD(Screen):
         )  # show screen refresh rate in frames per second for performance tuning
         self.line_mode = hud_utils.readConfigInt("HUD", "line_mode", 1)
         self.alt_box_mode = 1  # default on
+        self.caged_mode = 1 # default on
         self.line_thickness = hud_utils.readConfigInt("HUD", "line_thickness", 2)
         self.center_circle_mode = hud_utils.readConfigInt("HUD", "center_circle", 4)
         self.ahrs_line_deg = hud_utils.readConfigInt("HUD", "vertical_degrees", 5)
@@ -34,7 +35,9 @@ class F18_HUD(Screen):
         self.MainColor = (0, 255, 0)  # main color of hud graphics
         self.pxy_div = 30  # Y axis number of pixels per degree divisor
         self.readings = []  # Setup moving averages to smooth a bit
-        self.max_samples = 20
+        self.max_samples = 20 # FPM smoothing
+        self.readings1 = []  # Setup moving averages to smooth a bit
+        self.max_samples1 = 20 # Caged FPM smoothing
         self.hsi_size = 360
         self.roll_point_size = 20
 
@@ -165,7 +168,7 @@ class F18_HUD(Screen):
     # called every redraw for the screen
     def draw(self, aircraft, FPS):
         def mean(nums):
-            return float(sum(nums)) / max(len(nums), 1)
+            return int(sum(nums)) / max(len(nums), 1)
 
         # draw horz lines
         hud_graphics.hud_draw_horz_lines(
@@ -606,13 +609,23 @@ class F18_HUD(Screen):
         )
 
         # flight path indicator
-        self.readings.append(aircraft.gndtrack)
-        gndtrack = mean(self.readings)  # Moving average to smooth a bit
-        if len(self.readings) == self.max_samples:
-            self.readings.pop(0)
-        fpv_x = ((aircraft.mag_head / 360) - (gndtrack / 360)) - (
+        if self.caged_mode:
+            fpv_x = 0.0
+        else:
+            fpv_x = ((((aircraft.mag_head - aircraft.gndtrack) + 180) % 360) - 180) * 1.5  - (
+                aircraft.turn_rate * 5
+            )
+            self.readings.append(fpv_x)
+            fpv_x = mean(self.readings)  # Moving average to smooth a bit
+            if len(self.readings) == self.max_samples:
+                self.readings.pop(0)
+        gfpv_x = ((((aircraft.mag_head - aircraft.gndtrack) + 180) % 360) - 180) * 1.5  - (
             aircraft.turn_rate * 5
         )
+        self.readings1.append(gfpv_x)
+        gfpv_x = mean(self.readings1)  # Moving average to smooth a bit
+        if len(self.readings1) == self.max_samples1:
+            self.readings1.pop(0)
         pygame.draw.circle(
             self.pygamescreen,
             (255, 0, 255),
@@ -672,6 +685,46 @@ class F18_HUD(Screen):
             ],
             2,
         )
+        if self.caged_mode:
+            pygame.draw.line(
+                self.pygamescreen,
+                (255, 0, 255),
+                [
+                    (self.width / 2 + 50) - (int(gfpv_x) * 5) - 15,
+                    self.heightCenter - (aircraft.vsi / 15),
+                ],
+                [
+                    (self.width / 2 + 50) - (int(gfpv_x) * 5) - 30,
+                    self.heightCenter - (aircraft.vsi / 15),
+                ],
+                2,
+            )
+            pygame.draw.line(
+                self.pygamescreen,
+                (255, 0, 255),
+                [
+                    (self.width / 2 + 50) - (int(gfpv_x) * 5) + 15,
+                    self.heightCenter - (aircraft.vsi / 15),
+                ],
+                [
+                    (self.width / 2 + 50) - (int(gfpv_x) * 5) + 30,
+                    self.heightCenter - (aircraft.vsi / 15),
+                ],
+                2,
+            )
+            pygame.draw.line(
+                self.pygamescreen,
+                (255, 0, 255),
+                [
+                    (self.width / 2 + 50) - (int(gfpv_x) * 5),
+                    self.heightCenter - (aircraft.vsi / 15) - 15,
+                ],
+                [
+                    (self.width / 2 + 50) - (int(gfpv_x) * 5),
+                    self.heightCenter - (aircraft.vsi / 15) - 30,
+                ],
+                2,
+            )
 
         # print Screen.name
         pygame.display.flip()
@@ -705,6 +758,8 @@ class F18_HUD(Screen):
             self.center_circle_mode += 1
             if self.center_circle_mode > 4:
                 self.center_circle_mode = 0
+        if event.key == pygame.K_x:
+            self.caged_mode = not self.caged_mode
 
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

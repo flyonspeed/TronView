@@ -151,7 +151,7 @@ class serial_mgl(Input):
                             aircraft.traffic.msg_last = binascii.hexlify(Message) # save last message.
 
 
-                    elif msgType == 4:  # Navigation message
+                    elif msgType == 30:  # Navigation message
                         Message = self.ser.read(50)
                         if len(Message) == 50:
                             Flags, HSISource, VNAVSource, APMode, Padding, HSINeedleAngle, HSIRoseHeading, HSIDev, VDev, HeadBug, AltBug, WPDist, WPLat,WPLon,WPTrack,vor1r,vor2r,dme1,dme2,ILSDev,GSDev,GLSHoriz,GLSVert = struct.unpack(

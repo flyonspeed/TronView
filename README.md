@@ -147,7 +147,7 @@ handles events like key presses.
 
 ## Creating your own Input source module
 
-Input sources are located in lib/inputs folder.  Create your own!
+Input sources are located in lib/inputs folder.  Create your own!  You can use existing modules as examples for how to do this.
 
 
 ## Screen resolution for hudly
@@ -200,13 +200,13 @@ baudrate = 115200
 
 </pre>
 
-# Sample EFIS Data
+# Demo Sample EFIS Data
 
-  Demo data is saved in lib/inputs/_example_data
+  Demo data is saved in lib/inputs/_example_data .  Demo data lets you run previously recorded data through the hud app for demo or testing purposes.  Each input source module uses it's own format for data.  So for example if you want to run dynon demo data then you must run it through the dynon input source module.
   
   Using the -c FILENAME command line option loads data from the _example_data folder.
   
-  Example to run the MGL_V2.bin data file would look like this:
+  Example to run the MGL_V2.bin demo data file would look like this:
   
   `sudo python hud.py -i serial_mgl -c MGL_V2.bin`
 

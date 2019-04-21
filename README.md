@@ -202,6 +202,11 @@ baudrate = 115200
   Demo data is saved in lib/inputs/_example_data
   
   Using the -c FILENAME command line option loads data from the _example_data folder.
+  
+  Example to run the MGL_V2.bin data file would look like this:
+  
+  `sudo python hud.py -i serial_mgl -c MGL_V2.bin`
+
 
 # MGL Data
 

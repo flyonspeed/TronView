@@ -200,8 +200,10 @@ baudrate = 115200
 # Sample EFIS Data
 
   Demo data is saved in lib/inputs/_example_data
+  
+  Using the -c FILENAME command line option loads data from the _example_data folder.
 
-  More data and details can be found in the following locations:
+# MGL Data
 
   MGL EFIS Sample Data Link: https://drive.google.com/open?id=1mPOmQuIT-Q5IvIoVmyfRCtvBxCsLUuvz
 
@@ -210,22 +212,34 @@ baudrate = 115200
   MGL example data in this git repo include: (they can be ran by using the -c <filename> command line option.)
 
   MGL_V2.bin = G430_Bit_Test_24Mar19
+  
   MGL_V3.bin = G430_Data_3Feb19_VertNdlFullUp_HzNdl_SltRt_toCtr
+  
   MGL_V4.bin = G430_Data_3Feb19_HSI_Nedl_2degsRt_Vert_SlightLow
+  
   MGL_V5.bin = G430_Data_3Feb19_HSI_Nedl_2degsLft_Vert_2Degs_Dwn
+  
   MGL_V6.bin = G430_Data_3Feb19_HSI_Nedl_2degsRt_Vert_2Degs_Up
+  
   MGL_V7.bin = G430_Data_3Feb19_Horz_Vert_Nedl_come to center
+  
   MGL_V8.bin = G430_Data_13Ap19_VertNdlFullDwn_HzNdl_FullLft
+  
   MGL_V9.bin = 13Ap_AltBug_0_500_1k_1.5k_to_10k_5.1K_5.2k_5.9kv10_v10
+  
   MGL_V10.bin = 13Ap_XC_Nav 
+  
   MGL_V11.bin = iEfis_NavDataCapture_5Feb19
+  
   MGL_V12.bin = NavData_13Ap_HdgBug_360_10_20_30_to_360_001_002_003_to_010_v9
 
+# Dynon Data
 
   Dynon Skyview EFIS Sample Data Link:https://drive.google.com/open?id=1jQ0q4wkq31C7BRn7qzMSMClqPw1Opwnp
 
   Dynon Skyview EFIS Serial Protocol Link: https://drive.google.com/open?id=1isurAOIiTzki4nh59lg6IDsy1XcsJqoG
 
+# Garmin Data
 
   Garmin G3X EFIS Sample Data Link: https://drive.google.com/open?id=1gHPC3OipAs9K06wj5zMw_uXn3_iqZriS
 

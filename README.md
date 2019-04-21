@@ -4,8 +4,11 @@ Project for connecting efis/flight data to a HUD or 2nd screen.
 Currently supports:
 
 MGL iEFIS
+
 Garmin G3x
+
 Dynon Skyview
+
 Dynon D10/100
 
 

@@ -94,6 +94,27 @@ Run the command with no arguments and it will show you which input modules and s
 
 `sudo python hud.py`
 
+## How to auto run hud on start up
+
+For making the hud automatically run when the raspberry pi boots up you will want to do the following.  (There are a few methods for doing this, but this one of the simplest)
+
+Run the following from the command line. This will let you edit the crontab file.  Crontab is a tool that lets you run programs automatically at different times.  In this case we just want it to run the hud with the pi first boots up.
+
+'sudo crontab -e'
+
+When you do this the first time you may be asked which editor you want to use to edit cron.  Choose your favorite sword.
+
+Then add this next line to the top of the file.
+
+'@reboot cd /home/pi/efis_to_hud/ &&  python hud.py'
+
+Notice that this assumes you have installed the hud application in the efis_to_hud directory.  If you put it somewhere else then change this.
+
+You can also pass different arguments to the hud.py script. For example if you want it to start in demo mode when it boots up.
+
+'@reboot cd /home/pi/efis_to_hud/ &&  python hud.py -i serial_mgl -c MGL_V5.bin'
+
+If you don't pass arguments it will try to use the hud.cfg file configuration on startup.  How to use this file is described later in this document.
 
 ## DefaultScreen
 

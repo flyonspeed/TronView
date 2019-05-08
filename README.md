@@ -104,6 +104,8 @@ Run the following from the command line. This will let you edit the crontab file
 
 When you do this the first time you may be asked which editor you want to use to edit cron.  Choose your favorite sword.
 
+If you choose nano as your crontab editor.  Then hit cntrl-x and it will ask you if you want to save.  hit y to save.
+
 Then add this next line to the top of the file.
 
 `@reboot cd /home/pi/efis_to_hud/ &&  python hud.py`

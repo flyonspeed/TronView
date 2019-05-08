@@ -1,17 +1,20 @@
 
-```
+# Optional Pi Instructions 
+Following install guide if you need help. https://www.raspberrypi.org/documentation/installation/installing-images/README.md   Setup your serial input using the GPIO pins on pi zero. This page will help you. https://www.instructables.com/id/Read-and-write-from-serial-port-with-Raspberry-Pi/
 
-Raspberry  Pi Setup and efis_to_hud Programming Instructions   8 Mar2019
-Project for connecting efis/flight data to a HUD or 2nd screen.
-We are using the Raspberry Pi 3 Model B+ (best) or Raspberry Pi Zero (slower) and inputting serial data from an experimental aircraft EFIS (MGL, Dynon Legacy, Dynon Skyview, or Garmin G3x) and generating a graphical HUD image as an HDMI or Composite Video output. This Video output is connected into a Heads Up Display (HUD) device like the HUDLY Classic or most any screen that can display HDMI video.
-Optional Pi Instructions  Following install guide if you need help. https://www.raspberrypi.org/documentation/installation/installing-images/README.md   Setup your serial input using the GPIO pins on pi zero. This page will help you. https://www.instructables.com/id/Read-and-write-from-serial-port-with-Raspberry-Pi/
 Step by Step Set-Up Guidelines HUD Project Raspberry Pi Computer
+
 1-	First – Download and UnZip “Raspbian-Stretch (desktop)” SD image (its a very large file) for pi. Latest can be gotten here. https://downloads.raspberrypi.org/raspbian_latest
+
 2-	Download and install Etcher to help you Flash the Raspian OS to a Micro SD Card (recommend 16GB card)  https://www.balena.io/etcher/
+
 3-	Next Using the Etcher Utility Flash the Raspian OS to your SD Card, its pretty easy but instructions are at https://www.raspberrypi.org/magpi/pi-sd-etcher/
+
 4-	Put SD card in Raspberry Pi, then connect Power, USB Keyboard, & HDMI output to Regular Computer Monitor, (optional for now is the TTL/RS232 converter)
+
 5-	Turn on power and watch as Pi boots up into a Windows Desktop like configuration
-Steps to get the HUD software running
+
+## Steps to get the HUD software running
 1.	If in the Windows like GUI Press ctrl+alt+f1 to quit from the GUI to the desktop 
 2.	Type “sudo raspi-config”
 3.	Select “boot options” -> desktop / cli -> "Console auto-login"
@@ -64,86 +67,34 @@ Steps to get the HUD software running
 
  
 Note: You have to run using sudo in order to get access to serial port.
-Example:
-sudo python hud.py -i serial_mgl -s ReallyBigHud –c 
-command line arguments (as shown above-as of 7 Mar19)
 
--i {input data source module} load a input module for where to get the air data from.
--s {screen module name to load} (located in the lib/screens folder)
--t (optional) will let you see the data in text mode
--e (optional) load example demo data for input source selected.
  
 
-hud.py Keyboard Commands
-The DefaultScreen has the following keyboard current commands;
-q - quit
-d - show some debug info
-space - large/small toggle
-a - show alt/airspeed tape (work in progress)
-l - adjust line thickness
-c - center circle mode
-PAGE UP - jump to next screen
-PAGE DOWN - go to previous screen
-Creating your own Hud screen file
-Screen files are located in lib/screens folder. For a quick start you can duplicate the DefaultScreen.py file and rename it to your own. What ever name you give it you must name the Class in that file to the same name. For example if I create MyHud.py then in that file I must set the class to the following
-class MyHud(Screen):
-Functions for custom screens:
-initDisplay(self,pygamescreen,width,height):
-this is called once on screen init and tells your class the screen width and height
-draw(self,aircraft):
-draw() is called in the main draw loop. And the current aircraft object is passed in with all current position values.
-clearScreen(self):
-each time the screen is drawn it first has to clear it. this is called to do that.
-processEvent(self,event):
-handles events like key presses.
-Creating your own Input source module
-Input sources are located in lib/inputs folder. Create your own!
- 
+## Some Graphics Pointers
 
-hud.cfg
-hud.cfg can be created and sit in the same dir as the hud.py python app. It's used for configuring the hud.
-Here is an example hud.cfg file:
-[HUD]
-#how many degrees to show on the vert hud lines. 5, 10, or 15
-vertical_degrees = 10
-
-#load a screen file on startup
-screen = default screen module name to load
-
-# line mode.  0 = skinny, 2 = bigger
-line_mode = 1
-
-# line thickness.  1 to 6 
-line_thickness = 2
-
-# center circle.  size of center circle. 0 = none. 1 tiny - 3 large
-center_circle = 2
-
-[DataInput]
-# input source of data. These modules are located in lib/inputs.  currently supprt 'serial_mgl' or 'serial_skyview'
-inputsource = serial_mgl
-# port name for serial input. Default is /dev/ttyS0
-port = /dev/ttyS0 
-# baud rate. Default is 115200
-baudrate = 115200 
-Some Graphics Pointers
 Note doe our developers: perhaps you could do a write up as you learn how to using the drawing functions.  So we can publish it in a HowTo and others can learn from it.
+
 
 PyGame is a module for python that is made for doing graphics for games.  But turns out that it’s good for doing graphics for other things too.  There is a Init sequence that is already handled by the hud.py and hud_graphics.py scripts.  So the custom screens don’t have to do much for that.  But the 2 main functions that get called are…
 
+`
 def initDisplay (self, pygamescreen, width, height): 
+`
 
 This gets called once when the screen loads.  It creates objects and vars that only need to be created once on startup of the screen.
 
 a good example is loading fonts.  We only need to load them once.  The following example shows us loading a monospace font at point 40 and calling it fontIndicator so we can use it later in the draw function.
 
+`
 self.fontIndicator = pygame.font.SysFont("monospace", 40)  # ie IAS and ALT
-
 def clearScreen(self):
+`
 
 This is called before every redraw of the screen.  To set the screen to the default color you want..  most likely black.  which is (0, 0, 0)  each number is a color value.  (Red, Green, Blue)
 
+`
 def draw(self, aircraft):
+`
 
 This gets called every redraw cycle.  Which depending on how fast the pi is can be around 15 to 20 times a sec. 
 
@@ -152,8 +103,8 @@ hud_graphics.hud_draw_horz_lines is a helpful function I created so all screens 
 
 The following is how we draw text to the screen.
 
-            label = self.myfont.render("Pitch: %d" % (aircraft.pitch), 1, (255, 255, 0))
-            self.pygamescreen.blit(label, (0, 0))
+`label = self.myfont.render("Pitch: %d" % (aircraft.pitch), 1, (255, 255, 0))
+self.pygamescreen.blit(label, (0, 0))`
 
 the myfont.render is rendering the text and color (Red,Green,Blue) of 255,255,0.   The myfont was loaded back in the initDisplay function.
 then the next line does a “blit” which is what term used when you copy it to the graphics buffer to show on the screen.  In this case at position x=0, y=0
@@ -168,38 +119,30 @@ Here is a list of other nice drawing functions.  https://www.pygame.org/docs/ref
 
 You can google around on using pygame to draw things and probably find lots of examples.
 
-
-def processEvent(self, event):
+`def processEvent(self, event):`
 
 This is used to process key commands to make your hud screen do different things.
 
 If you create useful functions for drawing things that others might want to use, then it would be nice to put that into a separate file.
 
-For example.  drawing a Mag Rose circle with needles and heading indicator would be a cool function that other hud screens would probably want to use.
-Sample EFIS Data
-Demo data is saved in lib/inputs/_example_data
-More data and details can be found in the following locations:
-MGL EFIS Sample Data Link: https://drive.google.com/open?id=1mPOmQuIT-Q5IvIoVmyfRCtvBxCsLUuvz
-MGL EFIS Serial Protocol Link: https://drive.google.com/open?id=1OYj000ghHJqSfvacaHMO-jOcfd1raoVo
-Dynon Skyview EFIS Sample Data Link:https://drive.google.com/open?id=1jQ0q4wkq31C7BRn7qzMSMClqPw1Opwnp
-Dynon Skyview EFIS Serial Protocol Link: https://drive.google.com/open?id=1isurAOIiTzki4nh59lg6IDsy1XcsJqoG
-Garmin G3X EFIS Sample Data Link: https://drive.google.com/open?id=1gHPC3OipAs9K06wj5zMw_uXn3_iqZriS
-Garmin G3X EFIS Serial Protocol Link: https://drive.google.com/open?id=1uRRO-wdG7ya6_6-CfDVrZaKJsiYit-lm
- 
  
 
 
-Raspberry Pi Zero Wiring
- 
+## Raspberry Pi Zero Wiring
  
 Python Programming Language: has many similarities to Perl, C, and Java. However, there are some definite differences between the languages.
-Python Tutorial
-https://www.tutorialspoint.com/python/index.htm
-Python Beginner Cheat Sheet
-https://github.com/ehmatthes/pcc/.../v1.../beginners_python_cheat_sheet_pcc_all.pdf
+
+
+Python Tutorial https://www.tutorialspoint.com/python/index.htm
+
+
+Python Beginner Cheat Sheet https://github.com/ehmatthes/pcc/.../v1.../beginners_python_cheat_sheet_pcc_all.pdf
  
 
-Basic Raspian OS Commands
+
+## Basic Raspian OS Commands
+
+```
 Filesystem
 Ls     The ls command lists the content of the current directory (or one that is specified). It can be used with the -l flag to display additional information (permissions, owner, group, size, date and timestamp of last edit) about each file and directory in a list format. The -a flag allows you to view files beginning with  . (i.e. dotfiles).
 cd     Using cd changes the current directory to the one specified. You can use relative (i.e. cd directoryA) or absolute (i.e. cd /home/pi/directoryA) paths.

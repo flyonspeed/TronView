@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 #################################################
-# F18 HUD Screen by Brian Chesteen. 01/31/2019
+# F18 HUD Screen by Brian Chesteen. 01/31/2019  Modified by CJones 20May19
 # Optimized for Garmin G3X System and Kivic HUD using Composite Video Output.
 # Credit for original module template goes to Christopher Jones.
 from __future__ import print_function

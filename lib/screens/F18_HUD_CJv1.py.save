@@ -15,11 +15,11 @@ import pygame
 import math
 
 
-class F18_HUD(Screen):
+class F18_HUD_CJv1(Screen):
     # called only when object is first created.
     def __init__(self):
         Screen.__init__(self)
-        self.name = "F18 Hud Screen"  # set name for this screen
+        self.name = "F18 Hud CJv1 Screen"  # set name for this screen
         self.ahrs_bg = 0
         self.show_debug = False  # default off
         self.show_FPS = (
@@ -456,13 +456,13 @@ class F18_HUD(Screen):
             )
 
             # AOA Indicator
-            if aircraft.aoa > 0:
+            pygame.draw.circle(
+	    self.pygamescreen, ( 0, 255, 0), (45, self.heightCenter), 20,10
+	    )
+	    if aircraft.aoa > 0:
             	pygame.draw.circle(
                 self.pygamescreen, ( 0, 0, 255), (45, self.heightCenter), 15, 5
             )
-            if aircraft.aoa > 0:
-		pygame.draw.circle(
-                self.pygamescreen, ( 0, 0, 255), (44, self.heightCenter), 15, 5            )
             if aircraft.aoa > 0:
            	pygame.draw.line(
                 self.pygamescreen,

@@ -27,7 +27,7 @@ class F18_HUD(Screen):
         )  # show screen refresh rate in frames per second for performance tuning
         self.line_mode = hud_utils.readConfigInt("HUD", "line_mode", 1)
         self.alt_box_mode = 1  # default on
-        self.caged_mode = 0 # default off
+        self.caged_mode = 1 # default on
         self.line_thickness = hud_utils.readConfigInt("HUD", "line_thickness", 2)
         self.center_circle_mode = hud_utils.readConfigInt("HUD", "center_circle", 4)
         self.ahrs_line_deg = hud_utils.readConfigInt("HUD", "vertical_degrees", 5)
@@ -131,7 +131,7 @@ class F18_HUD(Screen):
             y0 = roint(self.hsi_size / 2 + self.hsi_size / 15 * sin * 6)
             x1 = roint(self.hsi_size / 2 + self.hsi_size / 2.3 * cos)
             y1 = roint(self.hsi_size / 2 + self.hsi_size / 2.3 * sin)
-            pygame.draw.line(self.roll_tick, (255, 255, 255), [x0, y0], [x1, y1], 2)
+            pygame.draw.line(self.roll_tick, (255, 255, 255), [x0, y0], [x1, y1], 4)
         for big_tick in range(1, 4):
             cos = math.cos(math.radians(360.0 / 8 * big_tick))
             sin = math.sin(math.radians(360.0 / 8 * big_tick))
@@ -159,11 +159,11 @@ class F18_HUD(Screen):
         for big_tick in range(1, 2):
             cos = math.cos(math.radians(360.0 / 4 * big_tick))
             sin = math.sin(math.radians(360.0 / 4 * big_tick))
-            x0 = roint(self.hsi_size / 2 + self.hsi_size / 15 * cos * 5.5)
-            y0 = roint(self.hsi_size / 2 + self.hsi_size / 15 * sin * 5.5)
+            x0 = roint(self.hsi_size / 2 + self.hsi_size / 15 * cos * 4.5)
+            y0 = roint(self.hsi_size / 2 + self.hsi_size / 15 * sin * 4.5)
             x1 = roint(self.hsi_size / 2 + self.hsi_size / 2.1 * cos)
             y1 = roint(self.hsi_size / 2 + self.hsi_size / 2.1 * sin)
-            pygame.draw.line(self.roll_tick, (255, 255, 255), [x0, y0], [x1, y1], 4)
+            pygame.draw.line(self.roll_tick, (255, 255, 255), [x0, y0], [x1, y1], 2)
 
     # called every redraw for the screen
     def draw(self, aircraft, FPS):
@@ -386,19 +386,19 @@ class F18_HUD(Screen):
                 label = self.myfont.render(
                     "%dkt" % aircraft.wind_speed, 1, (255, 255, 0)
                 )
-                self.pygamescreen.blit(label, (20, self.heightCenter + 170))
+                self.pygamescreen.blit(label, (20, self.heightCenter + 200))
             else:
                 label = self.myfont.render("--kt", 1, (255, 255, 0))
-                self.pygamescreen.blit(label, (20, self.heightCenter + 170))
+                self.pygamescreen.blit(label, (20, self.heightCenter + 200))
             # Wind Dir
             if aircraft.wind_dir != None:
                 label = self.myfont.render(
                     "%d\xb0" % aircraft.wind_dir, 1, (255, 255, 0)
                 )
-                self.pygamescreen.blit(label, (20, self.heightCenter + 90))
+                self.pygamescreen.blit(label, (20, self.heightCenter + 120))
             else:
                 label = self.myfont.render("--\xb0", 1, (255, 255, 0))
-                self.pygamescreen.blit(label, (20, self.heightCenter + 90))
+                self.pygamescreen.blit(label, (20, self.heightCenter + 120))
 
             # Slip/Skid Indicator
             if aircraft.slip_skid != None:
@@ -456,38 +456,34 @@ class F18_HUD(Screen):
             )
 
             # AOA Indicator
-            if aircraft.aoa > 0:
-            	pygame.draw.circle(
-                self.pygamescreen, ( 0, 0, 255), (45, self.heightCenter), 15, 5
+            pygame.draw.circle(
+                self.pygamescreen, (0, 0, 255), (45, self.heightCenter), 15, 5
             )
-            if aircraft.aoa > 0:
-		pygame.draw.circle(
-                self.pygamescreen, ( 0, 0, 255), (44, self.heightCenter), 15, 5            )
-            if aircraft.aoa > 0:
-           	pygame.draw.line(
+            pygame.draw.circle(
+                self.pygamescreen, (0, 0, 255), (44, self.heightCenter), 15, 5
+            )
+            pygame.draw.line(
                 self.pygamescreen,
-                ( 0, 255, 0),
+                (0, 255, 0),
                 (25, self.heightCenter + 70),
                 (35, self.heightCenter + 17),
                 5,
             )
-	    if aircraft.aoa > 0:
-		pygame.draw.line(
+            pygame.draw.line(
                 self.pygamescreen,
                 (0, 255, 0),
                 (63, self.heightCenter + 70),
                 (53, self.heightCenter + 17),
                 5,
             )
-            if aircraft.aoa > 0:
-            	pygame.draw.line(
+            pygame.draw.line(
                 self.pygamescreen,
-                ( 255, 0, 0),
+                (255, 0, 0),
                 (63, self.heightCenter - 70),
                 (53, self.heightCenter - 17),
                 5,
             )
-            	pygame.draw.line(
+            pygame.draw.line(
                 self.pygamescreen,
                 (255, 0, 0),
                 (35, self.heightCenter - 17),
@@ -522,7 +518,7 @@ class F18_HUD(Screen):
                     arrow_rotated,
                     (
                         40 - arrow_rect.center[0],
-                        (self.height / 2 + 140) - arrow_rect.center[1],
+                        (self.height / 2 + 170) - arrow_rect.center[1],
                     ),
                 )
 

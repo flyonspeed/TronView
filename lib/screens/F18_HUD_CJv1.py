@@ -15,11 +15,11 @@ import pygame
 import math
 
 
-class F18_HUD_CJ(Screen):
+class F18_HUD_CJv1(Screen):
     # called only when object is first created.
     def __init__(self):
         Screen.__init__(self)
-        self.name = "F18 Hud CJ Screen"  # set name for this screen
+        self.name = "F18 Hud CJv1 Screen"  # set name for this screen
         self.ahrs_bg = 0
         self.show_debug = False  # default off
         self.show_FPS = (
@@ -456,51 +456,51 @@ class F18_HUD_CJ(Screen):
             )
 
             # AOA Indicator
-            if aircraft.aoa > 0:
-            	pygame.draw.circle(
-                self.pygamescreen, ( 0, 0, 255), (45, self.heightCenter), 15, 5
-            )
-            if aircraft.aoa > 0:
+	    If aircraft.aoa >0:
 		pygame.draw.circle(
-                self.pygamescreen, ( 0, 0, 255), (44, self.heightCenter), 15, 5            )
-            if aircraft.aoa > 0:
+		self.pygamescreen, (255, 255, 255), (20, self.heightCenter + 50), 5, 0
+	    )
+		pygame.draw.circle(
+		self.pygamescreen, (255, 255, 255), (70, self.heightCenter + 50), 5, 0
+	    )
+            	pygame.draw.circle(
+                self.pygamescreen, ( 0, 155, 79), (45, self.heightCenter), 15, 8
+            )
            	pygame.draw.line(
                 self.pygamescreen,
-                ( 0, 255, 0),
+                (241, 137, 12),
                 (25, self.heightCenter + 70),
                 (35, self.heightCenter + 17),
-                5,
+                8,
             )
-	    if aircraft.aoa > 0:
 		pygame.draw.line(
                 self.pygamescreen,
-                (0, 255, 0),
+                (241, 137, 12),
                 (63, self.heightCenter + 70),
                 (53, self.heightCenter + 17),
-                5,
+                8,
             )
-            if aircraft.aoa > 0:
-            	pygame.draw.line(
+		pygame.draw.line(
                 self.pygamescreen,
-                ( 255, 0, 0),
+                (210, 40, 49),
                 (63, self.heightCenter - 70),
                 (53, self.heightCenter - 17),
-                5,
+                8,
             )
-            	pygame.draw.line(
+                pygame.draw.line(
                 self.pygamescreen,
-                (255, 0, 0),
+                (210, 40, 49),
                 (35, self.heightCenter - 17),
                 (25, self.heightCenter - 70),
-                5,
+                8,
             )
 
             if aircraft.aoa <= 40:
-                aoa_color = (0, 255, 0)
-            elif aircraft.aoa > 40 and aircraft.aoa <= 60:
                 aoa_color = (255, 255, 255)
+            elif aircraft.aoa > 40 and aircraft.aoa <= 60:
+                aoa_color = ( 0, 155, 79)
             elif aircraft.aoa > 60:
-                aoa_color = (255, 0, 0)
+                aoa_color = (237, 28, 36)
 
             if aircraft.aoa != None:
                 # label = self.myfont.render("%d" % (aircraft.aoa), 1, (255, 255, 0))

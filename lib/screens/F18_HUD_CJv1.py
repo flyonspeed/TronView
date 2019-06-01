@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 #################################################
-# F18 HUD Screen by Brian Chesteen. 01/31/2019
+# F18 HUD Screen by Brian Chesteen. 01/31/2019  Modified by Cecil Jones 20 May 2019
 # Optimized for Garmin G3X System and Kivic HUD using Composite Video Output.
 # Credit for original module template goes to Christopher Jones.
 from __future__ import print_function
@@ -19,7 +19,7 @@ class F18_HUD_CJv1(Screen):
     # called only when object is first created.
     def __init__(self):
         Screen.__init__(self)
-        self.name = "F18 Hud CJv1 Screen"  # set name for this screen
+        self.name = "F18 HUD CJv1 Screen"  # set name for this screen
         self.ahrs_bg = 0
         self.show_debug = False  # default off
         self.show_FPS = (
@@ -412,7 +412,7 @@ class F18_HUD_CJv1(Screen):
                     10,
                     0,
                 )
-            pygame.draw.line(
+		pygame.draw.line(
                 self.pygamescreen,
                 (255, 255, 255),
                 (self.width / 2 + 63, self.heightCenter + 179),

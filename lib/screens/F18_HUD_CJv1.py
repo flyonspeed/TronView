@@ -455,39 +455,58 @@ class F18_HUD_CJv1(Screen):
                 1,
             )
 
-            # AOA Indicator
-	    If aircraft.aoa >0:
-		pygame.draw.circle(
-		self.pygamescreen, (255, 255, 255), (20, self.heightCenter + 50), 5, 0
-	    )
-		pygame.draw.circle(
-		self.pygamescreen, (255, 255, 255), (70, self.heightCenter + 50), 5, 0
-	    )
-            	pygame.draw.circle(
-                self.pygamescreen, ( 0, 155, 79), (45, self.heightCenter), 15, 8
+        # AOA Indicator
+        if aircraft.aoa > 0:
+            pygame.draw.circle(
+                self.pygamescreen,
+                self.MainColor,
+                (self.width / 2 + 50, self.heightCenter),
+                3,
+                1,
             )
-           	pygame.draw.line(
+            pygame.draw.circle(
+                self.pygamescreen,
+                (255, 255, 255), 
+                (20, self.heightCenter + 50), 
+                5, 
+                0,
+            )
+            pygame.draw.circle(
+                self.pygamescreen, 
+                (255, 255, 255), 
+                (70, self.heightCenter + 50), 
+                5, 
+                0,
+            )
+            pygame.draw.circle(
+                self.pygamescreen, 
+                ( 0, 155, 79), 
+                (45, self.heightCenter), 
+                15, 
+                8,
+            )
+            pygame.draw.line(
                 self.pygamescreen,
                 (241, 137, 12),
                 (25, self.heightCenter + 70),
                 (35, self.heightCenter + 17),
                 8,
             )
-		pygame.draw.line(
+            pygame.draw.line(
                 self.pygamescreen,
                 (241, 137, 12),
                 (63, self.heightCenter + 70),
                 (53, self.heightCenter + 17),
                 8,
             )
-		pygame.draw.line(
+            pygame.draw.line(
                 self.pygamescreen,
                 (210, 40, 49),
                 (63, self.heightCenter - 70),
                 (53, self.heightCenter - 17),
                 8,
             )
-                pygame.draw.line(
+            pygame.draw.line(
                 self.pygamescreen,
                 (210, 40, 49),
                 (35, self.heightCenter - 17),

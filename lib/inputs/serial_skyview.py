@@ -87,9 +87,16 @@ class serial_skyview(Input):
                     aircraft.turn_rate = int(TurnRate) * 0.1
                     aircraft.vsi = int(VertSpd) * 10
                     aircraft.vert_G = int(VertAccel) * 0.1
-                    aircraft.wind_dir = int(WD)
-                    aircraft.wind_speed = int(WS)
-                    aircraft.norm_wind_dir = (aircraft.mag_head - aircraft.wind_dir) % 360 #normalize the wind direction to the airplane heading
+                    try:
+                        aircraft.wind_dir = int(WD)
+                        aircraft.wind_speed = int(WS)
+                        aircraft.norm_wind_dir = (aircraft.mag_head - aircraft.wind_dir) % 360 #normalize the wind direction to the airplane heading
+                    except ValueError as ex:
+                        # if error trying to parse wind then must not have that info.
+                        aircraft.wind_dir = 0
+                        aircraft.wind_speed = 0
+                        aircraft.norm_wind_dir = 0 #normalize the wind direction to the airplane heading
+
                     aircraft.msg_count += 1
 
                     if aircraft.demoMode:  #if demo mode then add a delay.  Else reading a file is way to fast.

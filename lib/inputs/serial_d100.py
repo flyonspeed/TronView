@@ -79,11 +79,12 @@ class serial_d100(Input):
 
                     aircraft.aoa = int(AOA)
                     aircraft.mag_head = int(yaw)
-                    #aircraft.baro = (int(Baro) + 2750.0) / 100
+                    #aircraft.baro = (int(Baro) + 2750.0) / 100   # no baro for D100 data.
                     #aircraft.baro_diff = aircraft.baro - 29.921
                     #aircraft.alt = int( int(Alt) + (aircraft.baro_diff / 0.00108) )  # 0.00108 of inches of mercury change per foot.
-                    aircraft.alt = int(Alt)
-                    #aircraft.vsi = int(VertSpd) * 10
+                    aircraft.BALT = int(Alt) * 3.28084 # convert meters to feet.
+
+                    #aircraft.vsi = int(VertSpd) * 10   # no vert speed for D100 data.
                     aircraft.msg_count += 1
 
                     if aircraft.demoMode:  #if demo mode then add a delay.  Else reading a file is way to fast.
@@ -101,6 +102,9 @@ class serial_d100(Input):
                 else:
                     self.ser.flushInput()  # flush the serial after every message else we see delays
                 return aircraft
+        except ValueError as ex:
+            print("dynon data conversion error")
+            aircraft.errorFoundNeedToExit = True
         except serial.serialutil.SerialException:
             print("dynon serial exception")
             aircraft.errorFoundNeedToExit = True

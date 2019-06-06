@@ -239,6 +239,10 @@ class F18_HUD_CJv1(Screen):
                 "msg_count: %d" % aircraft.msg_count, 1, (20, 255, 0)
             )
             self.pygamescreen.blit(label, (0, 180))
+            label = self.myfont.render(
+                "clock: %s" % aircraft.sys_time_string, 1, (20, 255, 0)
+            )
+            self.pygamescreen.blit(label, (0, 200))
 
         if self.show_FPS:
             label = self.myfont.render("%0.2f FPS" % FPS, 1, (20, 255, 0))

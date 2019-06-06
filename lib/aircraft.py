@@ -7,6 +7,7 @@
 ##
 class Aircraft(object):
     def __init__(self):
+        self.sys_time_string = "" 
         self.pitch = 0.0
         self.roll = 0.0
         self.ias = 0
@@ -46,6 +47,7 @@ class Aircraft(object):
         self.demoFile = ""
         self.textMode = False
         self.show_FPS = False #show screen refresh rate in frames per second for performance tuning
+
 
 
 #############################################

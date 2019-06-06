@@ -71,6 +71,7 @@ class serial_skyview(Input):
                 )
                 # if ord(CRLF[0]) == 13:
                 if dataType == "1" and ord(CRLF[0]) == 13:  # AHRS message
+                    aircraft.sys_time_string = SysTime
                     aircraft.roll = int(roll) * 0.1
                     aircraft.pitch = int(pitch) * 0.1
                     aircraft.ias = int(IAS) * 0.1

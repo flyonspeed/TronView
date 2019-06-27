@@ -27,7 +27,7 @@ class F18_HUD_CJv1(Screen):
         )  # show screen refresh rate in frames per second for performance tuning
         self.line_mode = hud_utils.readConfigInt("HUD", "line_mode", 1)
         self.alt_box_mode = 1  # default on
-        self.caged_mode = 0 # default off
+        self.caged_mode = 1 # default on
         self.line_thickness = hud_utils.readConfigInt("HUD", "line_thickness", 2)
         self.center_circle_mode = hud_utils.readConfigInt("HUD", "center_circle", 4)
         self.ahrs_line_deg = hud_utils.readConfigInt("HUD", "vertical_degrees", 5)
@@ -536,7 +536,7 @@ class F18_HUD_CJv1(Screen):
                     5,
                 )
 
-            if aircraft.norm_wind_dir != None:
+        if aircraft.norm_wind_dir != None:
                 arrow_rotated = pygame.transform.rotate(
                     self.arrow_scaled, aircraft.norm_wind_dir
                 )

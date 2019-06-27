@@ -6,6 +6,7 @@
 from __future__ import print_function
 from _input import Input
 from lib import hud_utils
+import math
 import serial
 import struct
 from lib import hud_text
@@ -80,6 +81,7 @@ class serial_skyview(Input):
                     aircraft.tas = int(TAS) * 0.1
                     aircraft.aoa = int(AOA)
                     aircraft.mag_head = int(HeadingMAG)
+
                     aircraft.baro = (int(Baro) + 2750.0) / 100
                     aircraft.baro_diff = aircraft.baro - 29.921
                     aircraft.DA = int(DA)
@@ -92,11 +94,16 @@ class serial_skyview(Input):
                         aircraft.wind_dir = int(WD)
                         aircraft.wind_speed = int(WS)
                         aircraft.norm_wind_dir = (aircraft.mag_head - aircraft.wind_dir) % 360 #normalize the wind direction to the airplane heading
+                        # compute Gnd Speed when Gnd Speed is unknown (not provided in data)
+                        aircraft.gndspeed = math.sqrt(math.pow(aircraft.tas,2) + math.pow(aircraft.wind_speed,2) + (2 * aircraft.tas * aircraft.wind_speed * math.cos(math.radians(180 - (aircraft.wind_dir - aircraft.mag_head)))))
+                        aircraft.gndtrack = aircraft.mag_head 
                     except ValueError as ex:
                         # if error trying to parse wind then must not have that info.
                         aircraft.wind_dir = 0
                         aircraft.wind_speed = 0
                         aircraft.norm_wind_dir = 0 #normalize the wind direction to the airplane heading
+                        aircraft.gndspeed = 0
+
 
                     aircraft.msg_count += 1
 

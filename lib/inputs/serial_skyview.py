@@ -79,7 +79,10 @@ class serial_skyview(Input):
                     aircraft.PALT = int(PresAlt)
                     aircraft.OAT = int(OAT)
                     aircraft.tas = int(TAS) * 0.1
-                    aircraft.aoa = int(AOA)
+                    if AOA == "XX":
+                        aircraft.aoa = 0
+                    else:
+                        aircraft.aoa = int(AOA)
                     aircraft.mag_head = int(HeadingMAG)
 
                     aircraft.baro = (int(Baro) + 2750.0) / 100

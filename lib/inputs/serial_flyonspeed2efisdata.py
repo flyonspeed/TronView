@@ -1,0 +1,121 @@
+#!/usr/bin/env python
+
+# Serial input source
+# Fly on speed gen 2 box serial csv format
+# 2/2/2019 Christopher Jones
+from __future__ import print_function
+from _input import Input
+from lib import hud_utils
+import serial
+import struct
+from lib import hud_text
+import time
+
+class serial_flyonspeed2efisdata(Input):
+    def __init__(self):
+        self.name = "FlyOnSpeed2EfisOut"
+        self.version = 1.0
+        self.inputtype = "serial"
+
+    def initInput(self,aircraft):
+        Input.initInput( self, aircraft )  # call parent init Input.
+        
+        if aircraft.demoMode:
+            # if in demo mode then load example data file.
+            self.ser = open("lib/inputs/_example_data/flyonspeed2efisdata_data1.csv", "r") 
+        else:
+            self.efis_data_format = hud_utils.readConfig("DataInput", "format", "none")
+            self.efis_data_port = hud_utils.readConfig("DataInput", "port", "/dev/ttyS0")
+            self.efis_data_baudrate = hud_utils.readConfigInt(
+                "DataInput", "baudrate", 115200
+            )
+
+            # open serial connection.
+            self.ser = serial.Serial(
+                port=self.efis_data_port,
+                baudrate=self.efis_data_baudrate,
+                parity=serial.PARITY_NONE,
+                stopbits=serial.STOPBITS_ONE,
+                bytesize=serial.EIGHTBITS,
+                timeout=1,
+            )
+
+    # close this data input 
+    def closeInput(self,aircraft):
+        if aircraft.demoMode:
+            self.ser.close()
+        else:
+            self.ser.close()
+
+    #############################################
+    ## Function: readMessage
+    def readMessage(self, aircraft):
+        if aircraft.errorFoundNeedToExit:
+            return aircraft;
+        try:
+            x = 0
+            msg = ""
+            while x != 10:  # wait for CR (10) because this is the end of line of csv file.
+                t = self.ser.read(1)
+                if len(t) != 0:
+                    x = ord(t)
+                    msg += t
+                    #print(t)
+                else:
+                    if aircraft.demoMode:  # if no bytes read and in demo mode.  then reset the file pointer to the start of the file.
+                        self.ser.seek(0)
+                    return aircraft
+            msgArray = msg.split(",")  # split up csv format
+            if len(msgArray) == 23:  # should be 23 different values. if not then we didn't get a good line.
+
+                aircraft.msg_last = msg
+                # format for csv file from gen 2 box is:
+                # 0         1    2            3   4           5       6    7   8             9        10 11 12 13      14        15       16           17            18              19       20      21      22              
+                # timeStamp,Pfwd,PfwdSmoothed,P45,P45Smoothed,PStatic,Palt,IAS,AngleofAttack,flapsPos,Ax,Ay,Az,efisIAS,efisPitch,efisRoll,efisLateralG,efisVerticalG,efisPercentLift,efisPalt,efisVSI,efisAge,efisTime
+
+                if True:
+                    
+                    aircraft.ias = float(msgArray[13])  
+                    aircraft.pitch = float(msgArray[14])  
+                    aircraft.roll = float(msgArray[15])  
+
+                    aircraft.aoa = float(msgArray[18]) # aoa percent of lift.
+
+                    aircraft.BALT = int(msgArray[19]) 
+
+                    aircraft.vsi = int(msgArray[20]) 
+                    aircraft.msg_count += 1
+
+                    if aircraft.demoMode:  #if demo mode then add a delay.  Else reading a file is way to fast.
+                        time.sleep(.05)
+                    else:
+                        self.ser.flushInput()  # flush the serial after every message else we see delays
+                    return aircraft
+                else:
+                    aircraft.msg_unknown += 1 # unknown message found.
+
+            else:
+                aircraft.msg_bad += 1 # count this as a bad message
+                if aircraft.demoMode:  #if demo mode then add a delay.  Else reading a file is way to fast.
+                    time.sleep(.01)
+                else:
+                    self.ser.flushInput()  # flush the serial after every message else we see delays
+                return aircraft
+        except ValueError as ex:
+            print("flyonspeed2efisdata data conversion error")
+            aircraft.errorFoundNeedToExit = True
+        except serial.serialutil.SerialException:
+            print("flyonspeed2efisdata serial exception")
+            aircraft.errorFoundNeedToExit = True
+        return aircraft
+
+
+
+    #############################################
+    ## Function: printTextModeData
+    def printTextModeData(self, aircraft):
+        hud_text.print_header("Decoded data from Input Module: %s"%(self.name))
+        hud_text.print_object(aircraft)
+        hud_text.print_DoneWithPage()
+
+# vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

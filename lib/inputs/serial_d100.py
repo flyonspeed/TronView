@@ -66,13 +66,13 @@ class serial_d100(Input):
             if len(msg) == 51:
                 msg = (msg[:51]) if len(msg) > 51 else msg
                 aircraft.msg_last = msg
-                # 8b      4b    5b   3b  4b   5b   4b        3b        3b         2b   6b         2b          2s  
-                timechunk,pitch,roll,yaw,IAS, Alt, TurnRate, LatAccel, VertAccel, AOA, StatusBit, InteralUse, Checksum = struct.unpack(
+                # 8b      4b    5b   3b  4b   5b   4b        3b        3b         2b   6b                2b          2s  
+                timechunk,pitch,roll,yaw,IAS, Alt, TurnRate, LatAccel, VertAccel, AOA, StatusBitMaskHex, InteralUse, Checksum = struct.unpack(
                     "8s4s5s3s4s5s4s3s3s2s6s2s2s", msg
                 )
 
                 if True:
-                    aircraft.sys_time_string = timechunk
+                    aircraft.sys_time_string = StatusBitMaskHex
                     aircraft.roll = int(roll) * 0.1
                     aircraft.pitch = int(pitch) * 0.1
                     aircraft.ias = int(IAS) * 0.224  # airspeed in units of 1/10 m/s (1555 = 155.5 m/s) convert to MPH
@@ -82,9 +82,17 @@ class serial_d100(Input):
                     #aircraft.baro = (int(Baro) + 2750.0) / 100   # no baro for D100 data.
                     #aircraft.baro_diff = aircraft.baro - 29.921
                     #aircraft.alt = int( int(Alt) + (aircraft.baro_diff / 0.00108) )  # 0.00108 of inches of mercury change per foot.
-                    aircraft.BALT = int(Alt) * 3.28084 # convert meters to feet.
+                    
+                    # check status if bit 1 is 0.. then.
+                    statusInt = int(StatusBitMaskHex, 16)  # convert hex-ascii to int value
+                    if statusInt & 1 == 0:
+                        aircraft.alt = int(Alt) * 3.28084 # convert meters to feet.
+                        aircraft.turn_rate = int(TurnRate) * 10
+                    else:
+                        aircraft.BALT = int(Alt) * 3.28084 # convert meters to feet.
+                        aircraft.vsi = int(TurnRate) * 10   # vert speed for D100 data
+                    
 
-                    #aircraft.vsi = int(VertSpd) * 10   # no vert speed for D100 data.
                     aircraft.msg_count += 1
 
                     if aircraft.demoMode:  #if demo mode then add a delay.  Else reading a file is way to fast.
@@ -104,6 +112,7 @@ class serial_d100(Input):
                 return aircraft
         except ValueError as ex:
             print("dynon data conversion error")
+            print(ex)
             aircraft.errorFoundNeedToExit = True
         except serial.serialutil.SerialException:
             print("dynon serial exception")

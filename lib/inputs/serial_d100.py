@@ -72,7 +72,7 @@ class serial_d100(Input):
                 )
 
                 if True:
-                    aircraft.sys_time_string = StatusBitMaskHex
+                    aircraft.sys_time_string = timechunk
                     aircraft.roll = int(roll) * 0.1
                     aircraft.pitch = int(pitch) * 0.1
                     aircraft.ias = int(IAS) * 0.224  # airspeed in units of 1/10 m/s (1555 = 155.5 m/s) convert to MPH
@@ -90,7 +90,7 @@ class serial_d100(Input):
                         aircraft.turn_rate = int(TurnRate) * 10
                     else:
                         aircraft.BALT = int(Alt) * 3.28084 # convert meters to feet.
-                        aircraft.vsi = int(TurnRate) * 10   # vert speed for D100 data
+                        aircraft.vsi = int(TurnRate)  # vert speed for D100 data
                     
 
                     aircraft.msg_count += 1

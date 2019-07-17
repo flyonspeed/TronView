@@ -360,6 +360,11 @@ class F18_HUD_CJv1(Screen):
             # baro setting
             label = self.myfont.render("%0.2fin" % aircraft.baro, 1, (255, 255, 0))
             self.pygamescreen.blit(label, (self.width - 75, self.heightCenter - 40))
+
+            # show time string
+            label = self.myfont.render("%sz" % aircraft.sys_time_string, 1, (255, 255, 0))
+            self.pygamescreen.blit(label, (self.width - 75, self.heightCenter - 20))
+
             # VSI
             if aircraft.vsi < 0:
                 label = self.myfont.render("%d" % aircraft.vsi, 1, (255, 255, 0))

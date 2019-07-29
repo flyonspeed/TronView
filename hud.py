@@ -52,8 +52,15 @@ def main_graphical():
                     loadScreen(hud_utils.findScreen("current"))
                 elif event.key == pygame.K_t:
                     aircraft.textMode = True # switch to text mode?
+                elif event.key == pygame.K_m:
+                    pygame.mouse.set_visible(True)
                 else:
                     CurrentScreen.processEvent(event)  # send this key command to the hud screen object
+            # Mouse MAPPINGS
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mx, my = pygame.mouse.get_pos()
+                print("mouse %d x %d"%(mx,my))
+
 
         # main draw loop.. clear screen then draw frame from current screen object.
         FPS = clock.get_fps()

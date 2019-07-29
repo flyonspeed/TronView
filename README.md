@@ -21,7 +21,7 @@ Following install guide if you need help.  https://www.raspberrypi.org/documenta
 
 Setup your serial input using the GPIO pins on pi zero.  This page will help you. https://www.instructables.com/id/Read-and-write-from-serial-port-with-Raspberry-Pi/
 
-## Steps to get the HUD software running
+## Steps to get the HUD software running on raspberry pi
 
 1) WIFI and autologin. You’ll want to get the pi on your wifi network so it can download the latest source.  Here are some instructions online that might help.  https://www.raspberrypi.org/documentation/configuration/wireless/wireless-cli.md
 
@@ -94,29 +94,11 @@ Run the command with no arguments and it will show you which input modules and s
 
 `sudo python hud.py`
 
-## How to auto run hud on start up
+## More help on raspberry pi.
 
-For making the hud automatically run when the raspberry pi boots up you will want to do the following.  (There are a few methods for doing this, but this one of the simplest)
+Here are more instructions on setting up for raspberry pi.
 
-Run the following from the command line. This will let you edit the crontab file.  Crontab is a tool that lets you run programs automatically at different times.  In this case we just want it to run the hud with the pi first boots up.
-
-`sudo crontab -e`
-
-When you do this the first time you may be asked which editor you want to use to edit cron.  Choose your favorite sword.
-
-If you choose nano as your crontab editor.  Then hit cntrl-x and it will ask you if you want to save.  hit y to save.
-
-Then add this next line to the top of the file.
-
-`@reboot cd /home/pi/efis_to_hud/ &&  python hud.py`
-
-Notice that this assumes you have installed the hud application in the efis_to_hud directory.  If you put it somewhere else then change this.
-
-You can also pass different arguments to the hud.py script. For example if you want it to start in demo mode when it boots up.
-
-`@reboot cd /home/pi/efis_to_hud/ &&  python hud.py -i serial_mgl -c MGL_V5.bin`
-
-If you don't pass arguments it will try to use the hud.cfg file configuration on startup.  How to use this file is described later in this document.
+https://github.com/dinglewanker/efis_to_hud/blob/master/docs/rpi_setup.md
 
 ## DefaultScreen
 

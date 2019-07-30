@@ -82,7 +82,7 @@ class serial_d100(Input):
                     #aircraft.baro = (int(Baro) + 2750.0) / 100   # no baro for D100 data.
                     #aircraft.baro_diff = aircraft.baro - 29.921
                     #aircraft.alt = int( int(Alt) + (aircraft.baro_diff / 0.00108) )  # 0.00108 of inches of mercury change per foot.
-                    aircraft.slip_skid = float(LatAccel) / 100  # slip skid 00 to 99, lateral g’s in units of 1/100 g (99 = 0.99 g’s).
+                    aircraft.slip_skid = float(LatAccel) / 100  # slip skid 00 to 99, lateral g's in units of 1/100 g (99 = 0.99 g's).
                     # check status if bit 1 is 0.. then.
                     statusInt = int(StatusBitMaskHex, 16)  # convert hex-ascii to int value
                     if statusInt & 1 == 0:

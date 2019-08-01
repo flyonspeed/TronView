@@ -33,8 +33,13 @@ def initDisplay(debug):
         if not found:
             raise Exception("No video driver found.  Exiting.")
 
-        size = pygame.display.Info().current_w, pygame.display.Info().current_h
-        screen = pygame.display.set_mode(size, pygame.FULLSCREEN)
+        if sys.platform.startswith('win'):
+            size = 640, 480
+            screen = pygame.display.set_mode(size, pygame.RESIZABLE)
+        
+        else:
+            size = pygame.display.Info().current_w, pygame.display.Info().current_h
+            screen = pygame.display.set_mode(size, pygame.FULLSCREEN)
 
     return screen, size
 

@@ -6,7 +6,10 @@ import importlib
 
 #############################################
 ## Function: readConfig
-def readConfig(section, name, defaultValue=0, show_error=True):
+# load hud.cfg file if it exists.
+configParser = ConfigParser.RawConfigParser()
+configParser.read("hud.cfg")
+def readConfig(section, name, defaultValue=0, show_error=False):
     global configParser
     try:
         value = configParser.get(section, name)
@@ -57,7 +60,7 @@ def showArgs():
     if os.path.isfile("hud.cfg") == False:
         print(" hud.cfg not found (default values will be used)")
     else:
-        screen = readConfig("Hud", "screen", "Not Set")
+        screen = readConfig("HUD", "screen", "Not Set")
         inputsource = readConfig("DataInput", "inputsource", "Not Set")
         print("-------------")
         print("hud.cfg FOUND")

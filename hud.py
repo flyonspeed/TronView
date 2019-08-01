@@ -168,12 +168,8 @@ def loadScreen(ScreenNameToLoad):
 #############################################
 # Hud start code.
 #
-
-# load hud.cfg file if it exists.
-configParser = ConfigParser.RawConfigParser()
-configParser.read("hud.cfg")
 aircraft = aircraft.Aircraft()
-ScreenNameToLoad = hud_utils.readConfig("Hud", "screen", "DefaultScreen")  # default screen to load
+ScreenNameToLoad = hud_utils.readConfig("HUD", "screen", "DefaultScreen")  # default screen to load
 DataInputToLoad = hud_utils.readConfig("DataInput", "inputsource", "none")  # input method
 
 # check args passed in.

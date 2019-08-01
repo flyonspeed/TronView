@@ -23,6 +23,8 @@ from lib import hud_graphics
 from lib import hud_utils
 from lib import hud_text
 from lib import aircraft
+from lib.util.virtualKeyboard import VirtualKeyboard
+from lib.util import drawTimer
 
 #############################################
 ## Function: main
@@ -32,6 +34,7 @@ def main_graphical():
     # init common things.
     maxframerate = hud_utils.readConfigInt("HUD", "maxframerate", 15)
     clock = pygame.time.Clock()
+    pygame.time.set_timer(pygame.USEREVENT, 1000) # fire User events ever sec.
 
     ##########################################
     # Main graphics draw loop
@@ -54,21 +57,44 @@ def main_graphical():
                     aircraft.textMode = True # switch to text mode?
                 elif event.key == pygame.K_m:
                     pygame.mouse.set_visible(True)
+                elif event.key == pygame.K_k:
+                    vkey = VirtualKeyboard(pygamescreen) # create a virtual keyboard
+                    vkey.run("test")
+                elif event.key == pygame.K_z:
+                    screenTimer.addNotice("hello",1000)
                 else:
                     CurrentScreen.processEvent(event)  # send this key command to the hud screen object
-            # Mouse MAPPINGS
+            # Mouse Mappings (not droppings)
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mx, my = pygame.mouse.get_pos()
                 print("mouse %d x %d"%(mx,my))
-
+                drawTimer.addGrowlNotice("touch %dx%d"%(mx,my),3000,drawTimer.blue,6)
+                drawTimer.addCustomDraw(drawMouseBox,1000)
+            # User event
+            #if event.type == pygame.USEREVENT:
+                #print("user event")
+                
 
         # main draw loop.. clear screen then draw frame from current screen object.
         FPS = clock.get_fps()
         CurrentScreen.clearScreen()
         CurrentScreen.draw(aircraft, FPS)  # draw method for current screen object
+        drawTimer.processAllDrawTimers(pygamescreen) # process / remove / draw any active drawTimers...
+
+        #now make pygame update display.
+        pygame.display.update()
+
+
     # once exists main loop, close down pygame. and exit.
     pygame.quit()
     pygame.display.quit()
+
+
+def drawMouseBox():
+    global pygamescreen
+    x, y = pygame.mouse.get_pos()
+    padding = 15
+    pygame.draw.rect(pygamescreen, (drawTimer.red), (x-padding,y-padding,padding*2,padding*2),0)
 
 #############################################
 # Text mode Main loop
@@ -122,7 +148,7 @@ class threadReadKeyboard(threading.Thread):
 ## Function: loadScreen
 # load screen module name.  And init screen with screen size.
 def loadScreen(ScreenNameToLoad):
-    global CurrentScreen
+    global CurrentScreen, pygamescreen
     print("Loading screen module: %s"%(ScreenNameToLoad))
     module = ".%s" % (ScreenNameToLoad)
     mod = importlib.import_module(
@@ -135,7 +161,8 @@ def loadScreen(ScreenNameToLoad):
     pygame.mouse.set_visible(False)  # hide the mouse
     CurrentScreen.initDisplay(
         pygamescreen, width, height
-    )  # tell the screen we are about to start.    
+    )  # tell the screen we are about to start. 
+    drawTimer.addGrowlNotice(ScreenNameToLoad,3000,drawTimer.nerd_yellow) 
 
 #############################################
 #############################################
@@ -175,6 +202,7 @@ if __name__ == "__main__":
         if opt == "-s":
             ScreenNameToLoad = arg
     if DataInputToLoad == "none":
+        print("No inputsource given")
         hud_utils.showArgs()
 
     # Check and load input source
@@ -188,7 +216,6 @@ if __name__ == "__main__":
     class_ = getattr(mod, DataInputToLoad)
     CurrentInput = class_()
     CurrentInput.initInput(aircraft)
-
     # check and load screen module. (if not starting in text mode)
     if not aircraft.textMode:
         if hud_utils.findScreen(ScreenNameToLoad) == False:
@@ -196,6 +223,7 @@ if __name__ == "__main__":
             hud_utils.findScreen() # show available screens
             sys.exit()
         loadScreen(ScreenNameToLoad) # load and init screen
+        drawTimer.addGrowlNotice("Datasource: %s"%(DataInputToLoad),3000,drawTimer.green,3)
 
     thread1 = myThreadEfisInputReader()  # start thread for reading efis input.
     thread1.start()

@@ -6,7 +6,7 @@ import importlib
 
 #############################################
 ## Function: readConfig
-def readConfig(section, name, defaultValue=0, show_error=False):
+def readConfig(section, name, defaultValue=0, show_error=True):
     global configParser
     try:
         value = configParser.get(section, name)
@@ -14,6 +14,7 @@ def readConfig(section, name, defaultValue=0, show_error=False):
     except Exception as e:
         if show_error == True:
             print("config error section: ", section, " key:", name, " -- not found")
+            print(e)
         return defaultValue
     else:
         return defaultValue

@@ -29,8 +29,7 @@ class DefaultScreen(Screen):
         self.MainColor = (0, 255, 0)  # main color of hud graphics
         self.pxy_div = 60 # Y axis number of pixels per degree divisor
 
-        # called once for setuping up the screen
-
+    # called once for setuping up the screen
     def initDisplay(self, pygamescreen, width, height):
         Screen.initDisplay(
             self, pygamescreen, width, height
@@ -54,8 +53,7 @@ class DefaultScreen(Screen):
             "monospace", 30
         )  # ie. baro and VSI
 
-        # called every redraw for the screen
-
+    # called every redraw for the screen
     def draw(self, aircraft, FPS):
         # draw horz lines
         hud_graphics.hud_draw_horz_lines(
@@ -223,16 +221,12 @@ class DefaultScreen(Screen):
                 1,
             )
 
-        pygame.display.flip()
-        # print Screen.name
 
-        # called before screen draw.  To clear the screen to your favorite color.
-
+    # called before screen draw.  To clear the screen to your favorite color.
     def clearScreen(self):
         self.ahrs_bg.fill((0, 0, 0))  # clear screen
 
-        # handle key events
-
+    # handle key events
     def processEvent(self, event):
         if event.key == pygame.K_d:
             self.show_debug = not self.show_debug

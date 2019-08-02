@@ -70,8 +70,8 @@ class serial_skyview(Input):
                 dataType, DataVer, SysTime, pitch, roll, HeadingMAG, IAS, PresAlt, TurnRate, LatAccel, VertAccel, AOA, VertSpd, OAT, TAS, Baro, DA, WD, WS, Checksum, CRLF = struct.unpack(
                     "cc8s4s5s3s4s6s4s3s3s2s4s3s4s3s6s3s2s2s2s", msg
                 )
-                # if ord(CRLF[0]) == 13:
-                if dataType == "1" and ord(CRLF[0]) == 13:  # AHRS message
+
+                if dataType == "1" and ord(CRLF[0]) == 10:  # AHRS message
                     aircraft.sys_time_string = SysTime
                     aircraft.roll = int(roll) * 0.1
                     aircraft.pitch = int(pitch) * 0.1
@@ -116,7 +116,7 @@ class serial_skyview(Input):
                         self.ser.flushInput()  # flush the serial after every message else we see delays
                     return aircraft
 
-                elif dataType == "2" and ord(CRLF[0]) == 13: #Dynon System message (nav,AP, etc)
+                elif dataType == "2" and ord(CRLF[0]) == 13 or 10: #Dynon System message (nav,AP, etc)
 
                     if aircraft.demoMode:  #if demo mode then add a delay.  Else reading a file is way to fast.
                         time.sleep(.05)
@@ -124,7 +124,7 @@ class serial_skyview(Input):
                         self.ser.flushInput()  # flush the serial after every message else we see delays
                     return aircraft
 
-                elif dataType == "3" and ord(CRLF[0]) == 13: #Engine data message
+                elif dataType == "3" and ord(CRLF[0]) == 13 or 10: #Engine data message
 
                     if aircraft.demoMode:  #if demo mode then add a delay.  Else reading a file is way to fast.
                         time.sleep(.05)

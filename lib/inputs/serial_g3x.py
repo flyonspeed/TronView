@@ -81,7 +81,8 @@ class serial_g3x(Input):
                             UTCYear, UTCMonth, UTCDay, UTCHour, UTCMin, UTCSec, LatHemi, LatDeg, LatMin, LonHemi, LonDeg, LonMin, PosStat, HPE, GPSAlt, EWVelDir, EWVelmag, NSVelDir, NSVelmag, VVelDir, VVelmag, CRLF = struct.unpack(
                                 "2s2s2s2s2s2sc2s5sc3s5sc3s6sc4sc4sc4s2s", msg
                             )
-                            if ord(CRLF[0]) == 13:
+
+                            if ord(CRLF[0]) == 13 or 10:
                                 aircraft.msg_count += 1
                                 aircraft.gps.LatHemi = LatHemi  # North or South
                                 aircraft.gps.LatDeg = int(LatDeg)
@@ -118,6 +119,7 @@ class serial_g3x(Input):
 
                             else:
                                 aircraft.msg_bad += 1
+
                 else:
                     if (
                         aircraft.demoMode
@@ -135,7 +137,7 @@ class serial_g3x(Input):
                     SentVer, UTCHour, UTCMin, UTCSec, UTCSecFrac, Pitch, Roll, Heading, Airspeed, PressAlt, RateofTurn, LatAcc, VertAcc, AOA, VertSpeed, OAT, AltSet, Checksum, CRLF = struct.unpack(
                         "c2s2s2s2s4s5s3s4s6s4s3s3s2s4s3s3s2s2s", msg
                     )
-                    if SentVer == "1" and ord(CRLF[0]) == 13:
+                    if SentVer == "1" and ord(CRLF[0]) == 13 or 10:
                         aircraft.roll = int(Roll) * 0.1
                         aircraft.pitch = int(Pitch) * 0.1
                         aircraft.ias = int(Airspeed) * 0.1
@@ -189,7 +191,7 @@ class serial_g3x(Input):
                     SentVer, UTCHour, UTCMin, UTCSec, UTCSecFrac, HeightAGL, Checksum, CRLF = struct.unpack(
                         "c2s2s2s2s3s2s2s", msg
                     )
-                    if SentVer == "1" and ord(CRLF[0]) == 13:
+                    if SentVer == "1" and ord(CRLF[0]) == 13 or 10:
                         aircraft.agl = int(HeightAGL) * 100
                         aircraft.msg_count += 1
                     else:

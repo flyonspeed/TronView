@@ -2,7 +2,7 @@
 
 Follow this install guide to get Windows configured properly to enable HUD project development on Windows without requiring an actual Raspberry pi for development.
 
-1- First install Python 2.7.16 or later.  Install the 32 bit version: 
+1- First install Python 2.7.16 or later (do not install the 3.x version).  Install the 32 bit version: 
   
   https://www.python.org/ftp/python/2.7.16/python-2.7.16.msi
 

@@ -24,4 +24,6 @@ Follow this install guide to get Windows configured properly to enable HUD proje
   
 Now it should be possible to follow the normal HUD project directions to run the HUD project within Windows.  You will not need to run the setup.sh script or perform any of the steps required to configure the Raspberry pi since you are using Windows instead.  Be aware of some of the differences in development/running Python in Windows vs Linux.  Example: You don't need to put "sudo" in front of commands in Windows.
 
-
+NOTE:
+In order to run the HUD project on Windows, you will need to use the option hud.cfg file to configure the serial port to use with Windows.  You must select a serial port that is available and not in use.  Find the ports by opening the Windows Device Manager and expanding the 
+Ports (COM & LPT) menu item.  Enter the proper COM port selection in the hud.cfg file ie: COM1, COM2, COM6, COM? etc.

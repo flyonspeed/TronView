@@ -27,8 +27,10 @@ lastTextY = 0
 #############################################
 ## Function to clear text screen.
 def print_Clear():
-    os.system("clear")
-
+    if sys.platform.startswith('win'):
+        os.system('cls')  # on windows
+    else:
+        os.system("clear")  # on Linux / os X
 
 #############################################
 ## Function for letting print now you are done with printing everything on the page.

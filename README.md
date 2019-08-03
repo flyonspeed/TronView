@@ -196,7 +196,7 @@ center_circle = 2
 # input source of data. These modules are located in lib/inputs.  currently supprt 'serial_mgl' or 'serial_skyview'
 inputsource = serial_mgl
 
-# port name for serial input. Default is /dev/ttyS0
+# port name for serial input. Default is /dev/ttyS0, for Windows you need to know the COM port you want to use ie: COM1, COM2, etc.
 port = /dev/ttyS0 
 
 # baud rate. Default is 115200

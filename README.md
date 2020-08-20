@@ -1,6 +1,9 @@
 # efis_to_hud
 Project for connecting efis/flight data to a HUD or 2nd screen.  
 
+This is a python application that will take in data from different input sources, process them into a common format, then output (draw) them to custom screens (HUD or efis style).  The system is created to have the inputs and screens seperate and non-dependent of each other.  For example a user running a MGL iEFIS can run the same HUD screen as a user with a Dynon D100.  Issues can come up with a input source does not have all the data available as other input sources do.  But if the screen is written well enough it will hide or show data if it's available.
+
+
 Currently supports:
 
 MGL iEFIS
@@ -13,6 +16,8 @@ Dynon D10/100
 
 
 We are using the rapberry pi zero w for taking serial data from a EFIS (MGL,Dynon,G3x) and displaying a graphical HUD out the hdmi output on the pi.  This is plugged into a HUD device like the Hudly Classic.  Any sort of HDMI screen could be hooked to the Pi for displaying this flight data.
+
+Code is written in Python 2.7 and the Pygame module for handling the graphics.
 
 Get raspbian-stretch-lite SD image for pi. Latest can be gotten here.
 https://downloads.raspberrypi.org/raspbian_lite_latest
@@ -35,7 +40,7 @@ Enter the command `sudo raspi-config` Scroll down to Boot Options and select Con
 
 3) clone the source from github
 
-`git clone https://github.com/dinglewanker/efis_to_hud.git`
+`git clone https://github.com/flyonspeed/efis_to_hud.git`
 
 this will ask for username/email password from github.
 
@@ -98,7 +103,7 @@ Run the command with no arguments and it will show you which input modules and s
 
 Here are more instructions on setting up for raspberry pi.
 
-https://github.com/dinglewanker/efis_to_hud/blob/master/docs/rpi_setup.md
+https://github.com/flyonspeed/efis_to_hud/blob/master/docs/rpi_setup.md
 
 ## DefaultScreen
 

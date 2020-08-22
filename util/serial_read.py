@@ -407,7 +407,10 @@ for opt, arg in opts:
 if readType == "none":
     showArgs()
 
-os.system("clear")
+if sys.platform.startswith('win'):
+    os.system('cls')  # on windows
+else:
+    os.system("clear")  # on Linux / os X
 print_xy(
     1,
     0,

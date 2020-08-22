@@ -124,8 +124,9 @@ class serial_d100(Input):
     #############################################
     ## Function: printTextModeData
     def printTextModeData(self, aircraft):
-        hud_text.print_header("Decoded data from Input Module: %s"%(self.name))
+        hud_text.print_header("Decoded data from Input Module: %s" % (self.name))
         hud_text.print_object(aircraft)
+        hud_text.print_object(aircraft.gps)
         hud_text.print_DoneWithPage()
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

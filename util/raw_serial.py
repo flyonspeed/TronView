@@ -40,8 +40,10 @@ def readMessage(showBin):
     except serial.serialutil.SerialException:
         print("exception")
 
-
-os.system("clear")
+if sys.platform.startswith('win'):
+    os.system('cls')  # on windows
+else:
+    os.system("clear")  # on Linux / os X
 argv = sys.argv[1:]
 showBin = 0
 try:

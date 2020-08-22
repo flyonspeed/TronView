@@ -100,12 +100,13 @@ def drawMouseBox():
 # Text mode Main loop
 def main_text_mode():
     global aircraft
+    hud_text.print_Clear()
     threadKey = threadReadKeyboard() # read keyboard input for text mode using curses
     threadKey.start()
-
-    hud_text.print_Clear()
     while not aircraft.errorFoundNeedToExit and aircraft.textMode:
+
         CurrentInput.printTextModeData(aircraft)
+
 
 #############################################
 ## Class: myThreadEfisInputReader

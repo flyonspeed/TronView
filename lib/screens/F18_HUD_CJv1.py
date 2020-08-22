@@ -421,7 +421,7 @@ class F18_HUD_CJv1(Screen):
                     10,
                     0,
                 )
-		pygame.draw.line(
+            pygame.draw.line(
                 self.pygamescreen,
                 (255, 255, 255),
                 (self.width / 2 + 63, self.heightCenter + 179),

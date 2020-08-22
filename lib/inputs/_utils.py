@@ -17,6 +17,14 @@ def ias2tas(ias, oat, palt):
     
     return tas
 
+
+def is_number(s):
+    try:
+        float(s)
+        return True
+    except ValueError:
+        return False
+
 #############################################
 ## Function: geomag By: Brian Chesteen 
 ## Called Module By: Christopher Weiss cmweiss@gmail.com

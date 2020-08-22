@@ -141,11 +141,14 @@ class serial_g3x(Input):
                         aircraft.ias = int(Airspeed) * 0.1
                         aircraft.PALT = int(PressAlt)
                         aircraft.oat = int(OAT)
-                        aircraft.aoa = int(AOA)
-                        self.readings1.append(aircraft.aoa)
-                        aircraft.aoa = mean(
-                            self.readings1
-                        )  # Moving average to smooth a bit
+                        if _utils.is_number(AOA) == True:
+                            aircraft.aoa = int(AOA)
+                            self.readings1.append(aircraft.aoa)
+                            aircraft.aoa = mean(
+                                self.readings1
+                            )  # Moving average to smooth a bit
+                        else:
+                            aircraft.aoa = 0
                         if len(self.readings1) == self.max_samples1:
                             self.readings1.pop(0)
                         aircraft.mag_head = int(Heading)

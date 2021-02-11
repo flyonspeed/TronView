@@ -19,6 +19,11 @@ We are using the rapberry pi zero w for taking serial data from a EFIS (MGL,Dyno
 
 Code is written in Python 2.7 and the Pygame module for handling the graphics.
 
+You can run this code in either raspbian full or lite.
+
+Raspbian full install contains the xwindow desktop system.  The lite version does not.
+Efis2Hud supports both versions.
+
 Get raspbian-stretch-lite SD image for pi. Latest can be gotten here.
 https://downloads.raspberrypi.org/raspbian_lite_latest
 
@@ -60,7 +65,23 @@ then to run the script type
 
 `reboot`
 
-6) run the serial_read.py script to confirm data being sent is correct.
+6) Test the hud/efis screen with existing example data.  
+run the following.  First make sure you are in the efis_hud dir.
+
+`cd efis_hud`
+
+Then run the python script and use the example data for dynon d100.
+
+`sudo python hud.py -i serial_d100 -e`
+
+You should see a basic hud on the screen.  And it slowy moving around.  
+If not then your video setup maybe be F'd up.  
+
+To exit you hit "q" on the keyboard.
+
+
+7a) Next if you want to run live serial data from your efis.
+run the serial_read.py script to confirm data being sent is correct.
 go into efis_hud dir then type
 
 `cd efis_hud`
@@ -73,13 +94,13 @@ make sure the data is coming through and looks good.
 
 to exit hit cntrl-c
 
-7) run hud
+7b) run hud
 
 Note:  You have to run using sudo in order to get access to serial port.
 
 Example:
 
-`sudo python hud.py -i serial_mgl -s ReallyBigHud`
+`sudo python hud.py -i serial_mgl`
 
 will show you command line arguments.
 
@@ -87,7 +108,7 @@ will show you command line arguments.
 
 load a input module for where to get the air data from. 
 
--s {screen module name to load} (located in the lib/screens folder)
+-s (optional) {screen module name to load} (located in the lib/screens folder)
 
 -t (optional) will let you see the data in text mode
 
@@ -122,6 +143,8 @@ a - show alt/airspeed tape (work in progress)
 l - adjust line thickness
 
 c - center circle mode
+
+f - show frame rate at bottom.
 
 PAGE UP - jump to next screen
 

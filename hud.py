@@ -32,7 +32,7 @@ from lib.util import drawTimer
 def main_graphical():
     global aircraft
     # init common things.
-    maxframerate = hud_utils.readConfigInt("HUD", "maxframerate", 15)
+    maxframerate = hud_utils.readConfigInt("HUD", "maxframerate", 30)
     clock = pygame.time.Clock()
     pygame.time.set_timer(pygame.USEREVENT, 1000) # fire User events ever sec.
 
@@ -59,7 +59,7 @@ def main_graphical():
                     pygame.mouse.set_visible(True)
                 elif event.key == pygame.K_k:
                     vkey = VirtualKeyboard(pygamescreen) # create a virtual keyboard
-                    vkey.run("test")
+                    #vkey.run("test")
                 elif event.key == pygame.K_z:
                     screenTimer.addNotice("hello",1000)
                 else:
@@ -67,7 +67,7 @@ def main_graphical():
             # Mouse Mappings (not droppings)
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mx, my = pygame.mouse.get_pos()
-                print("mouse %d x %d"%(mx,my))
+                #print("mouse %d x %d"%(mx,my))
                 drawTimer.addGrowlNotice("touch %dx%d"%(mx,my),3000,drawTimer.blue,6)
                 drawTimer.addCustomDraw(drawMouseBox,1000)
             # User event

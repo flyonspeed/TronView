@@ -9,12 +9,12 @@ from operator import add
 def initDisplay(debug):
     pygame.init()
     disp_no = os.getenv("DISPLAY")
+    print("sys.platform:%s"%(sys.platform))
     if disp_no:
-        # if False:
+        # assume we are in xdisplay.  Go full screen with no frame.
         print("default to XDisplay {0}".format(disp_no))
-        size = 640, 480
-        # size = 320, 240
-        screen = pygame.display.set_mode(size)
+        size = pygame.display.Info().current_w, pygame.display.Info().current_h
+        screen = pygame.display.set_mode((0,0), pygame.NOFRAME)
     else:
         drivers = ["directfb", "fbcon", "svgalib"]
         found = False
@@ -36,7 +36,6 @@ def initDisplay(debug):
         if sys.platform.startswith('win'):
             size = 640, 480
             screen = pygame.display.set_mode(size, pygame.RESIZABLE)
-        
         else:
             size = pygame.display.Info().current_w, pygame.display.Info().current_h
             screen = pygame.display.set_mode(size, pygame.FULLSCREEN)

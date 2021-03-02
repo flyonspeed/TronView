@@ -16,7 +16,7 @@ def readConfig(section, name, defaultValue=0, show_error=False):
         return value
     except Exception as e:
         if show_error == True:
-            print("config error section: ", section, " key:", name, " -- not found")
+            print("config value not set section: ", section, " key:", name, " -- not found")
             print(e)
         return defaultValue
     else:

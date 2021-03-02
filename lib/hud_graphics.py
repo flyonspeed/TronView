@@ -3,6 +3,7 @@
 import math, os, sys, random
 import argparse, pygame
 from operator import add
+import hud_utils
 
 #############################################
 ## Function: initDisplay
@@ -13,8 +14,13 @@ def initDisplay(debug):
     if disp_no:
         # assume we are in xdisplay.  Go full screen with no frame.
         print("default to XDisplay {0}".format(disp_no))
-        size = pygame.display.Info().current_w, pygame.display.Info().current_h
-        screen = pygame.display.set_mode((0,0), pygame.NOFRAME)
+        inWindow = hud_utils.readConfig("HUD", "window", "false")  # default screen to load
+        if inWindow == "true":
+            size = 640, 480
+            screen = pygame.display.set_mode(size)
+        else:
+            size = pygame.display.Info().current_w, pygame.display.Info().current_h
+            screen = pygame.display.set_mode((0,0), pygame.NOFRAME)
     else:
         drivers = ["directfb", "fbcon", "svgalib"]
         found = False

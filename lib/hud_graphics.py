@@ -3,17 +3,17 @@
 import math, os, sys, random
 import argparse, pygame
 from operator import add
-import hud_utils
+from . import hud_utils
 
 #############################################
 ## Function: initDisplay
 def initDisplay(debug):
     pygame.init()
     disp_no = os.getenv("DISPLAY")
-    print("sys.platform:%s"%(sys.platform))
+    print(("sys.platform:%s"%(sys.platform)))
     if disp_no:
         # assume we are in xdisplay.  Go full screen with no frame.
-        print("default to XDisplay {0}".format(disp_no))
+        print(("default to XDisplay {0}".format(disp_no)))
         inWindow = hud_utils.readConfig("HUD", "window", "false")  # default screen to load
         if inWindow == "true":
             size = 640, 480
@@ -30,7 +30,7 @@ def initDisplay(debug):
             try:
                 pygame.display.init()
             except pygame.error:
-                print("Driver: {0} failed.".format(driver))
+                print(("Driver: {0} failed.".format(driver)))
                 continue
 
             found = True
@@ -136,9 +136,9 @@ def hud_draw_dashed_line(surf, color, start_pos, end_pos, width=1, dash_length=1
     target = Point(end_pos)
     displacement = target - origin
     length = len(displacement)
-    slope = displacement / length
+    slope = Point((displacement.x / length, displacement.y/length))
 
-    for index in range(0, length / dash_length, 2):
+    for index in range(0, length // dash_length, 2):
         start = origin + (slope * index * dash_length)
         end = origin + (slope * (index + 1) * dash_length)
         pygame.draw.line(surf, color, start.get(), end.get(), width)
@@ -237,8 +237,74 @@ def hud_draw_horz_lines(
             top = int(line_coords[1][1]) - text_height / 2
             surface.blit(text, (left, top))
 
-    top_left = (
-        -(surface.get_width() - width) / 2,
-        -(surface.get_height() - height) / 2,
+        # draw center circle.
+        hud_draw_circle(
+                 surface,
+                 color,
+                 ahrs_center,
+                 15,
+                 1,
+             )
+
+
+def hud_draw_circle(pygamescreen,color,center,radius,width):
+    pygame.draw.circle(
+        pygamescreen,
+        color,
+        (int(center[0]),int(center[1])),
+        radius,
+        width,
     )
-    pygamescreen.blit(surface, top_left)
+
+def hud_draw_debug(aircraft,hudsettings,font):
+    # render debug text
+    label = font.render("pitch: %d" % (aircraft.pitch), 1, (255, 255, 0))
+    hudsettings.pygamescreen.blit(label, (hudsettings.x_start, hudsettings.y_start))
+    label = font.render("Roll: %d" % (aircraft.roll), 1, (255, 255, 0))
+    hudsettings.pygamescreen.blit(label, (hudsettings.x_start, hudsettings.y_start+20))
+    label = font.render(
+        "IAS: %d  VSI: %d" % (aircraft.ias, aircraft.vsi), 1, (255, 255, 0)
+    )
+    hudsettings.pygamescreen.blit(label, (hudsettings.x_start, hudsettings.y_start+40))
+    label = font.render(
+        "Alt: %d  PresALT:%d  BaroAlt:%d   AGL: %d"
+        % (aircraft.alt, aircraft.PALT, aircraft.BALT, aircraft.agl),
+        1,
+        (255, 255, 0),
+    )
+    hudsettings.pygamescreen.blit(label, (hudsettings.x_start, hudsettings.y_start+60))
+    if aircraft.aoa != None:
+        label = font.render("AOA: %d" % (aircraft.aoa), 1, (255, 255, 0))
+        hudsettings.pygamescreen.blit(label, (hudsettings.x_start, hudsettings.y_start+80))
+    else:
+        label = font.render("AOA: NA", 1, (255, 255, 0))
+        hudsettings.pygamescreen.blit(label, (hudsettings.x_start, hudsettings.y_start+80))
+    # Mag heading
+    label = font.render(
+        "MagHead: %d  TrueTrack: %d" % (aircraft.mag_head, aircraft.gndtrack),
+        1,
+        (255, 255, 0),
+    )
+    hudsettings.pygamescreen.blit(label, (hudsettings.x_start, hudsettings.y_start+100))
+    label = font.render(
+        "Baro: %0.2f diff: %0.4f" % (aircraft.baro, aircraft.baro_diff),
+        1,
+        (20, 255, 0),
+    )
+    hudsettings.pygamescreen.blit(label, (hudsettings.x_start, hudsettings.y_start+120))
+
+    label = font.render(
+        "size: %d,%d" % (hudsettings.width, hudsettings.height), 1, (20, 255, 0)
+    )
+    hudsettings.pygamescreen.blit(label, (hudsettings.x_start+70, hudsettings.y_start))
+
+    label = font.render(
+        "msgcount: %d" % (aircraft.msg_count), 1, (20, 255, 0)
+    )
+    hudsettings.pygamescreen.blit(label, (hudsettings.x_start+200, hudsettings.y_start))
+
+    label = font.render(
+        "%0.2f FPS" % (aircraft.fps), 1, (20, 255, 0)
+    )
+    hudsettings.pygamescreen.blit(label, (hudsettings.x_start+hudsettings.width/2 - 55, hudsettings.y_start+hudsettings.height - 25))
+

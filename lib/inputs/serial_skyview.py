@@ -3,8 +3,8 @@
 # Serial input source
 # Skyview
 # 1/23/2019 Christopher Jones
-from __future__ import print_function
-from _input import Input
+
+from ._input import Input
 from lib import hud_utils
 import math, sys
 import serial
@@ -17,6 +17,7 @@ class serial_skyview(Input):
         self.name = "skyview"
         self.version = 1.0
         self.inputtype = "serial"
+        self.EOL = 10
 
     def initInput(self,aircraft):
         Input.initInput( self, aircraft )  # call parent init Input.
@@ -40,6 +41,11 @@ class serial_skyview(Input):
                 bytesize=serial.EIGHTBITS,
                 timeout=1,
             )
+
+        #if sys.platform.startswith('win'):
+        #    self.EOL = 10
+        #else:
+        #    self.EOL = 13
 
     # close this data input 
     def closeInput(self,aircraft):
@@ -68,14 +74,10 @@ class serial_skyview(Input):
                 msg = (msg[:73]) if len(msg) > 73 else msg
                 aircraft.msg_last = msg
                 dataType, DataVer, SysTime, pitch, roll, HeadingMAG, IAS, PresAlt, TurnRate, LatAccel, VertAccel, AOA, VertSpd, OAT, TAS, Baro, DA, WD, WS, Checksum, CRLF = struct.unpack(
-                    "cc8s4s5s3s4s6s4s3s3s2s4s3s4s3s6s3s2s2s2s", msg
+                    "cc8s4s5s3s4s6s4s3s3s2s4s3s4s3s6s3s2s2s2s", str.encode(msg)
                 )
-                EOL = 0
-                if sys.platform.startswith('win'):
-                    EOL = 10
-                else:
-                    EOL = 13
-                if dataType == "1" and ord(CRLF[0]) == EOL:  # AHRS message
+                dataType = int(dataType)
+                if dataType == 1 and CRLF[0] == self.EOL:  # AHRS message
                     aircraft.sys_time_string = SysTime
                     aircraft.roll = int(roll) * 0.1
                     aircraft.pitch = int(pitch) * 0.1
@@ -120,7 +122,7 @@ class serial_skyview(Input):
                         self.ser.flushInput()  # flush the serial after every message else we see delays
                     return aircraft
 
-                elif dataType == "2" and ord(CRLF[0]) == EOL: #Dynon System message (nav,AP, etc)
+                elif dataType == 2 and CRLF[0] == self.EOL: #Dynon System message (nav,AP, etc)
 
                     if aircraft.demoMode:  #if demo mode then add a delay.  Else reading a file is way to fast.
                         time.sleep(.05)
@@ -128,7 +130,7 @@ class serial_skyview(Input):
                         self.ser.flushInput()  # flush the serial after every message else we see delays
                     return aircraft
 
-                elif dataType == "3" and ord(CRLF[0]) == EOL: #Engine data message
+                elif dataType == 3 and CRLF[0] == self.EOL: #Engine data message
 
                     if aircraft.demoMode:  #if demo mode then add a delay.  Else reading a file is way to fast.
                         time.sleep(.05)

@@ -3,7 +3,7 @@
 ###########################################
 ## HSI Module by Brian Chesteen. 02/08/2019
 
-from __future__ import print_function
+
 import pygame
 import math
 

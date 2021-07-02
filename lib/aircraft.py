@@ -47,7 +47,7 @@ class Aircraft(object):
         self.demoFile = ""
         self.textMode = False
         self.show_FPS = False #show screen refresh rate in frames per second for performance tuning
-
+        self.fps = 0
 
 
 #############################################

@@ -5,7 +5,7 @@
 # Example of a really big hud
 # Christopher Jones 2019.
 
-from _screen import Screen
+from ._screen import Screen
 from .. import hud_graphics
 from lib import hud_utils
 import pygame
@@ -23,7 +23,7 @@ class ReallyBigHud(Screen):
         self.line_thickness = hud_utils.readConfigInt("HUD", "line_thickness", 5)
         self.center_circle_mode = hud_utils.readConfigInt("HUD", "center_circle", 2)
         self.ahrs_line_deg = hud_utils.readConfigInt("HUD", "vertical_degrees", 15)
-        print("ahrs_line_deg = %d"%(self.ahrs_line_deg))
+        print(("ahrs_line_deg = %d"%(self.ahrs_line_deg)))
         self.MainColor = (0, 255, 0)  # main color of hud graphics
         self.pxy_div = 60 # Y axis number of pixels per degree divisor
 
@@ -31,7 +31,7 @@ class ReallyBigHud(Screen):
         Screen.initDisplay(
             self, pygamescreen, width, height
         )  # call parent init screen.
-        print("Init Screen: %s %dx%d"%(self.name,self.width,self.height))
+        print(("Init Screen: %s %dx%d"%(self.name,self.width,self.height)))
 
         self.ahrs_bg = pygame.Surface((self.width * 2, self.height * 2))
         self.ahrs_bg_width = self.ahrs_bg.get_width()

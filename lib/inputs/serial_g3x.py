@@ -4,12 +4,12 @@
 # Garmin G3X
 # 01/30/2019 Brian Chesteen, credit to Christopher Jones for developing template for input modules.
 
-from __future__ import print_function
-from _input import Input
+
+from ._input import Input
 from lib import hud_utils
 from lib import hud_text
 from lib import geomag
-import _utils
+from . import _utils
 import serial
 import struct
 import math, sys
@@ -27,6 +27,7 @@ class serial_g3x(Input):
         self.max_samples = 10
         self.readings1 = []
         self.max_samples1 = 20
+        self.EOL = 10
 
     def initInput(self, aircraft):
         Input.initInput(self, aircraft)  # call parent init Input.
@@ -51,6 +52,13 @@ class serial_g3x(Input):
                 bytesize=serial.EIGHTBITS,
                 timeout=1,
             )
+
+        # check for system platform??
+        #if sys.platform.startswith('win'):
+        #    self.EOL = 10
+        #else:
+        #    self.EOL = 13
+
 
     # close this input source
     def closeInput(self, aircraft):
@@ -79,14 +87,9 @@ class serial_g3x(Input):
                         if len(msg) == 56:
                             msg = (msg[:56]) if len(msg) > 56 else msg
                             UTCYear, UTCMonth, UTCDay, UTCHour, UTCMin, UTCSec, LatHemi, LatDeg, LatMin, LonHemi, LonDeg, LonMin, PosStat, HPE, GPSAlt, EWVelDir, EWVelmag, NSVelDir, NSVelmag, VVelDir, VVelmag, CRLF = struct.unpack(
-                                "2s2s2s2s2s2sc2s5sc3s5sc3s6sc4sc4sc4s2s", msg
+                                "2s2s2s2s2s2sc2s5sc3s5sc3s6sc4sc4sc4s2s", str.encode(msg)
                             )
-                            EOL = 0
-                            if sys.platform.startswith('win'):
-                                EOL = 10
-                            else:
-                                EOL = 13
-                            if ord(CRLF[0]) == EOL:
+                            if CRLF[0] == self.EOL:
                                 aircraft.msg_count += 1
                                 aircraft.gps.LatHemi = LatHemi  # North or South
                                 aircraft.gps.LatDeg = int(LatDeg)
@@ -139,14 +142,9 @@ class serial_g3x(Input):
                 if len(msg) == 57:
                     msg = (msg[:57]) if len(msg) > 57 else msg
                     SentVer, UTCHour, UTCMin, UTCSec, UTCSecFrac, Pitch, Roll, Heading, Airspeed, PressAlt, RateofTurn, LatAcc, VertAcc, AOA, VertSpeed, OAT, AltSet, Checksum, CRLF = struct.unpack(
-                        "c2s2s2s2s4s5s3s4s6s4s3s3s2s4s3s3s2s2s", msg
+                        "c2s2s2s2s4s5s3s4s6s4s3s3s2s4s3s3s2s2s", str.encode(msg)
                     )
-                    EOL = 0
-                    if sys.platform.startswith('win'):
-                        EOL = 10
-                    else:
-                        EOL = 13
-                    if SentVer == "1" and ord(CRLF[0]) == EOL:
+                    if int(SentVer) == 1 and CRLF[0] == self.EOL:
                         aircraft.roll = int(Roll) * 0.1
                         aircraft.pitch = int(Pitch) * 0.1
                         aircraft.ias = int(Airspeed) * 0.1
@@ -195,20 +193,15 @@ class serial_g3x(Input):
                 else:
                     aircraft.msg_bad += 1
 
-            elif SentID == "7":  # GPS AGL data message
+            elif int(SentID) == 7:  # GPS AGL data message
                 msg = self.ser.read(16)
                 aircraft.msg_last = msg
                 if len(msg) == 16:
                     msg = (msg[:16]) if len(msg) > 16 else msg
                     SentVer, UTCHour, UTCMin, UTCSec, UTCSecFrac, HeightAGL, Checksum, CRLF = struct.unpack(
-                        "c2s2s2s2s3s2s2s", msg
+                        "c2s2s2s2s3s2s2s", str.encode(msg)
                     )
-                    EOL = 0
-                    if sys.platform.startswith('win'):
-                        EOL = 10
-                    else:
-                        EOL = 13                    
-                    if SentVer == "1" and ord(CRLF[0]) == EOL:
+                    if int(SentVer) == 1 and CRLF[0] == self.EOL:
                         aircraft.agl = int(HeightAGL) * 100
                         aircraft.msg_count += 1
                     else:

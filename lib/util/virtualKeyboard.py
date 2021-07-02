@@ -39,8 +39,8 @@
 import pygame, time
 from pygame.locals import *
 
-from string import maketrans
-Uppercase = maketrans("abcdefghijklmnopqrstuvwxyz`1234567890-=[]\;\',./",
+#from string import maketrans
+Uppercase = str.maketrans("abcdefghijklmnopqrstuvwxyz`1234567890-=[]\;\',./",
   'ABCDEFGHIJKLMNOPQRSTUVWXYZ~!@#$%^&*()_+{}|:"<>?')
 
 #_keyWidth = 27 # default key width including borders
@@ -105,7 +105,7 @@ class VirtualKeyboard():
         while True:
             time.sleep(0.1) # 10/second is often enough
             events = pygame.event.get() 
-            if events <> None:
+            if events != None:
                 for e in events:
 # touch screen does not have these events...
 #                    if (e.type == KEYDOWN):

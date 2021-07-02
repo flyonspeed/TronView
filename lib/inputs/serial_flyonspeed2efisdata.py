@@ -3,8 +3,8 @@
 # Serial input source
 # Fly on speed gen 2 box serial csv format
 # 2/2/2019 Christopher Jones
-from __future__ import print_function
-from _input import Input
+
+from ._input import Input
 from lib import hud_utils
 import serial
 import struct

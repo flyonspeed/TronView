@@ -5,7 +5,7 @@
 # On Speed HUD
 # Christopher Jones 2019.
 
-from _screen import Screen
+from ._screen import Screen
 from .. import hud_graphics
 from lib import hud_utils
 import pygame
@@ -24,7 +24,7 @@ class OnSpeed(Screen):
         Screen.initDisplay(
             self, pygamescreen, width, height
         )  # call parent init screen.
-        print("Init Screen: %s %dx%d"%(self.name,self.width,self.height))
+        print(("Init Screen: %s %dx%d"%(self.name,self.width,self.height)))
 
         self.ahrs_bg = pygame.Surface((self.width * 2, self.height * 2))
         self.ahrs_bg_width = self.ahrs_bg.get_width()

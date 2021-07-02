@@ -6,9 +6,11 @@
 # for example MyHud.py would have a class name of MyHud in it.
 # Christopher Jones 2019.
 
-from _screen import Screen
+from ._screen import Screen
 from .. import hud_graphics
 from lib import hud_utils
+from lib import smartdisplay
+from lib import drawpos
 import pygame
 
 
@@ -18,14 +20,14 @@ class DefaultScreen(Screen):
         Screen.__init__(self)
         self.name = "Default Hud Screen"  # set name for this screen
         self.ahrs_bg = 0
-        self.show_debug = True  # default off
+        self.show_debug = False  # default off
         self.show_FPS = False #show screen refresh rate in frames per second for performance tuning
         self.line_mode = hud_utils.readConfigInt("HUD", "line_mode", 1)
         self.alt_box_mode = 1  # default on
         self.line_thickness = hud_utils.readConfigInt("HUD", "line_thickness", 2)
         self.center_circle_mode = hud_utils.readConfigInt("HUD", "center_circle", 2)
         self.ahrs_line_deg = hud_utils.readConfigInt("HUD", "vertical_degrees", 15)
-        print("ahrs_line_deg = %d"%(self.ahrs_line_deg))
+        print(("ahrs_line_deg = %d"%(self.ahrs_line_deg)))
         self.MainColor = (0, 255, 0)  # main color of hud graphics
         self.pxy_div = 60 # Y axis number of pixels per degree divisor
 
@@ -34,9 +36,10 @@ class DefaultScreen(Screen):
         Screen.initDisplay(
             self, pygamescreen, width, height
         )  # call parent init screen.
-        print("Init Screen: %s %dx%d"%(self.name,self.width,self.height))
-
-        self.ahrs_bg = pygame.Surface((self.width * 2, self.height * 2))
+        print(("Init Screen: %s %dx%d"%(self.name,self.width,self.height)))
+        self.x_start = 0;
+        self.y_start = 0;
+        self.ahrs_bg = pygame.Surface((self.width, self.height))
         self.ahrs_bg_width = self.ahrs_bg.get_width()
         self.ahrs_bg_height = self.ahrs_bg.get_height()
         self.ahrs_bg_center = (self.ahrs_bg_width / 2, self.ahrs_bg_height / 2)
@@ -52,9 +55,27 @@ class DefaultScreen(Screen):
         self.fontIndicatorSmaller = pygame.font.SysFont(
             "monospace", 30
         )  # ie. baro and VSI
+        print(("surface : %dx%d"%(self.ahrs_bg.get_width(),self.ahrs_bg.get_height())))
+
+    # set drawable area for screen
+    def setDrawableArea(self,x_start,y_start,x_end,y_end):
+        print(("Setting drawable offset: %d,%d to %d,%d"%(x_start,y_start,x_end,y_end)))
+        self.x_start = x_start
+        self.y_start = y_start
+        self.width = x_end - x_start
+        self.height = y_end - y_start
+        self.widthCenter = (self.width / 2) 
+        self.heightCenter = (self.height / 2) 
+        print(("New screen width/height: %d,%d"%(self.width,self.height)))
+        print(("center x/y: %d,%d"%(self.widthCenter,self.heightCenter)))
+        #self.ahrs_bg = pygame.Surface((self.width, self.height))
+        #self.ahrs_bg_width = self.ahrs_bg.get_width()
+        #self.ahrs_bg_height = self.ahrs_bg.get_height()
+        #self.ahrs_bg_center = (self.ahrs_bg_width / 2, self.ahrs_bg_height / 2)
+
 
     # called every redraw for the screen
-    def draw(self, aircraft, FPS):
+    def draw(self, aircraft, smartdisplay):
         # draw horz lines
         hud_graphics.hud_draw_horz_lines(
             self.pygamescreen,
@@ -69,158 +90,60 @@ class DefaultScreen(Screen):
             self.line_mode,
             self.font,
             self.pxy_div,
-        )
+        )        
+        self.pygamescreen.blit(self.ahrs_bg, (-0,-0))
 
-        # render debug text
         if self.show_debug:
-            label = self.myfont.render("Pitch: %d" % (aircraft.pitch), 1, (255, 255, 0))
-            self.pygamescreen.blit(label, (0, 0))
-            label = self.myfont.render("Roll: %d" % (aircraft.roll), 1, (255, 255, 0))
-            self.pygamescreen.blit(label, (0, 20))
-            label = self.myfont.render(
-                "IAS: %d  VSI: %d" % (aircraft.ias, aircraft.vsi), 1, (255, 255, 0)
-            )
-            self.pygamescreen.blit(label, (0, 40))
-            label = self.myfont.render(
-                "Alt: %d  PresALT:%d  BaroAlt:%d   AGL: %d"
-                % (aircraft.alt, aircraft.PALT, aircraft.BALT, aircraft.agl),
-                1,
-                (255, 255, 0),
-            )
-            self.pygamescreen.blit(label, (0, 60))
-            if aircraft.aoa != None:
-                label = self.myfont.render("AOA: %d" % (aircraft.aoa), 1, (255, 255, 0))
-                self.pygamescreen.blit(label, (0, 80))
-            label = self.myfont.render(
-                "MagHead: %d  TrueTrack: %d" % (aircraft.mag_head, aircraft.gndtrack),
-                1,
-                (255, 255, 0),
-            )
-            self.pygamescreen.blit(label, (0, 100))
-            label = self.myfont.render(
-                "Baro: %0.2f diff: %0.4f" % (aircraft.baro, aircraft.baro_diff),
-                1,
-                (20, 255, 0),
-            )
-            self.pygamescreen.blit(label, (0, 120))
-
-            label = self.myfont.render(
-                "size: %d,%d" % (self.width, self.height), 1, (20, 255, 0)
-            )
-            self.pygamescreen.blit(label, (70, 0))
-            label = self.myfont.render(
-                "surface: %d,%d" % (self.ahrs_bg_width, self.ahrs_bg_width),
-                1,
-                (20, 255, 0),
-            )
-            self.pygamescreen.blit(label, (70, 20))
-            label = self.myfont.render(
-                "msgcount: %d" % (aircraft.msg_count), 1, (20, 255, 0)
-            )
-            self.pygamescreen.blit(label, (200, 0))
-
-        if self.show_FPS:
-            label = self.myfont.render(
-                "%0.2f FPS" % (FPS), 1, (20, 255, 0)
-            )
-            self.pygamescreen.blit(label, (self.width/2 - 55, self.height - 25))
+            hud_graphics.hud_draw_debug(aircraft,smartdisplay,self.myfont)
 
 
         if self.alt_box_mode:
             # IAS
-            hud_graphics.hud_draw_box_text(
-                self.pygamescreen,
+            smartdisplay.draw_box_text(
+                drawpos.DrawPos.LEFT_MID,
                 self.fontIndicator,
                 "%d" % (aircraft.ias),
                 (255, 255, 0),
-                0,
-                self.heightCenter,
                 100,
                 35,
                 self.MainColor,
-                1,
-            )
+                1)
             # ALT
-            hud_graphics.hud_draw_box_text(
-                self.pygamescreen,
+            smartdisplay.draw_box_text(
+                drawpos.DrawPos.RIGHT_MID,
                 self.fontIndicator,
                 "%d" % (aircraft.BALT),
                 (255, 255, 0),
-                self.width - 100,
-                self.heightCenter,
                 100,
                 35,
                 self.MainColor,
-                1,
-            )
+                1)
 
             # baro setting
-            label = self.fontIndicatorSmaller.render(
-                "%0.2f" % (aircraft.baro), 1, (255, 255, 0)
-            )
-            self.pygamescreen.blit(label, (self.width - 50, (self.heightCenter) + 35))
+            smartdisplay.draw_text(drawpos.DrawPos.RIGHT_MID_DOWN, self.fontIndicatorSmaller, "%0.2f" % (aircraft.baro), (255, 255, 0))
+            
             # VSI
             if aircraft.vsi < 0:
-                label = self.fontIndicatorSmaller.render(
-                    "%d" % (aircraft.vsi), 1, (255, 255, 0)
-                )
+                smartdisplay.draw_text(drawpos.DrawPos.RIGHT_MID_UP, self.fontIndicatorSmaller, "%d" % (aircraft.vsi), (255, 255, 0))
             else:
-                label = self.fontIndicatorSmaller.render(
-                    "+%d" % (aircraft.vsi), 1, (255, 255, 0)
-                )
-            self.pygamescreen.blit(label, (self.width - 50, (self.heightCenter) - 25))
+                smartdisplay.draw_text(drawpos.DrawPos.RIGHT_MID_UP, self.fontIndicatorSmaller, "+%d" % (aircraft.vsi), (255, 255, 0))
+
             # True aispeed
-            label = self.fontIndicatorSmaller.render(
-                "TAS %d" % (aircraft.tas), 1, (255, 255, 0)
-            )
-            self.pygamescreen.blit(label, (25, (self.heightCenter) - 25))
+            smartdisplay.draw_text(drawpos.DrawPos.LEFT_MID_UP, self.fontIndicatorSmaller, "TAS %d" % (aircraft.tas), (255, 255, 0))
+
             # Ground speed
-            label = self.fontIndicatorSmaller.render(
-                "GS %d" % (aircraft.gndspeed), 1, (255, 255, 0)
-            )
-            self.pygamescreen.blit(label, (25, (self.heightCenter) + 35))
+            smartdisplay.draw_text(drawpos.DrawPos.LEFT_MID_DOWN, self.fontIndicatorSmaller, "GS %d" % (aircraft.gndspeed), (255, 255, 0))
+
             # Mag heading
-            hud_graphics.hud_draw_box_text(
-                self.pygamescreen,
+            smartdisplay.draw_box_text(
+                drawpos.DrawPos.TOP_MID,
                 self.fontIndicator,
                 "%d" % (aircraft.mag_head),
                 (255, 255, 0),
-                (self.widthCenter) - 40,
-                40,
-                80,
+                70,
                 35,
                 self.MainColor,
-                1,
-            )
-
-            # pygame.draw.rect(self.pygamescreen,self.MainColor,(0,height/4,100,height/1.5),1)
-            # pygame.draw.rect(self.pygamescreen,self.MainColor,(width-100,height/4,100,height/1.5),1)
-
-        if self.center_circle_mode == 1:
-            pygame.draw.circle(
-                self.pygamescreen,
-                self.MainColor,
-                (self.widthCenter, self.heightCenter),
-                3,
-                1,
-            )
-        if self.center_circle_mode == 2:
-            pygame.draw.circle(
-                self.pygamescreen,
-                self.MainColor,
-                (self.widthCenter, self.heightCenter),
-                15,
-                1,
-            )
-        if self.center_circle_mode == 3:
-            pygame.draw.circle(
-                self.pygamescreen,
-                self.MainColor,
-                (self.widthCenter, self.heightCenter),
-                50,
-                1,
-            )
-
+                1)
 
     # called before screen draw.  To clear the screen to your favorite color.
     def clearScreen(self):
@@ -230,8 +153,6 @@ class DefaultScreen(Screen):
     def processEvent(self, event):
         if event.key == pygame.K_d:
             self.show_debug = not self.show_debug
-        if event.key == pygame.K_f:
-            self.show_FPS = not self.show_FPS #show screen refresh rate in frames per second for performance tuning
         if event.key == pygame.K_EQUALS:
             self.width = self.width + 10
         if event.key == pygame.K_MINUS:

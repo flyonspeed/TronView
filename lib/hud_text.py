@@ -57,7 +57,7 @@ def print_data(label,value):
 #############################################
 ## Function to print all object values.
 def print_object(obj):
-    for attr, value in vars(obj).items():
+    for attr, value in list(vars(obj).items()):
         print_data(attr,value)
 
 #############################################

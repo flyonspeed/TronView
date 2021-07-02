@@ -4,7 +4,7 @@
 # Skyview
 # 1/23/2019 Christopher Jones
 
-from _input import Input
+from ._input import Input
 from lib import hud_utils
 import serial
 import struct
@@ -29,7 +29,7 @@ class serial_mgl(Input):
                 #defaultTo = "mgl_G430_v6_HSI_Nedl_2degsRtt_Vert_2Degs_Up.bin"
                 #defaultTo = "mgl_G430_v7_Horz_Vert_Nedl_come to center.bin"
                 aircraft.demoFile = hud_utils.readConfig(self.name, "demofile", defaultTo)
-            self.ser = open("lib/inputs/_example_data/%s"%(aircraft.demoFile), "r")
+            self.ser = open("lib/inputs/_example_data/%s"%(aircraft.demoFile), "rb")
         else:
             self.efis_data_format = hud_utils.readConfig("DataInput", "format", "none")
             self.efis_data_port = hud_utils.readConfig("DataInput", "port", "/dev/ttyS0")

@@ -4,11 +4,11 @@
 # Custom HUD Screen by Brian Chesteen. 01/31/2019
 # Optimized for Garmin G3X System and Kivic HUD using Composite Video Output.
 # Credit for original module template goes to Christopher Jones.
-from __future__ import print_function
-from _screen import Screen
+
+from ._screen import Screen
 from .. import hud_graphics
 from lib import hud_utils
-import _hsi
+from . import _hsi
 import pygame
 
 

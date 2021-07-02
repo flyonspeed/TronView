@@ -16,13 +16,15 @@ import math, os, sys, random
 import argparse, pygame
 import time
 import threading, getopt
-import ConfigParser
+import configparser
 import importlib
 import curses
+import inspect
 from lib import hud_graphics
 from lib import hud_utils
 from lib import hud_text
 from lib import aircraft
+from lib import smartdisplay
 from lib.util.virtualKeyboard import VirtualKeyboard
 from lib.util import drawTimer
 
@@ -76,9 +78,10 @@ def main_graphical():
                 
 
         # main draw loop.. clear screen then draw frame from current screen object.
-        FPS = clock.get_fps()
+        aircraft.fps = clock.get_fps();
         CurrentScreen.clearScreen()
-        CurrentScreen.draw(aircraft, FPS)  # draw method for current screen object
+        smartdisplay.blit_loop_reset()
+        CurrentScreen.draw(aircraft,smartdisplay)  # draw method for current screen object
         drawTimer.processAllDrawTimers(pygamescreen) # process / remove / draw any active drawTimers...
 
         #now make pygame update display.
@@ -143,14 +146,14 @@ class threadReadKeyboard(threading.Thread):
             #elif key==339: #page up
             #elif key==338: #page up
             else:
-                print("Key: %d \r\n"%(key))
+                print(("Key: %d \r\n"%(key)))
 
 #############################################
 ## Function: loadScreen
 # load screen module name.  And init screen with screen size.
 def loadScreen(ScreenNameToLoad):
     global CurrentScreen, pygamescreen
-    print("Loading screen module: %s"%(ScreenNameToLoad))
+    print(("Loading screen module: %s"%(ScreenNameToLoad)))
     module = ".%s" % (ScreenNameToLoad)
     mod = importlib.import_module(
         module, "lib.screens"
@@ -163,6 +166,18 @@ def loadScreen(ScreenNameToLoad):
     CurrentScreen.initDisplay(
         pygamescreen, width, height
     )  # tell the screen we are about to start. 
+    smartdisplay.setPyGameScreen(pygamescreen)
+    drawableAreaString = hud_utils.readConfig("HUD", "drawable_area", "")
+    if len(drawableAreaString)>0:
+        print(("Found drawable area: %s"%(drawableAreaString)))
+        area = drawableAreaString.split(",")
+        try:
+            smartdisplay.setDrawableArea(int(area[0]),int(area[1]),int(area[2]),int(area[3]))
+        except AttributeError:
+            print("No drawable function to set")
+    else:
+        smartdisplay.setDrawableArea(0,0,width,height) # else set full screen as drawable area.
+    # show notice of the screen name we are loading.
     drawTimer.addGrowlNotice(ScreenNameToLoad,3000,drawTimer.nerd_yellow) 
 
 #############################################
@@ -170,6 +185,7 @@ def loadScreen(ScreenNameToLoad):
 # Hud start code.
 #
 aircraft = aircraft.Aircraft()
+smartdisplay = smartdisplay.SmartDisplay()
 ScreenNameToLoad = hud_utils.readConfig("HUD", "screen", "DefaultScreen")  # default screen to load
 DataInputToLoad = hud_utils.readConfig("DataInput", "inputsource", "none")  # input method
 
@@ -204,10 +220,10 @@ if __name__ == "__main__":
 
     # Check and load input source
     if hud_utils.findInput(DataInputToLoad) == False:
-        print("Input module not found: %s"%(DataInputToLoad))
+        print(("Input module not found: %s"%(DataInputToLoad)))
         hud_utils.findInput() # show available inputs
         sys.exit()
-    print("Input data module: %s"%(DataInputToLoad))
+    print(("Input data module: %s"%(DataInputToLoad)))
     module = ".%s" % (DataInputToLoad)
     mod = importlib.import_module(module, "lib.inputs")  # dynamically load class
     class_ = getattr(mod, DataInputToLoad)
@@ -216,7 +232,7 @@ if __name__ == "__main__":
     # check and load screen module. (if not starting in text mode)
     if not aircraft.textMode:
         if hud_utils.findScreen(ScreenNameToLoad) == False:
-            print("Screen module not found: %s"%(ScreenNameToLoad))
+            print(("Screen module not found: %s"%(ScreenNameToLoad)))
             hud_utils.findScreen() # show available screens
             sys.exit()
         loadScreen(ScreenNameToLoad) # load and init screen

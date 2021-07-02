@@ -24,7 +24,7 @@ class Screen:
         self.heightCenter = height / 2
 
     def processEvent(self, event):
-        print("processing Event %s" % (event.key))
+        print(("processing Event %s" % (event.key)))
 
     def draw(self, aircraft):
         print("parent")

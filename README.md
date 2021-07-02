@@ -1,6 +1,9 @@
 # efis_to_hud
 Project for connecting efis/flight data to a HUD or 2nd screen.  
 
+![hud_animation](https://github.com/flyonspeed/efis_to_hud/blob/master/docs/hud_animated_example.gif?raw=true)
+
+
 This is a python application that will take in data from different input sources, process them into a common format, then output (draw) them to custom screens (HUD or efis style).  The system is created to have the inputs and screens seperate and non-dependent of each other.  For example a user running a MGL iEFIS can run the same HUD screen as a user with a Dynon D100.  Issues can come up with a input source does not have all the data available as other input sources do.  But if the screen is written well enough it will hide or show data if it's available.
 
 
@@ -17,7 +20,7 @@ Dynon D10/100
 
 We are using the rapberry pi zero w for taking serial data from a EFIS (MGL,Dynon,G3x) and displaying a graphical HUD out the hdmi output on the pi.  This is plugged into a HUD device like the Hudly Classic.  Any sort of HDMI screen could be hooked to the Pi for displaying this flight data.
 
-Code is written in Python 2.7 and the Pygame module for handling the graphics.
+Code is written in Python 3.7 and the Pygame module for handling the graphics.
 
 You can run this code in either raspbian full or lite.
 
@@ -205,6 +208,15 @@ Here is a example hud.cfg file:
 <pre>
 
 [HUD]
+#when running in xwindows this will show hud in window.
+window=true
+
+# define the drawable area for hud to use.  Useful on displays that have hidden areas.
+# this is defined as x1,y1,x2,y2 to draw up a box of usable area.
+#
+#drawable_area=0,144,1280,624
+
+
 #how many degrees to show on the vert hud lines. 5, 10, or 15
 vertical_degrees = 10
 

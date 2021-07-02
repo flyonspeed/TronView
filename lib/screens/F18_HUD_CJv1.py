@@ -4,13 +4,13 @@
 # F18 HUD Screen by Brian Chesteen. 01/31/2019  Modified by Cecil Jones 20 May 2019
 # Optimized for Garmin G3X System and Kivic HUD using Composite Video Output.
 # Credit for original module template goes to Christopher Jones.
-from __future__ import print_function
-from _screen import Screen
+
+from ._screen import Screen
 from .. import hud_graphics
 from lib import hud_utils
 
 # import _hsi
-import _hdg
+from . import _hdg
 import pygame
 import math
 
@@ -166,7 +166,7 @@ class F18_HUD_CJv1(Screen):
             pygame.draw.line(self.roll_tick, (255, 255, 255), [x0, y0], [x1, y1], 4)
 
     # called every redraw for the screen
-    def draw(self, aircraft, FPS):
+    def draw(self, aircraft, smartdisplay):
         def mean(nums):
             return int(sum(nums)) / max(len(nums), 1)
 
@@ -174,7 +174,7 @@ class F18_HUD_CJv1(Screen):
         hud_graphics.hud_draw_horz_lines(
             self.pygamescreen,
             self.ahrs_bg,
-            self.width - 220,
+            self.width,
             self.height,
             self.ahrs_bg_center,
             self.ahrs_line_deg,
@@ -186,68 +186,14 @@ class F18_HUD_CJv1(Screen):
             self.pxy_div,
         )
 
+        self.pygamescreen.blit(self.ahrs_bg, ( -(0), -(0)))
+
         # draw mask
         self.pygamescreen.blit(self.mask, (0, 0))
         self.pygamescreen.blit(self.mask1, (100, self.heightCenter - 100))
         self.pygamescreen.blit(self.mask2, (self.width - 122, self.heightCenter - 100))
         self.pygamescreen.blit(self.mask3, (100, self.heightCenter + 40))
-
-        # render debug text
-        if self.show_debug:
-            label = self.myfont.render("Pitch: %d" % aircraft.pitch, 1, (255, 255, 0))
-            self.pygamescreen.blit(label, (0, 0))
-            label = self.myfont.render("Roll: %d" % aircraft.roll, 1, (255, 255, 0))
-            self.pygamescreen.blit(label, (0, 20))
-            label = self.myfont.render(
-                "IAS: %d  VSI: %d" % (aircraft.ias, aircraft.vsi), 1, (255, 255, 0)
-            )
-            self.pygamescreen.blit(label, (0, 40))
-            label = self.myfont.render(
-                "Alt: %d  PresALT:%d  BaroAlt:%d   AGL: %d"
-                % (aircraft.alt, aircraft.PALT, aircraft.BALT, aircraft.agl),
-                1,
-                (255, 255, 0),
-            )
-            self.pygamescreen.blit(label, (0, 60))
-            if aircraft.aoa != None:
-                label = self.myfont.render("AOA: %d" % aircraft.aoa, 1, (255, 255, 0))
-                self.pygamescreen.blit(label, (0, 80))
-            label = self.myfont.render(
-                "MagHead: %d\xb0d  GndTrack: %d\xb0"
-                % (aircraft.mag_head, aircraft.gndtrack),
-                1,
-                (255, 255, 0),
-            )
-            self.pygamescreen.blit(label, (0, 100))
-            label = self.myfont.render(
-                "Baro: %0.2f diff: %0.4f" % (aircraft.baro, aircraft.baro_diff),
-                1,
-                (255, 255, 0),
-            )
-            self.pygamescreen.blit(label, (0, 120))
-            label = self.myfont.render(
-                "size: %d,%d" % (self.width, self.height), 1, (20, 255, 0)
-            )
-            self.pygamescreen.blit(label, (0, 140))
-            label = self.myfont.render(
-                "surface: %d,%d" % (self.ahrs_bg_width, self.ahrs_bg_width),
-                1,
-                (20, 255, 0),
-            )
-            self.pygamescreen.blit(label, (0, 160))
-            label = self.myfont.render(
-                "msg_count: %d" % aircraft.msg_count, 1, (20, 255, 0)
-            )
-            self.pygamescreen.blit(label, (0, 180))
-            label = self.myfont.render(
-                "clock: %s" % aircraft.sys_time_string, 1, (20, 255, 0)
-            )
-            self.pygamescreen.blit(label, (0, 200))
-
-        if self.show_FPS:
-            label = self.myfont.render("%0.2f FPS" % FPS, 1, (20, 255, 0))
-            self.pygamescreen.blit(label, (self.width / 2 - 55, self.height - 25))
-
+ 
         if self.alt_box_mode:
             # IAS
             if aircraft.ias < 10:
@@ -466,28 +412,28 @@ class F18_HUD_CJv1(Screen):
 
         # AOA Indicator
         if aircraft.aoa > 0:
-            pygame.draw.circle(
+            hud_graphics.hud_draw_circle(
                 self.pygamescreen,
                 self.MainColor,
                 (self.width / 2 + 50, self.heightCenter),
                 3,
                 1,
             )
-            pygame.draw.circle(
+            hud_graphics.hud_draw_circle(
                 self.pygamescreen,
                 (255, 255, 255), 
                 (20, self.heightCenter + 50), 
                 5, 
                 0,
             )
-            pygame.draw.circle(
+            hud_graphics.hud_draw_circle(
                 self.pygamescreen, 
                 (255, 255, 255), 
                 (70, self.heightCenter + 50), 
                 5, 
                 0,
             )
-            pygame.draw.circle(
+            hud_graphics.hud_draw_circle(
                 self.pygamescreen, 
                 ( 0, 155, 79), 
                 (45, self.heightCenter), 
@@ -658,7 +604,7 @@ class F18_HUD_CJv1(Screen):
         gfpv_x = mean(self.readings1)  # Moving average to smooth a bit
         if len(self.readings1) == self.max_samples1:
             self.readings1.pop(0)
-        pygame.draw.circle(
+        hud_graphics.hud_draw_circle(
             self.pygamescreen,
             (255, 0, 255),
             (
@@ -668,7 +614,7 @@ class F18_HUD_CJv1(Screen):
             15,
             2,
         )
-        pygame.draw.circle(
+        hud_graphics.hud_draw_circle(
             self.pygamescreen,
             (255, 0, 255),
             (
@@ -760,6 +706,11 @@ class F18_HUD_CJv1(Screen):
 
         # print Screen.name
         pygame.display.flip()
+
+        # render debug text
+        if self.show_debug:
+            hud_graphics.hud_draw_debug(aircraft,smartdisplay,self.myfont)
+
 
     # called before screen draw.  To clear the screen to your favorite color.
     def clearScreen(self):

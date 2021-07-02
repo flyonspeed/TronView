@@ -3,8 +3,8 @@
 # Serial input source
 # Dynon D10 and D100
 # 2/2/2019 Christopher Jones
-from __future__ import print_function
-from _input import Input
+
+from ._input import Input
 from lib import hud_utils
 import serial
 import struct
@@ -68,7 +68,7 @@ class serial_d100(Input):
                 aircraft.msg_last = msg
                 # 8b      4b    5b   3b  4b   5b   4b        3b        3b         2b   6b                2b          2s  
                 timechunk,pitch,roll,yaw,IAS, Alt, TurnRate, LatAccel, VertAccel, AOA, StatusBitMaskHex, InteralUse, Checksum = struct.unpack(
-                    "8s4s5s3s4s5s4s3s3s2s6s2s2s", msg
+                    "8s4s5s3s4s5s4s3s3s2s6s2s2s", str.encode(msg)
                 )
 
                 if True:

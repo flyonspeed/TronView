@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 
 import math, os, sys, random
-import ConfigParser
+import configparser
 import importlib
 
 #############################################
 ## Function: readConfig
 # load hud.cfg file if it exists.
-configParser = ConfigParser.RawConfigParser()
+configParser = configparser.RawConfigParser()
 configParser.read("hud.cfg")
 def readConfig(section, name, defaultValue=0, show_error=False):
     global configParser
@@ -16,7 +16,7 @@ def readConfig(section, name, defaultValue=0, show_error=False):
         return value
     except Exception as e:
         if show_error == True:
-            print("config value not set section: ", section, " key:", name, " -- not found")
+            print(("config value not set section: ", section, " key:", name, " -- not found"))
             print(e)
         return defaultValue
     else:
@@ -64,8 +64,8 @@ def showArgs():
         inputsource = readConfig("DataInput", "inputsource", "Not Set")
         print("-------------")
         print("hud.cfg FOUND")
-        print("hud.cfg inputsource=%s"%(inputsource))
-        print("hud.cfg screen=%s"%(screen))
+        print(("hud.cfg inputsource=%s"%(inputsource)))
+        print(("hud.cfg screen=%s"%(screen)))
 
     findScreen() # Show screen modules
     findInput()  # Show input sources

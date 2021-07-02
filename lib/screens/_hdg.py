@@ -3,7 +3,7 @@
 #################################################
 ## HDG Module by Brian Chesteen. 02/08/2019
 
-from __future__ import print_function
+
 from .. import hud_graphics
 import pygame
 

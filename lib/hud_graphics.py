@@ -4,6 +4,7 @@ import math, os, sys, random
 import argparse, pygame
 from operator import add
 from . import hud_utils
+from lib import drawpos
 
 #############################################
 ## Function: initDisplay
@@ -261,55 +262,51 @@ def hud_draw_circle(pygamescreen,color,center,radius,width):
         width,
     )
 
-def hud_draw_debug(aircraft,hudsettings,font):
+def hud_draw_debug(aircraft,smartdisplay,font):
     # render debug text
     label = font.render("pitch: %d" % (aircraft.pitch), 1, (255, 255, 0))
-    hudsettings.pygamescreen.blit(label, (hudsettings.x_start, hudsettings.y_start))
+    smartdisplay.pygamescreen.blit(label, (smartdisplay.x_start, smartdisplay.y_start))
     label = font.render("Roll: %d" % (aircraft.roll), 1, (255, 255, 0))
-    hudsettings.pygamescreen.blit(label, (hudsettings.x_start, hudsettings.y_start+20))
+    smartdisplay.pygamescreen.blit(label, (smartdisplay.x_start, smartdisplay.y_start+20))
     label = font.render(
         "IAS: %d  VSI: %d" % (aircraft.ias, aircraft.vsi), 1, (255, 255, 0)
     )
-    hudsettings.pygamescreen.blit(label, (hudsettings.x_start, hudsettings.y_start+40))
+    smartdisplay.pygamescreen.blit(label, (smartdisplay.x_start, smartdisplay.y_start+40))
     label = font.render(
         "Alt: %d  PresALT:%d  BaroAlt:%d   AGL: %d"
         % (aircraft.alt, aircraft.PALT, aircraft.BALT, aircraft.agl),
         1,
         (255, 255, 0),
     )
-    hudsettings.pygamescreen.blit(label, (hudsettings.x_start, hudsettings.y_start+60))
+    smartdisplay.pygamescreen.blit(label, (smartdisplay.x_start, smartdisplay.y_start+60))
     if aircraft.aoa != None:
         label = font.render("AOA: %d" % (aircraft.aoa), 1, (255, 255, 0))
-        hudsettings.pygamescreen.blit(label, (hudsettings.x_start, hudsettings.y_start+80))
+        smartdisplay.pygamescreen.blit(label, (smartdisplay.x_start, smartdisplay.y_start+80))
     else:
         label = font.render("AOA: NA", 1, (255, 255, 0))
-        hudsettings.pygamescreen.blit(label, (hudsettings.x_start, hudsettings.y_start+80))
+        smartdisplay.pygamescreen.blit(label, (smartdisplay.x_start, smartdisplay.y_start+80))
     # Mag heading
     label = font.render(
         "MagHead: %d  TrueTrack: %d" % (aircraft.mag_head, aircraft.gndtrack),
         1,
         (255, 255, 0),
     )
-    hudsettings.pygamescreen.blit(label, (hudsettings.x_start, hudsettings.y_start+100))
+    smartdisplay.pygamescreen.blit(label, (smartdisplay.x_start, smartdisplay.y_start+100))
     label = font.render(
         "Baro: %0.2f diff: %0.4f" % (aircraft.baro, aircraft.baro_diff),
         1,
         (20, 255, 0),
     )
-    hudsettings.pygamescreen.blit(label, (hudsettings.x_start, hudsettings.y_start+120))
+    smartdisplay.pygamescreen.blit(label, (smartdisplay.x_start, smartdisplay.y_start+120))
 
     label = font.render(
-        "size: %d,%d" % (hudsettings.width, hudsettings.height), 1, (20, 255, 0)
+        "size: %d,%d" % (smartdisplay.width, smartdisplay.height), 1, (20, 255, 0)
     )
-    hudsettings.pygamescreen.blit(label, (hudsettings.x_start+70, hudsettings.y_start))
+    smartdisplay.pygamescreen.blit(label, (smartdisplay.x_start+70, smartdisplay.y_start))
 
     label = font.render(
         "msgcount: %d" % (aircraft.msg_count), 1, (20, 255, 0)
     )
-    hudsettings.pygamescreen.blit(label, (hudsettings.x_start+200, hudsettings.y_start))
+    smartdisplay.pygamescreen.blit(label, (smartdisplay.x_start+200, smartdisplay.y_start))
 
-    label = font.render(
-        "%0.2f FPS" % (aircraft.fps), 1, (20, 255, 0)
-    )
-    hudsettings.pygamescreen.blit(label, (hudsettings.x_start+hudsettings.width/2 - 55, hudsettings.y_start+hudsettings.height - 25))
-
+    smartdisplay.draw_text(drawpos.DrawPos.BOTTOM_RIGHT, font, "%0.2f FPS" % (aircraft.fps), (255, 255, 0))

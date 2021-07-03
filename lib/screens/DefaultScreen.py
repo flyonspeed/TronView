@@ -57,22 +57,6 @@ class DefaultScreen(Screen):
         )  # ie. baro and VSI
         print(("surface : %dx%d"%(self.ahrs_bg.get_width(),self.ahrs_bg.get_height())))
 
-    # set drawable area for screen
-    def setDrawableArea(self,x_start,y_start,x_end,y_end):
-        print(("Setting drawable offset: %d,%d to %d,%d"%(x_start,y_start,x_end,y_end)))
-        self.x_start = x_start
-        self.y_start = y_start
-        self.width = x_end - x_start
-        self.height = y_end - y_start
-        self.widthCenter = (self.width / 2) 
-        self.heightCenter = (self.height / 2) 
-        print(("New screen width/height: %d,%d"%(self.width,self.height)))
-        print(("center x/y: %d,%d"%(self.widthCenter,self.heightCenter)))
-        #self.ahrs_bg = pygame.Surface((self.width, self.height))
-        #self.ahrs_bg_width = self.ahrs_bg.get_width()
-        #self.ahrs_bg_height = self.ahrs_bg.get_height()
-        #self.ahrs_bg_center = (self.ahrs_bg_width / 2, self.ahrs_bg_height / 2)
-
 
     # called every redraw for the screen
     def draw(self, aircraft, smartdisplay):
@@ -107,7 +91,7 @@ class DefaultScreen(Screen):
                 100,
                 35,
                 self.MainColor,
-                1)
+                1,(0,0),2)
             # ALT
             smartdisplay.draw_box_text(
                 drawpos.DrawPos.RIGHT_MID,
@@ -117,10 +101,10 @@ class DefaultScreen(Screen):
                 100,
                 35,
                 self.MainColor,
-                1)
+                1,(0,0),2)
 
             # baro setting
-            smartdisplay.draw_text(drawpos.DrawPos.RIGHT_MID_DOWN, self.fontIndicatorSmaller, "%0.2f" % (aircraft.baro), (255, 255, 0))
+            smartdisplay.draw_text(drawpos.DrawPos.RIGHT_MID_DOWN, self.myfont, "%0.2f" % (aircraft.baro), (255, 255, 0))
             
             # VSI
             if aircraft.vsi < 0:
@@ -143,7 +127,9 @@ class DefaultScreen(Screen):
                 70,
                 35,
                 self.MainColor,
-                1)
+                1,
+                (0,0),
+                2)
 
     # called before screen draw.  To clear the screen to your favorite color.
     def clearScreen(self):

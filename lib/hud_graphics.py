@@ -12,13 +12,16 @@ def initDisplay(debug):
     disp_no = os.getenv("DISPLAY")
     print(("sys.platform:%s"%(sys.platform)))
     if disp_no:
-        # assume we are in xdisplay.  Go full screen with no frame.
+        # assume we are in xdisplay. in xwindows on linux/rpi
         print(("default to XDisplay {0}".format(disp_no)))
         inWindow = hud_utils.readConfig("HUD", "window", "false")  # default screen to load
         if inWindow == "true":
+            # if they want a windowed version..
             size = 640, 480
             screen = pygame.display.set_mode(size)
+            pygame.display.set_caption('efis')
         else:
+            # Go full screen with no frame.
             size = pygame.display.Info().current_w, pygame.display.Info().current_h
             screen = pygame.display.set_mode((0,0), pygame.NOFRAME)
     else:
@@ -39,9 +42,11 @@ def initDisplay(debug):
         if not found:
             raise Exception("No video driver found.  Exiting.")
 
-        if sys.platform.startswith('win'):
+        # check if we are in windows or macosx
+        if sys.platform.startswith('win') or sys.platform.startswith('darwin'):
             size = 640, 480
             screen = pygame.display.set_mode(size, pygame.RESIZABLE)
+            pygame.display.set_caption('efis')
         else:
             size = pygame.display.Info().current_w, pygame.display.Info().current_h
             screen = pygame.display.set_mode(size, pygame.FULLSCREEN)

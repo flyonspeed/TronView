@@ -141,7 +141,7 @@ class DefaultScreen(Screen):
 
     # called before screen draw.  To clear the screen to your favorite color.
     def clearScreen(self):
-        self.ahrs_bg.fill((0, 0, 0))  # clear screen
+        self.pygamescreen.fill((0, 0, 0))  # clear screen
 
     # handle key events
     def processEvent(self, event):

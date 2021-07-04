@@ -54,6 +54,13 @@ class ArtificalHorz(Module):
             ),
         )
 
+        smartdisplay.draw_circle(
+                 (255,255,255),
+                 (smartdisplay.widthCenter,smartdisplay.heightCenter),
+                 15,
+                 1,
+             )
+
 
 
     # called before screen draw.  To clear the screen to your favorite color.

@@ -12,6 +12,7 @@ from lib import hud_utils
 from lib import smartdisplay
 from lib import drawpos
 import pygame
+from lib.modules.efis.artificalhorz import artificalhorz
 
 
 class DefaultScreen(Screen):
@@ -57,25 +58,32 @@ class DefaultScreen(Screen):
         )  # ie. baro and VSI
         print(("surface : %dx%d"%(self.ahrs_bg.get_width(),self.ahrs_bg.get_height())))
 
+        self.ah = artificalhorz.ArtificalHorz()
+        self.ah.initMod(self.pygamescreen, self.width, self.height)
+
+
 
     # called every redraw for the screen
     def draw(self, aircraft, smartdisplay):
+
+        self.ah.draw(aircraft,smartdisplay)
+
         # draw horz lines
-        hud_graphics.hud_draw_horz_lines(
-            self.pygamescreen,
-            self.ahrs_bg,
-            self.width,
-            self.height,
-            self.ahrs_bg_center,
-            self.ahrs_line_deg,
-            aircraft,
-            self.MainColor,
-            self.line_thickness,
-            self.line_mode,
-            self.font,
-            self.pxy_div,
-        )        
-        self.pygamescreen.blit(self.ahrs_bg, (-0,-0))
+        # hud_graphics.hud_draw_horz_lines(
+        #     self.pygamescreen,
+        #     self.ahrs_bg,
+        #     self.width,
+        #     self.height,
+        #     self.ahrs_bg_center,
+        #     self.ahrs_line_deg,
+        #     aircraft,
+        #     self.MainColor,
+        #     self.line_thickness,
+        #     self.line_mode,
+        #     self.font,
+        #     self.pxy_div,
+        # )        
+        # self.pygamescreen.blit(self.ahrs_bg, (-0,-0))
 
         if self.show_debug:
             hud_graphics.hud_draw_debug(aircraft,smartdisplay,self.myfont)

@@ -209,6 +209,7 @@ def hud_draw_horz_lines(
                 width=line_thickness,
                 dash_length=5,
             )
+            # draw winglets facing up
             pygame.draw.lines(surface,
                 color,
                 False,

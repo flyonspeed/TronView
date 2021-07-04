@@ -121,7 +121,7 @@ class SmartDisplay(object):
     # drawPos = DrawPos on screen.. example drawpos.DrawPos.RIGHT_MID for right middle of display.
     # width,height of box.
     # justify: 0=left justify text, 1=right, 2= center in box.
-    def draw_box_text( self,drawAtPos, font, text, textcolor, width, height, linecolor, thickness,posAdjustment=(0,0),justify=0):
+    def draw_box_text( self, drawAtPos, font, text, textcolor, width, height, linecolor, thickness,posAdjustment=(0,0),justify=0):
         newSurface = pygame.Surface((width, height))
         label = font.render(text, 1, textcolor)
         pygame.draw.rect(newSurface, linecolor, (0, 0, width, height), thickness)
@@ -144,6 +144,15 @@ class SmartDisplay(object):
             label = font.render(text, 1, color)
             self.blit_next(label, drawAtPos, (label.get_width()/2,0))
 
+    # draw a circle.
+    def draw_circle(self,color,center,radius,width):
+        pygame.draw.circle(
+            self.pygamescreen,
+            color,
+            (int(center[0]),int(center[1])),
+            radius,
+            width,
+        )
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python
 

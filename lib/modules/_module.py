@@ -1,22 +1,22 @@
 #!/usr/bin/env python
 
-# HUD Screen praent class.
-# All hud screens should inherit from this class.
+# module parent class.
+# All modules should inherit from this class.
 
 from .. import hud_graphics
 import pygame
 
 
-class Screen:
+class Module:
     def __init__(self):
-        self.name = "HUD Screen"
-        self.screenVersion = 1.0
+        self.name = "Module"
+        self.moduleVersion = 1.0
         self.width = 640
         self.height = 480
         self.pygamescreen = 0
 
-    def initDisplay(self, pygamescreen, width, height):
-        print("init screen parent")
+    def initMod(self, pygamescreen, width, height):
+        print("init module parent")
         self.pygamescreen = pygamescreen
         self.width = width
         self.height = height
@@ -24,12 +24,12 @@ class Screen:
         self.heightCenter = height / 2
 
     def processEvent(self, event):
-        print(("processing Event %s" % (event.key)))
+        print(("processing module Event %s" % (event.key)))
 
-    def draw(self, aircraft):
-        print("parent")
+    def draw(self, aircraft, smartdisplay):
+        print("module parent")
 
-    def clearScreen(self):
+    def clear(self):
         print("Clear screen")
 
 

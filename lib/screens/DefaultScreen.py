@@ -4,7 +4,7 @@
 # Default example screen for hud system
 # To create your own hud duplicate this file and rename class DefaultScreen to your new filename (without the .py)
 # for example MyHud.py would have a class name of MyHud in it.
-# Christopher Jones 2019.
+# 7/9/2021 Topher.
 
 from ._screen import Screen
 from .. import hud_graphics
@@ -20,16 +20,9 @@ class DefaultScreen(Screen):
     def __init__(self):
         Screen.__init__(self)
         self.name = "Default"  # set name for this screen
-        self.ahrs_bg = 0
         self.show_debug = False  # default off
         self.show_hud = False
-        self.line_mode = hud_utils.readConfigInt("HUD", "line_mode", 1)
-        self.line_thickness = hud_utils.readConfigInt("HUD", "line_thickness", 2)
-        self.center_circle_mode = hud_utils.readConfigInt("HUD", "center_circle", 2)
-        self.ahrs_line_deg = hud_utils.readConfigInt("HUD", "vertical_degrees", 15)
-        print(("ahrs_line_deg = %d"%(self.ahrs_line_deg)))
         self.MainColor = (0, 255, 0)  # main color of hud graphics
-        self.pxy_div = 60 # Y axis number of pixels per degree divisor
 
     # called once for setuping up the screen
     def initDisplay(self, pygamescreen, width, height):
@@ -65,7 +58,6 @@ class DefaultScreen(Screen):
             self.hud_horizon.draw(aircraft,smartdisplay)
         else:
             self.ah.draw(aircraft,smartdisplay)
-
 
         # IAS
         smartdisplay.draw_box_text(
@@ -130,22 +122,6 @@ class DefaultScreen(Screen):
             self.show_hud = not self.show_hud
         if event.key == pygame.K_d:
             self.show_debug = not self.show_debug
-        if event.key == pygame.K_EQUALS:
-            self.width = self.width + 10
-        if event.key == pygame.K_MINUS:
-            self.width = self.width - 10
-        if event.key == pygame.K_SPACE:
-            self.line_mode = not self.line_mode
-        if event.key == pygame.K_a:
-            self.alt_box_mode = not self.alt_box_mode
-        if event.key == pygame.K_l:
-            self.line_thickness += 1
-            if self.line_thickness > 8:
-                self.line_thickness = 2
-        if event.key == pygame.K_c:
-            self.center_circle_mode += 1
-            if self.center_circle_mode > 3:
-                self.center_circle_mode = 0
 
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

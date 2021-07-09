@@ -22,7 +22,7 @@ from lib.modules.hud.wind import wind
 #from lib.modules.hud.hsi import hsi
 from lib.modules.hud.heading import heading
 
-class F18_HUD_CJv1(Screen):
+class F18_HUD(Screen):
     # called only when object is first created.
     def __init__(self):
         Screen.__init__(self)

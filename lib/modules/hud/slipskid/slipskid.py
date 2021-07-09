@@ -42,8 +42,8 @@ class SlipSkid(Module):
                 self.pygamescreen,
                 (255, 255, 255),
                 (
-                    (x + self.x_offset) - int(aircraft.slip_skid * 150),
-                    y,
+                    int(x + self.x_offset) - int(aircraft.slip_skid * 150),
+                    int(y),
                 ),
                 10,
                 0,

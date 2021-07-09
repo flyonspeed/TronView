@@ -16,6 +16,7 @@ def initDisplay(debug):
 
     if inWindow != "false":
         # if they want a windowed version..
+        size = 640, 480 # else default to 640,480
         if len(inWindow)>0:
             print(("Window size from config: %s"%(inWindow)))
             winsize = inWindow.split(",")
@@ -23,8 +24,8 @@ def initDisplay(debug):
                 size = int(winsize[0]),int(winsize[1])
             except AttributeError:
                 print("failed to set window size from config")
-        else:
-            size = 640, 480 # else default to 640,480
+            except ValueError:
+                print("")
 
     if disp_no:
         # assume we are in xdisplay. in xwindows on linux/rpi

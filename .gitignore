@@ -2,4 +2,6 @@ hud.cfg
 output.log
 output_error.log
 *.pyc
+.DS_Store
+
 

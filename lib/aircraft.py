@@ -1,28 +1,34 @@
 #!/usr/bin/env python
 
+from enum import Enum
 
 #############################################
 ## Class: Aircraft
 ## Store status and converted datat from input modules into this class for use by screens.
 ##
 class Aircraft(object):
+    # measurment data formats (static vars)
+    MPH = 0
+    KNOTS = 1
+    METERS = 2
+
     def __init__(self):
         self.sys_time_string = "" 
-        self.pitch = 0.0
-        self.roll = 0.0
-        self.ias = 0
+        self.pitch = 0.0 # degrees
+        self.roll = 0.0  # degrees
+        self.ias = 0 # in MPH
         self.tas = 0
-        self.alt = 0
+        self.alt = 0 # in Ft
         self.agl = 0
-        self.PALT = 0
-        self.BALT = 0
-        self.DA = None
-        self.aoa = 0
-        self.mag_head = 0
+        self.PALT = 0 # in ft
+        self.BALT = 0 # in ft
+        self.DA = None # in ft
+        self.aoa = 0 # percentage 0 to 100
+        self.mag_head = 0 # 0 to 360
         self.gndtrack = 0 #TODO: Move to GPSData class?
-        self.baro = 0
+        self.baro = 0 # inches of mercury
         self.baro_diff = 0
-        self.vsi = 0
+        self.vsi = 0 # ft/min
         self.gndspeed = 0 #TODO: Move to GPSData class?
         self.oat = 0
         self.vert_G = 0
@@ -49,6 +55,68 @@ class Aircraft(object):
         self.show_FPS = False #show screen refresh rate in frames per second for performance tuning
         self.fps = 0
 
+        self.data_format = 0 # 0 is ft/in
+
+    # set set measurement to use for data.
+    # 0 is US standard. (mph, ft)
+    # 1 is knots
+    # 2 is metric
+    def setDataMeasurementFormat(self,format):
+        self.data_format = format
+
+    # get IAS in converted format.
+    def get_ias(self):
+        if(self.data_format==0):
+            return self.ias # mph
+        if(self.data_format==1):
+            return self.ias * 0.8689 #knots
+        if(self.data_format==2):
+            return self.ias * 1.609 #km/h
+
+    # get IAS format description
+    def get_ias_description(self):
+        if(self.data_format==0):
+            return "mph"
+        if(self.data_format==1):
+            return "kts"
+        if(self.data_format==2):
+            return "km/h"
+
+    # get ALT in converted format.
+    def get_alt(self):
+        if(self.data_format==0):
+            return self.alt # ft
+        if(self.data_format==1):
+            return self.alt #ft
+        if(self.data_format==2):
+            return self.alt * 0.3048 #meters
+
+    # get ALT format description
+    def get_alt_description(self):
+        if(self.data_format==0):
+            return "ft"
+        if(self.data_format==1):
+            return "ft"
+        if(self.data_format==2):
+            return "m"
+
+    # get baro in converted format.
+    def get_baro(self):
+        if(self.data_format==0):
+            return self.baro # inHg
+        if(self.data_format==1):
+            return self.baro #inHg
+        if(self.data_format==2):
+            return self.baro * 33.863886666667 #mbars
+
+    # get baro format description
+    def get_baro(self):
+        if(self.data_format==0):
+            return "inHg"
+        if(self.data_format==1):
+            return "inHg"
+        if(self.data_format==2):
+            return "mbar"
 
 #############################################
 ## Class: GPSData

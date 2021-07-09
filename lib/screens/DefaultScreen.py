@@ -10,7 +10,6 @@ from ._screen import Screen
 from .. import hud_graphics
 from lib import hud_utils
 from lib import smartdisplay
-from lib import drawpos
 import pygame
 from lib.modules.efis.artificalhorz import artificalhorz
 
@@ -19,12 +18,11 @@ class DefaultScreen(Screen):
     # called only when object is first created.
     def __init__(self):
         Screen.__init__(self)
-        self.name = "Default Hud Screen"  # set name for this screen
+        self.name = "Default"  # set name for this screen
         self.ahrs_bg = 0
         self.show_debug = False  # default off
-        self.show_FPS = False #show screen refresh rate in frames per second for performance tuning
+        self.show_hud = False
         self.line_mode = hud_utils.readConfigInt("HUD", "line_mode", 1)
-        self.alt_box_mode = 1  # default on
         self.line_thickness = hud_utils.readConfigInt("HUD", "line_thickness", 2)
         self.center_circle_mode = hud_utils.readConfigInt("HUD", "center_circle", 2)
         self.ahrs_line_deg = hud_utils.readConfigInt("HUD", "vertical_degrees", 15)
@@ -38,8 +36,6 @@ class DefaultScreen(Screen):
             self, pygamescreen, width, height
         )  # call parent init screen.
         print(("Init Screen: %s %dx%d"%(self.name,self.width,self.height)))
-        self.x_start = 0;
-        self.y_start = 0;
         self.ahrs_bg = pygame.Surface((self.width, self.height))
         self.ahrs_bg_width = self.ahrs_bg.get_width()
         self.ahrs_bg_height = self.ahrs_bg.get_height()
@@ -66,78 +62,83 @@ class DefaultScreen(Screen):
     # called every redraw for the screen
     def draw(self, aircraft, smartdisplay):
 
-        self.ah.draw(aircraft,smartdisplay)
-
-        # draw horz lines
-        # hud_graphics.hud_draw_horz_lines(
-        #     self.pygamescreen,
-        #     self.ahrs_bg,
-        #     self.width,
-        #     self.height,
-        #     self.ahrs_bg_center,
-        #     self.ahrs_line_deg,
-        #     aircraft,
-        #     self.MainColor,
-        #     self.line_thickness,
-        #     self.line_mode,
-        #     self.font,
-        #     self.pxy_div,
-        # )        
-        # self.pygamescreen.blit(self.ahrs_bg, (-0,-0))
+        # draw hud of efis horizon
+        if(self.show_hud):
+            self.ahrs_bg.fill((0, 0, 0))  # clear screen
+            hud_graphics.hud_draw_horz_lines(
+                self.pygamescreen,
+                self.ahrs_bg,
+                self.width,
+                self.height,
+                self.ahrs_bg_center,
+                self.ahrs_line_deg,
+                aircraft,
+                self.MainColor,
+                self.line_thickness,
+                self.line_mode,
+                self.font,
+                self.pxy_div,
+            )        
+            self.pygamescreen.blit(self.ahrs_bg, (-0,-0))
+        else:
+            self.ah.draw(aircraft,smartdisplay)
 
         if self.show_debug:
             hud_graphics.hud_draw_debug(aircraft,smartdisplay,self.myfont)
 
 
-        if self.alt_box_mode:
-            # IAS
-            smartdisplay.draw_box_text(
-                drawpos.DrawPos.LEFT_MID,
-                self.fontIndicator,
-                "%d" % (aircraft.ias),
-                (255, 255, 0),
-                100,
-                35,
-                self.MainColor,
-                1,(0,0),2)
-            # ALT
-            smartdisplay.draw_box_text(
-                drawpos.DrawPos.RIGHT_MID,
-                self.fontIndicator,
-                "%d" % (aircraft.BALT),
-                (255, 255, 0),
-                100,
-                35,
-                self.MainColor,
-                1,(0,0),2)
+        # IAS
+        smartdisplay.draw_box_text(
+            smartdisplay.LEFT_MID,
+            self.fontIndicator,
+            "%d" % (aircraft.get_ias()),
+            (255, 255, 0),
+            100,
+            35,
+            self.MainColor,
+            1,(0,0),2)
+        # ALT
+        smartdisplay.draw_box_text(
+            smartdisplay.RIGHT_MID,
+            self.fontIndicator,
+            "%d" % (aircraft.BALT),
+            (255, 255, 0),
+            100,
+            35,
+            self.MainColor,
+            1,(0,0),2)
 
-            # baro setting
-            smartdisplay.draw_text(drawpos.DrawPos.RIGHT_MID_DOWN, self.myfont, "%0.2f" % (aircraft.baro), (255, 255, 0))
-            
-            # VSI
-            if aircraft.vsi < 0:
-                smartdisplay.draw_text(drawpos.DrawPos.RIGHT_MID_UP, self.fontIndicatorSmaller, "%d" % (aircraft.vsi), (255, 255, 0))
-            else:
-                smartdisplay.draw_text(drawpos.DrawPos.RIGHT_MID_UP, self.fontIndicatorSmaller, "+%d" % (aircraft.vsi), (255, 255, 0))
+        # baro setting
+        smartdisplay.draw_text(smartdisplay.RIGHT_MID_DOWN, self.myfont, "%0.2f" % (aircraft.baro), (255, 255, 0))
+        
+        # VSI
+        if aircraft.vsi < 0:
+            smartdisplay.draw_text(smartdisplay.RIGHT_MID_UP, self.fontIndicatorSmaller, "%d" % (aircraft.vsi), (255, 255, 0))
+        else:
+            smartdisplay.draw_text(smartdisplay.RIGHT_MID_UP, self.fontIndicatorSmaller, "+%d" % (aircraft.vsi), (255, 255, 0))
 
-            # True aispeed
-            smartdisplay.draw_text(drawpos.DrawPos.LEFT_MID_UP, self.fontIndicatorSmaller, "TAS %d" % (aircraft.tas), (255, 255, 0))
+        # True aispeed
+        smartdisplay.draw_text(smartdisplay.LEFT_MID_UP, self.fontIndicatorSmaller, "TAS %d" % (aircraft.tas), (255, 255, 0))
 
-            # Ground speed
-            smartdisplay.draw_text(drawpos.DrawPos.LEFT_MID_DOWN, self.fontIndicatorSmaller, "GS %d" % (aircraft.gndspeed), (255, 255, 0))
+        # Ground speed
+        smartdisplay.draw_text(smartdisplay.LEFT_MID_DOWN, self.fontIndicatorSmaller, "GS %d" % (aircraft.gndspeed), (255, 255, 0))
 
-            # Mag heading
-            smartdisplay.draw_box_text(
-                drawpos.DrawPos.TOP_MID,
-                self.fontIndicator,
-                "%d" % (aircraft.mag_head),
-                (255, 255, 0),
-                70,
-                35,
-                self.MainColor,
-                1,
-                (0,0),
-                2)
+        # Mag heading
+        smartdisplay.draw_box_text(
+            smartdisplay.TOP_MID,
+            self.fontIndicator,
+            "%d" % (aircraft.mag_head),
+            (255, 255, 0),
+            70,
+            35,
+            self.MainColor,
+            1,
+            (0,0),
+            2)
+
+        # update entire display..
+        pygame.display.flip()
+        
 
     # called before screen draw.  To clear the screen to your favorite color.
     def clearScreen(self):
@@ -145,6 +146,8 @@ class DefaultScreen(Screen):
 
     # handle key events
     def processEvent(self, event):
+        if event.key == pygame.K_h:
+            self.show_hud = not self.show_hud
         if event.key == pygame.K_d:
             self.show_debug = not self.show_debug
         if event.key == pygame.K_EQUALS:

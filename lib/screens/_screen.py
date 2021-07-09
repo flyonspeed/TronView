@@ -16,7 +16,7 @@ class Screen:
         self.pygamescreen = 0
 
     def initDisplay(self, pygamescreen, width, height):
-        print("init screen parent")
+        #print("init screen parent")
         self.pygamescreen = pygamescreen
         self.width = width
         self.height = height

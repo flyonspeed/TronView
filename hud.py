@@ -80,9 +80,10 @@ def main_graphical():
         # main draw loop.. clear screen then draw frame from current screen object.
         aircraft.fps = clock.get_fps();
         CurrentScreen.clearScreen()
-        smartdisplay.blit_loop_reset()
+        smartdisplay.draw_loop_start()
         CurrentScreen.draw(aircraft,smartdisplay)  # draw method for current screen object
         drawTimer.processAllDrawTimers(pygamescreen) # process / remove / draw any active drawTimers...
+        smartdisplay.draw_loop_done()
 
         #now make pygame update display.
         pygame.display.update()
@@ -162,6 +163,7 @@ def loadScreen(ScreenNameToLoad):
     CurrentScreen = class_()
     pygamescreen, screen_size = hud_graphics.initDisplay(0)
     width, height = screen_size
+    smartdisplay.setDisplaySize(width,height)
     pygame.mouse.set_visible(False)  # hide the mouse
     CurrentScreen.initDisplay(
         pygamescreen, width, height
@@ -172,7 +174,7 @@ def loadScreen(ScreenNameToLoad):
         print(("Found drawable area: %s"%(drawableAreaString)))
         area = drawableAreaString.split(",")
         try:
-            smartdisplay.setDrawableArea(int(area[0]),int(area[1]),int(area[2]),int(area[3]))
+            smartdisplay.setDrawableArea(int(area[0]),int(area[1]),int(area[2]),int(area[3]))  
         except AttributeError:
             print("No drawable function to set")
     else:

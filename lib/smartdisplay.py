@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 
-from . import drawpos
 import pygame
 
 #############################################
@@ -9,17 +8,45 @@ import pygame
 ## Store display information for viewable display.
 ##
 class SmartDisplay(object):
+
+    LEFT = 7
+    LEFT_TOP = 8
+    LEFT_MID = 9
+    LEFT_MID_UP = 10
+    LEFT_MID_DOWN = 11
+    LEFT_BOTTOM = 12
+
+    RIGHT = 30
+    RIGHT_TOP = 31
+    RIGHT_MID = 32
+    RIGHT_MID_UP = 33
+    RIGHT_MID_DOWN = 34
+    RIGHT_BOTTOM = 35
+
+    TOP = 50
+    TOP_MID = 51
+    TOP_RIGHT = 52
+
+    BOTTOM = 70
+    BOTTOM_MID = 71
+    BOTTOM_RIGHT = 72
+
     def __init__(self):
         print("SmartDisplay Init")
+        self.org_width = 0
+        self.org_height = 0
         self.x_start = 0
         self.y_start = 0
         self.x_end = 0
         self.y_end = 0
+        self.x_center = 0
+        self.y_center = 0
         self.width = 0
         self.height = 0
         self.widthCenter = (self.width / 2) 
         self.heightCenter = (self.height / 2)
         self.pygamescreen = 0
+        self.drawBorder = False
 
         self.pos_next_left_up = 0
         self.pos_next_left_down = 0
@@ -32,6 +59,10 @@ class SmartDisplay(object):
 
         self.pos_horz_padding = 25
 
+    def setDisplaySize(self,width,height):
+        self.org_width = width
+        self.org_height = height
+
     def setDrawableArea(self,x_start,y_start,x_end,y_end):
         self.x_start = x_start
         self.y_start = y_start
@@ -41,22 +72,33 @@ class SmartDisplay(object):
         self.height = y_end - y_start
         self.widthCenter = (self.width / 2) 
         self.heightCenter = (self.height / 2) 
+
+        self.x_center = x_start + self.widthCenter
+        self.y_center = y_start + self.heightCenter
+
         print(("SmartDisplay drawable offset: %d,%d to %d,%d"%(self.x_start,self.y_start,self.x_end,self.y_end)))
         print(("SmartDisplay New screen width/height: %d,%d"%(self.width,self.height)))
         print(("SmartDisplay center x/y: %d,%d"%(self.widthCenter,self.heightCenter)))
+        print(("SmartDisplay real center x/y: %d,%d"%(self.x_center,self.y_center)))
 
     def setPyGameScreen(self,pygamescreen):
         self.pygamescreen = pygamescreen
 
-
     # this resets the counters in this object to keep track of where to draw things.
-    def blit_loop_reset(self):
+    def draw_loop_start(self):
         self.pos_next_left_up = 0
         self.pos_next_left_down = 0
         self.pos_next_right_up = 0
         self.pos_next_right_down = 0
         self.pos_next_right_padding = 0
         self.pos_next_bottom_padding = 0
+
+    # called last after the draw loop is done.
+    def draw_loop_done(self):
+        # draw a border if it's smaller.
+        if(self.drawBorder==True):
+            pygame.draw.rect(self.pygamescreen, (255,255,255), (self.x_start, self.y_start, self.width, self.height), 1)
+
 
     # smart blit the next surface to the display given a location.
     # this automatically pads space from the last item that was displayed.
@@ -65,54 +107,54 @@ class SmartDisplay(object):
         posAdjustmentX, posAdjustmentY = posAdjustment
 
         # LEFT SIDE
-        if drawAtPos == drawpos.DrawPos.LEFT_MID:
+        if drawAtPos == SmartDisplay.LEFT_MID:
             self.pygamescreen.blit(surface, (self.x_start + self.pos_horz_padding+posAdjustmentX, (self.heightCenter+self.y_start+posAdjustmentY)))
             self.pos_next_left_up += surface.get_height()
             self.pos_next_left_down += surface.get_height()
 
-        elif drawAtPos == drawpos.DrawPos.LEFT_MID_UP:
+        elif drawAtPos == SmartDisplay.LEFT_MID_UP:
             self.pygamescreen.blit(surface, (self.x_start + self.pos_horz_padding+posAdjustmentX, (self.heightCenter+self.y_start-self.pos_next_left_up+posAdjustmentY) ))
             self.pos_next_left_up += surface.get_height() # first get the new postion..
 
-        elif drawAtPos == drawpos.DrawPos.LEFT_MID_DOWN:
+        elif drawAtPos == SmartDisplay.LEFT_MID_DOWN:
             self.pygamescreen.blit(surface, (self.x_start + self.pos_horz_padding+posAdjustmentX, (self.heightCenter+self.y_start+self.pos_next_left_down+posAdjustmentY) ))
             self.pos_next_left_down += surface.get_height()
 
         # RIGHT SIDE
-        elif drawAtPos == drawpos.DrawPos.RIGHT_MID:
+        elif drawAtPos == SmartDisplay.RIGHT_MID:
             self.pos_next_right_padding = surface.get_width() + self.pos_horz_padding
             self.pygamescreen.blit(surface, (self.x_end - self.pos_next_right_padding+posAdjustmentX, (self.heightCenter+self.y_start+posAdjustmentY)))
             self.pos_next_right_up += surface.get_height()
             self.pos_next_right_down += surface.get_height()
 
-        elif drawAtPos == drawpos.DrawPos.RIGHT_MID_UP:
+        elif drawAtPos == SmartDisplay.RIGHT_MID_UP:
             self.pygamescreen.blit(surface, (self.x_end - self.pos_next_right_padding+posAdjustmentX, (self.heightCenter+self.y_start-self.pos_next_right_up+posAdjustmentY) ))
             self.pos_next_right_up += surface.get_height() # first get the new postion..
 
-        elif drawAtPos == drawpos.DrawPos.RIGHT_MID_DOWN:
+        elif drawAtPos == SmartDisplay.RIGHT_MID_DOWN:
             self.pygamescreen.blit(surface, (self.x_end - self.pos_next_right_padding+posAdjustmentX, (self.heightCenter+self.y_start+self.pos_next_right_down+posAdjustmentY) ))
             self.pos_next_right_down += surface.get_height()
 
         # TOP
-        elif drawAtPos == drawpos.DrawPos.TOP:
+        elif drawAtPos == SmartDisplay.TOP:
             self.pygamescreen.blit(surface, (self.x_start+posAdjustmentX, self.y_start+posAdjustmentY))
 
-        elif drawAtPos == drawpos.DrawPos.TOP_MID:
+        elif drawAtPos == SmartDisplay.TOP_MID:
             self.pygamescreen.blit(surface, (self.x_start+self.widthCenter-(surface.get_width()/2)+posAdjustmentX, self.y_start+posAdjustmentY ))
 
-        elif drawAtPos == drawpos.DrawPos.TOP_RIGHT:
+        elif drawAtPos == SmartDisplay.TOP_RIGHT:
             self.pygamescreen.blit(surface, (self.x_end-surface.get_width()+posAdjustmentX, (self.y_start+posAdjustmentY) ))
 
         # BOTTOM
-        elif drawAtPos == drawpos.DrawPos.BOTTOM:
+        elif drawAtPos == SmartDisplay.BOTTOM:
             self.pos_next_bottom_padding = surface.get_height()
             self.pygamescreen.blit(surface, (self.x_start+posAdjustmentX, self.y_end+posAdjustmentY-self.pos_next_bottom_padding))
 
-        elif drawAtPos == drawpos.DrawPos.BOTTOM_MID:
+        elif drawAtPos == SmartDisplay.BOTTOM_MID:
             self.pos_next_bottom_padding = surface.get_height()
             self.pygamescreen.blit(surface, (self.x_start+self.widthCenter-(surface.get_width()/2)+posAdjustmentX, self.y_end+posAdjustmentY-self.pos_next_bottom_padding ))
 
-        elif drawAtPos == drawpos.DrawPos.BOTTOM_RIGHT:
+        elif drawAtPos == SmartDisplay.BOTTOM_RIGHT:
             self.pos_next_bottom_padding = surface.get_height()
             self.pygamescreen.blit(surface, (self.x_end-surface.get_width()+posAdjustmentX, (self.y_end+posAdjustmentY)-self.pos_next_bottom_padding ))
 

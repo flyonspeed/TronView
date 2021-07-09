@@ -16,7 +16,6 @@ class Module:
         self.pygamescreen = 0
 
     def initMod(self, pygamescreen, width, height):
-        print("init module parent")
         self.pygamescreen = pygamescreen
         self.width = width
         self.height = height
@@ -28,6 +27,9 @@ class Module:
 
     def draw(self, aircraft, smartdisplay):
         print("module parent")
+
+    def setting(self, key, value):
+        print("module setting")
 
     def clear(self):
         print("Clear screen")

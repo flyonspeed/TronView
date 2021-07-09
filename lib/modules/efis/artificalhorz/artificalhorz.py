@@ -8,7 +8,6 @@ from lib.modules._module import Module
 from lib import hud_graphics
 from lib import hud_utils
 from lib import smartdisplay
-from lib import drawpos
 import pygame
 
 
@@ -34,7 +33,7 @@ class ArtificalHorz(Module):
 
         self.background = pygame.image.load(self.imagefilename).convert()
         ##self.background.set_colorkey((255, 255, 255))
-        #self.background = pygame.transform.scale(self.background, (800, 800))
+        self.background = pygame.transform.scale(self.background, (2000, 2000))
 
     # called every redraw for the mod
     def draw(self, aircraft, smartdisplay):
@@ -49,14 +48,14 @@ class ArtificalHorz(Module):
         self.pygamescreen.blit(
             self.background_rotated,
             (
-                (smartdisplay.width/2) - rect.center[0],
-                (smartdisplay.height/2) - rect.center[1] + pitch_offset,
+                (smartdisplay.x_center) - rect.center[0],
+                (smartdisplay.y_center) - rect.center[1] + pitch_offset,
             ),
         )
 
         smartdisplay.draw_circle(
                  (255,255,255),
-                 (smartdisplay.widthCenter,smartdisplay.heightCenter),
+                 (smartdisplay.x_center,smartdisplay.y_center),
                  15,
                  1,
              )

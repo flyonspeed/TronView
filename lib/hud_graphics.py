@@ -4,7 +4,6 @@ import math, os, sys, random
 import argparse, pygame
 from operator import add
 from . import hud_utils
-from lib import drawpos
 
 #############################################
 ## Function: initDisplay
@@ -12,13 +11,25 @@ def initDisplay(debug):
     pygame.init()
     disp_no = os.getenv("DISPLAY")
     print(("sys.platform:%s"%(sys.platform)))
+
+    inWindow = hud_utils.readConfig("HUD", "window", "false")  # default screen to load
+
+    if inWindow != "false":
+        # if they want a windowed version..
+        if len(inWindow)>0:
+            print(("Window size from config: %s"%(inWindow)))
+            winsize = inWindow.split(",")
+            try:
+                size = int(winsize[0]),int(winsize[1])
+            except AttributeError:
+                print("failed to set window size from config")
+        else:
+            size = 640, 480 # else default to 640,480
+
     if disp_no:
         # assume we are in xdisplay. in xwindows on linux/rpi
         print(("default to XDisplay {0}".format(disp_no)))
-        inWindow = hud_utils.readConfig("HUD", "window", "false")  # default screen to load
-        if inWindow == "true":
-            # if they want a windowed version..
-            size = 640, 480
+        if inWindow != "false":
             screen = pygame.display.set_mode(size)
             pygame.display.set_caption('efis')
         else:
@@ -45,7 +56,6 @@ def initDisplay(debug):
 
         # check if we are in windows or macosx
         if sys.platform.startswith('win') or sys.platform.startswith('darwin'):
-            size = 640, 480
             screen = pygame.display.set_mode(size, pygame.RESIZABLE)
             pygame.display.set_caption('efis')
         else:
@@ -265,14 +275,12 @@ def hud_draw_circle(pygamescreen,color,center,radius,width):
 
 def hud_draw_debug(aircraft,smartdisplay,font):
     # render debug text
-    label = font.render("pitch: %d" % (aircraft.pitch), 1, (255, 255, 0))
-    smartdisplay.pygamescreen.blit(label, (smartdisplay.x_start, smartdisplay.y_start))
-    label = font.render("Roll: %d" % (aircraft.roll), 1, (255, 255, 0))
+    label = font.render("Pitch: %d Roll: %d" % (aircraft.pitch,aircraft.roll), 1, (255, 255, 0))
     smartdisplay.pygamescreen.blit(label, (smartdisplay.x_start, smartdisplay.y_start+20))
-    label = font.render(
-        "IAS: %d  VSI: %d" % (aircraft.ias, aircraft.vsi), 1, (255, 255, 0)
-    )
+    
+    label = font.render("IAS: %d  VSI: %d" % (aircraft.ias, aircraft.vsi), 1, (255, 255, 0))
     smartdisplay.pygamescreen.blit(label, (smartdisplay.x_start, smartdisplay.y_start+40))
+
     label = font.render(
         "Alt: %d  PresALT:%d  BaroAlt:%d   AGL: %d"
         % (aircraft.alt, aircraft.PALT, aircraft.BALT, aircraft.agl),
@@ -303,11 +311,10 @@ def hud_draw_debug(aircraft,smartdisplay,font):
     label = font.render(
         "size: %d,%d" % (smartdisplay.width, smartdisplay.height), 1, (20, 255, 0)
     )
-    smartdisplay.pygamescreen.blit(label, (smartdisplay.x_start+70, smartdisplay.y_start))
+    smartdisplay.pygamescreen.blit(label, (smartdisplay.x_start, smartdisplay.y_start+140))
 
-    label = font.render(
-        "msgcount: %d" % (aircraft.msg_count), 1, (20, 255, 0)
-    )
-    smartdisplay.pygamescreen.blit(label, (smartdisplay.x_start+200, smartdisplay.y_start))
+    label = font.render("time: %s msg count: %d" % (aircraft.sys_time_string,aircraft.msg_count), 1, (255, 255, 0))
+    smartdisplay.pygamescreen.blit(label, (smartdisplay.x_start, smartdisplay.y_start+160))
 
-    smartdisplay.draw_text(drawpos.DrawPos.BOTTOM_RIGHT, font, "%0.2f FPS" % (aircraft.fps), (255, 255, 0))
+    # print FPS on the bottom of screen.
+    smartdisplay.draw_text(smartdisplay.BOTTOM_RIGHT, font, "%0.2f FPS" % (aircraft.fps), (255, 255, 0))

@@ -73,17 +73,17 @@ class serial_skyview(Input):
             if len(msg) == 73:
                 msg = (msg[:73]) if len(msg) > 73 else msg
                 aircraft.msg_last = msg
-                dataType, DataVer, SysTime, pitch, roll, HeadingMAG, IAS, PresAlt, TurnRate, LatAccel, VertAccel, AOA, VertSpd, OAT, TAS, Baro, DA, WD, WS, Checksum, CRLF = struct.unpack(
-                    "cc8s4s5s3s4s6s4s3s3s2s4s3s4s3s6s3s2s2s2s", str.encode(msg)
+                dataType, DataVer, HH, MM, SS, FF, pitch, roll, HeadingMAG, IAS, PresAlt, TurnRate, LatAccel, VertAccel, AOA, VertSpd, OAT, TAS, Baro, DA, WD, WS, Checksum, CRLF = struct.unpack(
+                    "cc2s2s2s2s4s5s3s4s6s4s3s3s2s4s3s4s3s6s3s2s2s2s", str.encode(msg)
                 )
                 dataType = int(dataType)
                 if dataType == 1 and CRLF[0] == self.EOL:  # AHRS message
-                    aircraft.sys_time_string = SysTime
+                    aircraft.sys_time_string = "%d:%d:%d"%(int(HH),int(MM),int(SS))
                     aircraft.roll = int(roll) * 0.1
                     aircraft.pitch = int(pitch) * 0.1
                     aircraft.ias = int(IAS) * 0.1
                     aircraft.PALT = int(PresAlt)
-                    aircraft.OAT = int(OAT)
+                    aircraft.OAT = (int(OAT) * 1.8) + 32 # c to f
                     aircraft.tas = int(TAS) * 0.1
                     if AOA == "XX":
                         aircraft.aoa = 0

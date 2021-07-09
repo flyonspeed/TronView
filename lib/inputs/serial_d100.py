@@ -66,13 +66,13 @@ class serial_d100(Input):
             if len(msg) == 51:
                 msg = (msg[:51]) if len(msg) > 51 else msg
                 aircraft.msg_last = msg
-                # 8b      4b    5b   3b  4b   5b   4b        3b        3b         2b   6b                2b          2s  
-                timechunk,pitch,roll,yaw,IAS, Alt, TurnRate, LatAccel, VertAccel, AOA, StatusBitMaskHex, InteralUse, Checksum = struct.unpack(
-                    "8s4s5s3s4s5s4s3s3s2s6s2s2s", str.encode(msg)
+                # 8b        4b    5b   3b  4b   5b   4b        3b        3b         2b   6b                2b          2s  
+                HH,MM,SS,FF,pitch,roll,yaw,IAS, Alt, TurnRate, LatAccel, VertAccel, AOA, StatusBitMaskHex, InteralUse, Checksum = struct.unpack(
+                    "2s2s2s2s4s5s3s4s5s4s3s3s2s6s2s2s", str.encode(msg)
                 )
 
                 if True:
-                    aircraft.sys_time_string = timechunk
+                    aircraft.sys_time_string = "%d:%d:%d"%(int(HH),int(MM),int(SS))
                     aircraft.roll = int(roll) * 0.1
                     aircraft.pitch = int(pitch) * 0.1
                     aircraft.ias = int(IAS) * 0.224  # airspeed in units of 1/10 m/s (1555 = 155.5 m/s) convert to MPH

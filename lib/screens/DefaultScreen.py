@@ -12,6 +12,7 @@ from lib import hud_utils
 from lib import smartdisplay
 import pygame
 from lib.modules.efis.artificalhorz import artificalhorz
+from lib.modules.hud.horizon import horizon
 
 
 class DefaultScreen(Screen):
@@ -36,10 +37,6 @@ class DefaultScreen(Screen):
             self, pygamescreen, width, height
         )  # call parent init screen.
         print(("Init Screen: %s %dx%d"%(self.name,self.width,self.height)))
-        self.ahrs_bg = pygame.Surface((self.width, self.height))
-        self.ahrs_bg_width = self.ahrs_bg.get_width()
-        self.ahrs_bg_height = self.ahrs_bg.get_height()
-        self.ahrs_bg_center = (self.ahrs_bg_width / 2, self.ahrs_bg_height / 2)
 
         # fonts
         self.font = pygame.font.SysFont(
@@ -52,11 +49,12 @@ class DefaultScreen(Screen):
         self.fontIndicatorSmaller = pygame.font.SysFont(
             "monospace", 30
         )  # ie. baro and VSI
-        print(("surface : %dx%d"%(self.ahrs_bg.get_width(),self.ahrs_bg.get_height())))
 
         self.ah = artificalhorz.ArtificalHorz()
         self.ah.initMod(self.pygamescreen, self.width, self.height)
 
+        self.hud_horizon = horizon.Horizon()
+        self.hud_horizon.initMod(self.pygamescreen, self.width, self.height)
 
 
     # called every redraw for the screen
@@ -64,27 +62,9 @@ class DefaultScreen(Screen):
 
         # draw hud of efis horizon
         if(self.show_hud):
-            self.ahrs_bg.fill((0, 0, 0))  # clear screen
-            hud_graphics.hud_draw_horz_lines(
-                self.pygamescreen,
-                self.ahrs_bg,
-                self.width,
-                self.height,
-                self.ahrs_bg_center,
-                self.ahrs_line_deg,
-                aircraft,
-                self.MainColor,
-                self.line_thickness,
-                self.line_mode,
-                self.font,
-                self.pxy_div,
-            )        
-            self.pygamescreen.blit(self.ahrs_bg, (-0,-0))
+            self.hud_horizon.draw(aircraft,smartdisplay)
         else:
             self.ah.draw(aircraft,smartdisplay)
-
-        if self.show_debug:
-            hud_graphics.hud_draw_debug(aircraft,smartdisplay,self.myfont)
 
 
         # IAS
@@ -136,9 +116,9 @@ class DefaultScreen(Screen):
             (0,0),
             2)
 
-        # update entire display..
-        pygame.display.flip()
-        
+        if self.show_debug:
+            hud_graphics.hud_draw_debug(aircraft,smartdisplay,self.myfont)
+
 
     # called before screen draw.  To clear the screen to your favorite color.
     def clearScreen(self):

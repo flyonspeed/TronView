@@ -49,7 +49,7 @@ class ArtificalHorz(Module):
             self.background_rotated,
             (
                 (smartdisplay.x_center) - rect.center[0],
-                (smartdisplay.y_center) - rect.center[1] + pitch_offset,
+                (smartdisplay.y_center) - rect.center[1] - pitch_offset,
             ),
         )
 

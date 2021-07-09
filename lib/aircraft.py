@@ -118,6 +118,24 @@ class Aircraft(object):
         if(self.data_format==2):
             return "mbar"
 
+    # get oat in converted format.
+    def get_oat(self):
+        if(self.data_format==0):
+            return self.oat # f
+        if(self.data_format==1):
+            return self.oat #f
+        if(self.data_format==2):
+            return  ((self.oat - 32) / 1.8)
+
+    # get oat format description
+    def get_oat(self):
+        if(self.data_format==0):
+            return "\xb0f"
+        if(self.data_format==1):
+            return "\xb0f"
+        if(self.data_format==2):
+            return "\xb0c"
+
 #############################################
 ## Class: GPSData
 class GPSData(object):

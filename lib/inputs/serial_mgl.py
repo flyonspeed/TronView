@@ -133,7 +133,7 @@ class serial_mgl(Input):
                             aircraft.alt = int(
                                 PAltitude - (aircraft.baro_diff / 0.00108)
                             )  # 0.00108 of inches of mercury change per foot.
-                            aircraft.oat = OAT * 33.8 # convert from c to f
+                            aircraft.oat = (OAT * 1.8) + 32 # convert from c to f
                             aircraft.sys_time_string = "%d:%d:%d"%(Hour,Min,Sec)
 
                             aircraft.msg_count += 1

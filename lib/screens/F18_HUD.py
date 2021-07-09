@@ -113,7 +113,7 @@ class F18_HUD(Screen):
         smartdisplay.draw_text(smartdisplay.LEFT_MID_UP, self.fontIndicatorSmaller, "TAS %d" % (aircraft.tas), (255, 255, 0))
 
         # OAT text
-        smartdisplay.draw_text(smartdisplay.LEFT_MID_UP, self.fontIndicatorSmaller, "OAT %d\xb0c" % aircraft.oat, (255, 255, 0))
+        smartdisplay.draw_text(smartdisplay.LEFT_MID_UP, self.fontIndicatorSmaller, "OAT %d\xb0f" % aircraft.oat, (255, 255, 0))
 
         #AOA text
         if aircraft.ias < 20 or aircraft.aoa == 0 or aircraft.aoa == None:

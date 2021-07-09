@@ -3,7 +3,7 @@
 #################################################
 # F18 HUD Screen by Brian Chesteen. 01/31/2019  Modified by Cecil Jones 20 May 2019
 # Optimized for Garmin G3X System and Kivic HUD using Composite Video Output.
-# Credit for original module template goes to Christopher Jones.
+# Credit for original module template goes to Topher
 # Updated 7/9/2021 Topher.  Now uses modules.
 
 from ._screen import Screen

@@ -112,10 +112,10 @@ class serial_mgl(Input):
                             aircraft.msg_last = binascii.hexlify(Message) # save last message.
 
                     elif msgType == 1:  # Primary flight
-                        Message = self.ser.read(20)
-                        if len(Message) == 20:
-                            PAltitude, BAltitude, ASI, TAS, AOA, VSI, Baro, LocalBaro = struct.unpack(
-                                "<iiHHhhHH", Message
+                        Message = self.ser.read(30)
+                        if len(Message) == 30:
+                            PAltitude, BAltitude, ASI, TAS, AOA, VSI, Baro, LocalBaro, OAT, Humidity, SystemFlags, Hour, Min, Sec, Day, Month, Year  = struct.unpack(
+                                "<iiHHhhHHhBBBBBBBB", Message
                             )
                             if ASI > 0:
                                 aircraft.ias = ASI * 0.05399565
@@ -126,13 +126,16 @@ class serial_mgl(Input):
                                 LocalBaro * 0.0029529983071445
                             )  # convert from mbar to inches of mercury.
                             aircraft.aoa = AOA
+                            aircraft.vsi = VSI
                             aircraft.baro_diff = 29.921 - aircraft.baro
                             aircraft.PALT = PAltitude
                             aircraft.BALT = BAltitude
                             aircraft.alt = int(
                                 PAltitude - (aircraft.baro_diff / 0.00108)
                             )  # 0.00108 of inches of mercury change per foot.
-                            aircraft.vsi = VSI
+                            aircraft.oat = OAT * 33.8 # convert from c to f
+                            aircraft.sys_time_string = "%d:%d:%d"%(Hour,Min,Sec)
+
                             aircraft.msg_count += 1
                             aircraft.msg_last = binascii.hexlify(Message) # save last message.
 

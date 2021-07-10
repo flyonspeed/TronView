@@ -13,24 +13,24 @@ def initDisplay(debug):
     print(("sys.platform:%s"%(sys.platform)))
 
     inWindow = hud_utils.readConfig("HUD", "window", "false")  # default screen to load
+    showFullScreen = True
 
     if inWindow != "false":
         # if they want a windowed version..
-        size = 640, 480 # else default to 640,480
+        size = 640, 480 # default to 640,480 for window size.
+        showFullScreen = False
         if len(inWindow)>0:
             print(("Window size from config: %s"%(inWindow)))
             winsize = inWindow.split(",")
             try:
                 size = int(winsize[0]),int(winsize[1])
-            except AttributeError:
-                print("failed to set window size from config")
-            except ValueError:
-                print("")
+            except:
+                raise Exception("Config error: ",sys.exc_info()[0]," . window size is not valid in config")
 
     if disp_no:
         # assume we are in xdisplay. in xwindows on linux/rpi
         print(("default to XDisplay {0}".format(disp_no)))
-        if inWindow != "false":
+        if showFullScreen == False:
             screen = pygame.display.set_mode(size)
             pygame.display.set_caption('efis')
         else:
@@ -55,11 +55,12 @@ def initDisplay(debug):
         if not found:
             raise Exception("No video driver found.  Exiting.")
 
-        # check if we are in windows or macosx
-        if sys.platform.startswith('win') or sys.platform.startswith('darwin'):
+        # check if we want to show fullscreen or window.
+        if showFullScreen == False:
             screen = pygame.display.set_mode(size, pygame.RESIZABLE)
             pygame.display.set_caption('efis')
         else:
+            # else go full screen.
             size = pygame.display.Info().current_w, pygame.display.Info().current_h
             screen = pygame.display.set_mode(size, pygame.FULLSCREEN)
 

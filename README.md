@@ -1,5 +1,10 @@
 # efis_to_hud
-Project for connecting efis/flight data to a HUD or 2nd screen.  
+Project for connecting efis/flight data to a HUD or 2nd screen.
+
+Features Include:
+- Building custom efis or hud screens
+- Playback flight log data
+- All screens look and work the same for all supported data input.
 
 ![hud_animation](https://github.com/flyonspeed/efis_to_hud/blob/master/docs/hud_animated_example.gif?raw=true)
 
@@ -209,7 +214,7 @@ Here is a example hud.cfg file:
 
 [HUD]
 #when running in xwindows this will show hud in window.
-window=true
+window=640,480
 
 # define the drawable area for hud to use.  Useful on displays that have hidden areas.
 # this is defined as x1,y1,x2,y2 to draw up a box of usable area.
@@ -292,9 +297,9 @@ baudrate = 115200
 
   Dynon Skyview EFIS Serial Protocol Link: https://drive.google.com/open?id=1isurAOIiTzki4nh59lg6IDsy1XcsJqoG
   
-  Dynon D?? Series EFIS Sample Data Link: https://drive.google.com/open?id=1_os-xv0Cv0AGFVypLfSeg6ucGv5lwDVj
+  Dynon D100 Series EFIS Sample Data Link: https://drive.google.com/open?id=1_os-xv0Cv0AGFVypLfSeg6ucGv5lwDVj
   
-  Dynon D?? Series EFIS Serial Protocol Link: https://drive.google.com/open?id=1vUBMJZC3W85fBu33ObuurYx81kj09rqE
+  Dynon D100 Series EFIS Serial Protocol Link: https://drive.google.com/open?id=1vUBMJZC3W85fBu33ObuurYx81kj09rqE
 
 # Garmin Data
 

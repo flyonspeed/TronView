@@ -10,6 +10,7 @@ import os, getopt
 version = "0.1"
 
 ser = serial.Serial(
+    # port="/dev/ttyUSB0",
     port="/dev/ttyS0",
     baudrate=115200,
     parity=serial.PARITY_NONE,
@@ -30,7 +31,7 @@ def readMessage(showBin):
     try:
         if showBin == 1:
             t = ser.read(1)  
-            x = ord(t)
+            x = str(t)
         else:
             t = ser.read(1).decode()
             x = t

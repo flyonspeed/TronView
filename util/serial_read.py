@@ -7,10 +7,11 @@ import struct
 import sys
 import os, getopt
 
-version = "0.1"
+version = "0.2"
 
 ser = serial.Serial(
     port="/dev/ttyS0",
+#    port="/dev/ttyUSB0",
     baudrate=115200,
     parity=serial.PARITY_NONE,
     stopbits=serial.STOPBITS_ONE,
@@ -92,7 +93,7 @@ def readMGLMessage():
     global ser
     global badmessageheaderCount, sinceLastGoodMessage, goodmessageheaderCount, unknownMsgCount
     try:
-        stx = ord(ser.read(1))
+        stx = int(ser.read(1))
         if stx == 2:
             MessageHeader = ser.read(6)
             if len(MessageHeader) == 6:

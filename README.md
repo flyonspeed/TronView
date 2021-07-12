@@ -213,38 +213,25 @@ Here is a example hud.cfg file:
 <pre>
 
 [HUD]
-#when running in xwindows this will show hud in window.
+#when running in xwindows,mac,win this will show hud in window if set.
 window=640,480
 
 # define the drawable area for hud to use.  Useful on displays that have hidden areas.
 # this is defined as x1,y1,x2,y2 to draw up a box of usable area.
-#
 #drawable_area=0,144,1280,624
 
 
-#how many degrees to show on the vert hud lines. 5, 10, or 15
-vertical_degrees = 10
-
-#load a screen file on startup
-screen = default screen module name to load
-
-# line mode.  0 = skinny, 2 = bigger
-line_mode = 1
-
-# line thickness.  1 to 6 
-line_thickness = 2
-
-# center circle.  size of center circle. 0 = none. 1 tiny - 3 large
-center_circle = 2
-
 [DataInput]
-# input source of data. These modules are located in lib/inputs.  currently supprt 'serial_mgl' or 'serial_skyview'
+# input source of data. These modules are located in lib/inputs. 
 inputsource = serial_mgl
 
 # port name for serial input. Default is /dev/ttyS0, for Windows you need to know the COM port you want to use ie: COM1, COM2, etc.
+# rpi built in serial is /dev/ttyS0
+# rpi usb serial is /dev/ttyUSB0
 port = /dev/ttyS0 
 
 # baud rate. Default is 115200
+# set this to the baud rate of your efis output.
 baudrate = 115200 
 
 

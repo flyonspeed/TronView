@@ -113,13 +113,13 @@ class serial_g3x(Input):
                                     aircraft.gps.LonDeg,
                                     aircraft.gps.LonMin,
                                 )
-                                aircraft.gndspeed = _utils.gndspeed(EWVelmag, NSVelmag)
+                                aircraft.gndspeed = _utils.gndspeed(EWVelmag, NSVelmag) * 1.15078 # convert back to mph
                                 aircraft.gndtrack = _utils.gndtrack(
                                     EWVelDir, EWVelmag, NSVelDir, NSVelmag
                                 )
                                 aircraft.wind_speed, aircraft.wind_dir, aircraft.norm_wind_dir = _utils.windSpdDir(
-                                    aircraft.tas,
-                                    aircraft.gndspeed,
+                                    aircraft.tas * 0.8689758, # back to knots.
+                                    aircraft.gndspeed * 0.8689758, # convert back to knots
                                     aircraft.gndtrack,
                                     aircraft.mag_head,
                                     aircraft.mag_decl,
@@ -148,7 +148,7 @@ class serial_g3x(Input):
                     if int(SentVer) == 1 and CRLF[0] == self.EOL:
                         aircraft.roll = int(Roll) * 0.1
                         aircraft.pitch = int(Pitch) * 0.1
-                        aircraft.ias = int(Airspeed) * 0.1
+                        aircraft.ias = int(Airspeed) * 0.115078 # convert knots to mph * 0.1
                         aircraft.PALT = int(PressAlt)
                         aircraft.oat = (int(OAT) * 1.8) + 32 # c to f
                         if _utils.is_number(AOA) == True:
@@ -171,8 +171,8 @@ class serial_g3x(Input):
                         aircraft.BALT = aircraft.alt
                         aircraft.vsi = int(VertSpeed) * 10
                         aircraft.tas = _utils.ias2tas(
-                            aircraft.ias, aircraft.oat, aircraft.PALT
-                        )
+                            int(Airspeed)*0.1, int(OAT), aircraft.PALT
+                        ) * 1.15078 # convert back to mph
                         aircraft.turn_rate = int(RateofTurn) * 0.1
                         aircraft.vert_G = int(VertAcc) * 0.1
                         aircraft.slip_skid = int(LatAcc) * 0.01

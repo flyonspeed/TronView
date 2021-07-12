@@ -101,7 +101,7 @@ class serial_mgl(Input):
                                 "<iiiiiiiHHhBB", Message
                             )
                             if GS > 0:
-                                aircraft.gndspeed = GS * 0.05399565
+                                aircraft.gndspeed = GS * 0.05399565 # convert to mph
                             aircraft.agl = AGL
                             aircraft.gndtrack = int(TrackTrue * 0.1)
                             if (

@@ -64,7 +64,7 @@ class AOA(Module):
                 self.pygamescreen, 
                 ( 0, 155, 79), 
                 (x+self.xCenter, y + self.yCenter), 
-                self.centerCircleHeight, 
+                int(self.centerCircleHeight), 
                 8,
             )
             # draw bottom lines

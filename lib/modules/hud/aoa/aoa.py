@@ -35,6 +35,20 @@ class AOA(Module):
 
         self.MainColor = (0, 255, 0)  # main color 
 
+        self.centerCircleHeight = width / 3
+
+        self.yBottomLineStart = height * 1.16 #
+        self.yTopLineEnd = height * 1.16
+        self.yCenter = height / 2
+
+        self.xCenter = width / 2
+
+        self.showLDMax = True
+        self.yLDMaxDots = height - (height/8)
+        self.xLDMaxDotsFromCenter = width/2
+
+        self.aoa_color = (255, 255, 255)  # start with white.
+
     # called every redraw for the mod
     def draw(self, aircraft, smartdisplay, pos):
 
@@ -44,74 +58,70 @@ class AOA(Module):
 
         # AOA Indicator
         if aircraft.aoa > 0:
-            # circles.
-            # hud_graphics.hud_draw_circle(
-            #     smartdisplay.pygamescreen,
-            #     self.MainColor,
-            #     (x + 50, y + 70),
-            #     3,
-            #     1,
-            # )
-            hud_graphics.hud_draw_circle(
-                self.pygamescreen,
-                (255, 255, 255), 
-                (x+20, y + 120), 
-                5, 
-                0,
-            )
-            hud_graphics.hud_draw_circle(
-                self.pygamescreen, 
-                (255, 255, 255), 
-                (x+70, y + 120), 
-                5, 
-                0,
-            )
+
             #draw center circle.
             hud_graphics.hud_draw_circle(
                 self.pygamescreen, 
                 ( 0, 155, 79), 
-                (x+45, y + 70), 
-                15, 
+                (x+self.xCenter, y + self.yCenter), 
+                self.centerCircleHeight, 
                 8,
             )
             # draw bottom lines
-            pygame.draw.line(
+            pygame.draw.line(  # draw bottom left line
                 self.pygamescreen,
-                (241, 137, 12),
-                (x+25, y + 140),
-                (x+35, y + 87),
+                (241, 137, 12),  # color orange
+                (x+ (self.xCenter) - 10, y + self.yCenter + self.centerCircleHeight), #start drawing at the bottom.
+                (x, y + self.height),
                 8,
             )
-            pygame.draw.line(
+            pygame.draw.line(  # draw bottom right line.
                 self.pygamescreen,
                 (241, 137, 12),
-                (x+63, y + 140),
-                (x+53, y + 87),
+                (x+(self.xCenter) + 10, y + self.yCenter + self.centerCircleHeight), #start drawing at the bottom.
+                (x+self.width, y + self.height),
                 8,
             )
             # draw top lines
-            pygame.draw.line(
+            pygame.draw.line( # draw top right line.
                 self.pygamescreen,
-                (210, 40, 49),
-                (x+63, y ),
-                (x+53, y + 53),
+                (210, 40, 49),  # color red
+                (x+self.width, y ), # start drawing top
+                (x+ (self.xCenter) + 10, y + self.yCenter - self.centerCircleHeight),
                 8,
             )
-            pygame.draw.line(
+            pygame.draw.line( # draw top left line
                 self.pygamescreen,
                 (210, 40, 49),
-                (x+35, y + 53),
-                (x+25, y ),
+                (x+ (self.xCenter) - 10, y + self.yCenter - self.centerCircleHeight), # start drawing at the bottom
+                (x, y ),
                 8,
             )
 
+            if self.showLDMax == True:
+                # white circles L/D Max Dots. (Carson’s Number)
+                hud_graphics.hud_draw_circle(
+                    self.pygamescreen,
+                    (255, 255, 255), 
+                    (x+self.xCenter-self.xLDMaxDotsFromCenter, y + self.yLDMaxDots), 
+                    7, 
+                    0,
+                )
+                hud_graphics.hud_draw_circle(
+                    self.pygamescreen, 
+                    (255, 255, 255), 
+                    (x+self.xCenter+self.xLDMaxDotsFromCenter, y + self.yLDMaxDots), 
+                    7, 
+                    0,
+                )
+
             # set indicator bar color according to aoa value.
             if aircraft.aoa <= 40:
-                aoa_color = (255, 255, 255)
+                self.aoa_color = (255, 255, 255)
             elif aircraft.aoa > 40 and aircraft.aoa <= 60:
-                aoa_color = ( 0, 155, 79)
+                self.aoa_color = ( 0, 155, 79)
             elif aircraft.aoa > 60:
-                aoa_color = (237, 28, 36)
+                self.aoa_color = (237, 28, 36)
 
             # draw indicator bar.
             if aircraft.aoa != None:
@@ -119,9 +129,9 @@ class AOA(Module):
                 # self.pygamescreen.blit(label, (80, (self.heightCenter) - 160))
                 pygame.draw.line(
                     self.pygamescreen,
-                    aoa_color,
-                    (x+23, y  + aircraft.aoa * 1.4),
-                    (x+65, y  + aircraft.aoa * 1.4),
+                    self.aoa_color,
+                    (x, y  + (aircraft.aoa * 0.01) * self.height),
+                    (x+self.width, y  + (aircraft.aoa * 0.01) * self.height),
                     5,
                 )
 

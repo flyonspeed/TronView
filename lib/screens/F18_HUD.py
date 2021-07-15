@@ -60,7 +60,7 @@ class F18_HUD(Screen):
         self.horizon.initMod(self.pygamescreen, self.width, self.height)
 
         self.aoa = aoa.AOA()
-        self.aoa.initMod(self.pygamescreen, self.width, self.height)
+        self.aoa.initMod(self.pygamescreen, 60, 200)
 
         self.slipskid = slipskid.SlipSkid()
         self.slipskid.initMod(self.pygamescreen, self.width, self.height)

@@ -31,6 +31,10 @@ class SmartDisplay(object):
     BOTTOM_MID = 71
     BOTTOM_RIGHT = 72
 
+    CENTER_LEFT = 80
+    CENTER_CENTER = 81
+    CENTER_RIGHT = 82
+
     def __init__(self):
         print("SmartDisplay Init")
         self.org_width = 0
@@ -158,9 +162,19 @@ class SmartDisplay(object):
             self.pos_next_bottom_padding = surface.get_height()
             self.pygamescreen.blit(surface, (self.x_end-surface.get_width()+posAdjustmentX, (self.y_end+posAdjustmentY)-self.pos_next_bottom_padding ))
 
+        # CENTER
+        elif drawAtPos == SmartDisplay.CENTER_LEFT:
+            self.pygamescreen.blit(surface, (self.x_start+posAdjustmentX, self.y_start+self.heightCenter-(surface.get_height()/2)+posAdjustmentY))
+
+        elif drawAtPos == SmartDisplay.CENTER_CENTER:
+            self.pygamescreen.blit(surface, (self.x_start+self.widthCenter-(surface.get_width()/2)+posAdjustmentX, self.y_start + self.heightCenter - (surface.get_height()/2) + posAdjustmentY  ))
+
+        elif drawAtPos == SmartDisplay.CENTER_RIGHT:
+            self.pygamescreen.blit(surface, (self.x_end-surface.get_width()+posAdjustmentX, (self.y_start+self.heightCenter-(surface.get_height()/2)+posAdjustmentY) ))
+
 
     # draw box with text in it.
-    # drawPos = DrawPos on screen.. example drawpos.DrawPos.RIGHT_MID for right middle of display.
+    # drawPos = DrawPos on screen.. example smartdisplay.RIGHT_MID for right middle of display.
     # width,height of box.
     # justify: 0=left justify text, 1=right, 2= center in box.
     def draw_box_text( self, drawAtPos, font, text, textcolor, width, height, linecolor, thickness,posAdjustment=(0,0),justify=0):
@@ -187,14 +201,36 @@ class SmartDisplay(object):
             self.blit_next(label, drawAtPos, (label.get_width()/2,0))
 
     # draw a circle.
-    def draw_circle(self,color,center,radius,width):
+    def draw_circle(self,color,center,radius,thickness):
         pygame.draw.circle(
             self.pygamescreen,
             color,
             (int(center[0]),int(center[1])),
             radius,
-            width,
+            thickness,
         )
 
+    # draw circle with text in it.
+    # drawPos = postion example smartdisplay.RIGHT_MID for right middle of display.
+    # radius of circle.
+    # justify (the text): 0=left justify text, 1=right, 2= center in circle.
+    def draw_circle_text( self, pos, font, text, textcolor, radius , linecolor, thickness,posAdjustment=(0,0),justify=0):
+        newSurface = pygame.Surface((radius*2, radius*2))
+        label = font.render(text, 1, textcolor)
+        ylabelStart = (radius) - label.get_height() /2
+        pygame.draw.circle(
+            newSurface,
+            linecolor,
+            (radius,radius),
+            radius,
+            thickness,
+        )
+        if justify==0:
+            newSurface.blit(label, (0,ylabelStart))
+        elif justify==1:
+            newSurface.blit(label, (newSurface.get_width()-label.get_width(),ylabelStart))
+        elif justify==2:
+            newSurface.blit(label, (newSurface.get_width()/2-label.get_width()/2,ylabelStart))
+        self.blit_next(newSurface,pos,posAdjustment)
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python
 

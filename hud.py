@@ -164,7 +164,6 @@ def loadScreen(ScreenNameToLoad):
     pygamescreen, screen_size = hud_graphics.initDisplay(0)
     width, height = screen_size
     smartdisplay.setDisplaySize(width,height)
-    pygame.mouse.set_visible(False)  # hide the mouse
     CurrentScreen.initDisplay(
         pygamescreen, width, height
     )  # tell the screen we are about to start. 
@@ -188,7 +187,7 @@ def loadScreen(ScreenNameToLoad):
 #
 aircraft = aircraft.Aircraft()
 smartdisplay = smartdisplay.SmartDisplay()
-ScreenNameToLoad = hud_utils.readConfig("HUD", "screen", "DefaultScreen")  # default screen to load
+ScreenNameToLoad = hud_utils.readConfig("HUD", "screen", "Default")  # default screen to load
 DataInputToLoad = hud_utils.readConfig("DataInput", "inputsource", "none")  # input method
 
 # check args passed in.

@@ -16,7 +16,7 @@ from lib.modules.hud.horizon import horizon
 from lib.modules.hud.aoa import aoa
 
 
-class DefaultScreen(Screen):
+class Default(Screen):
     # called only when object is first created.
     def __init__(self):
         Screen.__init__(self)
@@ -40,7 +40,7 @@ class DefaultScreen(Screen):
         self.myfont = pygame.font.SysFont(
             "monospace", 22
         )  # font used by debug. initialize font; must be called after 'pygame.init()' to avoid 'Font not Initialized' error
-        self.fontIndicator = pygame.font.SysFont("monospace", 40)  # ie IAS and ALT
+        self.fontIndicator = pygame.font.SysFont("monospace", 100)  # ie IAS and ALT
         self.fontIndicatorSmaller = pygame.font.SysFont(
             "monospace", 30
         )  # ie. baro and VSI
@@ -55,7 +55,7 @@ class DefaultScreen(Screen):
         self.hud_horizon.initMod(self.pygamescreen, self.width, self.height)
 
         self.aoa = aoa.AOA()
-        self.aoa.initMod(self.pygamescreen, 200, self.height - 10)  # make a big AOA!
+        self.aoa.initMod(self.pygamescreen, 120, self.height - 10)  # make a big AOA!
 
     # called every redraw for the screen
     def draw(self, aircraft, smartdisplay):
@@ -64,9 +64,9 @@ class DefaultScreen(Screen):
 
         if(aircraft.ias < 100 and aircraft.ias > 40 and aircraft.aoa > 5 ):
             self.flyOnSpeedMode = True  # don't draw the normal efis screen.
-            self.aoa.draw(aircraft,smartdisplay,(smartdisplay.x_start + 20 ,smartdisplay.y_start + 5))
+            self.aoa.draw(aircraft,smartdisplay,(smartdisplay.x_center /3 ,smartdisplay.x_start + 5))
 
-            smartdisplay.draw_circle_text( 
+            smartdisplay.draw_circle_text( # draw large airspeed indicator
                 smartdisplay.CENTER_CENTER, 
                 self.bigfont, 
                 "%d" % (aircraft.ias), 
@@ -92,8 +92,8 @@ class DefaultScreen(Screen):
                 self.fontIndicator,
                 "%d" % (aircraft.get_ias()),
                 (255, 255, 0),
-                100,
-                35,
+                170,
+                90,
                 self.MainColor,
                 1,(0,0),2)
             # True aispeed
@@ -101,15 +101,15 @@ class DefaultScreen(Screen):
 
             # Ground speed
             smartdisplay.draw_text(smartdisplay.LEFT_MID_DOWN, self.fontIndicatorSmaller, "GS %d" % (aircraft.gndspeed), (255, 255, 0))
-        
+
         # ALT
         smartdisplay.draw_box_text(
             smartdisplay.RIGHT_MID,
             self.fontIndicator,
             "%d" % (aircraft.BALT),
             (255, 255, 0),
-            100,
-            35,
+            230,
+            90,
             self.MainColor,
             1,(0,0),2)
 
@@ -117,11 +117,7 @@ class DefaultScreen(Screen):
         smartdisplay.draw_text(smartdisplay.RIGHT_MID_DOWN, self.myfont, "%0.2f" % (aircraft.baro), (255, 255, 0))
         
         # VSI
-        if aircraft.vsi < 0:
-            smartdisplay.draw_text(smartdisplay.RIGHT_MID_UP, self.fontIndicatorSmaller, "%d" % (aircraft.vsi), (255, 255, 0))
-        else:
-            smartdisplay.draw_text(smartdisplay.RIGHT_MID_UP, self.fontIndicatorSmaller, "+%d" % (aircraft.vsi), (255, 255, 0))
-
+        smartdisplay.draw_text(smartdisplay.RIGHT_MID_UP, self.fontIndicatorSmaller, aircraft.get_vsi_string(), (255, 255, 0))
 
         # Mag heading
         smartdisplay.draw_box_text(
@@ -129,8 +125,8 @@ class DefaultScreen(Screen):
             self.fontIndicator,
             "%d" % (aircraft.mag_head),
             (255, 255, 0),
-            70,
-            35,
+            170,
+            90,
             self.MainColor,
             1,
             (0,0),

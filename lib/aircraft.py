@@ -136,6 +136,13 @@ class Aircraft(object):
         if(self.data_format==2):
             return "\xb0c"
 
+    def get_vsi_string(self):
+        if self.vsi < 0:
+            return "%d" % (self.vsi)
+        else:
+            return "+%d" % (self.vsi)
+
+
 #############################################
 ## Class: GPSData
 class GPSData(object):

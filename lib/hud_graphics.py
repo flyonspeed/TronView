@@ -64,6 +64,12 @@ def initDisplay(debug):
             size = pygame.display.Info().current_w, pygame.display.Info().current_h
             screen = pygame.display.set_mode(size, pygame.FULLSCREEN)
 
+    showMouse = hud_utils.readConfig("HUD", "ShowMouse", "false")  # default screen to load
+    if showMouse != "false":
+        pygame.mouse.set_visible(True)  # show
+    else:
+        pygame.mouse.set_visible(False)  # hide the mouse
+
     return screen, size
 
 

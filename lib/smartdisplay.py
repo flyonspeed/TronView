@@ -34,6 +34,8 @@ class SmartDisplay(object):
     CENTER_LEFT = 80
     CENTER_CENTER = 81
     CENTER_RIGHT = 82
+    CENTER_CENTER_UP = 83
+    CENTER_CENTER_DOWN = 84
 
     def __init__(self):
         print("SmartDisplay Init")
@@ -96,6 +98,8 @@ class SmartDisplay(object):
         self.pos_next_right_down = 0
         self.pos_next_right_padding = 0
         self.pos_next_bottom_padding = 0
+        self.pos_next_center_center_up = 0
+        self.pos_next_center_center_down = 0
 
     # called last after the draw loop is done.
     def draw_loop_done(self):
@@ -168,6 +172,15 @@ class SmartDisplay(object):
 
         elif drawAtPos == SmartDisplay.CENTER_CENTER:
             self.pygamescreen.blit(surface, (self.x_start+self.widthCenter-(surface.get_width()/2)+posAdjustmentX, self.y_start + self.heightCenter - (surface.get_height()/2) + posAdjustmentY  ))
+            self.pos_next_center_center_down = self.pos_next_center_center_up = surface.get_height()/2
+
+        elif drawAtPos == SmartDisplay.CENTER_CENTER_UP:
+            self.pygamescreen.blit(surface, (self.x_start+self.widthCenter-(surface.get_width()/2)+posAdjustmentX, self.y_start + self.heightCenter - (surface.get_height()/2) + self.pos_next_center_center_up + posAdjustmentY  ))
+            self.pos_next_center_center_up = surface.get_height()/2
+
+        elif drawAtPos == SmartDisplay.CENTER_CENTER_DOWN:
+            self.pygamescreen.blit(surface, (self.x_start+self.widthCenter-(surface.get_width()/2)+posAdjustmentX, self.y_start + self.heightCenter - (surface.get_height()/2) + self.pos_next_center_center_down + posAdjustmentY  ))
+            self.pos_next_center_center_down = surface.get_height()/2
 
         elif drawAtPos == SmartDisplay.CENTER_RIGHT:
             self.pygamescreen.blit(surface, (self.x_end-surface.get_width()+posAdjustmentX, (self.y_start+self.heightCenter-(surface.get_height()/2)+posAdjustmentY) ))

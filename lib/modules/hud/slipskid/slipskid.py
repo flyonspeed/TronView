@@ -31,8 +31,8 @@ class SlipSkid(Module):
         self.MainColor = (255, 255, 255)  # main color 
         self.BallColor = (255, 255, 255)  # ball color 
 
-        self.xLineFromCenter = self.width / 8
-        self.BallSize = self.xLineFromCenter - 15  # ball size 
+        self.xLineFromCenter = int(self.width / 8)
+        self.BallSize = int(self.xLineFromCenter - 15)  # ball size 
         self.yLineHeight = self.height
         self.yCenterForBall = int(self.height /2)
 

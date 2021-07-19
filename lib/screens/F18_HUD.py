@@ -41,7 +41,8 @@ class F18_HUD(Screen):
 
         # fonts
         self.myfont = pygame.font.SysFont("monospace", 20, bold=False) #debug font.
-        self.fontIndicator = pygame.font.SysFont("monospace", 40, bold=False)  # ie IAS and ALT
+        self.fontIndicator = pygame.font.SysFont("monospace", 100, bold=False)  # ie IAS and ALT
+        self.fontAltSmall = pygame.font.SysFont("monospace", 50, bold=False)  # smaller font for right side of ALT
         self.fontIndicatorSmaller = pygame.font.SysFont("monospace", 30, bold=False)  # ie. baro and VSI, etc
 
         self.heading = heading.Heading()
@@ -63,7 +64,7 @@ class F18_HUD(Screen):
         self.aoa.initMod(self.pygamescreen, 60, 200)
 
         self.slipskid = slipskid.SlipSkid()
-        self.slipskid.initMod(self.pygamescreen, self.width, self.height)
+        self.slipskid.initMod(self.pygamescreen, 250, 30)
 
         self.wind = wind.Wind()
         self.wind.initMod(self.pygamescreen, self.width, self.height)
@@ -78,25 +79,28 @@ class F18_HUD(Screen):
         self.horizon.draw(aircraft,smartdisplay)
  
         # IAS
-        smartdisplay.draw_box_text(
-            smartdisplay.LEFT_MID,
-            self.fontIndicator,
-            "%d" % (aircraft.ias),
-            (255, 255, 0),
-            100,
-            35,
-            self.MainColor,
-            1,(0,0),2)
+        smartdisplay.draw_box_text_padding(
+            smartdisplay.LEFT_MID, # postion
+            self.fontIndicator, # font
+            "%d" % (aircraft.get_ias()), # text
+            (255, 255, 0), # text color
+            3, # padding chars..
+            self.MainColor, # line color
+            4 # box line thickness
+            )
+
         # ALT
-        smartdisplay.draw_box_text(
-            smartdisplay.RIGHT_MID,
-            self.fontIndicator,
-            "%d" % (aircraft.BALT),
-            (255, 255, 0),
-            100,
-            35,
-            self.MainColor,
-            1,(0,0),2)
+        smartdisplay.draw_box_text_with_big_and_small_text(
+            smartdisplay.RIGHT_MID, # postion
+            self.fontIndicator, # big font
+            self.fontAltSmall, # little font
+            "%d" % (aircraft.BALT), # text
+            3, # how many chars on the right do I want in small text.
+            (255, 255, 0), # text color
+            5, # total char space length (padding)
+            self.MainColor, # line color
+            4 # box line thickness
+            )
 
         # time string
         smartdisplay.draw_text(smartdisplay.RIGHT_MID_DOWN, self.fontIndicatorSmaller, "%sz" % (aircraft.sys_time_string), (255, 255, 0))
@@ -129,7 +133,7 @@ class F18_HUD(Screen):
         self.wind.draw(aircraft,smartdisplay,(10,smartdisplay.y_end-100))
 
         # draw Slip Skid
-        self.slipskid.draw(aircraft,smartdisplay,(smartdisplay.x_center,smartdisplay.y_center+180))
+        self.slipskid.draw(aircraft,smartdisplay,(smartdisplay.x_center,smartdisplay.y_end-80))
 
         # draw AOA indicator
         self.aoa.draw(aircraft,smartdisplay,(smartdisplay.x_start + 20 ,smartdisplay.y_start + 5))

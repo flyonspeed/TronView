@@ -28,8 +28,13 @@ class SlipSkid(Module):
             self, pygamescreen, width, height
         )  # call parent init screen.
         print(("Init Mod: %s %dx%d"%(self.name,self.width,self.height)))
+        self.MainColor = (255, 255, 255)  # main color 
+        self.BallColor = (255, 255, 255)  # ball color 
 
-        self.MainColor = (0, 255, 0)  # main color 
+        self.xLineFromCenter = self.width / 8
+        self.BallSize = self.xLineFromCenter - 15  # ball size 
+        self.yLineHeight = self.height
+        self.yCenterForBall = int(self.height /2)
 
     # called every redraw for the mod
     def draw(self, aircraft, smartdisplay, pos):
@@ -40,26 +45,26 @@ class SlipSkid(Module):
         if aircraft.slip_skid != None:
             pygame.draw.circle(
                 self.pygamescreen,
-                (255, 255, 255),
+                self.BallColor,
                 (
                     int(x + self.x_offset) - int(aircraft.slip_skid * 150),
-                    int(y),
+                    y + self.yCenterForBall,
                 ),
-                10,
+                self.BallSize,
                 0,
             )
         pygame.draw.line(
             self.pygamescreen,
-            (255, 255, 255),
-            (x + 13 + self.x_offset, y - 1),
-            (x + 13 + self.x_offset, y + 11),
+            self.MainColor,
+            (x + self.xLineFromCenter + self.x_offset, y ),
+            (x + self.xLineFromCenter + self.x_offset, y + self.yLineHeight),
             3,
         )
         pygame.draw.line(
             self.pygamescreen,
-            (255, 255, 255),
-            (x - 13 + self.x_offset, y - 1 ),
-            (x - 13 + self.x_offset, y + 11),
+            self.MainColor,
+            (x - self.xLineFromCenter + self.x_offset, y ),
+            (x - self.xLineFromCenter + self.x_offset, y + self.yLineHeight),
             3,
         )
         # pygame.draw.line(
@@ -94,11 +99,11 @@ class SlipSkid(Module):
     # called before screen draw.  To clear the screen to your favorite color.
     def clear(self):
         #self.ahrs_bg.fill((0, 0, 0))  # clear screen
-        print("clear")
+        pass
 
     # handle key events
     def processEvent(self, event):
-        print("processEvent")
+        pass
 
 
 

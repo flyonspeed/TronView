@@ -2,6 +2,7 @@
 
 
 import pygame
+import math
 
 #############################################
 ## Class: smartdisplay
@@ -202,15 +203,62 @@ class SmartDisplay(object):
             newSurface.blit(label, (newSurface.get_width()/2-label.get_width()/2,0))
         self.blit_next(newSurface,drawAtPos,posAdjustment)
 
+    # draw box with text in it. with padding
+    # using the font size to determine the box size.
+    # and padding to automaticaly pad the left if needed. padding 4 means it will always be 4 chars wide.
+    def draw_box_text_padding( self, drawAtPos, font, text, textcolor, padding , linecolor, thickness,posAdjustment=(0,0)):
+        text = text.rjust(padding)
+        label = font.render(text, 1, textcolor, (0,0,0)) # use a black background color
+        newSurface = pygame.Surface((label.get_width(), label.get_height()-label.get_height()/6)) # trim height of font.
+        newSurface.blit(label,(0,0))
+        if(thickness==1):
+            pygame.draw.rect(newSurface, linecolor, (0, 0, newSurface.get_width(), newSurface.get_height()), 1)
+        else:
+            offset = thickness
+            pygame.draw.rect(newSurface, linecolor, (offset, offset, newSurface.get_width()-offset-1, newSurface.get_height()-offset-1), thickness)
+        #newSurface.blit(label, (0,0))
+        self.blit_next(newSurface,drawAtPos,posAdjustment)
+
+    # draw box with text in it. with padding
+    # using the font size to determine the box size.
+    # and padding to automaticaly pad the left if needed. padding 4 means it will always be 4 chars wide.
+    def draw_box_text_with_big_and_small_text( self, drawAtPos, font1, font2, text, charLenToUseForRight, textcolor, padding , linecolor, thickness,posAdjustment=(0,0)):
+        strlen = len(text)
+        # split the string up
+        if(strlen>charLenToUseForRight):
+            rightText = text[strlen-charLenToUseForRight:strlen]
+            leftText = text[0:strlen-charLenToUseForRight].rjust(padding-charLenToUseForRight)
+        else:
+            rightText = text.rjust(charLenToUseForRight)
+            leftText = " ".rjust(padding-charLenToUseForRight)
+        # render the labels
+        label1 = font1.render(leftText, 1, textcolor, (0,0,0)) # use a black background color
+        label2 = font2.render(rightText, 1, textcolor, (0,0,0)) # use a black background color
+        # add them to a new surface.  trim the height down a bit cause the font seems to add extra space..
+        newSurface = pygame.Surface((label1.get_width()+label2.get_width(), label1.get_height()-label1.get_height()/6)) # remove extra padding
+        newSurface.blit(label1, (0,0))
+        newSurface.blit(label2, (label1.get_width(),newSurface.get_height()-label2.get_height() ))
+        # draw a box if we want.
+        if(thickness==0):
+            pass
+        elif(thickness==1):
+            pygame.draw.rect(newSurface, linecolor, (0, 0, newSurface.get_width(), newSurface.get_height()), 1)
+        else:
+            offset = thickness
+            pygame.draw.rect(newSurface, linecolor, (offset, offset, newSurface.get_width()-offset-1, newSurface.get_height()-offset-1), thickness)
+        self.blit_next(newSurface,drawAtPos,posAdjustment)
+
+
     # smart draw text.
     def draw_text(self, drawAtPos, font, text, color,posAdjustment=(0,0),justify=0):
+        backgroundcolor = (0,0,0)
         if justify==0:
-            self.blit_next(font.render(text, 1, color), drawAtPos,posAdjustment)
+            self.blit_next(font.render(text, 1, color,backgroundcolor), drawAtPos,posAdjustment)
         elif justify==1:
-            label = font.render(text, 1, color)
+            label = font.render(text, 1, color,backgroundcolor)
             self.blit_next(label, drawAtPos, (label.get_width(),0))
         elif justify==2:
-            label = font.render(text, 1, color)
+            label = font.render(text, 1, color,backgroundcolor)
             self.blit_next(label, drawAtPos, (label.get_width()/2,0))
 
     # draw a circle.

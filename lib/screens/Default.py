@@ -14,6 +14,7 @@ import pygame
 from lib.modules.efis.artificalhorz import artificalhorz
 from lib.modules.hud.horizon import horizon
 from lib.modules.hud.aoa import aoa
+from lib.modules.hud.slipskid import slipskid
 
 
 class Default(Screen):
@@ -41,6 +42,7 @@ class Default(Screen):
             "monospace", 22
         )  # font used by debug. initialize font; must be called after 'pygame.init()' to avoid 'Font not Initialized' error
         self.fontIndicator = pygame.font.SysFont("monospace", 100)  # ie IAS and ALT
+        self.fontAltSmall = pygame.font.SysFont("monospace", 50)  # or ALT small right chars.
         self.fontIndicatorSmaller = pygame.font.SysFont(
             "monospace", 30
         )  # ie. baro and VSI
@@ -57,13 +59,18 @@ class Default(Screen):
         self.aoa = aoa.AOA()
         self.aoa.initMod(self.pygamescreen, 120, self.height - 10)  # make a big AOA!
 
+        self.slipskid = slipskid.SlipSkid()
+        self.slipskid.initMod(self.pygamescreen, 250, 50)
+
     # called every redraw for the screen
     def draw(self, aircraft, smartdisplay):
 
 
-
-        if(aircraft.ias < 100 and aircraft.ias > 40 and aircraft.aoa > 5 ):
+        # onspeed mode?
+        if(aircraft.ias < 100 and aircraft.ias > 10 and aircraft.aoa > 5 ):
             self.flyOnSpeedMode = True  # don't draw the normal efis screen.
+
+            #draw a big AOA indicator
             self.aoa.draw(aircraft,smartdisplay,(smartdisplay.x_center /3 ,smartdisplay.x_start + 5))
 
             smartdisplay.draw_circle_text( # draw large airspeed indicator
@@ -87,15 +94,15 @@ class Default(Screen):
                 self.ah.draw(aircraft,smartdisplay)
 
             # IAS
-            smartdisplay.draw_box_text(
-                smartdisplay.LEFT_MID,
-                self.fontIndicator,
-                "%d" % (aircraft.get_ias()),
-                (255, 255, 0),
-                170,
-                90,
-                self.MainColor,
-                1,(0,0),2)
+            smartdisplay.draw_box_text_padding(
+                smartdisplay.LEFT_MID, # postion
+                self.fontIndicator, # font
+                "%d" % (aircraft.get_ias()), # text
+                (255, 255, 0), # text color
+                3, # padding chars..
+                self.MainColor, # line color
+                4 # box line thickness
+                )
             # True aispeed
             smartdisplay.draw_text(smartdisplay.LEFT_MID_UP, self.fontIndicatorSmaller, "TAS %d" % (aircraft.tas), (255, 255, 0))
 
@@ -103,21 +110,24 @@ class Default(Screen):
             smartdisplay.draw_text(smartdisplay.LEFT_MID_DOWN, self.fontIndicatorSmaller, "GS %d" % (aircraft.gndspeed), (255, 255, 0))
 
         # ALT
-        smartdisplay.draw_box_text(
-            smartdisplay.RIGHT_MID,
-            self.fontIndicator,
-            "%d" % (aircraft.BALT),
-            (255, 255, 0),
-            230,
-            90,
-            self.MainColor,
-            1,(0,0),2)
+        smartdisplay.draw_box_text_with_big_and_small_text(
+            smartdisplay.RIGHT_MID, # postion
+            self.fontIndicator, # big font
+            self.fontAltSmall, # little font
+            "%d" % (aircraft.BALT), # text
+            3, # how many chars on the right do I want in small text.
+            (255, 255, 0), # text color
+            5, # total char space length (padding)
+            self.MainColor, # line color
+            4 # box line thickness
+            )
 
         # baro setting
         smartdisplay.draw_text(smartdisplay.RIGHT_MID_DOWN, self.myfont, "%0.2f" % (aircraft.baro), (255, 255, 0))
         
         # VSI
         smartdisplay.draw_text(smartdisplay.RIGHT_MID_UP, self.fontIndicatorSmaller, aircraft.get_vsi_string(), (255, 255, 0))
+
 
         # Mag heading
         smartdisplay.draw_box_text(
@@ -131,6 +141,9 @@ class Default(Screen):
             1,
             (0,0),
             2)
+
+        # draw Slip Skid
+        self.slipskid.draw(aircraft,smartdisplay,(smartdisplay.x_center,smartdisplay.y_end-50))
 
         if self.show_debug:
             hud_graphics.hud_draw_debug(aircraft,smartdisplay,self.myfont)

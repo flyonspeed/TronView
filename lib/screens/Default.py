@@ -149,6 +149,9 @@ class Default(Screen):
         # draw Slip Skid
         self.slipskid.draw(aircraft,smartdisplay,(smartdisplay.x_center,smartdisplay.y_end-50))
 
+        # Time
+        smartdisplay.draw_text(smartdisplay.TOP_RIGHT, self.fontIndicatorSmaller, "%sz" % (aircraft.sys_time_string), (255, 255, 0))
+
         if self.show_debug:
             hud_graphics.hud_draw_debug(aircraft,smartdisplay,self.myfont)
 

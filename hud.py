@@ -69,10 +69,13 @@ def main_graphical():
             # Mouse Mappings (not droppings)
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mx, my = pygame.mouse.get_pos()
-                #print("Touch %d x %d"%(mx,my))
-                drawTimer.addGrowlNotice("%dx%d"%(mx,my),3000,drawTimer.blue,6)
-                drawTimer.addCustomDraw(drawMouseBox,1000)
-                CurrentScreen.processEvent(event,aircraft,smartdisplay)
+                if(mx>smartdisplay.x_end-100 and my < 100):
+                    loadScreen(hud_utils.findScreen("next"))
+                else:
+                    #print("Touch %d x %d"%(mx,my))
+                    drawTimer.addGrowlNotice("%dx%d"%(mx,my),3000,drawTimer.blue,6)
+                    drawTimer.addCustomDraw(drawMouseBox,1000)
+                    CurrentScreen.processEvent(event,aircraft,smartdisplay)
             # User event
             #if event.type == pygame.USEREVENT:
                 #print("user event")

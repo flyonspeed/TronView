@@ -133,7 +133,7 @@ class F18_HUD(Screen):
         self.wind.draw(aircraft,smartdisplay,(10,smartdisplay.y_end-100))
 
         # draw Slip Skid
-        self.slipskid.draw(aircraft,smartdisplay,(smartdisplay.x_center,smartdisplay.y_end-80))
+        self.slipskid.draw(aircraft,smartdisplay,(smartdisplay.x_center,smartdisplay.y_end-30))
 
         # draw AOA indicator
         self.aoa.draw(aircraft,smartdisplay,(smartdisplay.x_start + 20 ,smartdisplay.y_start + 5))
@@ -145,17 +145,15 @@ class F18_HUD(Screen):
         self.heading.draw(aircraft,smartdisplay)
 
         # Mag heading text
-        smartdisplay.draw_box_text(
-            smartdisplay.TOP_MID,
-            self.fontIndicator,
-            "%d" % (aircraft.mag_head),
-            (255, 255, 0),
-            70,
-            35,
-            self.MainColor,
-            1,
-            (0,0),
-            2)
+        smartdisplay.draw_box_text_padding(
+            smartdisplay.TOP_MID, # postion
+            self.fontAltSmall, # font
+            "%d" % (aircraft.mag_head), # text
+            (255, 255, 0), # text color
+            3, # padding chars..
+            self.MainColor, # line color
+            2 # box line thickness
+            )
 
         # update entire display..
         pygame.display.flip()
@@ -170,21 +168,22 @@ class F18_HUD(Screen):
         self.pygamescreen.fill((0, 0, 0))  # clear screen
 
     # handle key events
-    def processEvent(self, event):
-        if event.key == pygame.K_d:
-            self.show_debug = not self.show_debug
-        if event.key == pygame.K_a:
-            self.alt_box_mode = not self.alt_box_mode
-        if event.key == pygame.K_l:
-            self.line_thickness += 1
-            if self.line_thickness > 8:
-                self.line_thickness = 2
-        if event.key == pygame.K_c:
-            self.horizon.center_circle_mode += 1
-            if self.horizon.center_circle_mode > 4:
-                self.horizon.center_circle_mode = 0
-        if event.key == pygame.K_x:
-            self.caged_mode = not self.caged_mode
+    def processEvent(self, event, aircraft, smartdisplay):
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_d:
+                self.show_debug = not self.show_debug
+            if event.key == pygame.K_a:
+                self.alt_box_mode = not self.alt_box_mode
+            if event.key == pygame.K_l:
+                self.line_thickness += 1
+                if self.line_thickness > 8:
+                    self.line_thickness = 2
+            if event.key == pygame.K_c:
+                self.horizon.center_circle_mode += 1
+                if self.horizon.center_circle_mode > 4:
+                    self.horizon.center_circle_mode = 0
+            if event.key == pygame.K_x:
+                self.caged_mode = not self.caged_mode
 
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

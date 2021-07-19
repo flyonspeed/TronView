@@ -47,7 +47,14 @@ def main_graphical():
                 aircraft.errorFoundNeedToExit = True
             # KEY MAPPINGS
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_q:
+                mods = pygame.key.get_mods()
+                if event.key == pygame.K_RIGHT and mods & pygame.KMOD_CTRL :
+                    print("fast forward...")
+                    CurrentInput.fastForward(aircraft,500)
+                elif event.key == pygame.K_LEFT and mods & pygame.KMOD_CTRL :
+                    print("jump backwards data...")
+                    CurrentInput.fastBackwards(aircraft,500)
+                elif event.key == pygame.K_q or event.key == pygame.K_ESCAPE:
                     aircraft.errorFoundNeedToExit = True
                 elif event.key == pygame.K_PAGEUP:
                     loadScreen(hud_utils.findScreen("prev"))

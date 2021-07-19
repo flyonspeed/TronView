@@ -64,7 +64,7 @@ class SmartDisplay(object):
 
         self.pos_next_bottom_padding = 0
 
-        self.pos_horz_padding = 25
+        self.pos_horz_padding = 15
 
     def setDisplaySize(self,width,height):
         self.org_width = width
@@ -214,8 +214,8 @@ class SmartDisplay(object):
         if(thickness==1):
             pygame.draw.rect(newSurface, linecolor, (0, 0, newSurface.get_width(), newSurface.get_height()), 1)
         else:
-            offset = thickness
-            pygame.draw.rect(newSurface, linecolor, (offset, offset, newSurface.get_width()-offset-1, newSurface.get_height()-offset-1), thickness)
+            offset = thickness/2
+            pygame.draw.rect(newSurface, linecolor, (offset, offset, newSurface.get_width()-thickness, newSurface.get_height()-thickness), thickness)
         #newSurface.blit(label, (0,0))
         self.blit_next(newSurface,drawAtPos,posAdjustment)
 
@@ -244,8 +244,8 @@ class SmartDisplay(object):
         elif(thickness==1):
             pygame.draw.rect(newSurface, linecolor, (0, 0, newSurface.get_width(), newSurface.get_height()), 1)
         else:
-            offset = thickness
-            pygame.draw.rect(newSurface, linecolor, (offset, offset, newSurface.get_width()-offset-1, newSurface.get_height()-offset-1), thickness)
+            offset = thickness/2
+            pygame.draw.rect(newSurface, linecolor, (offset, offset, newSurface.get_width()-thickness, newSurface.get_height()-thickness), thickness)
         self.blit_next(newSurface,drawAtPos,posAdjustment)
 
 

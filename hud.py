@@ -65,13 +65,14 @@ def main_graphical():
                 elif event.key == pygame.K_z:
                     screenTimer.addNotice("hello",1000)
                 else:
-                    CurrentScreen.processEvent(event)  # send this key command to the hud screen object
+                    CurrentScreen.processEvent(event,aircraft,smartdisplay)  # send this key command to the hud screen object
             # Mouse Mappings (not droppings)
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mx, my = pygame.mouse.get_pos()
-                #print("mouse %d x %d"%(mx,my))
-                drawTimer.addGrowlNotice("touch %dx%d"%(mx,my),3000,drawTimer.blue,6)
+                #print("Touch %d x %d"%(mx,my))
+                drawTimer.addGrowlNotice("%dx%d"%(mx,my),3000,drawTimer.blue,6)
                 drawTimer.addCustomDraw(drawMouseBox,1000)
+                CurrentScreen.processEvent(event,aircraft,smartdisplay)
             # User event
             #if event.type == pygame.USEREVENT:
                 #print("user event")

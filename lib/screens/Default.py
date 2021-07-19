@@ -15,6 +15,7 @@ from lib.modules.efis.artificalhorz import artificalhorz
 from lib.modules.hud.horizon import horizon
 from lib.modules.hud.aoa import aoa
 from lib.modules.hud.slipskid import slipskid
+from lib.modules.gui.menu import menu
 
 
 class Default(Screen):
@@ -61,6 +62,9 @@ class Default(Screen):
 
         self.slipskid = slipskid.SlipSkid()
         self.slipskid.initMod(self.pygamescreen, 250, 50)
+
+        self.menu = menu.Menu()
+        self.menu.initMod(self.pygamescreen, 400, 300, "Options")
 
     # called every redraw for the screen
     def draw(self, aircraft, smartdisplay):
@@ -154,11 +158,17 @@ class Default(Screen):
         self.pygamescreen.fill((0, 0, 0))  # clear screen
 
     # handle key events
-    def processEvent(self, event):
-        if event.key == pygame.K_h:
-            self.show_hud = not self.show_hud
-        if event.key == pygame.K_d:
-            self.show_debug = not self.show_debug
+    def processEvent(self, event, aircraft, smartdisplay):
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_h:
+                self.show_hud = not self.show_hud
+            if event.key == pygame.K_d:
+                self.show_debug = not self.show_debug
+
+        if event.type == pygame.MOUSEBUTTONDOWN:
+                mx, my = pygame.mouse.get_pos()
+                if(mx<100 and my <100):
+                    self.menu.draw(aircraft,smartdisplay)
 
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

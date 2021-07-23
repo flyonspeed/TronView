@@ -54,6 +54,8 @@ def main_graphical():
                 elif event.key == pygame.K_LEFT and mods & pygame.KMOD_CTRL :
                     print("jump backwards data...")
                     CurrentInput.fastBackwards(aircraft,500)
+                elif event.key == pygame.K_d and mods & pygame.KMOD_CTRL:
+                    CurrentScreen.debug = not CurrentScreen.debug
                 elif event.key == pygame.K_q or event.key == pygame.K_ESCAPE:
                     aircraft.errorFoundNeedToExit = True
                 elif event.key == pygame.K_PAGEUP:
@@ -69,15 +71,15 @@ def main_graphical():
                 elif event.key == pygame.K_k:
                     vkey = VirtualKeyboard(pygamescreen) # create a virtual keyboard
                     #vkey.run("test")
-                elif event.key == pygame.K_z:
-                    screenTimer.addNotice("hello",1000)
                 else:
                     CurrentScreen.processEvent(event,aircraft,smartdisplay)  # send this key command to the hud screen object
             # Mouse Mappings (not droppings)
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mx, my = pygame.mouse.get_pos()
-                if(mx>smartdisplay.x_end-100 and my < 100):
+                if(mx>smartdisplay.x_end-100 and my < 100):  # top right - goto next screen
                     loadScreen(hud_utils.findScreen("next"))
+                elif(mx < 100 and my > smartdisplay.y_end-100): # bottom left - debug on
+                    CurrentScreen.debug = not CurrentScreen.debug
                 else:
                     #print("Touch %d x %d"%(mx,my))
                     drawTimer.addGrowlNotice("%dx%d"%(mx,my),3000,drawTimer.blue,6)

@@ -169,7 +169,7 @@ class serial_g3x(Input):
                             int(PressAlt) + (aircraft.baro_diff / 0.00108)
                         )  # 0.00108 of inches of mercury change per foot.
                         aircraft.BALT = aircraft.alt
-                        aircraft.vsi = int(VertSpeed) * 10
+                        aircraft.vsi = int(VertSpeed) * 10 # vertical speed in fpm
                         aircraft.tas = _utils.ias2tas(
                             int(Airspeed)*0.1, int(OAT), aircraft.PALT
                         ) * 1.15078 # convert back to mph

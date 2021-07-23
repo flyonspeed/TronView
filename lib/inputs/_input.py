@@ -12,7 +12,6 @@ class Input:
         self.inputtype = ""
 
     def initInput(self, aircraft):
-        print("init input parent")
-
+        pass
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

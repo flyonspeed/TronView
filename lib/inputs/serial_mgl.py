@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 # Serial input source
-# Skyview
+# MGL iEFIS
 # 1/23/2019 Christopher Jones
 
 from ._input import Input
@@ -101,7 +101,7 @@ class serial_mgl(Input):
                                 "<iiiiiiiHHhBB", Message
                             )
                             if GS > 0:
-                                aircraft.gndspeed = GS * 0.05399565 # convert to mph
+                                aircraft.gndspeed = GS * 0.06213712 # convert to mph
                             aircraft.agl = AGL
                             aircraft.gndtrack = int(TrackTrue * 0.1)
                             if (
@@ -118,9 +118,9 @@ class serial_mgl(Input):
                                 "<iiHHhhHHhBBBBBBBB", Message
                             )
                             if ASI > 0:
-                                aircraft.ias = ASI * 0.05399565
+                                aircraft.ias = ASI * 0.06213712 #idicated airspeed in 10th of Km/h.  * 0.05399565 to knots. * 0.6213712 to mph
                             if TAS > 0:
-                                aircraft.tas = TAS * 0.05399565
+                                aircraft.tas = TAS * 0.06213712 # mph
                             # efis_alt = BAltitude
                             aircraft.baro = (
                                 LocalBaro * 0.0029529983071445
@@ -200,7 +200,7 @@ class serial_mgl(Input):
 
                 return aircraft
         except serial.serialutil.SerialException:
-            print("serial exception")
+            print("mgl serial exception")
             aircraft.errorFoundNeedToExit = True
         return aircraft
 

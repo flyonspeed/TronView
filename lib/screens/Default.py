@@ -23,7 +23,6 @@ class Default(Screen):
     def __init__(self):
         Screen.__init__(self)
         self.name = "Default"  # set name for this screen
-        self.show_debug = False  # default off
         self.show_hud = False
         self.MainColor = (0, 255, 0)  # main color of hud graphics
         self.flyOnSpeedMode = False
@@ -152,7 +151,7 @@ class Default(Screen):
         # Time
         smartdisplay.draw_text(smartdisplay.TOP_RIGHT, self.fontIndicatorSmaller, "%sz" % (aircraft.sys_time_string), (255, 255, 0))
 
-        if self.show_debug:
+        if self.debug:
             hud_graphics.hud_draw_debug(aircraft,smartdisplay,self.myfont)
 
 
@@ -165,13 +164,13 @@ class Default(Screen):
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_h:
                 self.show_hud = not self.show_hud
-            if event.key == pygame.K_d:
-                self.show_debug = not self.show_debug
 
         if event.type == pygame.MOUSEBUTTONDOWN:
                 mx, my = pygame.mouse.get_pos()
                 if(mx<100 and my <100):
                     self.menu.draw(aircraft,smartdisplay)
+                else:
+                    self.show_hud = not self.show_hud
 
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

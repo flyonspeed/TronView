@@ -111,11 +111,11 @@ class serial_d100(Input):
                     self.ser.flushInput()  # flush the serial after every message else we see delays
                 return aircraft
         except ValueError as ex:
-            print("dynon data conversion error")
+            print("dynon d100 data conversion error")
             print(ex)
             aircraft.errorFoundNeedToExit = True
         except serial.serialutil.SerialException:
-            print("dynon serial exception")
+            print("dynon d100 serial exception")
             aircraft.errorFoundNeedToExit = True
         return aircraft
 

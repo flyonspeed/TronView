@@ -17,6 +17,9 @@ class serial_mgl(Input):
         self.name = "mgl"
         self.version = 1.0
         self.inputtype = "serial"
+        self.textMode_showAir = True
+        self.textMode_showNav = True
+        self.textMode_showTraffic = True
 
     def initInput(self,aircraft):
         Input.initInput( self, aircraft )  # call parent init Input.
@@ -221,19 +224,38 @@ class serial_mgl(Input):
     #############################################
     ## Function: printTextModeData
     def printTextModeData(self, aircraft):
-        hud_text.print_header("Decoded data from Input Module: %s"%(self.name))
+        hud_text.print_header("Decoded data from Input Module: %s (Keys: n = nav data, a = all data)"%(self.name))
         if len(aircraft.demoFile):
             hud_text.print_header("Demofile: %s"%(aircraft.demoFile))
 
-        hud_text.print_object(aircraft)
+        if self.textMode_showAir==True:
+            hud_text.print_object(aircraft)
 
-        hud_text.print_header("Decoded Nav Data")
-        hud_text.print_object(aircraft.nav)
+        if self.textMode_showNav==True:
+            hud_text.print_header("Decoded Nav Data")
+            hud_text.print_object(aircraft.nav)
 
-        hud_text.changePos(1,100)
-        hud_text.print_header("Decoded Traffic Data")
-        hud_text.print_object(aircraft.traffic)
+        if self.textMode_showTraffic==True:
+            hud_text.changePos(1,100)
+            hud_text.print_header("Decoded Traffic Data")
+            hud_text.print_object(aircraft.traffic)
 
         hud_text.print_DoneWithPage()
+
+
+    #############################################
+    ## Function: textModeKeyInput
+    ## this is only called when in text mode. And is used to changed text mode options.
+    def textModeKeyInput(self, key, aircraft):
+        if key==ord('n'):
+            self.textMode_showNav = True
+            self.textMode_showAir = False
+            self.textMode_showTraffic = False
+            hud_text.print_Clear()
+        if key==ord('a'):
+            self.textMode_showNav = True
+            self.textMode_showAir = True
+            self.textMode_showTraffic = True
+            hud_text.print_Clear()
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

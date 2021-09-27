@@ -147,7 +147,7 @@ class threadReadKeyboard(threading.Thread):
         self.stdscr.keypad(1)    
 
     def run(self):
-        global aircraft
+        global CurrentInput, aircraft
         while not aircraft.errorFoundNeedToExit and aircraft.textMode:
             key = self.stdscr.getch()
             if key==ord('q'):
@@ -160,7 +160,10 @@ class threadReadKeyboard(threading.Thread):
             #elif key==339: #page up
             #elif key==338: #page up
             else:
-                print(("Key: %d \r\n"%(key)))
+                try:
+                    CurrentInput.textModeKeyInput(key,aircraft)
+                except AttributeError:
+                    print(("Key: %d \r\n"%(key)))
 
 #############################################
 ## Function: loadScreen

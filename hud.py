@@ -27,6 +27,7 @@ from lib import aircraft
 from lib import smartdisplay
 from lib.util.virtualKeyboard import VirtualKeyboard
 from lib.util import drawTimer
+from lib.util import rpi_hardware
 
 #############################################
 ## Function: main
@@ -133,7 +134,7 @@ class myThreadEfisInputReader(threading.Thread):
         threading.Thread.__init__(self)
 
     def run(self):
-        global CurrentInput, aircraft
+        global CurrentInput, CurrentInput2, aircraft
         while aircraft.errorFoundNeedToExit == False:
             aircraft = CurrentInput.readMessage(aircraft)
 
@@ -153,15 +154,24 @@ class threadReadKeyboard(threading.Thread):
             if key==ord('q'):
                 curses.endwin()
                 aircraft.errorFoundNeedToExit = True
+            elif key==curses.KEY_RIGHT:
+                CurrentInput.fastForward(aircraft,500)
+            elif key==curses.KEY_LEFT:
+                CurrentInput.fastBackwards(aircraft,500)
             elif key==27:  # escape key.
                 curses.endwin()
                 aircraft.textMode = False
                 loadScreen(hud_utils.findScreen("current")) # load current screen
             #elif key==339: #page up
             #elif key==338: #page up
-            else:
+            else: #else send this key to the input (if it has the ability)
                 try:
-                    CurrentInput.textModeKeyInput(key,aircraft)
+                    retrn,returnMsg = CurrentInput.textModeKeyInput(key,aircraft)
+                    if retrn == 'quit':
+                        curses.endwin()
+                        aircraft.errorFoundNeedToExit = True
+                        hud_text.print_Clear()
+                        print(returnMsg)
                 except AttributeError:
                     print(("Key: %d \r\n"%(key)))
 
@@ -198,6 +208,29 @@ def loadScreen(ScreenNameToLoad):
     drawTimer.addGrowlNotice(ScreenNameToLoad,3000,drawTimer.nerd_yellow) 
 
 #############################################
+## Function: loadInput
+# load input.
+def loadInput(num,nameToLoad):
+    global aircraft
+    print(("Input data module %d: %s"%(num,nameToLoad)))
+    module = ".%s" % (nameToLoad)
+    mod = importlib.import_module(module, "lib.inputs")  # dynamically load class
+    class_ = getattr(mod, nameToLoad)
+    newInput = class_()
+    newInput.initInput(aircraft)
+    return newInput
+
+#############################################
+## Function: checkInternals
+# check internal values for this processor/machine..
+def checkInternals():
+    global isRunningOnPi, aircraft
+    if isRunningOnPi == True:
+        temp, msg = rpi_hardware.check_CPU_temp()
+        aircraft.internal.temp = temp
+
+
+#############################################
 #############################################
 # Hud start code.
 #
@@ -205,6 +238,7 @@ aircraft = aircraft.Aircraft()
 smartdisplay = smartdisplay.SmartDisplay()
 ScreenNameToLoad = hud_utils.readConfig("HUD", "screen", "Default")  # default screen to load
 DataInputToLoad = hud_utils.readConfig("DataInput", "inputsource", "none")  # input method
+DataInputToLoad2 = hud_utils.readConfig("DataInput2", "inputsource", "none")  # optional 2nd input
 
 # check args passed in.
 if __name__ == "__main__":
@@ -231,21 +265,20 @@ if __name__ == "__main__":
             DataInputToLoad = arg
         if opt == "-s":
             ScreenNameToLoad = arg
+    isRunningOnPi = rpi_hardware.is_raspberrypi()
+    if isRunningOnPi == True:
+        print("Running on RaspberryPi")
     if DataInputToLoad == "none":
         print("No inputsource given")
         hud_utils.showArgs()
-
     # Check and load input source
     if hud_utils.findInput(DataInputToLoad) == False:
         print(("Input module not found: %s"%(DataInputToLoad)))
         hud_utils.findInput() # show available inputs
         sys.exit()
-    print(("Input data module: %s"%(DataInputToLoad)))
-    module = ".%s" % (DataInputToLoad)
-    mod = importlib.import_module(module, "lib.inputs")  # dynamically load class
-    class_ = getattr(mod, DataInputToLoad)
-    CurrentInput = class_()
-    CurrentInput.initInput(aircraft)
+    CurrentInput = loadInput(1,DataInputToLoad)
+    if DataInputToLoad2 != "none":
+        CurrentInput2 = loadInput(2,DataInputToLoad2)
     # check and load screen module. (if not starting in text mode)
     if not aircraft.textMode:
         if hud_utils.findScreen(ScreenNameToLoad) == False:
@@ -257,11 +290,16 @@ if __name__ == "__main__":
 
     thread1 = myThreadEfisInputReader()  # start thread for reading efis input.
     thread1.start()
+    internalLoopCounter = 1
     while not aircraft.errorFoundNeedToExit:
         if aircraft.textMode == True:
             main_text_mode()  # start main text loop
         else:
             main_graphical()  # start main graphical loop
+        internalLoopCounter = internalLoopCounter - 1
+        if internalLoopCounter < 0:
+            internalLoopCounter = 500
+            checkInternals()
     CurrentInput.closeInput(aircraft) # close the input source
     sys.exit()
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

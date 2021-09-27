@@ -252,10 +252,15 @@ class serial_mgl(Input):
             self.textMode_showAir = False
             self.textMode_showTraffic = False
             hud_text.print_Clear()
-        if key==ord('a'):
+            return 0,0
+        elif key==ord('a'):
             self.textMode_showNav = True
             self.textMode_showAir = True
             self.textMode_showTraffic = True
             hud_text.print_Clear()
+            return 0,0
+        else:
+            return 'quit',"%s Input: Key code not supported: %d ... Exiting \r\n"%(self.name,key)
+
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

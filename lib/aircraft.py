@@ -43,6 +43,7 @@ class Aircraft(object):
         self.engine = EngineData()
         self.nav = NavData()
         self.traffic = TrafficData()
+        self.internal = InteralData()
 
         self.msg_count = 0
         self.msg_bad = 0
@@ -141,6 +142,12 @@ class Aircraft(object):
             return "%d" % (self.vsi)
         else:
             return "+%d" % (self.vsi)
+
+#############################################
+## Class: InteralData
+class InteralData(object):
+    def __init__(self):
+        self.Temp = 0 # internal temp of cpu
 
 
 #############################################

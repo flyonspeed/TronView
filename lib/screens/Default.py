@@ -151,6 +151,9 @@ class Default(Screen):
         # Time
         smartdisplay.draw_text(smartdisplay.TOP_RIGHT, self.fontIndicatorSmaller, "%sz" % (aircraft.sys_time_string), (255, 255, 0))
 
+        # Internal CPU temp
+        smartdisplay.draw_text(smartdisplay.BOTTOM_RIGHT, self.fontIndicatorSmaller, "%d°C" % (aircraft.internal.Temp), (255, 255, 0))
+
         if self.debug:
             hud_graphics.hud_draw_debug(aircraft,smartdisplay,self.myfont)
 

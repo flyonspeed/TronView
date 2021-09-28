@@ -1,9 +1,12 @@
-import re, subprocess
+import re, subprocess, platform
 
 def is_raspberrypi():
     try:
-        with io.open('/sys/firmware/devicetree/base/model', 'r') as m:
-            if 'raspberry pi' in m.read().lower(): return True
+        print(platform.machine())
+        if platform.machine() == 'armv7l':
+            return True
+        #with io.open('/sys/firmware/devicetree/base/model', 'r') as m:
+        #    if m.read().lower().startswith('raspberry pi',0,12): return True
     except Exception: pass
     return False
 

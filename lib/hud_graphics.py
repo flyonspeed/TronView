@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import math, os, sys, random
+import math, os, sys, random, platform
 import argparse, pygame
 from operator import add
 from . import hud_utils
@@ -11,7 +11,7 @@ def initDisplay(debug):
     pygame.init()
     disp_no = os.getenv("DISPLAY")
     print(("sys.platform:%s"%(sys.platform)))
-
+    print(("platform.machine:%s"%(platform.machine())))
     inWindow = hud_utils.readConfig("HUD", "window", "false")  # default screen to load
     showFullScreen = True
 

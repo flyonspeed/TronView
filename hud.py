@@ -135,8 +135,14 @@ class myThreadEfisInputReader(threading.Thread):
 
     def run(self):
         global CurrentInput, CurrentInput2, aircraft
+        internalLoopCounter = 1
         while aircraft.errorFoundNeedToExit == False:
             aircraft = CurrentInput.readMessage(aircraft)
+            internalLoopCounter = internalLoopCounter - 1
+            if internalLoopCounter < 0:
+                internalLoopCounter = 500
+                checkInternals()
+
 
 #############################################
 ## Class: threadReadKeyboard
@@ -227,8 +233,7 @@ def checkInternals():
     global isRunningOnPi, aircraft
     if isRunningOnPi == True:
         temp, msg = rpi_hardware.check_CPU_temp()
-        aircraft.internal.temp = temp
-
+        aircraft.internal.Temp = temp
 
 #############################################
 #############################################
@@ -290,16 +295,11 @@ if __name__ == "__main__":
 
     thread1 = myThreadEfisInputReader()  # start thread for reading efis input.
     thread1.start()
-    internalLoopCounter = 1
     while not aircraft.errorFoundNeedToExit:
         if aircraft.textMode == True:
             main_text_mode()  # start main text loop
         else:
             main_graphical()  # start main graphical loop
-        internalLoopCounter = internalLoopCounter - 1
-        if internalLoopCounter < 0:
-            internalLoopCounter = 500
-            checkInternals()
     CurrentInput.closeInput(aircraft) # close the input source
     sys.exit()
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

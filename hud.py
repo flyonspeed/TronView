@@ -28,6 +28,7 @@ from lib import smartdisplay
 from lib.util.virtualKeyboard import VirtualKeyboard
 from lib.util import drawTimer
 from lib.util import rpi_hardware
+from lib.util import mac_hardware
 
 #############################################
 ## Function: main
@@ -230,10 +231,12 @@ def loadInput(num,nameToLoad):
 ## Function: checkInternals
 # check internal values for this processor/machine..
 def checkInternals():
-    global isRunningOnPi, aircraft
+    global isRunningOnPi, isRunningOnMac, aircraft
     if isRunningOnPi == True:
         temp, msg = rpi_hardware.check_CPU_temp()
         aircraft.internal.Temp = temp
+    elif isRunningOnMac == True:
+        aircraft.internal.Temp = mac_hardware.check_CPU_temp()
 
 #############################################
 #############################################
@@ -271,8 +274,9 @@ if __name__ == "__main__":
         if opt == "-s":
             ScreenNameToLoad = arg
     isRunningOnPi = rpi_hardware.is_raspberrypi()
-    if isRunningOnPi == True:
-        print("Running on RaspberryPi")
+    if isRunningOnPi == True: print("Running on RaspberryPi")
+    isRunningOnMac = mac_hardware.is_macosx()
+    if isRunningOnMac == True: print("Running on Mac OSX")
     if DataInputToLoad == "none":
         print("No inputsource given")
         hud_utils.showArgs()

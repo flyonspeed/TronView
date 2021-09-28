@@ -27,13 +27,16 @@ case $yn in
 esac
 
 
-echo "Install Pygame?  (y or n)"
+echo "Install other python packages via pip3?  (y or n)"
 read -p " " yn;
 case $yn in
 	[Yy]* )echo "Installing pygame via pip3"
 		pip3 install pygame
 		echo "Installing python serial via pip3"
 		pip3 install serial
+		pip3 install pygame_menu
+		pip3 install MacTmp
 		;;
 	[Nn]* )echo "..."; 
 esac
+

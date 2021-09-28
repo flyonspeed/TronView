@@ -20,15 +20,3 @@ def check_CPU_temp():
         except ValueError: # catch only error needed
             pass
     return temp, msg
-
-
-
-#if is_raspberrypi() == True:
-#    print("Running on Pi")
-#else:
-#    print("Not running on Pi")
-#
-#temp, msg = check_CPU_temp()
-#print(f"temperature {temp}°C")
-#print(f"full message {msg}")
-

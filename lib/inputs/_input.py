@@ -4,27 +4,25 @@
 # All input types should inherit from this class.
 
 from lib import hud_text
+from lib import hud_utils
+from lib.util import rpi_hardware
 
 class Input:
     def __init__(self):
         self.name = "Input Class"
         self.version = 1.0
         self.inputtype = ""
-        self.log_line_prefix = None
-        self.log_line_suffix = None
+        self.path_datarecorder = ""
 
     def initInput(self, aircraft):
-        pass
-
-    def setLogLinePrefixSuffix(self,Start,EOL):
-        self.log_line_prefix = Start
-        self.log_line_suffix = EOL
+        self.path_datarecorder = hud_utils.readConfig("DataRecorder", "path", "/tmp/")
+        return
 
     #############################################
     ## Method: openLogFile
     def openLogFile(self,filename,attribs):
         try:
-            openFileName = "/tmp/"+filename
+            openFileName = self.path_datarecorder+filename
             logFile = open(openFileName, attribs)
             print("Opening log:"+openFileName)
             return logFile,openFileName
@@ -45,7 +43,10 @@ class Input:
     ## Method: createLogFile
     ## Create a new log file.
     def createLogFile(self,fileExtension,isBinary):
-        openFileName = self.getNextLogFile("/tmp/",fileExtension)
+        if rpi_hardware.mount_usb_drive() == True:
+            openFileName = self.getNextLogFile("/mnt/usb/",fileExtension)
+        else:
+            openFileName = self.getNextLogFile(self.path_datarecorder,fileExtension)
         try:
             if isBinary == True:
                 logFile = open(openFileName, "w+b")

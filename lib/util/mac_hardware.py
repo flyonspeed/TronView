@@ -11,10 +11,12 @@ def is_macosx():
 
 # using MacTmp package.  https://pypi.org/project/MacTmp/
 def check_CPU_temp():
-    import MacTmp
-    return float(MacTmp.CPU_Temp())
+    #import MacTmp
+    #return float(MacTmp.CPU_Temp())
+    return 0
 
 def check_GPU_temp():
-    import MacTmp
-    return MacTmp.GPU_Temp()
+    #import MacTmp
+    #return MacTmp.GPU_Temp()
+    return 0
 

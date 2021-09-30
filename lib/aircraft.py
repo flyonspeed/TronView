@@ -32,7 +32,7 @@ class Aircraft(object):
         self.gndspeed = 0 #TODO: Move to GPSData class?
         self.oat = 0
         self.vert_G = 0
-        self.slip_skid = None
+        self.slip_skid = None # -99 to +99.  (-99 is full right)
         self.turn_rate = 0
         self.wind_speed = None
         self.wind_dir = None
@@ -111,7 +111,7 @@ class Aircraft(object):
             return self.baro * 33.863886666667 #mbars
 
     # get baro format description
-    def get_baro(self):
+    def get_baro_description(self):
         if(self.data_format==0):
             return "inHg"
         if(self.data_format==1):
@@ -129,7 +129,7 @@ class Aircraft(object):
             return  ((self.oat - 32) / 1.8)
 
     # get oat format description
-    def get_oat(self):
+    def get_oat_description(self):
         if(self.data_format==0):
             return "\xb0f"
         if(self.data_format==1):

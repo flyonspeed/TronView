@@ -58,10 +58,10 @@ def main_graphical():
                     CurrentInput.fastBackwards(aircraft,500)
                 elif event.key == pygame.K_w and mods & pygame.KMOD_CTRL :
                     CurrentInput.startLog()
-                    drawTimer.addGrowlNotice("Created log: %s"%(CurrentInput.output_logFileName),3000,drawTimer.nerd_yellow) 
+                    drawTimer.addGrowlNotice("Created log: %s"%(CurrentInput.output_logFileName),3000,drawTimer.nerd_yellow,drawTimer.CENTER) 
                 elif event.key == pygame.K_e and mods & pygame.KMOD_CTRL :
                     CurrentInput.stopLog()
-                    drawTimer.addGrowlNotice("Saved log: %s"%(CurrentInput.output_logFileName),3000,drawTimer.nerd_yellow) 
+                    drawTimer.addGrowlNotice("Saved log: %s"%(CurrentInput.output_logFileName),3000,drawTimer.nerd_yellow,drawTimer.CENTER) 
                 elif event.key == pygame.K_d and mods & pygame.KMOD_CTRL:
                     CurrentScreen.debug = not CurrentScreen.debug
                 elif event.key == pygame.K_q or event.key == pygame.K_ESCAPE:
@@ -90,7 +90,7 @@ def main_graphical():
                     CurrentScreen.debug = not CurrentScreen.debug
                 else:
                     #print("Touch %d x %d"%(mx,my))
-                    drawTimer.addGrowlNotice("%dx%d"%(mx,my),3000,drawTimer.blue,6)
+                    drawTimer.addGrowlNotice("%dx%d"%(mx,my),3000,drawTimer.blue,drawTimer.BOTTOM_LEFT)
                     drawTimer.addCustomDraw(drawMouseBox,1000)
                     CurrentScreen.processEvent(event,aircraft,smartdisplay)
             # User event
@@ -307,7 +307,7 @@ if __name__ == "__main__":
             hud_utils.findScreen() # show available screens
             sys.exit()
         loadScreen(ScreenNameToLoad) # load and init screen
-        drawTimer.addGrowlNotice("Datasource: %s"%(DataInputToLoad),3000,drawTimer.green,3)
+        drawTimer.addGrowlNotice("Datasource: %s"%(DataInputToLoad),3000,drawTimer.green,drawTimer.TOP_RIGHT)
 
     thread1 = myThreadEfisInputReader()  # start thread for reading efis input.
     thread1.start()

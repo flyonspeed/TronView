@@ -99,6 +99,7 @@ class serial_mgl(Input):
                             aircraft.roll = BankAngle * 0.1  #
                             if HeadingMag != 0:
                                 aircraft.mag_head = HeadingMag * 0.1
+                            aircraft.slip_skid = Slip 
                             aircraft.msg_count += 1
                             aircraft.msg_last = binascii.hexlify(Message) # save last message.
 

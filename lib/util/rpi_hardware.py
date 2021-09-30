@@ -20,3 +20,38 @@ def check_CPU_temp():
         except ValueError: # catch only error needed
             pass
     return temp, msg
+
+def mount_usb_drive():
+    global rpi_usb_drive_mount
+    import os
+    if is_raspberrypi() == False:
+        return False
+    partitionsFile = open("/proc/partitions")
+    lines = partitionsFile.readlines()[2:]#Skips the header lines
+    for line in lines:
+        words = [x.strip() for x in line.split()]
+        minorNumber = int(words[1])
+        deviceName = words[3]
+        if minorNumber % 16 == 0:
+            path = "/sys/class/block/" + deviceName
+            if os.path.islink(path):
+                if os.path.realpath(path).find("/usb") > 0:
+                    checkForDevice = "/dev/"+deviceName+"1"
+                    if os.path.exists(checkForDevice)!=True:
+                        checkForDevice = "/dev/"+deviceName
+                    rpi_usb_drive_mount = checkForDevice
+                    print (checkForDevice+" -> /mnt/usb")
+                    os.system('mkdir /mnt/usb 2>/dev/null')
+                    os.system("mount "+checkForDevice+" /mnt/usb 2>/dev/null")
+                    return True
+    return False
+
+def unmount_usb_drive():
+    global rpi_usb_drive_mount
+    import os
+    if is_raspberrypi() == False:
+        return False
+    os.system("umount "+rpi_usb_drive_mount+" /mnt/usb 2>/dev/null")
+    return True
+
+

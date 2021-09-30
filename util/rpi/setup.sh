@@ -9,7 +9,8 @@ case $yn in
 		echo "disable splash image"
 		sudo bash -c 'echo "disable_splash=1" >> /boot/config.txt'
 		sudo apt-get -y install python3 python-serial python-pygame python-pyaudio
-		pip3 install pygame_menu
+		sudo pip3 install pygame_menu
+		sudo apt install libsdl2-ttf-2.0-0
 		echo "Please reboot your pi now.  Type reboot"
 		;;
 	[Nn]* )echo "Ok. Nothing done."; exit;;

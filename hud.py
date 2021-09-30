@@ -56,6 +56,12 @@ def main_graphical():
                 elif event.key == pygame.K_LEFT and mods & pygame.KMOD_CTRL :
                     print("jump backwards data...")
                     CurrentInput.fastBackwards(aircraft,500)
+                elif event.key == pygame.K_w and mods & pygame.KMOD_CTRL :
+                    CurrentInput.startLog()
+                    drawTimer.addGrowlNotice("Created log: %s"%(CurrentInput.output_logFileName),3000,drawTimer.nerd_yellow,drawTimer.CENTER) 
+                elif event.key == pygame.K_e and mods & pygame.KMOD_CTRL :
+                    CurrentInput.stopLog()
+                    drawTimer.addGrowlNotice("Saved log: %s"%(CurrentInput.output_logFileName),3000,drawTimer.nerd_yellow,drawTimer.CENTER) 
                 elif event.key == pygame.K_d and mods & pygame.KMOD_CTRL:
                     CurrentScreen.debug = not CurrentScreen.debug
                 elif event.key == pygame.K_q or event.key == pygame.K_ESCAPE:
@@ -84,7 +90,7 @@ def main_graphical():
                     CurrentScreen.debug = not CurrentScreen.debug
                 else:
                     #print("Touch %d x %d"%(mx,my))
-                    drawTimer.addGrowlNotice("%dx%d"%(mx,my),3000,drawTimer.blue,6)
+                    drawTimer.addGrowlNotice("%dx%d"%(mx,my),3000,drawTimer.blue,drawTimer.BOTTOM_LEFT)
                     drawTimer.addCustomDraw(drawMouseBox,1000)
                     CurrentScreen.processEvent(event,aircraft,smartdisplay)
             # User event
@@ -158,6 +164,8 @@ class threadReadKeyboard(threading.Thread):
         global CurrentInput, aircraft
         while not aircraft.errorFoundNeedToExit and aircraft.textMode:
             key = self.stdscr.getch()
+            #curses.endwin()
+            #aircraft.errorFoundNeedToExit = True
             if key==ord('q'):
                 curses.endwin()
                 aircraft.errorFoundNeedToExit = True
@@ -171,6 +179,10 @@ class threadReadKeyboard(threading.Thread):
                 loadScreen(hud_utils.findScreen("current")) # load current screen
             #elif key==339: #page up
             #elif key==338: #page up
+            elif key==23:  #cntrl w
+                CurrentInput.startLog()
+            elif key==5: #cnrtl e
+                CurrentInput.stopLog()
             else: #else send this key to the input (if it has the ability)
                 try:
                     retrn,returnMsg = CurrentInput.textModeKeyInput(key,aircraft)
@@ -295,7 +307,7 @@ if __name__ == "__main__":
             hud_utils.findScreen() # show available screens
             sys.exit()
         loadScreen(ScreenNameToLoad) # load and init screen
-        drawTimer.addGrowlNotice("Datasource: %s"%(DataInputToLoad),3000,drawTimer.green,3)
+        drawTimer.addGrowlNotice("Datasource: %s"%(DataInputToLoad),3000,drawTimer.green,drawTimer.TOP_RIGHT)
 
     thread1 = myThreadEfisInputReader()  # start thread for reading efis input.
     thread1.start()

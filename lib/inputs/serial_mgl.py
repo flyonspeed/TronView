@@ -20,10 +20,15 @@ class serial_mgl(Input):
         self.textMode_showAir = True
         self.textMode_showNav = True
         self.textMode_showTraffic = True
+        self.shouldExit = False
+        self.skipTextOutput = False
+        self.output_logFile = None
+        self.output_logFileName = ""
+        self.input_logFileName = ""
 
     def initInput(self,aircraft):
         Input.initInput( self, aircraft )  # call parent init Input.
-
+        #Input.setLogLinePrefixSuffix(struct.pack('5B', *newFileBytes))
         if aircraft.demoMode:
             # if in demo mode then load example data file.
             # get demo file to read from config.  else default to..
@@ -32,7 +37,8 @@ class serial_mgl(Input):
                 #defaultTo = "mgl_G430_v6_HSI_Nedl_2degsRtt_Vert_2Degs_Up.bin"
                 #defaultTo = "mgl_G430_v7_Horz_Vert_Nedl_come to center.bin"
                 aircraft.demoFile = hud_utils.readConfig(self.name, "demofile", defaultTo)
-            self.ser = open("lib/inputs/_example_data/%s"%(aircraft.demoFile), "rb")
+            #self.ser = open("lib/inputs/_example_data/%s"%(aircraft.demoFile), "rb")
+            self.ser,self.input_logFileName = Input.openLogFile(self,aircraft.demoFile,"rb")
         else:
             self.efis_data_format = hud_utils.readConfig("DataInput", "format", "none")
             self.efis_data_port = hud_utils.readConfig("DataInput", "port", "/dev/ttyS0")
@@ -57,12 +63,11 @@ class serial_mgl(Input):
         else:
             self.ser.close()
 
-
     #############################################
     ## Function: readMessage
     def readMessage(self, aircraft):
-        if aircraft.errorFoundNeedToExit:
-            return aircraft;
+        if self.shouldExit == True: aircraft.errorFoundNeedToExit = True
+        if aircraft.errorFoundNeedToExit: return aircraft;
         try:
             x = 0
             while x != 5:
@@ -77,7 +82,7 @@ class serial_mgl(Input):
 
             if stx == 2:
                 MessageHeader = self.ser.read(6)
-                Message = ""
+                Message = 0
                 if len(MessageHeader) == 6:
                     msgLength, msgLengthXOR, msgType, msgRate, msgCount, msgVerion = struct.unpack(
                         "!BBBBBB", MessageHeader
@@ -113,6 +118,8 @@ class serial_mgl(Input):
                                 aircraft.mag_head = aircraft.gndtrack
                             aircraft.msg_count += 1
                             aircraft.msg_last = binascii.hexlify(Message) # save last message.
+                            # if self.logFile != None:
+                            #     Input.addToLog(self,Message)
 
                     elif msgType == 1:  # Primary flight
                         Message = self.ser.read(30)
@@ -141,6 +148,8 @@ class serial_mgl(Input):
 
                             aircraft.msg_count += 1
                             aircraft.msg_last = binascii.hexlify(Message) # save last message.
+                            # if self.logFile != None:
+                            #     Input.addToLog(self,Message)
 
                     elif msgType == 6:  # Traffic message
                         Message = self.ser.read(4)
@@ -155,6 +164,8 @@ class serial_mgl(Input):
 
                             aircraft.traffic.msg_count += 1
                             aircraft.traffic.msg_last = binascii.hexlify(Message) # save last message.
+                            # if self.logFile != None:
+                            #     Input.addToLog(self,Message)
 
 
                     elif msgType == 30:  # Navigation message
@@ -185,14 +196,23 @@ class serial_mgl(Input):
 
                             aircraft.nav.msg_count += 1
                             aircraft.nav.msg_last = binascii.hexlify(Message) # save nav message.
+                            # if self.logFile != None:
+                            #     Input.addToLog(self,Message)
 
                     else:
                         aircraft.msg_unknown += 1 #else unknown message.
+                        aircraft.nav.msg_last = 0
                     
                     if aircraft.demoMode:  #if demo mode then add a delay.  Else reading a file is way to fast.
                         time.sleep(.01)
                     else:
                         self.ser.flushInput()  # flush the serial after every message else we see delays
+
+                    if self.output_logFile != None and aircraft.nav.msg_last != 0:
+                        Input.addToLog(self,self.output_logFile,bytearray([5,2]))
+                        Input.addToLog(self,self.output_logFile,MessageHeader)
+                        Input.addToLog(self,self.output_logFile,Message)
+
                     return aircraft
 
                 else: # bad message header found.
@@ -261,6 +281,19 @@ class serial_mgl(Input):
             return 0,0
         else:
             return 'quit',"%s Input: Key code not supported: %d ... Exiting \r\n"%(self.name,key)
+
+
+    def startLog(self):
+        if self.output_logFile == None:
+            self.output_logFile,self.output_logFileName = Input.createLogFile(self,".dat",True)
+            print("Creating log output: %s\n"%(self.output_logFileName))
+        else:
+            print("Already logging to: "+self.output_logFileName)
+
+    def stopLog(self):
+        if self.output_logFile != None:
+            Input.closeLogFile(self,self.output_logFile)
+            self.output_logFile = None
 
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

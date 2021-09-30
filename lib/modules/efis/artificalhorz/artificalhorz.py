@@ -17,7 +17,7 @@ class ArtificalHorz(Module):
         Module.__init__(self)
         self.name = "ArtificalHorz"  # set name
         #self.imagefilename = "lib/modules/efis/artificalhorz/attitude-indicator-1280.png"
-        self.imagefilename = "lib/modules/efis/artificalhorz/horiz.png"
+        self.imagefilename = "lib/modules/efis/artificalhorz/horiz.bmp"
 
     # called once for setup
     def initMod(self, pygamescreen, width, height):

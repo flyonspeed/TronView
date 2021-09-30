@@ -22,6 +22,19 @@ tron_regular = tron_ora
 tron_light   = tron_yel
 tron_inverse = tron_whi
 
+CENTER = 1
+TOP_CENTER = 2
+TOP_LEFT = 3
+TOP_RIGHT = 4
+
+MIDDLE_LEFT = 5
+MIDDLE_RIGHT = 6
+MIDDLE_CENTER = 1
+
+BOTTOM_LEFT = 7
+BOTTOM_RIGHT = 8 
+BOTTOM_CENTER = 9
+
 
 globalDrawTimers = []
 
@@ -30,6 +43,9 @@ globalDrawTimers = []
 ## 
 ##
 class DrawTimer(object):
+
+
+
     def __init__(self,ttype,text,ticksTillDone,color,postion=0,callBackHandler=0):
         self.type = ttype  # type: 0=none, 1=growl notice 
         self.startTime = pygame.time.get_ticks()
@@ -60,7 +76,7 @@ def addCustomDraw(drawFunc,time,cb=0):
     timer.customDrawCallBack = drawFunc
     globalDrawTimers.append(timer)
 
-def addGrowlNotice(text,time,color,postion=8,cb=0):
+def addGrowlNotice(text,time,color,postion=BOTTOM_RIGHT,cb=0):
     # first check if there is any in this same postion. if so remove it.
     for existingTimer in globalDrawTimers:
         if existingTimer.postion == postion: 
@@ -81,31 +97,31 @@ def make_box_label(font,text, postion, colour, pyscreen):
     width, height = font.size(text)
     padding = 15
 
-    if postion == 0:  # center of screen.
+    if postion == CENTER:  # center of screen.
         x = (screen_w/2)-(width/2)
         y = (screen_h/2)-(height/2)
-    if postion == 1:  # top left
+    if postion == TOP_LEFT:  # top left
         x = padding
         y = padding
-    if postion == 2:  # top middle
+    if postion == TOP_CENTER:  # top middle
         x = (screen_w/2)-(width/2)
         y = padding
-    if postion == 3:  # top right
+    if postion == TOP_RIGHT:  # top right
         x = (screen_w)-(width)-padding
         y = padding
-    if postion == 4:  # middle left
+    if postion == MIDDLE_LEFT:  # middle left
         x = padding
         y = (screen_h/2)-(height/2)
-    if postion == 5:  # middle right
+    if postion == MIDDLE_RIGHT:  # middle right
         x = (screen_w)-(width)-padding
         y = (screen_h/2)-(height/2)
-    if postion == 6:  # bottom left
+    if postion == BOTTOM_LEFT:  # bottom left
         x = padding
         y = (screen_h)-(height)-padding
-    if postion == 7:  # bottom middle
+    if postion == BOTTOM_CENTER:  # bottom middle
         x = (screen_w/2)-(width/2)
         y = (screen_h)-(height)-padding
-    if postion == 8:  # bottom right
+    if postion == BOTTOM_RIGHT:  # bottom right
         x = (screen_w)-(width)-padding
         y = (screen_h)-(height)-padding
 

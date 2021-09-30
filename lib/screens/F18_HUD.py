@@ -15,6 +15,7 @@ import math
 from lib import smartdisplay
 
 from lib.modules.hud.horizon import horizon
+from lib.modules.hud.cdi import cdi
 from lib.modules.hud.rollindicator import rollindicator
 from lib.modules.hud.aoa import aoa
 from lib.modules.hud.slipskid import slipskid
@@ -60,13 +61,17 @@ class F18_HUD(Screen):
         self.horizon.initMod(self.pygamescreen, self.width, self.height)
 
         self.aoa = aoa.AOA()
-        self.aoa.initMod(self.pygamescreen, 60, 200)
+        self.aoa.initMod(self.pygamescreen, 40, 133)
+        #Sets Width(X) and Height (Y) of AOA HUD Size
 
         self.slipskid = slipskid.SlipSkid()
         self.slipskid.initMod(self.pygamescreen, 250, 30)
 
         self.wind = wind.Wind()
         self.wind.initMod(self.pygamescreen, self.width, self.height)
+        
+        self.cdi = cdi.cdi()
+        self.cdi.initMod(self.pygamescreen, self.width, self.height)
 
     # called every redraw for the screen
     def draw(self, aircraft, smartdisplay):
@@ -100,6 +105,9 @@ class F18_HUD(Screen):
             self.MainColor, # line color
             4 # box line thickness
             )
+            
+        # Draw CDI Needles
+        self.cdi.draw(aircraft,smartdisplay,(smartdisplay.x_center,smartdisplay.y_center))
 
         # time string
         smartdisplay.draw_text(smartdisplay.RIGHT_MID_DOWN, self.fontIndicatorSmaller, "%sz" % (aircraft.sys_time_string), (255, 255, 0))
@@ -132,11 +140,11 @@ class F18_HUD(Screen):
         self.wind.draw(aircraft,smartdisplay,(10,smartdisplay.y_end-100))
 
         # draw Slip Skid
-        self.slipskid.draw(aircraft,smartdisplay,(smartdisplay.x_center,smartdisplay.y_end-30))
+        self.slipskid.draw(aircraft,smartdisplay,(smartdisplay.x_center,smartdisplay.y_end-35))
 
         # draw AOA indicator
-        self.aoa.draw(aircraft,smartdisplay,(smartdisplay.x_start + 20 ,smartdisplay.y_start + 5))
-
+        self.aoa.draw(aircraft,smartdisplay,(smartdisplay.x_start + 140 ,smartdisplay.y_start + 350))
+      
         # draw roll indicator
         self.roll_indicator.draw(aircraft,smartdisplay)
 

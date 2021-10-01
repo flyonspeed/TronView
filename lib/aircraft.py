@@ -143,11 +143,11 @@ class Aircraft(object):
     # get baro format description
     def get_baro_description(self):
         if(self.data_format==0):
-            return "inHg"
+            return "in"
         if(self.data_format==1):
-            return "inHg"
+            return "in"
         if(self.data_format==2):
-            return "mbar"
+            return "mb"
 
     # get oat in converted format.
     def get_oat(self):

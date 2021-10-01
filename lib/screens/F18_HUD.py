@@ -135,7 +135,6 @@ class F18_HUD(Screen):
         # Vertical G
         smartdisplay.draw_text(smartdisplay.LEFT_MID_DOWN, self.fontIndicatorSmaller, "G %0.1f" % (aircraft.vert_G), (255, 255, 0))
 
-
         # draw wind direction
         self.wind.draw(aircraft,smartdisplay,(10,smartdisplay.y_end-100))
 
@@ -161,6 +160,9 @@ class F18_HUD(Screen):
             self.MainColor, # line color
             2 # box line thickness
             )
+
+        # Internal CPU temp
+        smartdisplay.draw_text(smartdisplay.TOP_RIGHT, self.fontIndicatorSmaller, "CPU:%d°C" % (aircraft.internal.Temp), (255, 255, 0))
 
         # update entire display..
         pygame.display.flip()

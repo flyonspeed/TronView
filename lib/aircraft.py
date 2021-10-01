@@ -11,6 +11,8 @@ class Aircraft(object):
     MPH = 0
     KNOTS = 1
     METERS = 2
+    TEMP_F = 0
+    TEMP_C = 1
 
     def __init__(self):
         self.sys_time_string = "" 
@@ -57,6 +59,7 @@ class Aircraft(object):
         self.fps = 0
 
         self.data_format = 0 # 0 is ft/in
+        self.data_format_temp = 0 # 0 is F, 1 is C
 
     # set set measurement to use for data.
     # 0 is US standard. (mph, ft)
@@ -74,8 +77,26 @@ class Aircraft(object):
         if(self.data_format==2):
             return self.ias * 1.609 #km/h
 
-    # get IAS format description
-    def get_ias_description(self):
+    # get ground speed in converted format.
+    def get_gs(self):
+        if(self.data_format==0):
+            return self.gndspeed # mph
+        if(self.data_format==1):
+            return self.gndspeed * 0.8689 #knots
+        if(self.data_format==2):
+            return self.gndspeed * 1.609 #km/h
+
+    # get true airspeed in converted format.
+    def get_tas(self):
+        if(self.data_format==0):
+            return self.tas # mph
+        if(self.data_format==1):
+            return self.tas * 0.8689 #knots
+        if(self.data_format==2):
+            return self.tas * 1.609 #km/h
+
+    # get speed format description
+    def get_speed_description(self):
         if(self.data_format==0):
             return "mph"
         if(self.data_format==1):
@@ -92,8 +113,17 @@ class Aircraft(object):
         if(self.data_format==2):
             return self.alt * 0.3048 #meters
 
-    # get ALT format description
-    def get_alt_description(self):
+    # get Baro Alt in converted format.
+    def get_balt(self):
+        if(self.data_format==0):
+            return self.BALT # ft
+        if(self.data_format==1):
+            return self.BALT #ft
+        if(self.data_format==2):
+            return self.BALT * 0.3048 #meters
+
+    # get distance format description
+    def get_distance_description(self):
         if(self.data_format==0):
             return "ft"
         if(self.data_format==1):
@@ -121,27 +151,34 @@ class Aircraft(object):
 
     # get oat in converted format.
     def get_oat(self):
-        if(self.data_format==0):
+        if(self.data_format_temp==0):
             return self.oat # f
-        if(self.data_format==1):
-            return self.oat #f
-        if(self.data_format==2):
+        if(self.data_format_temp==1):
             return  ((self.oat - 32) / 1.8)
 
-    # get oat format description
-    def get_oat_description(self):
-        if(self.data_format==0):
+    # get temp format description
+    def get_temp_description(self):
+        if(self.data_format_temp==0):
             return "\xb0f"
-        if(self.data_format==1):
-            return "\xb0f"
-        if(self.data_format==2):
+        if(self.data_format_temp==1):
             return "\xb0c"
 
+    # get Vertical speed in converted format.
     def get_vsi_string(self):
-        if self.vsi < 0:
-            return "%d" % (self.vsi)
+        if(self.data_format==0):
+            v = self.vsi # ft
+            d = "fpm"
+        elif(self.data_format==1):
+            v = self.vsi #ft
+            d = "fpm"
+        elif(self.data_format==2):
+            v = self.vsi * 0.00508 #meters per second
+            d = "mps"
+
+        if v < 0:
+            return "%d %s" % (v,d)
         else:
-            return "+%d" % (self.vsi)
+            return "+%d %s" % (v,d)
 
 #############################################
 ## Class: InteralData

@@ -98,7 +98,7 @@ class F18_HUD(Screen):
             smartdisplay.RIGHT_MID, # postion
             self.fontIndicator, # big font
             self.fontAltSmall, # little font
-            "%d" % (aircraft.BALT), # text
+            "%d" % (aircraft.get_balt()), # text
             3, # how many chars on the right do I want in small text.
             (255, 255, 0), # text color
             5, # total char space length (padding)
@@ -118,10 +118,10 @@ class F18_HUD(Screen):
         smartdisplay.draw_text(smartdisplay.RIGHT_MID_UP, self.fontIndicatorSmaller, aircraft.get_vsi_string(), (255, 255, 0))
 
         # True aispeed
-        smartdisplay.draw_text(smartdisplay.LEFT_MID_UP, self.fontIndicatorSmaller, "TAS %d" % (aircraft.tas), (255, 255, 0))
+        smartdisplay.draw_text(smartdisplay.LEFT_MID_UP, self.fontIndicatorSmaller, "TAS %d %s" % (aircraft.get_tas(), aircraft.get_speed_description()), (255, 255, 0))
 
         # OAT text
-        smartdisplay.draw_text(smartdisplay.LEFT_MID_UP, self.fontIndicatorSmaller, "OAT %d\xb0f" % aircraft.oat, (255, 255, 0))
+        smartdisplay.draw_text(smartdisplay.LEFT_MID_UP, self.fontIndicatorSmaller, "%0.1f%s" % (aircraft.get_oat(),aircraft.get_temp_description()), (255, 255, 0))
 
         #AOA text
         if aircraft.ias < 20 or aircraft.aoa == 0 or aircraft.aoa == None:

@@ -67,7 +67,7 @@ def main_graphical():
                         CurrentInput.stopLog(aircraft)
                         drawTimer.addGrowlNotice("Saved log: %s"%(CurrentInput.output_logFileName),3000,drawTimer.nerd_yellow,drawTimer.CENTER) 
                     except:
-                        pass
+                        pass  
                 elif event.key == pygame.K_d and mods & pygame.KMOD_CTRL:
                     CurrentScreen.debug = not CurrentScreen.debug
                 elif event.key == pygame.K_q or event.key == pygame.K_ESCAPE:
@@ -263,6 +263,30 @@ def checkInternals():
         aircraft.internal.Temp = mac_hardware.check_CPU_temp()
 
 #############################################
+## Function: initAircraft
+def initAircraft():
+    global aircraft
+    print("Shit FUCK")
+    speed = hud_utils.readConfig("Formats", "speed_distance", "Standard")
+    if speed == "Standard":
+        aircraft.data_format = aircraft.MPH
+    elif speed == "Knots":
+        aircraft.data_format = aircraft.KNOTS
+    elif speed == "Metric":
+        aircraft.data_format = aircraft.METERS
+
+    print("Shit FUCK")
+    temp = hud_utils.readConfig("Formats", "temperature", "C")
+    if temp == "F":
+        aircraft.data_format_temp = aircraft.TEMP_F
+        print("temperature format: F ")
+    elif temp == "C":
+        aircraft.data_format_temp = aircraft.TEMP_C
+        print("temperature format: C ")
+    else :
+        print("Unknown temperature format:"+temp)
+
+#############################################
 #############################################
 # Hud start code.
 #
@@ -313,6 +337,7 @@ if __name__ == "__main__":
     if DataInputToLoad2 != "none":
         CurrentInput2 = loadInput(2,DataInputToLoad2)
     # check and load screen module. (if not starting in text mode)
+    initAircraft()
     if not aircraft.textMode:
         if hud_utils.findScreen(ScreenNameToLoad) == False:
             print(("Screen module not found: %s"%(ScreenNameToLoad)))

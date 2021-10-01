@@ -79,7 +79,7 @@ class Default(Screen):
             smartdisplay.draw_circle_text( # draw large airspeed indicator
                 smartdisplay.CENTER_CENTER, 
                 self.bigfont, 
-                "%d" % (aircraft.ias), 
+                "%d" % (aircraft.get_ias()), 
                 self.aoa.aoa_color,
                 250 , 
                 self.aoa.aoa_color, 
@@ -107,17 +107,17 @@ class Default(Screen):
                 4 # box line thickness
                 )
             # True aispeed
-            smartdisplay.draw_text(smartdisplay.LEFT_MID_UP, self.fontIndicatorSmaller, "TAS %d" % (aircraft.tas), (255, 255, 0))
+            smartdisplay.draw_text(smartdisplay.LEFT_MID_UP, self.fontIndicatorSmaller, "TAS %d %s" % (aircraft.tas,aircraft.get_speed_description()), (255, 255, 0))
 
             # Ground speed
-            smartdisplay.draw_text(smartdisplay.LEFT_MID_DOWN, self.fontIndicatorSmaller, "GS %d" % (aircraft.gndspeed), (255, 255, 0))
+            smartdisplay.draw_text(smartdisplay.LEFT_MID_DOWN, self.fontIndicatorSmaller, "GS %d %s" % (aircraft.gndspeed,aircraft.get_speed_description()), (255, 255, 0))
 
         # ALT
         smartdisplay.draw_box_text_with_big_and_small_text(
             smartdisplay.RIGHT_MID, # postion
             self.fontIndicator, # big font
             self.fontAltSmall, # little font
-            "%d" % (aircraft.BALT), # text
+            "%d" % (aircraft.get_balt()), # text
             3, # how many chars on the right do I want in small text.
             (255, 255, 0), # text color
             5, # total char space length (padding)
@@ -125,8 +125,11 @@ class Default(Screen):
             4 # box line thickness
             )
 
+
         # baro setting
-        smartdisplay.draw_text(smartdisplay.RIGHT_MID_DOWN, self.myfont, "%0.2f" % (aircraft.baro), (255, 255, 0))
+        smartdisplay.draw_text(smartdisplay.RIGHT_MID_DOWN, self.myfont, "%0.2f" % (aircraft.get_baro()), (255, 255, 0))
+        # oat
+        smartdisplay.draw_text(smartdisplay.RIGHT_MID_DOWN, self.myfont, "%0.1f%s" % (aircraft.get_oat(),aircraft.get_temp_description()), (255, 255, 0))
         
         # VSI
         smartdisplay.draw_text(smartdisplay.RIGHT_MID_UP, self.fontIndicatorSmaller, aircraft.get_vsi_string(), (255, 255, 0))

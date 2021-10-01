@@ -142,17 +142,11 @@ current commands are:
 
 q - quit
 
-d - show some debug info
+cntrl d - show some debug info
 
-space - large/small toggle
+cntrl w - create log file
 
-a - show alt/airspeed tape (work in progress)
-
-l - adjust line thickness
-
-c - center circle mode
-
-f - show frame rate at bottom.
+cnrtl e - close log file
 
 PAGE UP - jump to next screen
 
@@ -206,7 +200,7 @@ Input sources are located in lib/inputs folder.  Create your own!  You can use e
 
 ## hud.cfg
 
-hud.cfg can be created and sit in the same dir as the hud.py python app.  It's used for configuring the hud.
+hud.cfg can be created and sit in the same dir as the hud.py python app.  It's used for configuring the hud.  View hud_config_example.cfg for a example of options.
 
 Here is a example hud.cfg file:
 
@@ -219,6 +213,8 @@ window=640,480
 # define the drawable area for hud to use.  Useful on displays that have hidden areas.
 # this is defined as x1,y1,x2,y2 to draw up a box of usable area.
 #drawable_area=0,144,1280,624
+#For Epic HUD use the following
+#drawable_area=0,159,1280,651
 
 
 [DataInput]
@@ -234,6 +230,11 @@ port = /dev/ttyS0
 # set this to the baud rate of your efis output.
 baudrate = 115200 
 
+[Formats]
+# Set speed and distance to Knots, Standard, Metric (default is Standard)
+#speed_distance = Metric 
+# Set temperate to F or C (defaults to F)
+#temperature = C
 
 </pre>
 

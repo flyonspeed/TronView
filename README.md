@@ -23,7 +23,7 @@ Dynon Skyview
 Dynon D10/100
 
 
-We are using the rapberry pi zero w for taking serial data from a EFIS (MGL,Dynon,G3x) and displaying a graphical HUD out the hdmi output on the pi.  This is plugged into a HUD device like the Hudly Classic.  Any sort of HDMI screen could be hooked to the Pi for displaying this flight data.
+We are using the rapberry pi 4B for taking serial data from a EFIS (MGL,Dynon,G3x) and displaying a graphical HUD out the hdmi output on the pi.  This is plugged into a HUD device like the Hudly Classic.  Any sort of HDMI screen could be hooked to the Pi for displaying this flight data.
 
 Code is written in Python 3.7 and the Pygame module for handling the graphics.
 

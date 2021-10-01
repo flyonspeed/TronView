@@ -266,16 +266,17 @@ def checkInternals():
 ## Function: initAircraft
 def initAircraft():
     global aircraft
-    print("Shit FUCK")
     speed = hud_utils.readConfig("Formats", "speed_distance", "Standard")
     if speed == "Standard":
         aircraft.data_format = aircraft.MPH
+        print("speed distance format: mph ")
     elif speed == "Knots":
         aircraft.data_format = aircraft.KNOTS
+        print("speed distance format: Knots ")
     elif speed == "Metric":
         aircraft.data_format = aircraft.METERS
+        print("speed distance format: Meters ")
 
-    print("Shit FUCK")
     temp = hud_utils.readConfig("Formats", "temperature", "C")
     if temp == "F":
         aircraft.data_format_temp = aircraft.TEMP_F

@@ -138,11 +138,11 @@ class Default(Screen):
         # Mag heading
         smartdisplay.draw_box_text(
             smartdisplay.TOP_MID,
-            self.fontIndicator,
+            self.fontAltSmall,
             "%d°" % (aircraft.mag_head),
             (255, 255, 0),
-            170,
-            90,
+            130,
+            50,
             self.MainColor,
             1,
             (0,0),

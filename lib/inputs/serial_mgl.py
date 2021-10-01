@@ -91,11 +91,11 @@ class serial_mgl(Input):
                     )
 
                     if msgType == 3:  # attitude information
-                        Message = self.ser.read(25)
-                        if len(Message) == 25:
+                        Message = self.ser.read(32)
+                        if len(Message) == 32:
                             # use struct to unpack binary data.  https://docs.python.org/2.7/library/struct.html
-                            HeadingMag, PitchAngle, BankAngle, YawAngle, TurnRate, Slip, GForce, LRForce, FRForce, BankRate, PitchRate, YawRate, SensorFlags = struct.unpack(
-                                "<HhhhhhhhhhhhB", Message
+                            HeadingMag, PitchAngle, BankAngle, YawAngle, TurnRate, Slip, GForce, LRForce, FRForce, BankRate, PitchRate, YawRate, SensorFlags, Padding1, Padding2, Padding3, Checksum = struct.unpack(
+                                "<HhhhhhhhhhhhBBBBi", Message
                             )
                             aircraft.pitch = PitchAngle * 0.1  #
                             aircraft.roll = BankAngle * 0.1  #
@@ -106,10 +106,10 @@ class serial_mgl(Input):
                             aircraft.msg_last = binascii.hexlify(Message) # save last message.
 
                     elif msgType == 2:  # GPS Message
-                        Message = self.ser.read(36)
-                        if len(Message) == 36:
-                            Latitude, Longitude, GPSAltitude, AGL, NorthV, EastV, DownV, GS, TrackTrue, Variation, GPS, SatsTracked = struct.unpack(
-                                "<iiiiiiiHHhBB", Message
+                        Message = self.ser.read(48)
+                        if len(Message) == 48:
+                            Latitude, Longitude, GPSAltitude, AGL, NorthV, EastV, DownV, GS, TrackTrue, Variation, GPS, SatsTracked, SatsVisible, HorizontalAccuracy, VerticalAccuracy, GPScapability, RAIMStatus, RAIMherror, RAIMverror, padding, Checksum = struct.unpack(
+                                "<iiiiiiiHHhBBBBBBBBBBi", Message
                             )
                             if GS > 0:
                                 aircraft.gndspeed = GS * 0.06213712 # convert to mph
@@ -121,14 +121,12 @@ class serial_mgl(Input):
                                 aircraft.mag_head = aircraft.gndtrack
                             aircraft.msg_count += 1
                             aircraft.msg_last = binascii.hexlify(Message) # save last message.
-                            # if self.logFile != None:
-                            #     Input.addToLog(self,Message)
 
                     elif msgType == 1:  # Primary flight
-                        Message = self.ser.read(30)
-                        if len(Message) == 30:
-                            PAltitude, BAltitude, ASI, TAS, AOA, VSI, Baro, LocalBaro, OAT, Humidity, SystemFlags, Hour, Min, Sec, Day, Month, Year  = struct.unpack(
-                                "<iiHHhhHHhBBBBBBBB", Message
+                        Message = self.ser.read(36)
+                        if len(Message) == 36:
+                            PAltitude, BAltitude, ASI, TAS, AOA, VSI, Baro, LocalBaro, OAT, Humidity, SystemFlags, Hour, Min, Sec, Day, Month, Year,FTHour, FTMin,Checksum  = struct.unpack(
+                                "<iiHHhhHHhBBBBBBBBBBi", Message
                             )
                             if ASI > 0:
                                 aircraft.ias = ASI * 0.06213712 #idicated airspeed in 10th of Km/h.  * 0.05399565 to knots. * 0.6213712 to mph
@@ -151,11 +149,9 @@ class serial_mgl(Input):
 
                             aircraft.msg_count += 1
                             aircraft.msg_last = binascii.hexlify(Message) # save last message.
-                            # if self.logFile != None:
-                            #     Input.addToLog(self,Message)
 
                     elif msgType == 6:  # Traffic message
-                        Message = self.ser.read(4)
+                        Message = self.ser.read(msgLength)+6
                         if len(Message) == 4:
                             TrafficMode, NumOfTraffic, NumMsg, MsgNum = struct.unpack(
                                 "!BBBB", Message
@@ -167,15 +163,14 @@ class serial_mgl(Input):
 
                             aircraft.traffic.msg_count += 1
                             aircraft.traffic.msg_last = binascii.hexlify(Message) # save last message.
-                            # if self.logFile != None:
-                            #     Input.addToLog(self,Message)
 
 
                     elif msgType == 30:  # Navigation message
-                        Message = self.ser.read(50)
-                        if len(Message) == 50:
-                            Flags, HSISource, VNAVSource, APMode, Padding, HSINeedleAngle, HSIRoseHeading, HSIDev, VDev, HeadBug, AltBug, WPDist, WPLat,WPLon,WPTrack,vor1r,vor2r,dme1,dme2,ILSDev,GSDev,GLSHoriz,GLSVert = struct.unpack(
-                                "<HBBBBhHhhhiiiihhhHHhhhh", Message
+                        Message = self.ser.read(56)
+                        if len(Message) == 56:
+                            # H     B            B         B        B       h=small int     H = Word        h       h     h       i=long  i       i     i     h=small h     h 
+                            Flags, HSISource, VNAVSource, APMode, Padding, HSINeedleAngle, HSIRoseHeading, HSIDev, VDev, HeadBug, AltBug, WPDist, WPLat,WPLon,WPTrack,vor1r,vor2r,dme1,dme2,ILSDev,GSDev,GLSHoriz,GLSVert,Padding,Checksum = struct.unpack(
+                                "<HBBBBhHhhhiiiihhhHHhhhhHi", Message
                             )
                             aircraft.nav.NavStatus = hud_utils.get_bin(Flags)
                             aircraft.nav.HSISource = HSISource
@@ -199,8 +194,19 @@ class serial_mgl(Input):
 
                             aircraft.nav.msg_count += 1
                             aircraft.nav.msg_last = binascii.hexlify(Message) # save nav message.
-                            # if self.logFile != None:
-                            #     Input.addToLog(self,Message)
+
+                    elif msgType == 4:  # Various input states and signals
+                        Message = self.ser.read(msgLength+6)
+                        # todo... read message
+
+                    elif msgType == 11:  # fuel levels
+                        Message = self.ser.read(msgLength+6)
+                        # todo... read message
+
+                    elif msgType == 10:  # Engine message
+                        Message = self.ser.read(msgLength+6)
+                        # todo... read message
+
 
                     else:
                         aircraft.msg_unknown += 1 #else unknown message.
@@ -208,6 +214,7 @@ class serial_mgl(Input):
                     
                     if aircraft.demoMode:  #if demo mode then add a delay.  Else reading a file is way to fast.
                         time.sleep(.01)
+                        pass
                     else:
                         self.ser.flushInput()  # flush the serial after every message else we see delays
 

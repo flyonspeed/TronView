@@ -107,10 +107,10 @@ class Default(Screen):
                 4 # box line thickness
                 )
             # True aispeed
-            smartdisplay.draw_text(smartdisplay.LEFT_MID_UP, self.fontIndicatorSmaller, "TAS %d %s" % (aircraft.tas,aircraft.get_speed_description()), (255, 255, 0))
+            smartdisplay.draw_text(smartdisplay.LEFT_MID_UP, self.fontIndicatorSmaller, "TAS %d %s" % (aircraft.get_tas(),aircraft.get_speed_description()), (255, 255, 0))
 
             # Ground speed
-            smartdisplay.draw_text(smartdisplay.LEFT_MID_DOWN, self.fontIndicatorSmaller, "GS %d %s" % (aircraft.gndspeed,aircraft.get_speed_description()), (255, 255, 0))
+            smartdisplay.draw_text(smartdisplay.LEFT_MID_DOWN, self.fontIndicatorSmaller, "GS %d %s" % (aircraft.get_gs(),aircraft.get_speed_description()), (255, 255, 0))
 
         # ALT
         smartdisplay.draw_box_text_with_big_and_small_text(
@@ -139,7 +139,7 @@ class Default(Screen):
         smartdisplay.draw_box_text(
             smartdisplay.TOP_MID,
             self.fontIndicator,
-            "%d" % (aircraft.mag_head),
+            "%d°" % (aircraft.mag_head),
             (255, 255, 0),
             170,
             90,

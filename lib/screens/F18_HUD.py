@@ -112,7 +112,7 @@ class F18_HUD(Screen):
         # time string
         smartdisplay.draw_text(smartdisplay.RIGHT_MID_DOWN, self.fontIndicatorSmaller, "%sz" % (aircraft.sys_time_string), (255, 255, 0))
         # baro setting
-        smartdisplay.draw_text(smartdisplay.RIGHT_MID_DOWN, self.fontIndicatorSmaller, "%0.2fin" % (aircraft.baro), (255, 255, 0))
+        smartdisplay.draw_text(smartdisplay.RIGHT_MID_DOWN, self.fontIndicatorSmaller, "%0.2fin" % (aircraft.get_baro()), (255, 255, 0))
         
         # VSI text
         smartdisplay.draw_text(smartdisplay.RIGHT_MID_UP, self.fontIndicatorSmaller, aircraft.get_vsi_string(), (255, 255, 0))
@@ -130,7 +130,7 @@ class F18_HUD(Screen):
             smartdisplay.draw_text(smartdisplay.LEFT_MID_UP, self.fontIndicatorSmaller, "AOA: %d"%aircraft.aoa, (255, 255, 0))
 
         # Ground speed
-        smartdisplay.draw_text(smartdisplay.LEFT_MID_DOWN, self.fontIndicatorSmaller, "GS %d" % (aircraft.gndspeed), (255, 255, 0))
+        smartdisplay.draw_text(smartdisplay.LEFT_MID_DOWN, self.fontIndicatorSmaller, "GS %d" % (aircraft.get_gs()), (255, 255, 0))
 
         # Vertical G
         smartdisplay.draw_text(smartdisplay.LEFT_MID_DOWN, self.fontIndicatorSmaller, "G %0.1f" % (aircraft.vert_G), (255, 255, 0))
@@ -155,7 +155,7 @@ class F18_HUD(Screen):
         smartdisplay.draw_box_text_padding(
             smartdisplay.TOP_MID, # postion
             self.fontAltSmall, # font
-            "%d" % (aircraft.mag_head), # text
+            "%d°" % (aircraft.mag_head), # text
             (255, 255, 0), # text color
             3, # padding chars..
             self.MainColor, # line color

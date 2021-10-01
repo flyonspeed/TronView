@@ -57,11 +57,17 @@ def main_graphical():
                     print("jump backwards data...")
                     CurrentInput.fastBackwards(aircraft,500)
                 elif event.key == pygame.K_w and mods & pygame.KMOD_CTRL :
-                    CurrentInput.startLog()
-                    drawTimer.addGrowlNotice("Created log: %s"%(CurrentInput.output_logFileName),3000,drawTimer.nerd_yellow,drawTimer.CENTER) 
+                    try:
+                        CurrentInput.startLog(aircraft)
+                        drawTimer.addGrowlNotice("Created log: %s"%(CurrentInput.output_logFileName),3000,drawTimer.nerd_yellow,drawTimer.CENTER)
+                    except :
+                        drawTimer.addGrowlNotice("Unable to create log: "+CurrentInput.name,3000,drawTimer.nerd_yellow,drawTimer.CENTER)
                 elif event.key == pygame.K_e and mods & pygame.KMOD_CTRL :
-                    CurrentInput.stopLog()
-                    drawTimer.addGrowlNotice("Saved log: %s"%(CurrentInput.output_logFileName),3000,drawTimer.nerd_yellow,drawTimer.CENTER) 
+                    try:
+                        CurrentInput.stopLog(aircraft)
+                        drawTimer.addGrowlNotice("Saved log: %s"%(CurrentInput.output_logFileName),3000,drawTimer.nerd_yellow,drawTimer.CENTER) 
+                    except:
+                        pass
                 elif event.key == pygame.K_d and mods & pygame.KMOD_CTRL:
                     CurrentScreen.debug = not CurrentScreen.debug
                 elif event.key == pygame.K_q or event.key == pygame.K_ESCAPE:
@@ -180,9 +186,15 @@ class threadReadKeyboard(threading.Thread):
             #elif key==339: #page up
             #elif key==338: #page up
             elif key==23:  #cntrl w
-                CurrentInput.startLog()
+                try:
+                    CurrentInput.startLog(aircraft)
+                except :
+                    pass
             elif key==5: #cnrtl e
-                CurrentInput.stopLog()
+                try:
+                    CurrentInput.stopLog(aircraft)
+                except :
+                    pass
             else: #else send this key to the input (if it has the ability)
                 try:
                     retrn,returnMsg = CurrentInput.textModeKeyInput(key,aircraft)

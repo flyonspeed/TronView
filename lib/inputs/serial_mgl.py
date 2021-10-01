@@ -21,6 +21,7 @@ class serial_mgl(Input):
         self.textMode_showNav = True
         self.textMode_showTraffic = True
         self.shouldExit = False
+        self.skipReadInput = False
         self.skipTextOutput = False
         self.output_logFile = None
         self.output_logFileName = ""
@@ -67,7 +68,8 @@ class serial_mgl(Input):
     ## Function: readMessage
     def readMessage(self, aircraft):
         if self.shouldExit == True: aircraft.errorFoundNeedToExit = True
-        if aircraft.errorFoundNeedToExit: return aircraft;
+        if aircraft.errorFoundNeedToExit: return aircraft
+        if self.skipReadInput == True: return aircraft
         try:
             x = 0
             while x != 5:
@@ -230,16 +232,31 @@ class serial_mgl(Input):
     # fast forward if reading from a file.
     def fastForward(self,aircraft,bytesToSkip):
             if aircraft.demoMode:
+                current = self.ser.tell()
+                moveTo = current - bytesToSkip
                 try:
                     for _ in range(bytesToSkip):
-                        next(self.ser)
+                        next(self.ser) # have to use next...
                 except:
                     # if error then just to start of file
                     self.ser.seek(0)
+                #print("fastForward() before="+str(current)+" goto:"+str(moveTo)+" done="+str(self.ser.tell()))
 
     def fastBackwards(self,aircraft,bytesToSkip):
             if aircraft.demoMode:
-                self.ser.seek(0)
+                self.skipReadInput = True  # lets pause reading from the file for second while we mess with the file pointer.
+                current = self.ser.tell()
+                moveTo = current - bytesToSkip
+                if(moveTo<0): moveTo = 0
+                self.ser.seek(0) # reset back to begining.
+                try:
+                    for _ in range(moveTo):
+                        next(self.ser) # jump to that postion???  not really working right.
+                except:
+                    # if error then just to start of file
+                    self.ser.seek(0)
+                #print("fastForward() before="+str(current)+" goto:"+str(moveTo)+" done="+str(self.ser.tell()))
+                self.skipReadInput = False
 
     #############################################
     ## Function: printTextModeData
@@ -283,14 +300,14 @@ class serial_mgl(Input):
             return 'quit',"%s Input: Key code not supported: %d ... Exiting \r\n"%(self.name,key)
 
 
-    def startLog(self):
+    def startLog(self,aircraft):
         if self.output_logFile == None:
             self.output_logFile,self.output_logFileName = Input.createLogFile(self,".dat",True)
             print("Creating log output: %s\n"%(self.output_logFileName))
         else:
             print("Already logging to: "+self.output_logFileName)
 
-    def stopLog(self):
+    def stopLog(self,aircraft):
         if self.output_logFile != None:
             Input.closeLogFile(self,self.output_logFile)
             self.output_logFile = None

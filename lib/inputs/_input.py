@@ -89,7 +89,7 @@ class Input:
         while exists(newFilename) == True:
             number = number + 1
             newFilename = dirname + self.name + "_" + str(number) + fileExtension
-        print("using filename %s"%(newFilename))
+        #print("using filename %s"%(newFilename))
         return newFilename
 
 

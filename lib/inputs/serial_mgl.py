@@ -20,6 +20,9 @@ class serial_mgl(Input):
         self.textMode_showAir = True
         self.textMode_showNav = True
         self.textMode_showTraffic = True
+        self.textMode_showEngine = True
+        self.textMode_showFuel = True
+        self.textMode_showRaw = False
         self.shouldExit = False
         self.skipReadInput = False
         self.skipTextOutput = False
@@ -103,7 +106,8 @@ class serial_mgl(Input):
                                 aircraft.mag_head = HeadingMag * 0.1
                             aircraft.slip_skid = Slip 
                             aircraft.msg_count += 1
-                            aircraft.msg_last = binascii.hexlify(Message) # save last message.
+                            if(self.textMode_showRaw==True): aircraft.msg_last = binascii.hexlify(Message) # save last message.
+                            else: aircraft.msg_last = None
 
                     elif msgType == 2:  # GPS Message
                         Message = self.ser.read(48)
@@ -120,7 +124,8 @@ class serial_mgl(Input):
                             ):  # if no mag heading use ground track
                                 aircraft.mag_head = aircraft.gndtrack
                             aircraft.msg_count += 1
-                            aircraft.msg_last = binascii.hexlify(Message) # save last message.
+                            if(self.textMode_showRaw==True): aircraft.msg_last = binascii.hexlify(Message) # save last message.
+                            else: aircraft.msg_last = None
 
                     elif msgType == 1:  # Primary flight
                         Message = self.ser.read(36)
@@ -148,7 +153,8 @@ class serial_mgl(Input):
                             aircraft.sys_time_string = "%d:%d:%d"%(Hour,Min,Sec)
 
                             aircraft.msg_count += 1
-                            aircraft.msg_last = binascii.hexlify(Message) # save last message.
+                            if(self.textMode_showRaw==True): aircraft.msg_last = binascii.hexlify(Message) # save last message.
+                            else: aircraft.msg_last = None
 
                     elif msgType == 6:  # Traffic message
                         Message = self.ser.read(msgLength)+6
@@ -162,7 +168,8 @@ class serial_mgl(Input):
                             aircraft.traffic.MsgNum = ThisMsgNum
 
                             aircraft.traffic.msg_count += 1
-                            aircraft.traffic.msg_last = binascii.hexlify(Message) # save last message.
+                            if(self.textMode_showRaw==True): aircraft.traffic.msg_last = binascii.hexlify(Message) # save last message.
+                            else: aircraft.traffic.msg_last = None
 
 
                     elif msgType == 30:  # Navigation message
@@ -193,7 +200,8 @@ class serial_mgl(Input):
                             aircraft.nav.GLSVert = GLSVert
 
                             aircraft.nav.msg_count += 1
-                            aircraft.nav.msg_last = binascii.hexlify(Message) # save nav message.
+                            if(self.textMode_showRaw==True): aircraft.nav.msg_last = binascii.hexlify(Message) # save last message.
+                            else: aircraft.nav.msg_last = None
 
                     elif msgType == 4:  # Various input states and signals
                         Message = self.ser.read(msgLength+6)
@@ -202,15 +210,19 @@ class serial_mgl(Input):
                     elif msgType == 11:  # fuel levels
                         Message = self.ser.read(msgLength+6)
                         # todo... read message
+                        aircraft.fuel.msg_count += 1
+                        if(self.textMode_showRaw==True): aircraft.fuel.msg_last = binascii.hexlify(Message) # save last message.
+                        else: aircraft.fuel.msg_last = None
 
                     elif msgType == 10:  # Engine message
                         Message = self.ser.read(msgLength+6)
                         # todo... read message
-
+                        aircraft.engine.msg_count += 1
+                        if(self.textMode_showRaw==True): aircraft.engine.msg_last = binascii.hexlify(Message) # save last message.
+                        else: aircraft.engine.msg_last = None
 
                     else:
                         aircraft.msg_unknown += 1 #else unknown message.
-                        aircraft.nav.msg_last = 0
                     
                     if aircraft.demoMode:  #if demo mode then add a delay.  Else reading a file is way to fast.
                         time.sleep(.01)
@@ -269,7 +281,7 @@ class serial_mgl(Input):
     #############################################
     ## Function: printTextModeData
     def printTextModeData(self, aircraft):
-        hud_text.print_header("Decoded data from Input Module: %s (Keys: n = nav data, a = all data)"%(self.name))
+        hud_text.print_header("Decoded data from Input Module: %s (Keys: n=nav, a=all, r=raw)"%(self.name))
         if len(aircraft.demoFile):
             hud_text.print_header("Demofile: %s"%(aircraft.demoFile))
 
@@ -277,13 +289,23 @@ class serial_mgl(Input):
             hud_text.print_object(aircraft)
 
         if self.textMode_showNav==True:
-            hud_text.print_header("Decoded Nav Data")
+            hud_text.print_header("Nav Data")
             hud_text.print_object(aircraft.nav)
 
         if self.textMode_showTraffic==True:
-            hud_text.changePos(1,100)
-            hud_text.print_header("Decoded Traffic Data")
+            hud_text.changePos(2,50)
+            hud_text.print_header("Traffic Data")
             hud_text.print_object(aircraft.traffic)
+
+        if self.textMode_showEngine==True:
+            hud_text.changePos(2,100)
+            hud_text.print_header("Engine Data")
+            hud_text.print_object(aircraft.engine)
+
+        if self.textMode_showFuel==True:
+            hud_text.changePos(13,100)
+            hud_text.print_header("Fuel Data")
+            hud_text.print_object(aircraft.fuel)
 
         hud_text.print_DoneWithPage()
 
@@ -296,12 +318,21 @@ class serial_mgl(Input):
             self.textMode_showNav = True
             self.textMode_showAir = False
             self.textMode_showTraffic = False
+            self.textMode_showEngine = False
+            self.textMode_showFuel = False
             hud_text.print_Clear()
             return 0,0
         elif key==ord('a'):
             self.textMode_showNav = True
             self.textMode_showAir = True
             self.textMode_showTraffic = True
+            self.textMode_showEngine = True
+            self.textMode_showFuel = True
+            hud_text.print_Clear()
+            return 0,0
+        elif key==ord('r'):
+            if self.textMode_showRaw == True: self.textMode_showRaw = False
+            else: self.textMode_showRaw = True
             hud_text.print_Clear()
             return 0,0
         else:

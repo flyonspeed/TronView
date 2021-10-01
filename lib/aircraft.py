@@ -45,6 +45,7 @@ class Aircraft(object):
         self.engine = EngineData()
         self.nav = NavData()
         self.traffic = TrafficData()
+        self.fuel = FuelData()
         self.internal = InteralData()
 
         self.msg_count = 0
@@ -243,6 +244,17 @@ class EngineData(object):
         self.OP = 0
         self.OT = 0
         self.FF = 0
+
+        self.FL1 = 0
+        self.FL2 = 0
+
+        self.msg_count = 0
+        self.msg_last = ""
+
+#############################################
+## Class: FuelData
+class FuelData(object):
+    def __init__(self):
 
         self.FL1 = 0
         self.FL2 = 0

@@ -51,7 +51,23 @@ def print_header(header):
 ## Function print at next location
 def print_data(label,value):
     global lastTextX, lastTextY
-    sys.stdout.write("\x1b7\x1b[%d;%df%s : %s        \x1b8" % (lastTextX, lastTextY, bcolors.UNDERLINE + label + bcolors.ENDC, bcolors.OKGREEN + str(value) + bcolors.ENDC))
+    theType = type(value)
+    if( theType is str):
+        showValue = value
+    elif( theType is int):
+        showValue = str(value)
+    elif( theType is float):
+        showValue = "%0.4f" %(value)
+    elif( theType is bool):
+        showValue = str(value)
+    elif( theType is bytes):
+        showValue = str(value)
+    elif( theType is bytearray):
+        showValue = str(value)
+    else :
+        # else its a object or something else so don't show it.
+        return
+    sys.stdout.write("\x1b7\x1b[%d;%df%s : %s        \x1b8" % (lastTextX, lastTextY, bcolors.UNDERLINE + label + bcolors.ENDC, bcolors.OKGREEN + showValue + bcolors.ENDC))
     lastTextX = lastTextX + 1 #increment the text postion to next location for next time this is called.
 
 #############################################

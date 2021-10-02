@@ -208,8 +208,14 @@ class serial_mgl(Input):
                         # todo... read message
 
                     elif msgType == 11:  # fuel levels
-                        Message = self.ser.read(msgLength+6)
-                        # todo... read message
+                        Message = self.ser.read(4)
+                        # H = Word (16 bit unsigned integer),  h=small (16 bit signed integer), B = byte, i = long (32 bit signed integer)
+                        NumOfTanks  = struct.unpack( "<i", Message )
+                        for x in range(NumOfTanks[0]):
+                            TankMessage = self.ser.read(8)
+                            Level,Type,TankOn,TankSensors  = struct.unpack("<iBBH", TankMessage)
+                            aircraft.fuel.FuelLevels[x] = round(Level * 0.02641729, 2) # convert liters to gallons
+
                         aircraft.fuel.msg_count += 1
                         if(self.textMode_showRaw==True): aircraft.fuel.msg_last = binascii.hexlify(Message) # save last message.
                         else: aircraft.fuel.msg_last = None
@@ -234,17 +240,17 @@ class serial_mgl(Input):
                             aircraft.engine.FuelFlow = round(FuelFlow * 0.002642,2) # In 10th liters/hour convert to Gallons/hr
                             aircraft.engine.ManPress = ManiPressure * 0.0029529983071445 #In 10th of a millibar to inches of mercury
 
-                            # Then read in a small int for each egt cht.
+                            # Then read in a small int for each egt and cht.
                             for x in range(NumberOfEGT):
                                 EGTCHTMessage = self.ser.read(2)
                                 EGTinC  = struct.unpack("<h", EGTCHTMessage)
-                                #aircraft.engine.EGT[x] = EGTinC[0]
                                 aircraft.engine.EGT[x] = round((EGTinC[0] * 1.8) + 32) # convert from C to F
                             for x in range(NumberOfCHT):
                                 EGTCHTMessage = self.ser.read(2)
                                 CHTinC  = struct.unpack("<h", EGTCHTMessage)
-                                #aircraft.engine.CHT[x] = CHTinC[0]
                                 aircraft.engine.CHT[x] = round((CHTinC[0] * 1.8) + 32)
+
+                            Checksum = self.ser.read(4) # read in last checksum part
 
                             aircraft.engine.msg_count += 1
                             if(self.textMode_showRaw==True): aircraft.engine.msg_last = binascii.hexlify(Message) # save last message.

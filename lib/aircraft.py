@@ -260,8 +260,7 @@ class EngineData(object):
 class FuelData(object):
     def __init__(self):
 
-        self.FL1 = 0
-        self.FL2 = 0
+        self.FuelLevels = [0,0,0,0]
 
         self.msg_count = 0
         self.msg_last = ""

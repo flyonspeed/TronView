@@ -215,11 +215,40 @@ class serial_mgl(Input):
                         else: aircraft.fuel.msg_last = None
 
                     elif msgType == 10:  # Engine message
-                        Message = self.ser.read(msgLength+6)
-                        # todo... read message
-                        aircraft.engine.msg_count += 1
-                        if(self.textMode_showRaw==True): aircraft.engine.msg_last = binascii.hexlify(Message) # save last message.
-                        else: aircraft.engine.msg_last = None
+                        Message = self.ser.read(40)
+                        if len(Message) == 40:
+                            # H = Word,  h=small, B = byte, i = long
+                            # B            B           B            B           H    H      H             H              H             h           h         h          h        h           h       h         H         H        H             H              h          H
+                            EngineNumber, EngineType, NumberOfEGT, NumberOfCHT, RPM, Pulse, OilPressure1, OilPressure2, FuelPressure, CoolantTemp, OilTemp1, OilTemp2, AuxTemp1, AuxTemp2, AuxTemp3, AuxTemp4, FuelFlow, AuxFuel, ManiPressure, BoostPressure, InletTemp, AmbientTemp  = struct.unpack(
+                                "<BBBBHHHHHhhhhhhhHHHHhH", Message
+                            )
+
+                            aircraft.engine.NumberOfCylinders = NumberOfEGT
+                            aircraft.engine.RPM = RPM
+                            aircraft.engine.OilPress = round(OilPressure1 * 0.01450377,2) # In 10th of a millibar (Main oil pressure) convert to PSI
+                            aircraft.engine.OilPress2 = round(OilPressure2 * 0.01450377,2)
+                            aircraft.engine.FuelPress = round(FuelPressure * 0.01450377,2)
+                            aircraft.engine.CoolantTemp = round((CoolantTemp * 1.8) + 32)
+                            aircraft.engine.OilTemp = round((OilTemp1 * 1.8) + 32)  # convert from C to F
+                            aircraft.engine.OilTemp2 = round((OilTemp2 * 1.8) + 32) # convert from C to F
+                            aircraft.engine.FuelFlow = round(FuelFlow * 0.002642,2) # In 10th liters/hour convert to Gallons/hr
+                            aircraft.engine.ManPress = ManiPressure * 0.0029529983071445 #In 10th of a millibar to inches of mercury
+
+                            # Then read in a small int for each egt cht.
+                            for x in range(NumberOfEGT):
+                                EGTCHTMessage = self.ser.read(2)
+                                EGTinC  = struct.unpack("<h", EGTCHTMessage)
+                                #aircraft.engine.EGT[x] = EGTinC[0]
+                                aircraft.engine.EGT[x] = round((EGTinC[0] * 1.8) + 32) # convert from C to F
+                            for x in range(NumberOfCHT):
+                                EGTCHTMessage = self.ser.read(2)
+                                CHTinC  = struct.unpack("<h", EGTCHTMessage)
+                                #aircraft.engine.CHT[x] = CHTinC[0]
+                                aircraft.engine.CHT[x] = round((CHTinC[0] * 1.8) + 32)
+
+                            aircraft.engine.msg_count += 1
+                            if(self.textMode_showRaw==True): aircraft.engine.msg_last = binascii.hexlify(Message) # save last message.
+                            else: aircraft.engine.msg_last = None
 
                     else:
                         aircraft.msg_unknown += 1 #else unknown message.
@@ -293,17 +322,16 @@ class serial_mgl(Input):
             hud_text.print_object(aircraft.nav)
 
         if self.textMode_showTraffic==True:
-            hud_text.changePos(2,50)
+            hud_text.changePos(2,40)
             hud_text.print_header("Traffic Data")
             hud_text.print_object(aircraft.traffic)
 
         if self.textMode_showEngine==True:
-            hud_text.changePos(2,100)
+            hud_text.changePos(2,75)
             hud_text.print_header("Engine Data")
             hud_text.print_object(aircraft.engine)
 
         if self.textMode_showFuel==True:
-            hud_text.changePos(13,100)
             hud_text.print_header("Fuel Data")
             hud_text.print_object(aircraft.fuel)
 

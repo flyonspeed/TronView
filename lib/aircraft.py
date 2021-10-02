@@ -239,14 +239,18 @@ class NavData(object):
 ## Class: EngineData
 class EngineData(object):
     def __init__(self):
+        self.NumberOfCylinders = 0
         self.RPM = 0
-        self.MP = 0
-        self.OP = 0
-        self.OT = 0
-        self.FF = 0
-
-        self.FL1 = 0
-        self.FL2 = 0
+        self.ManPress = 0
+        self.OilPress = 0
+        self.OilPress2 = 0
+        self.OilTemp = 0
+        self.OilTemp2 = 0
+        self.CoolantTemp = 0
+        self.FuelFlow = 0
+        self.FuelPress = 0
+        self.EGT = [0,0,0,0,0,0,0,0]
+        self.CHT = [0,0,0,0,0,0,0,0]
 
         self.msg_count = 0
         self.msg_last = ""

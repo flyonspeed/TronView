@@ -64,6 +64,8 @@ def print_data(label,value):
         showValue = str(value)
     elif( theType is bytearray):
         showValue = str(value)
+    elif( isinstance(value, list)):
+        showValue = str(value)
     else :
         # else its a object or something else so don't show it.
         return

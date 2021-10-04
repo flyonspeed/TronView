@@ -33,7 +33,7 @@ class RollIndicator(Module):
             None, int(self.height / 20)
         )
 
-        self.roll_point = pygame.image.load("lib/modules/hud/rollindicator/tick_w.png").convert()
+        self.roll_point = pygame.image.load("lib/modules/hud/rollindicator/tick_w.bmp").convert()
         self.roll_point.set_colorkey((0, 0, 0))
         self.roll_point_scaled = pygame.transform.scale(
             self.roll_point, (self.roll_point_size, self.roll_point_size)

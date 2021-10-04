@@ -1,4 +1,4 @@
-import re, subprocess, platform
+import serial, re, subprocess, platform
 
 def is_raspberrypi():
     try:
@@ -53,5 +53,21 @@ def unmount_usb_drive():
         return False
     os.system("umount "+rpi_usb_drive_mount+" /mnt/usb 2>/dev/null")
     return True
+
+def list_serial_ports(printthem):
+
+    # List all the Serial COM Ports on Raspberry Pi
+    proc = subprocess.Popen(['ls /dev/tty[A-Za-z]*'], shell=True, stdout=subprocess.PIPE)
+    com_ports = proc.communicate()[0]
+    com_ports_list = str(com_ports).split("\\n") # find serial ports
+    rtn = []
+    for com_port in com_ports_list:
+        if 'ttyS' in com_port:
+            if(printthem==True): print(com_port)
+            rtn.append(com_port)
+        if 'ttyUSB' in com_port:
+            if(printthem==True): print(com_port)
+            rtn.append(com_port)
+    return rtn
 
 

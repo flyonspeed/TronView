@@ -302,7 +302,7 @@ if __name__ == "__main__":
     #print 'ARGV      :', sys.argv[1:]
     try:
         opts, args = getopt.getopt(
-            sys.argv[1:], "hs:i:tec:"
+            sys.argv[1:], "hs:i:tec:l",
         )
     except getopt.GetoptError:
         print("unknown command line args given..")
@@ -322,6 +322,9 @@ if __name__ == "__main__":
             DataInputToLoad = arg
         if opt == "-s":
             ScreenNameToLoad = arg
+        if opt == "-l":
+            rpi_hardware.list_serial_ports(True)
+            sys.exit()
     isRunningOnPi = rpi_hardware.is_raspberrypi()
     if isRunningOnPi == True: print("Running on RaspberryPi")
     isRunningOnMac = mac_hardware.is_macosx()

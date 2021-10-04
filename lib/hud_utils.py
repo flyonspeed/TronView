@@ -55,6 +55,7 @@ def showArgs():
     print(" -t Show text mode only (Optional)")
     print(" -e demo mode. Use default example data for input module (Optional)")
     print(" -c <example data filename> use custom example data file for demo mode (Optional)")
+    print(" -l list serial ports")
 
 
     if os.path.isfile("hud.cfg") == False:

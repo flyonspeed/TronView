@@ -127,7 +127,7 @@ class Default(Screen):
 
 
         # baro setting
-        smartdisplay.draw_text(smartdisplay.RIGHT_MID_DOWN, self.myfont, "%0.2f" % (aircraft.get_baro()), (255, 255, 0))
+        smartdisplay.draw_text(smartdisplay.RIGHT_MID_DOWN, self.myfont, "%0.2f%s" % (aircraft.get_baro(),aircraft.get_baro_description()), (255, 255, 0))
         # oat
         smartdisplay.draw_text(smartdisplay.RIGHT_MID_DOWN, self.myfont, "%0.1f%s" % (aircraft.get_oat(),aircraft.get_temp_description()), (255, 255, 0))
         

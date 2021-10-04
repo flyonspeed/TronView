@@ -45,6 +45,7 @@ class Aircraft(object):
         self.engine = EngineData()
         self.nav = NavData()
         self.traffic = TrafficData()
+        self.fuel = FuelData()
         self.internal = InteralData()
 
         self.msg_count = 0
@@ -143,11 +144,11 @@ class Aircraft(object):
     # get baro format description
     def get_baro_description(self):
         if(self.data_format==0):
-            return "inHg"
+            return "in"
         if(self.data_format==1):
-            return "inHg"
+            return "in"
         if(self.data_format==2):
-            return "mbar"
+            return "mb"
 
     # get oat in converted format.
     def get_oat(self):
@@ -238,14 +239,28 @@ class NavData(object):
 ## Class: EngineData
 class EngineData(object):
     def __init__(self):
+        self.NumberOfCylinders = 0
         self.RPM = 0
-        self.MP = 0
-        self.OP = 0
-        self.OT = 0
-        self.FF = 0
+        self.ManPress = 0
+        self.OilPress = 0
+        self.OilPress2 = 0
+        self.OilTemp = 0
+        self.OilTemp2 = 0
+        self.CoolantTemp = 0
+        self.FuelFlow = 0
+        self.FuelPress = 0
+        self.EGT = [0,0,0,0,0,0,0,0]
+        self.CHT = [0,0,0,0,0,0,0,0]
 
-        self.FL1 = 0
-        self.FL2 = 0
+        self.msg_count = 0
+        self.msg_last = ""
+
+#############################################
+## Class: FuelData
+class FuelData(object):
+    def __init__(self):
+
+        self.FuelLevels = [0,0,0,0]
 
         self.msg_count = 0
         self.msg_last = ""

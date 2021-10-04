@@ -39,7 +39,7 @@ class SmartDisplay(object):
     CENTER_CENTER_DOWN = 84
 
     def __init__(self):
-        print("SmartDisplay Init")
+        #print("SmartDisplay Init")
         self.org_width = 0
         self.org_height = 0
         self.x_start = 0

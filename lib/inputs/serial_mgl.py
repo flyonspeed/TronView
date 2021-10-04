@@ -21,6 +21,9 @@ class serial_mgl(Input):
         self.textMode_showAir = True
         self.textMode_showNav = True
         self.textMode_showTraffic = True
+        self.textMode_showEngine = True
+        self.textMode_showFuel = True
+        self.textMode_showRaw = False
         self.shouldExit = False
         self.skipReadInput = False
         self.skipTextOutput = False
@@ -92,11 +95,11 @@ class serial_mgl(Input):
                     )
 
                     if msgType == 3:  # attitude information
-                        Message = self.ser.read(25)
-                        if len(Message) == 25:
+                        Message = self.ser.read(32)
+                        if len(Message) == 32:
                             # use struct to unpack binary data.  https://docs.python.org/2.7/library/struct.html
-                            HeadingMag, PitchAngle, BankAngle, YawAngle, TurnRate, Slip, GForce, LRForce, FRForce, BankRate, PitchRate, YawRate, SensorFlags = struct.unpack(
-                                "<HhhhhhhhhhhhB", Message
+                            HeadingMag, PitchAngle, BankAngle, YawAngle, TurnRate, Slip, GForce, LRForce, FRForce, BankRate, PitchRate, YawRate, SensorFlags, Padding1, Padding2, Padding3, Checksum = struct.unpack(
+                                "<HhhhhhhhhhhhBBBBi", Message
                             )
                             aircraft.pitch = PitchAngle * 0.1  #
                             aircraft.roll = BankAngle * 0.1  #
@@ -105,13 +108,14 @@ class serial_mgl(Input):
                             aircraft.slip_skid = Slip * .1
                             aircraft.vert_G = GForce * 0.01
                             aircraft.msg_count += 1
-                            aircraft.msg_last = binascii.hexlify(Message) # save last message.
+                            if(self.textMode_showRaw==True): aircraft.msg_last = binascii.hexlify(Message) # save last message.
+                            else: aircraft.msg_last = None
 
                     elif msgType == 2:  # GPS Message
-                        Message = self.ser.read(36)
-                        if len(Message) == 36:
-                            Latitude, Longitude, GPSAltitude, AGL, NorthV, EastV, DownV, GS, TrackTrue, Variation, GPS, SatsTracked = struct.unpack(
-                                "<iiiiiiiHHhBB", Message
+                        Message = self.ser.read(48)
+                        if len(Message) == 48:
+                            Latitude, Longitude, GPSAltitude, AGL, NorthV, EastV, DownV, GS, TrackTrue, Variation, GPS, SatsTracked, SatsVisible, HorizontalAccuracy, VerticalAccuracy, GPScapability, RAIMStatus, RAIMherror, RAIMverror, padding, Checksum = struct.unpack(
+                                "<iiiiiiiHHhBBBBBBBBBBi", Message
                             )
                             if GS > 0:
                                 aircraft.gndspeed = GS * 0.06213712 # convert to mph
@@ -123,15 +127,14 @@ class serial_mgl(Input):
                             ):  # if no mag heading use ground track
                                 aircraft.mag_head = aircraft.gndtrack
                             aircraft.msg_count += 1
-                            aircraft.msg_last = binascii.hexlify(Message) # save last message.
-                            # if self.logFile != None:
-                            #     Input.addToLog(self,Message)
+                            if(self.textMode_showRaw==True): aircraft.msg_last = binascii.hexlify(Message) # save last message.
+                            else: aircraft.msg_last = None
 
                     elif msgType == 1:  # Primary flight
-                        Message = self.ser.read(30)
-                        if len(Message) == 30:
-                            PAltitude, BAltitude, ASI, TAS, AOA, VSI, Baro, LocalBaro, OAT, Humidity, SystemFlags, Hour, Min, Sec, Day, Month, Year  = struct.unpack(
-                                "<iiHHhhHHhBBBBBBBB", Message
+                        Message = self.ser.read(36)
+                        if len(Message) == 36:
+                            PAltitude, BAltitude, ASI, TAS, AOA, VSI, Baro, LocalBaro, OAT, Humidity, SystemFlags, Hour, Min, Sec, Day, Month, Year,FTHour, FTMin,Checksum  = struct.unpack(
+                                "<iiHHhhHHhBBBBBBBBBBi", Message
                             )
                             if ASI > 0:
                                 aircraft.ias = ASI * 0.06213712 #idicated airspeed in 10th of Km/h.  * 0.05399565 to knots. * 0.6213712 to mph
@@ -153,9 +156,8 @@ class serial_mgl(Input):
                             aircraft.sys_time_string = "%d:%d:%d"%(Hour,Min,Sec)
 
                             aircraft.msg_count += 1
-                            aircraft.msg_last = binascii.hexlify(Message) # save last message.
-                            # if self.logFile != None:
-                            #     Input.addToLog(self,Message)
+                            if(self.textMode_showRaw==True): aircraft.msg_last = binascii.hexlify(Message) # save last message.
+                            else: aircraft.msg_last = None
 
 
                             aircraft.wind_speed, aircraft.wind_dir, aircraft.norm_wind_dir = _utils.windSpdDir(
@@ -168,7 +170,7 @@ class serial_mgl(Input):
 
 
                     elif msgType == 6:  # Traffic message
-                        Message = self.ser.read(4)
+                        Message = self.ser.read(msgLength)+6
                         if len(Message) == 4:
                             TrafficMode, NumOfTraffic, NumMsg, MsgNum = struct.unpack(
                                 "!BBBB", Message
@@ -179,16 +181,16 @@ class serial_mgl(Input):
                             aircraft.traffic.MsgNum = ThisMsgNum
 
                             aircraft.traffic.msg_count += 1
-                            aircraft.traffic.msg_last = binascii.hexlify(Message) # save last message.
-                            # if self.logFile != None:
-                            #     Input.addToLog(self,Message)
+                            if(self.textMode_showRaw==True): aircraft.traffic.msg_last = binascii.hexlify(Message) # save last message.
+                            else: aircraft.traffic.msg_last = None
 
 
                     elif msgType == 30:  # Navigation message
-                        Message = self.ser.read(50)
-                        if len(Message) == 50:
-                            Flags, HSISource, VNAVSource, APMode, Padding, HSINeedleAngle, HSIRoseHeading, HSIDev, VDev, HeadBug, AltBug, WPDist, WPLat,WPLon,WPTrack,vor1r,vor2r,dme1,dme2,ILSDev,GSDev,GLSHoriz,GLSVert = struct.unpack(
-                                "<HBBBBhHhhhiiiihhhHHhhhh", Message
+                        Message = self.ser.read(56)
+                        if len(Message) == 56:
+                            # H     B            B         B        B       h=small int     H = Word        h       h     h       i=long  i       i     i     h=small h     h 
+                            Flags, HSISource, VNAVSource, APMode, Padding, HSINeedleAngle, HSIRoseHeading, HSIDev, VDev, HeadBug, AltBug, WPDist, WPLat,WPLon,WPTrack,vor1r,vor2r,dme1,dme2,ILSDev,GSDev,GLSHoriz,GLSVert,Padding,Checksum = struct.unpack(
+                                "<HBBBBhHhhhiiiihhhHHhhhhHi", Message
                             )
                             aircraft.nav.NavStatus = hud_utils.get_bin(Flags)
                             aircraft.nav.HSISource = HSISource
@@ -211,16 +213,68 @@ class serial_mgl(Input):
                             aircraft.nav.GLSVert = GLSVert
 
                             aircraft.nav.msg_count += 1
-                            aircraft.nav.msg_last = binascii.hexlify(Message) # save nav message.
-                            # if self.logFile != None:
-                            #     Input.addToLog(self,Message)
+                            if(self.textMode_showRaw==True): aircraft.nav.msg_last = binascii.hexlify(Message) # save last message.
+                            else: aircraft.nav.msg_last = None
+
+                    elif msgType == 4:  # Various input states and signals
+                        Message = self.ser.read(msgLength+6)
+                        # todo... read message
+
+                    elif msgType == 11:  # fuel levels
+                        Message = self.ser.read(4)
+                        # H = Word (16 bit unsigned integer),  h=small (16 bit signed integer), B = byte, i = long (32 bit signed integer)
+                        NumOfTanks  = struct.unpack( "<i", Message )
+                        for x in range(NumOfTanks[0]):
+                            TankMessage = self.ser.read(8)
+                            Level,Type,TankOn,TankSensors  = struct.unpack("<iBBH", TankMessage)
+                            aircraft.fuel.FuelLevels[x] = round(Level * 0.02641729, 2) # convert liters to gallons
+
+                        aircraft.fuel.msg_count += 1
+                        if(self.textMode_showRaw==True): aircraft.fuel.msg_last = binascii.hexlify(Message) # save last message.
+                        else: aircraft.fuel.msg_last = None
+
+                    elif msgType == 10:  # Engine message
+                        Message = self.ser.read(40)
+                        if len(Message) == 40:
+                            # H = Word,  h=small, B = byte, i = long
+                            # B            B           B            B           H    H      H             H              H             h           h         h          h        h           h       h         H         H        H             H              h          H
+                            EngineNumber, EngineType, NumberOfEGT, NumberOfCHT, RPM, Pulse, OilPressure1, OilPressure2, FuelPressure, CoolantTemp, OilTemp1, OilTemp2, AuxTemp1, AuxTemp2, AuxTemp3, AuxTemp4, FuelFlow, AuxFuel, ManiPressure, BoostPressure, InletTemp, AmbientTemp  = struct.unpack(
+                                "<BBBBHHHHHhhhhhhhHHHHhH", Message
+                            )
+
+                            aircraft.engine.NumberOfCylinders = NumberOfEGT
+                            aircraft.engine.RPM = RPM
+                            aircraft.engine.OilPress = round(OilPressure1 * 0.01450377,2) # In 10th of a millibar (Main oil pressure) convert to PSI
+                            aircraft.engine.OilPress2 = round(OilPressure2 * 0.01450377,2)
+                            aircraft.engine.FuelPress = round(FuelPressure * 0.01450377,2)
+                            aircraft.engine.CoolantTemp = round((CoolantTemp * 1.8) + 32)
+                            aircraft.engine.OilTemp = round((OilTemp1 * 1.8) + 32)  # convert from C to F
+                            aircraft.engine.OilTemp2 = round((OilTemp2 * 1.8) + 32) # convert from C to F
+                            aircraft.engine.FuelFlow = round(FuelFlow * 0.002642,2) # In 10th liters/hour convert to Gallons/hr
+                            aircraft.engine.ManPress = ManiPressure * 0.0029529983071445 #In 10th of a millibar to inches of mercury
+
+                            # Then read in a small int for each egt and cht.
+                            for x in range(NumberOfEGT):
+                                EGTCHTMessage = self.ser.read(2)
+                                EGTinC  = struct.unpack("<h", EGTCHTMessage)
+                                aircraft.engine.EGT[x] = round((EGTinC[0] * 1.8) + 32) # convert from C to F
+                            for x in range(NumberOfCHT):
+                                EGTCHTMessage = self.ser.read(2)
+                                CHTinC  = struct.unpack("<h", EGTCHTMessage)
+                                aircraft.engine.CHT[x] = round((CHTinC[0] * 1.8) + 32)
+
+                            Checksum = self.ser.read(4) # read in last checksum part
+
+                            aircraft.engine.msg_count += 1
+                            if(self.textMode_showRaw==True): aircraft.engine.msg_last = binascii.hexlify(Message) # save last message.
+                            else: aircraft.engine.msg_last = None
 
                     else:
                         aircraft.msg_unknown += 1 #else unknown message.
-                        aircraft.nav.msg_last = 0
                     
                     if aircraft.demoMode:  #if demo mode then add a delay.  Else reading a file is way to fast.
                         time.sleep(.01)
+                        pass
                     else:
                         self.ser.flushInput()  # flush the serial after every message else we see delays
 
@@ -275,7 +329,7 @@ class serial_mgl(Input):
     #############################################
     ## Function: printTextModeData
     def printTextModeData(self, aircraft):
-        hud_text.print_header("Decoded data from Input Module: %s (Keys: n = nav data, a = all data)"%(self.name))
+        hud_text.print_header("Decoded data from Input Module: %s (Keys: n=nav, a=all, r=raw)"%(self.name))
         if len(aircraft.demoFile):
             hud_text.print_header("Demofile: %s"%(aircraft.demoFile))
 
@@ -283,13 +337,22 @@ class serial_mgl(Input):
             hud_text.print_object(aircraft)
 
         if self.textMode_showNav==True:
-            hud_text.print_header("Decoded Nav Data")
+            hud_text.print_header("Nav Data")
             hud_text.print_object(aircraft.nav)
 
         if self.textMode_showTraffic==True:
-            hud_text.changePos(1,100)
-            hud_text.print_header("Decoded Traffic Data")
+            hud_text.changePos(2,40)
+            hud_text.print_header("Traffic Data")
             hud_text.print_object(aircraft.traffic)
+
+        if self.textMode_showEngine==True:
+            hud_text.changePos(2,75)
+            hud_text.print_header("Engine Data")
+            hud_text.print_object(aircraft.engine)
+
+        if self.textMode_showFuel==True:
+            hud_text.print_header("Fuel Data")
+            hud_text.print_object(aircraft.fuel)
 
         hud_text.print_DoneWithPage()
 
@@ -302,12 +365,21 @@ class serial_mgl(Input):
             self.textMode_showNav = True
             self.textMode_showAir = False
             self.textMode_showTraffic = False
+            self.textMode_showEngine = False
+            self.textMode_showFuel = False
             hud_text.print_Clear()
             return 0,0
         elif key==ord('a'):
             self.textMode_showNav = True
             self.textMode_showAir = True
             self.textMode_showTraffic = True
+            self.textMode_showEngine = True
+            self.textMode_showFuel = True
+            hud_text.print_Clear()
+            return 0,0
+        elif key==ord('r'):
+            if self.textMode_showRaw == True: self.textMode_showRaw = False
+            else: self.textMode_showRaw = True
             hud_text.print_Clear()
             return 0,0
         else:

@@ -32,7 +32,7 @@ class Wind(Module):
         self.myfont = pygame.font.SysFont("monospace", 20, bold=False)  # 
         self.MainColor = (0, 255, 0)  # main color 
 
-        self.arrow = pygame.image.load("lib/modules/hud/wind/arrow_g.png").convert()
+        self.arrow = pygame.image.load("lib/modules/hud/wind/arrow_g.bmp").convert()
         self.arrow.set_colorkey((255, 255, 255))
         self.arrow_scaled = pygame.transform.scale(self.arrow, (50, 50))
 

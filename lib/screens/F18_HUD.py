@@ -109,8 +109,11 @@ class F18_HUD(Screen):
         # Draw CDI Needles
         self.cdi.draw(aircraft,smartdisplay,(smartdisplay.x_center,smartdisplay.y_center))
 
+        # RadAlt  aircraft AGL Above Terrain
+        #smartdisplay.draw_text(smartdisplay.RIGHT_MID_DOWN, self.fontIndicatorSmaller, "%s RadAlt" % (aircraft.AGL), (255, 255, 0))
+
         # time string
-        smartdisplay.draw_text(smartdisplay.RIGHT_MID_DOWN, self.fontIndicatorSmaller, "%sz" % (aircraft.sys_time_string), (255, 255, 0))
+        smartdisplay.draw_text(smartdisplay.RIGHT_MID_DOWN, self.fontIndicatorSmaller, "%s Lcl" % (aircraft.sys_time_string), (255, 255, 0))
         # baro setting
         smartdisplay.draw_text(smartdisplay.RIGHT_MID_DOWN, self.fontIndicatorSmaller, "%0.2fin" % (aircraft.get_baro()), (255, 255, 0))
         

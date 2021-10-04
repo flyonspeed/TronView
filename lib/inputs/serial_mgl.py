@@ -6,6 +6,7 @@
 
 from ._input import Input
 from lib import hud_utils
+from . import _utils
 import serial
 import struct
 from lib import hud_text
@@ -101,7 +102,8 @@ class serial_mgl(Input):
                             aircraft.roll = BankAngle * 0.1  #
                             if HeadingMag != 0:
                                 aircraft.mag_head = HeadingMag * 0.1
-                            aircraft.slip_skid = Slip 
+                            aircraft.slip_skid = Slip * .1
+                            aircraft.vert_G = GForce * 0.01
                             aircraft.msg_count += 1
                             aircraft.msg_last = binascii.hexlify(Message) # save last message.
 
@@ -113,8 +115,9 @@ class serial_mgl(Input):
                             )
                             if GS > 0:
                                 aircraft.gndspeed = GS * 0.06213712 # convert to mph
-                            aircraft.agl = AGL
+                            # aircraft.agl = AGL
                             aircraft.gndtrack = int(TrackTrue * 0.1)
+                            aircraft.mag_decl = Variation * 0.1 # Magnetic variation 10th/deg West = Neg
                             if (
                                 aircraft.mag_head == 0
                             ):  # if no mag heading use ground track
@@ -153,6 +156,16 @@ class serial_mgl(Input):
                             aircraft.msg_last = binascii.hexlify(Message) # save last message.
                             # if self.logFile != None:
                             #     Input.addToLog(self,Message)
+
+
+                            aircraft.wind_speed, aircraft.wind_dir, aircraft.norm_wind_dir = _utils.windSpdDir(
+                            aircraft.tas * 0.8689758, # back to knots.
+                            aircraft.gndspeed * 0.8689758, # convert back to knots
+                            aircraft.gndtrack,
+                            aircraft.mag_head,
+                            aircraft.mag_decl,
+                            )
+
 
                     elif msgType == 6:  # Traffic message
                         Message = self.ser.read(4)

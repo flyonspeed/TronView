@@ -18,8 +18,8 @@ class Aircraft(object):
         self.sys_time_string = "" 
         self.pitch = 0.0 # degrees
         self.roll = 0.0  # degrees
-        self.ias = 0 # in MPH
-        self.tas = 0
+        self.ias = 1 # in knots
+        self.tas = 1
         self.alt = 0 # in Ft
         self.agl = 0
         self.PALT = 0 # in ft
@@ -31,7 +31,7 @@ class Aircraft(object):
         self.baro = 0 # inches of mercury
         self.baro_diff = 0
         self.vsi = 0 # ft/min
-        self.gndspeed = 0 #TODO: Move to GPSData class?
+        self.gndspeed = 1 #TODO: Move to GPSData class?
         self.oat = 0
         self.vert_G = 0
         self.slip_skid = None # -99 to +99.  (-99 is full right)
@@ -73,7 +73,7 @@ class Aircraft(object):
         if(self.data_format==0):
             return self.ias # mph
         if(self.data_format==1):
-            return self.ias * 0.8689 #knots
+            return self.ias * 0.868976 #knots
         if(self.data_format==2):
             return self.ias * 1.609 #km/h
 
@@ -82,7 +82,7 @@ class Aircraft(object):
         if(self.data_format==0):
             return self.gndspeed # mph
         if(self.data_format==1):
-            return self.gndspeed * 0.8689 #knots
+            return self.gndspeed * 0.868976 #knots
         if(self.data_format==2):
             return self.gndspeed * 1.609 #km/h
 
@@ -91,7 +91,7 @@ class Aircraft(object):
         if(self.data_format==0):
             return self.tas # mph
         if(self.data_format==1):
-            return self.tas * 0.8689 #knots
+            return self.tas * 0.868976 #knots
         if(self.data_format==2):
             return self.tas * 1.609 #km/h
 

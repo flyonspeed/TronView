@@ -23,6 +23,7 @@ class serial_mgl(Input):
         self.textMode_showTraffic = True
         self.textMode_showEngine = True
         self.textMode_showFuel = True
+        self.textMode_showGps = True
         self.textMode_showRaw = False
         self.shouldExit = False
         self.skipReadInput = False
@@ -114,7 +115,7 @@ class serial_mgl(Input):
                     elif msgType == 2:  # GPS Message
                         Message = self.ser.read(48)
                         if len(Message) == 48:
-                            Latitude, Longitude, GPSAltitude, AGL, NorthV, EastV, DownV, GS, TrackTrue, Variation, GPS, SatsTracked, SatsVisible, HorizontalAccuracy, VerticalAccuracy, GPScapability, RAIMStatus, RAIMherror, RAIMverror, padding, Checksum = struct.unpack(
+                            Latitude, Longitude, GPSAltitude, AGL, NorthV, EastV, DownV, GS, TrackTrue, Variation, GPSStatus, SatsTracked, SatsVisible, HorizontalAccuracy, VerticalAccuracy, GPScapability, RAIMStatus, RAIMherror, RAIMverror, padding, Checksum = struct.unpack(
                                 "<iiiiiiiHHhBBBBBBBBBBi", Message
                             )
                             if GS > 0:
@@ -122,13 +123,17 @@ class serial_mgl(Input):
                             # aircraft.agl = AGL
                             aircraft.gndtrack = int(TrackTrue * 0.1)
                             aircraft.mag_decl = Variation * 0.1 # Magnetic variation 10th/deg West = Neg
-                            if (
-                                aircraft.mag_head == 0
-                            ):  # if no mag heading use ground track
+                            if (aircraft.mag_head == 0):  # if no mag heading use ground track
                                 aircraft.mag_head = aircraft.gndtrack
-                            aircraft.msg_count += 1
-                            if(self.textMode_showRaw==True): aircraft.msg_last = binascii.hexlify(Message) # save last message.
-                            else: aircraft.msg_last = None
+                            aircraft.gps.LatDeg = Latitude * 180.000
+                            aircraft.gps.LonDeg = Longitude * 180.000
+                            aircraft.gps.GPSAlt = GPSAltitude # ft MSL
+                            aircraft.gps.SatsVisible = SatsVisible
+                            aircraft.gps.SatsTracked = SatsTracked
+                            aircraft.gps.GPSStatus = GPSStatus
+                            aircraft.gps.msg_count += 1
+                            if(self.textMode_showRaw==True): aircraft.gps.msg_last = binascii.hexlify(Message) # save last message.
+                            else: aircraft.gps.msg_last = None
 
                     elif msgType == 1:  # Primary flight
                         Message = self.ser.read(36)
@@ -274,11 +279,11 @@ class serial_mgl(Input):
                     
                     if aircraft.demoMode:  #if demo mode then add a delay.  Else reading a file is way to fast.
                         time.sleep(.01)
-                        pass
                     else:
-                        self.ser.flushInput()  # flush the serial after every message else we see delays
+                        pass
+                        #self.ser.flushInput()  # flush the serial after every message else we see delays
 
-                    if self.output_logFile != None and aircraft.nav.msg_last != 0:
+                    if self.output_logFile != None and aircraft.msg_last != None:
                         Input.addToLog(self,self.output_logFile,bytearray([5,2]))
                         Input.addToLog(self,self.output_logFile,MessageHeader)
                         Input.addToLog(self,self.output_logFile,Message)
@@ -337,13 +342,17 @@ class serial_mgl(Input):
             hud_text.print_object(aircraft)
 
         if self.textMode_showNav==True:
+            hud_text.changePos(2,40)
             hud_text.print_header("Nav Data")
             hud_text.print_object(aircraft.nav)
 
         if self.textMode_showTraffic==True:
-            hud_text.changePos(2,40)
             hud_text.print_header("Traffic Data")
             hud_text.print_object(aircraft.traffic)
+
+        if self.textMode_showGps==True:
+            hud_text.print_header("GPS Data")
+            hud_text.print_object(aircraft.gps)
 
         if self.textMode_showEngine==True:
             hud_text.changePos(2,75)

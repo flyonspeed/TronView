@@ -74,7 +74,7 @@ class Aircraft(object):
         if(self.data_format==0):
             return self.ias # mph
         if(self.data_format==1):
-            return self.ias * 0.868976 #knots
+            return self.ias * 0.8689758 #knots
         if(self.data_format==2):
             return self.ias * 1.609 #km/h
 
@@ -83,7 +83,7 @@ class Aircraft(object):
         if(self.data_format==0):
             return self.gndspeed # mph
         if(self.data_format==1):
-            return self.gndspeed * 0.868976 #knots
+            return self.gndspeed * 0.8689758 #knots
         if(self.data_format==2):
             return self.gndspeed * 1.609 #km/h
 
@@ -92,7 +92,7 @@ class Aircraft(object):
         if(self.data_format==0):
             return self.tas # mph
         if(self.data_format==1):
-            return self.tas * 0.868976 #knots
+            return self.tas * 0.8689758 #knots
         if(self.data_format==2):
             return self.tas * 1.609 #km/h
 
@@ -173,10 +173,12 @@ class Aircraft(object):
             v = self.vsi #ft
             d = "fpm"
         elif(self.data_format==2):
-            v = self.vsi * 0.00508 #meters per second
+            v = round(self.vsi * 0.00508) #meters per second
             d = "mps"
 
-        if v < 0:
+        if v == 0:
+            return " %d %s" % (v,d)
+        elif v < 0:
             return "%d %s" % (v,d)
         else:
             return "+%d %s" % (v,d)
@@ -199,13 +201,34 @@ class GPSData(object):
         self.LonDeg = None
         self.LonMin = None  # x.xxx
         self.GPSAlt = None  # ft MSL
+        self.GndTrack = None # True track from GPS.
         self.EWVelDir = None  # E or W
         self.EWVelmag = None  # x.x m/s
         self.NSVelDir = None  # N or S
         self.NSVelmag = None  # x.x m/s
         self.VVelDir = None  # U or D
         self.VVelmag = None  # x.xx m/s
+        self.SatsTracked = None
+        self.SatsVisible = None
+        self.GPSStatus = None # GPS status. 0=Acquiring, 1=dead reckoning,2=2d fix,3=3dfix,4=2dfix(imu),5=3dfix(imu)
+        self.msg_count = 0
+        self.msg_last = None
 
+    def get_status_string(self):
+        if(self.GPSStatus==None): 
+            return "NA"
+        elif(self.GPSStatus==0):
+            return "Acquiring"
+        elif(self.GPSStatus==1):
+            return "Acquiring" #GPS internal dead reckoning
+        elif(self.GPSStatus==2):
+            return "2D fix"
+        elif(self.GPSStatus==3):
+            return "3D fix"
+        elif(self.GPSStatus==4):
+            return "2D fix+" #2D fix EFIS dead reckoning (IMU)
+        elif(self.GPSStatus==5):
+            return "3D fix+" #3D fix EFIS dead reckoning (IMU)
 
 #############################################
 ## Class: NavData

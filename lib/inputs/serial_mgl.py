@@ -120,16 +120,14 @@ class serial_mgl(Input):
                                 aircraft.gndspeed = GS * 0.06213712 # convert to mph
                             aircraft.agl = AGL
                             aircraft.gndtrack = int(TrackTrue * 0.1)
-                            aircraft.gps.LatDeg = Latitude
-                            aircraft.gps.LonDeg = Longitude
+                            if (aircraft.mag_head == 0):  # if no mag heading use ground track
+                                aircraft.mag_head = aircraft.gndtrack
+                            aircraft.gps.LatDeg = Latitude * 180.000
+                            aircraft.gps.LonDeg = Longitude * 180.000
                             aircraft.gps.GPSAlt = GPSAltitude # ft MSL
                             aircraft.gps.SatsVisible = SatsVisible
                             aircraft.gps.SatsTracked = SatsTracked
                             aircraft.gps.GPSStatus = GPSStatus
-                            if (
-                                aircraft.mag_head == 0
-                            ):  # if no mag heading use ground track
-                                aircraft.mag_head = aircraft.gndtrack
                             aircraft.gps.msg_count += 1
                             if(self.textMode_showRaw==True): aircraft.gps.msg_last = binascii.hexlify(Message) # save last message.
                             else: aircraft.gps.msg_last = None

@@ -74,7 +74,7 @@ class Aircraft(object):
         if(self.data_format==0):
             return self.ias # mph
         if(self.data_format==1):
-            return self.ias * 0.8689 #knots
+            return self.ias * 0.8689758 #knots
         if(self.data_format==2):
             return self.ias * 1.609 #km/h
 
@@ -83,7 +83,7 @@ class Aircraft(object):
         if(self.data_format==0):
             return self.gndspeed # mph
         if(self.data_format==1):
-            return self.gndspeed * 0.8689 #knots
+            return self.gndspeed * 0.8689758 #knots
         if(self.data_format==2):
             return self.gndspeed * 1.609 #km/h
 
@@ -92,7 +92,7 @@ class Aircraft(object):
         if(self.data_format==0):
             return self.tas # mph
         if(self.data_format==1):
-            return self.tas * 0.8689 #knots
+            return self.tas * 0.8689758 #knots
         if(self.data_format==2):
             return self.tas * 1.609 #km/h
 

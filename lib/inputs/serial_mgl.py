@@ -262,7 +262,8 @@ class serial_mgl(Input):
                     if aircraft.demoMode:  #if demo mode then add a delay.  Else reading a file is way to fast.
                         time.sleep(.01)
                     else:
-                        self.ser.flushInput()  # flush the serial after every message else we see delays
+                        pass
+                        #self.ser.flushInput()  # flush the serial after every message else we see delays
 
                     if self.output_logFile != None and aircraft.msg_last != None:
                         Input.addToLog(self,self.output_logFile,bytearray([5,2]))
@@ -323,11 +324,11 @@ class serial_mgl(Input):
             hud_text.print_object(aircraft)
 
         if self.textMode_showNav==True:
+            hud_text.changePos(2,40)
             hud_text.print_header("Nav Data")
             hud_text.print_object(aircraft.nav)
 
         if self.textMode_showTraffic==True:
-            hud_text.changePos(2,40)
             hud_text.print_header("Traffic Data")
             hud_text.print_object(aircraft.traffic)
 

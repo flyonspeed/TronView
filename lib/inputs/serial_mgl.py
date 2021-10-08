@@ -22,6 +22,7 @@ class serial_mgl(Input):
         self.textMode_showTraffic = True
         self.textMode_showEngine = True
         self.textMode_showFuel = True
+        self.textMode_showGps = True
         self.textMode_showRaw = False
         self.shouldExit = False
         self.skipReadInput = False
@@ -112,20 +113,26 @@ class serial_mgl(Input):
                     elif msgType == 2:  # GPS Message
                         Message = self.ser.read(48)
                         if len(Message) == 48:
-                            Latitude, Longitude, GPSAltitude, AGL, NorthV, EastV, DownV, GS, TrackTrue, Variation, GPS, SatsTracked, SatsVisible, HorizontalAccuracy, VerticalAccuracy, GPScapability, RAIMStatus, RAIMherror, RAIMverror, padding, Checksum = struct.unpack(
+                            Latitude, Longitude, GPSAltitude, AGL, NorthV, EastV, DownV, GS, TrackTrue, Variation, GPSStatus, SatsTracked, SatsVisible, HorizontalAccuracy, VerticalAccuracy, GPScapability, RAIMStatus, RAIMherror, RAIMverror, padding, Checksum = struct.unpack(
                                 "<iiiiiiiHHhBBBBBBBBBBi", Message
                             )
                             if GS > 0:
                                 aircraft.gndspeed = GS * 0.06213712 # convert to mph
                             aircraft.agl = AGL
                             aircraft.gndtrack = int(TrackTrue * 0.1)
+                            aircraft.gps.LatDeg = Latitude
+                            aircraft.gps.LonDeg = Longitude
+                            aircraft.gps.GPSAlt = GPSAltitude # ft MSL
+                            aircraft.gps.SatsVisible = SatsVisible
+                            aircraft.gps.SatsTracked = SatsTracked
+                            aircraft.gps.GPSStatus = GPSStatus
                             if (
                                 aircraft.mag_head == 0
                             ):  # if no mag heading use ground track
                                 aircraft.mag_head = aircraft.gndtrack
-                            aircraft.msg_count += 1
-                            if(self.textMode_showRaw==True): aircraft.msg_last = binascii.hexlify(Message) # save last message.
-                            else: aircraft.msg_last = None
+                            aircraft.gps.msg_count += 1
+                            if(self.textMode_showRaw==True): aircraft.gps.msg_last = binascii.hexlify(Message) # save last message.
+                            else: aircraft.gps.msg_last = None
 
                     elif msgType == 1:  # Primary flight
                         Message = self.ser.read(36)
@@ -331,6 +338,10 @@ class serial_mgl(Input):
         if self.textMode_showTraffic==True:
             hud_text.print_header("Traffic Data")
             hud_text.print_object(aircraft.traffic)
+
+        if self.textMode_showGps==True:
+            hud_text.print_header("GPS Data")
+            hud_text.print_object(aircraft.gps)
 
         if self.textMode_showEngine==True:
             hud_text.changePos(2,75)

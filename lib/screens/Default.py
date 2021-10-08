@@ -17,7 +17,6 @@ from lib.modules.hud.aoa import aoa
 from lib.modules.hud.slipskid import slipskid
 from lib.modules.gui.menu import menu
 
-
 class Default(Screen):
     # called only when object is first created.
     def __init__(self):
@@ -130,9 +129,12 @@ class Default(Screen):
         smartdisplay.draw_text(smartdisplay.RIGHT_MID_DOWN, self.myfont, "%0.2f%s" % (aircraft.get_baro(),aircraft.get_baro_description()), (255, 255, 0))
         # oat
         smartdisplay.draw_text(smartdisplay.RIGHT_MID_DOWN, self.myfont, "%0.1f%s" % (aircraft.get_oat(),aircraft.get_temp_description()), (255, 255, 0))
+        # GPS status
+        smartdisplay.draw_text(smartdisplay.RIGHT_MID_DOWN, self.myfont, "gps:"+aircraft.gps.get_status_string(), (255, 255, 0))
         
         # VSI
-        smartdisplay.draw_text(smartdisplay.RIGHT_MID_UP, self.fontIndicatorSmaller, aircraft.get_vsi_string(), (255, 255, 0))
+        smartdisplay.draw_text(smartdisplay.RIGHT_MID_UP, self.myfont, aircraft.get_vsi_string(), (255, 255, 0))
+
 
 
         # Mag heading

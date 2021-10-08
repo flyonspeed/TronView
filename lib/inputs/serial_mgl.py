@@ -261,11 +261,10 @@ class serial_mgl(Input):
                     
                     if aircraft.demoMode:  #if demo mode then add a delay.  Else reading a file is way to fast.
                         time.sleep(.01)
-                        pass
                     else:
                         self.ser.flushInput()  # flush the serial after every message else we see delays
 
-                    if self.output_logFile != None and aircraft.nav.msg_last != 0:
+                    if self.output_logFile != None and aircraft.msg_last != None:
                         Input.addToLog(self,self.output_logFile,bytearray([5,2]))
                         Input.addToLog(self,self.output_logFile,MessageHeader)
                         Input.addToLog(self,self.output_logFile,Message)

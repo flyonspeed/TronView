@@ -6,18 +6,12 @@ import serial
 import struct
 import sys
 import os, getopt
+import subprocess, platform
 
 version = "0.2"
 
-ser = serial.Serial(
-    port="/dev/ttyS0",
-#    port="/dev/ttyUSB0",
-    baudrate=115200,
-    parity=serial.PARITY_NONE,
-    stopbits=serial.STOPBITS_ONE,
-    bytesize=serial.EIGHTBITS,
-    timeout=1,
-)
+ser = None
+port = "/dev/ttyS0"  # default serial port
 counter = 0
 badmessageheaderCount = 0
 goodmessageheaderCount = 0
@@ -381,8 +375,25 @@ def showArgs():
     print(" -m (MGL iEFIS)")
     print(" -s (Dynon Skyview)")
     print(" -g (Garmin G3X)")
+    print(" -l (list available serial ports on RaspberryPi/unix)")
     sys.exit()
 
+
+def list_serial_ports(printthem):
+
+    # List all the Serial COM Ports on Raspberry Pi
+    proc = subprocess.Popen(['ls /dev/tty[A-Za-z]*'], shell=True, stdout=subprocess.PIPE)
+    com_ports = proc.communicate()[0]
+    com_ports_list = str(com_ports).split("\\n") # find serial ports
+    rtn = []
+    for com_port in com_ports_list:
+        if 'ttyS' in com_port:
+            if(printthem==True): print("found serial port: "+com_port)
+            rtn.append(com_port)
+        if 'ttyUSB' in com_port:
+            if(printthem==True): print("found serial port: "+com_port)
+            rtn.append(com_port)
+    return rtn
 
 
 #
@@ -392,7 +403,7 @@ def showArgs():
 argv = sys.argv[1:]
 readType = "none"
 try:
-    opts, args = getopt.getopt(argv, "hsmg", ["skyview="])
+    opts, args = getopt.getopt(argv, "hsmgli:", [""])
 except getopt.GetoptError:
     showArgs()
 for opt, arg in opts:
@@ -404,6 +415,11 @@ for opt, arg in opts:
         readType = "mgl"
     elif opt == "-g":
         readType = "g3x"    
+    if opt == "-l":
+        list_serial_ports(True)
+        sys.exit()
+    if opt == "-i":
+        port=arg
 
 if readType == "none":
     showArgs()
@@ -416,10 +432,28 @@ print_xy(
     1,
     0,
     bcolors.HEADER
-    + "HUD serial data monitor."
+    + "Serial data monitor."
     + bcolors.ENDC
     + "  Version: %s" % (version),
 )
+
+try:
+    ser=serial.Serial(
+        port=port,
+        baudrate=115200,
+        parity=serial.PARITY_NONE,
+        stopbits=serial.STOPBITS_ONE,
+        bytesize=serial.EIGHTBITS,
+        timeout=1,
+    )
+
+except:
+    print("Unable to open serial port: "+port)
+    print("Here is a list of ports found:")
+    list_serial_ports(True)
+    sys.exit()
+print("Opened port: "+port+ " @115200 baud (cntrl-c to quit)")
+
 if readType == "skyview":
     print_xy(2, 0, "Data format: " + bcolors.OKBLUE + "Dynon Skyview" + bcolors.ENDC)
     while 1:

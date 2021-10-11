@@ -195,9 +195,17 @@ class Input:
     ## Function: stopLog
     ## if currently ouputing to log file to stop and save it.
     def stopLog(self,aircraft):
+        from lib.util import rpi_hardware
+        serverAvail = None
         if self.output_logFile != None:
             Input.closeLogFile(self,self.output_logFile)
             self.output_logFile = None
+            if(rpi_hardware.is_raspberrypi()==True):
+                if(rpi_hardware.is_server_available()==True):
+                    serverAvail = "FlyOnSpeed.org"
+            return True, serverAvail
+
+        return False,None
 
     #############################################
     # fast forward if reading from a file.

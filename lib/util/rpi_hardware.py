@@ -71,3 +71,28 @@ def list_serial_ports(printthem):
     return rtn
 
 
+def is_server_available():
+    import urllib.request
+    host = "http://flyonspeed.org"
+    urllib.request.urlopen(host)
+    print(host+" available")
+    return True
+
+    # hostname = "flyonspeed.org"
+    # response = os.system("ping -n 1 " + hostname)
+
+    # err, msg = subprocess.getstatusoutput("ping -n 1 " + hostname)
+    # if not err:
+    #     m = re.search(r'-?\d\.?\d*', msg)   # a solution with a  regex
+    #     try:
+    #         temp = float(m.group())
+    #     except ValueError: # catch only error needed
+    #         pass
+    # return temp, msg
+
+
+    # if response == 0:
+    #     return True 
+    # else:
+    #     return False
+

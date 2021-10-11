@@ -64,9 +64,11 @@ def main_graphical():
                         drawTimer.addGrowlNotice("Unable to create log: "+CurrentInput.name,3000,drawTimer.nerd_yellow,drawTimer.CENTER)
                 elif event.key == pygame.K_e and mods & pygame.KMOD_CTRL :
                     try:
-                        CurrentInput.stopLog(aircraft)
+                        Saved,SendingTo = CurrentInput.stopLog(aircraft)
                         drawTimer.addGrowlNotice("Saved log: %s"%(CurrentInput.output_logFileName),3000,drawTimer.nerd_yellow,drawTimer.CENTER) 
-                    except:
+                        if(SendingTo!=None):
+                            drawTimer.addGrowlNotice("Uploading to %s"%(SendingTo),3000,drawTimer.nerd_yellow,drawTimer.TOP_LEFT) 
+                    except ValueError:
                         pass  
                 elif event.key == pygame.K_d and mods & pygame.KMOD_CTRL:
                     CurrentScreen.debug = not CurrentScreen.debug

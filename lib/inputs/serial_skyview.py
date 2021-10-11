@@ -132,6 +132,10 @@ class serial_skyview(Input):
 
                     aircraft.msg_count += 1
 
+                    if self.output_logFile != None:
+                        Input.addToLog(self,self.output_logFile,bytes([33,int(dataType),int(dataVer)]))
+                        Input.addToLog(self,self.output_logFile,msg)
+
                 elif dataType == b'2': #Dynon System message (nav,AP, etc)
                     aircraft.nav.msg_count += 1
                     #8s     3s   5s      4s     4s    3s     c          c            2s       3s            3s c     c          c    c       c    3s      5s      c            
@@ -164,6 +168,7 @@ class serial_skyview(Input):
         else:
             #pass
             self.ser.flushInput()  # flush the serial after every message else we see delays
+
 
         return aircraft
 

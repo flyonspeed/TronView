@@ -83,11 +83,11 @@ class serial_g3x(Input):
                     x = ord(t)
                     if x == 64:  # 64(@) is start of garmin g3x GPS sentence.
                         msg = self.ser.read(56)
+                        if(isinstance(msg,str)): msg = msg.encode() # if read from file then convert to bytes
                         aircraft.msg_last = msg
                         if len(msg) == 56:
-                            msg = (msg[:56]) if len(msg) > 56 else msg
                             UTCYear, UTCMonth, UTCDay, UTCHour, UTCMin, UTCSec, LatHemi, LatDeg, LatMin, LonHemi, LonDeg, LonMin, PosStat, HPE, GPSAlt, EWVelDir, EWVelmag, NSVelDir, NSVelmag, VVelDir, VVelmag, CRLF = struct.unpack(
-                                "2s2s2s2s2s2sc2s5sc3s5sc3s6sc4sc4sc4s2s", str.encode(msg)
+                                "2s2s2s2s2s2sc2s5sc3s5sc3s6sc4sc4sc4s2s", msg
                             )
                             if CRLF[0] == self.EOL:
                                 aircraft.msg_count += 1
@@ -124,9 +124,13 @@ class serial_g3x(Input):
                                     aircraft.mag_head,
                                     aircraft.mag_decl,
                                 )
+                                if self.output_logFile != None:
+                                    Input.addToLog(self,self.output_logFile,bytes([64]))
+                                    Input.addToLog(self,self.output_logFile,msg)
 
+                                aircraft.gps.msg_count += 1
                             else:
-                                aircraft.msg_bad += 1
+                                aircraft.gps.msg_bad += 1
 
                 else:
                     if (
@@ -141,9 +145,9 @@ class serial_g3x(Input):
                 msg = self.ser.read(57)
                 aircraft.msg_last = msg
                 if len(msg) == 57:
-                    msg = (msg[:57]) if len(msg) > 57 else msg
+                    if(isinstance(msg,str)): msg = msg.encode() # if read from file then convert to bytes
                     SentVer, UTCHour, UTCMin, UTCSec, UTCSecFrac, Pitch, Roll, Heading, Airspeed, PressAlt, RateofTurn, LatAcc, VertAcc, AOA, VertSpeed, OAT, AltSet, Checksum, CRLF = struct.unpack(
-                        "c2s2s2s2s4s5s3s4s6s4s3s3s2s4s3s3s2s2s", str.encode(msg)
+                        "c2s2s2s2s4s5s3s4s6s4s3s3s2s4s3s3s2s2s", msg
                     )
                     if int(SentVer) == 1 and CRLF[0] == self.EOL:
                         aircraft.roll = int(Roll) * 0.1
@@ -188,6 +192,11 @@ class serial_g3x(Input):
                         ):  # if demo mode then add a delay.  Else reading a file is way to fast.
                             time.sleep(0.08)
 
+                        if self.output_logFile != None:
+                            #Input.addToLog(self,self.output_logFile,bytes([61,ord(SentID)]))
+                            Input.addToLog(self,self.output_logFile,msg)
+
+
                     else:
                         aircraft.msg_bad += 1
 
@@ -196,15 +205,20 @@ class serial_g3x(Input):
 
             elif int(SentID) == 7:  # GPS AGL data message
                 msg = self.ser.read(16)
+                if(isinstance(msg,str)): msg = msg.encode() # if read from file then convert to bytes
                 aircraft.msg_last = msg
                 if len(msg) == 16:
                     msg = (msg[:16]) if len(msg) > 16 else msg
                     SentVer, UTCHour, UTCMin, UTCSec, UTCSecFrac, HeightAGL, Checksum, CRLF = struct.unpack(
-                        "c2s2s2s2s3s2s2s", str.encode(msg)
+                        "c2s2s2s2s3s2s2s", msg
                     )
                     if int(SentVer) == 1 and CRLF[0] == self.EOL:
                         aircraft.agl = int(HeightAGL) * 100
                         aircraft.msg_count += 1
+                    if self.output_logFile != None:
+                        #Input.addToLog(self,self.output_logFile,bytes([61,ord(SentID)]))
+                        Input.addToLog(self,self.output_logFile,msg)
+
                     else:
                         aircraft.msg_bad += 1
 

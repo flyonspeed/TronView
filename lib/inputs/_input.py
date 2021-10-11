@@ -49,14 +49,14 @@ class Input:
         try:
             openFileName = self.path_datarecorder+filename
             logFile = open(openFileName, attribs)
-            print("Opening log:"+openFileName)
+            print("Opening Logfile: "+openFileName)
             return logFile,openFileName
         except :
             pass
 
         try:
             openFileName = "lib/inputs/_example_data/"+filename
-            print("Opening log:"+openFileName)
+            print("Opening Logfile: "+openFileName)
             logFile = open(openFileName, attribs)
             return logFile,openFileName
         except :
@@ -84,7 +84,7 @@ class Input:
     ## Method: closeLogFile
     ## Close current log file
     def closeLogFile(self,logfile):
-        print("Closing Logfile\n")
+        print("Closing Logfile: "+self.output_logFileName)
         try:
             logfile.close()
             return None
@@ -120,7 +120,7 @@ class Input:
     def printTextModeData(self, aircraft):
         hud_text.print_header("Decoded data from Input Module: %s (Keys: n=nav, a=all, r=raw)"%(self.name))
         if len(aircraft.demoFile):
-            hud_text.print_header("Demofile: %s"%(aircraft.demoFile))
+            hud_text.print_header("Playing Log: %s"%(aircraft.demoFile))
 
         if self.textMode_showAir==True:
             hud_text.print_object(aircraft)
@@ -187,7 +187,7 @@ class Input:
     def startLog(self,aircraft):
         if self.output_logFile == None:
             self.output_logFile,self.output_logFileName = Input.createLogFile(self,".dat",True)
-            print("Creating log output: %s\n"%(self.output_logFileName))
+            print("Creating log output: %s"%(self.output_logFileName))
         else:
             print("Already logging to: "+self.output_logFileName)
 

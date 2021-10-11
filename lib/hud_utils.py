@@ -52,9 +52,10 @@ def showArgs():
     print("hud.py -i <inputmodule> - s <screenmodule> <more options>")
     print(" -i <Input Module Name> (Required)")
     print(" -s <Screen Module Name> (Required)")
-    print(" -t Show text mode only (Optional)")
-    print(" -e demo mode. Use default example data for input module (Optional)")
-    print(" -c <example data filename> use custom example data file for demo mode (Optional)")
+    print(" -t Show text mode only")
+    print(" -e demo mode. Use default example data for input module")
+    print(" -c <custom data filename> use custom log data file to play back")
+    print(" -r list log data files")
     print(" -l list serial ports")
 
 
@@ -84,6 +85,37 @@ def getScreens():
             screenName = d[:-3]
             screens.append(screenName)
     return screens
+
+##############################################
+## function: getLogDataFiles()
+## return list of example files in standard dir and in user defined dir.
+def getLogDataFiles():
+    extraPath = readConfig("DataRecorder", "path", "/tmp/")
+    files = []
+    extrafiles = []
+    lst = os.listdir("lib/inputs/_example_data")
+    for d in lst:
+        if not d.startswith("_"):
+            files.append(d)
+    lst = os.listdir(extraPath)
+    for d in lst:
+        if d.endswith(".dat") or d.endswith(".log") or d.endswith(".bin"):
+            extrafiles.append(d)
+
+    return files, extrafiles
+
+##############################################
+## function: listLogDataFiles()
+def listLogDataFiles():
+    files,extrafiles = getLogDataFiles()
+    print("\nAvailable log demo files: (located in lib/inputs/_example_data folder)")
+    for file in files:
+        print(file)
+    extraPath = readConfig("DataRecorder", "path", "/tmp/")
+    print("\nYour Log output files: (located in "+extraPath+")")
+    for file in extrafiles:
+        print(file)
+    return 
 
 ##############################################
 ## function: findScreen()

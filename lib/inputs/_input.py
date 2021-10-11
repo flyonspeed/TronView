@@ -6,6 +6,7 @@
 from lib import hud_text
 from lib import hud_utils
 from lib.util import rpi_hardware
+import re
 
 class Input:
     def __init__(self):
@@ -17,6 +18,10 @@ class Input:
     def initInput(self, aircraft):
         self.path_datarecorder = hud_utils.readConfig("DataRecorder", "path", "/tmp/")
         return
+
+    def cleanInt(self,v):
+        return int(v)
+        #return int(re.sub('[^\d]','',str(v)))
 
     #############################################
     ## Method: openLogFile

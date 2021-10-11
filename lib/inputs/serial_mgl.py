@@ -26,9 +26,7 @@ class serial_mgl(Input):
             # if in demo mode then load example data file.
             # get demo file to read from config.  else default to..
             if not len(aircraft.demoFile):
-                defaultTo = "mgl_data1.bin"
-                #defaultTo = "mgl_G430_v6_HSI_Nedl_2degsRtt_Vert_2Degs_Up.bin"
-                #defaultTo = "mgl_G430_v7_Horz_Vert_Nedl_come to center.bin"
+                defaultTo = "MGL_Flight1.bin"
                 aircraft.demoFile = hud_utils.readConfig(self.name, "demofile", defaultTo)
             #self.ser = open("lib/inputs/_example_data/%s"%(aircraft.demoFile), "rb")
             self.ser,self.input_logFileName = Input.openLogFile(self,aircraft.demoFile,"rb")
@@ -93,7 +91,7 @@ class serial_mgl(Input):
                             aircraft.roll = BankAngle * 0.1  #
                             if HeadingMag != 0:
                                 aircraft.mag_head = HeadingMag * 0.1
-                            aircraft.slip_skid = Slip * .1
+                            aircraft.slip_skid = Slip * 0.01 #LRForce * 0.01 
                             aircraft.vert_G = GForce * 0.01
                             aircraft.msg_count += 1
                             if(self.textMode_showRaw==True): aircraft.msg_last = binascii.hexlify(Message) # save last message.

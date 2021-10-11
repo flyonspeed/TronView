@@ -47,6 +47,8 @@ class Aircraft(object):
         self.traffic = TrafficData()
         self.fuel = FuelData()
         self.internal = InteralData()
+        self.input1 = InputData()
+        self.input2 = InputData()
 
         self.msg_count = 0
         self.msg_bad = 0
@@ -191,6 +193,15 @@ class InteralData(object):
 
 
 #############################################
+## Class: InputData
+class InputData(object):
+    def __init__(self):
+        self.Name = "" # Name of input
+        self.Ver = 0
+        self.Connect = "NA" # Connect Type.. IE serial, wifi
+        self.Battery = None
+
+#############################################
 ## Class: GPSData
 class GPSData(object):
     def __init__(self):
@@ -211,6 +222,7 @@ class GPSData(object):
         self.SatsTracked = None
         self.SatsVisible = None
         self.GPSStatus = None # GPS status. 0=Acquiring, 1=dead reckoning,2=2d fix,3=3dfix,4=2dfix(imu),5=3dfix(imu)
+        self.GPSWAAS = None # GPS waas.  0 = no, 1 = yes.
         self.msg_count = 0
         self.msg_last = None
 

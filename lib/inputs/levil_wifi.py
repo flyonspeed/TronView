@@ -18,18 +18,6 @@ class levil_wifi(Input):
         self.version = 1.0
         self.inputtype = "network"
         self.port = 43211
-        self.textMode_showAir = True
-        self.textMode_showNav = True
-        self.textMode_showTraffic = True
-        self.textMode_showEngine = True
-        self.textMode_showFuel = True
-        self.textMode_showRaw = False
-        self.shouldExit = False
-        self.skipReadInput = False
-        self.skipTextOutput = False
-        self.output_logFile = None
-        self.output_logFileName = ""
-        self.input_logFileName = ""
 
     def initInput(self,aircraft):
         Input.initInput( self, aircraft )  # call parent init Input.
@@ -217,110 +205,6 @@ class levil_wifi(Input):
         return aircraft
 
 
-    # fast forward if reading from a file.
-    def fastForward(self,aircraft,bytesToSkip):
-            if aircraft.demoMode:
-                current = self.ser.tell()
-                moveTo = current - bytesToSkip
-                try:
-                    for _ in range(bytesToSkip):
-                        next(self.ser) # have to use next...
-                except:
-                    # if error then just to start of file
-                    self.ser.seek(0)
-                #print("fastForward() before="+str(current)+" goto:"+str(moveTo)+" done="+str(self.ser.tell()))
-
-    def fastBackwards(self,aircraft,bytesToSkip):
-            if aircraft.demoMode:
-                self.skipReadInput = True  # lets pause reading from the file for second while we mess with the file pointer.
-                current = self.ser.tell()
-                moveTo = current - bytesToSkip
-                if(moveTo<0): moveTo = 0
-                self.ser.seek(0) # reset back to begining.
-                try:
-                    for _ in range(moveTo):
-                        next(self.ser) # jump to that postion???  not really working right.
-                except:
-                    # if error then just to start of file
-                    self.ser.seek(0)
-                #print("fastForward() before="+str(current)+" goto:"+str(moveTo)+" done="+str(self.ser.tell()))
-                self.skipReadInput = False
-
-    #############################################
-    ## Function: printTextModeData
-    def printTextModeData(self, aircraft):
-        hud_text.print_header("Decoded data from Input Module: %s (Keys: n=nav, a=all, r=raw)"%(self.name))
-        if len(aircraft.demoFile):
-            hud_text.print_header("Demofile: %s"%(aircraft.demoFile))
-
-        if self.textMode_showAir==True:
-            hud_text.print_object(aircraft)
-
-        if self.textMode_showNav==True:
-            hud_text.changePos(2,40)
-            hud_text.print_header("Nav Data")
-            hud_text.print_object(aircraft.nav)
-
-        if self.textMode_showTraffic==True:
-            hud_text.print_header("Traffic Data")
-            hud_text.print_object(aircraft.traffic)
-            hud_text.print_header("GPS")
-            hud_text.print_object(aircraft.gps)
-
-        if self.textMode_showEngine==True:
-            hud_text.changePos(2,75)
-            hud_text.print_header("Engine Data")
-            hud_text.print_object(aircraft.engine)
-
-        if self.textMode_showFuel==True:
-            hud_text.print_header("Fuel Data")
-            hud_text.print_object(aircraft.fuel)
-            hud_text.print_header("Input Source")
-            hud_text.print_object(aircraft.input1)
-
-        hud_text.print_DoneWithPage()
-
-
-    #############################################
-    ## Function: textModeKeyInput
-    ## this is only called when in text mode. And is used to changed text mode options.
-    def textModeKeyInput(self, key, aircraft):
-        if key==ord('n'):
-            self.textMode_showNav = True
-            self.textMode_showAir = False
-            self.textMode_showTraffic = False
-            self.textMode_showEngine = False
-            self.textMode_showFuel = False
-            hud_text.print_Clear()
-            return 0,0
-        elif key==ord('a'):
-            self.textMode_showNav = True
-            self.textMode_showAir = True
-            self.textMode_showTraffic = True
-            self.textMode_showEngine = True
-            self.textMode_showFuel = True
-            hud_text.print_Clear()
-            return 0,0
-        elif key==ord('r'):
-            if self.textMode_showRaw == True: self.textMode_showRaw = False
-            else: self.textMode_showRaw = True
-            hud_text.print_Clear()
-            return 0,0
-        else:
-            return 'quit',"%s Input: Key code not supported: %d ... Exiting \r\n"%(self.name,key)
-
-
-    def startLog(self,aircraft):
-        if self.output_logFile == None:
-            self.output_logFile,self.output_logFileName = Input.createLogFile(self,".dat",True)
-            print("Creating log output: %s\n"%(self.output_logFileName))
-        else:
-            print("Already logging to: "+self.output_logFileName)
-
-    def stopLog(self,aircraft):
-        if self.output_logFile != None:
-            Input.closeLogFile(self,self.output_logFile)
-            self.output_logFile = None
 
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

@@ -43,10 +43,7 @@ class serial_skyview(Input):
                 timeout=1
             )
 
-        #if sys.platform.startswith('win'):
-        #    self.EOL = 10
-        #else:
-        #    self.EOL = 13
+        aircraft.input1.Name="skyview"
 
     # close this data input 
     def closeInput(self,aircraft):
@@ -170,36 +167,5 @@ class serial_skyview(Input):
 
         return aircraft
 
-
-    # fast forward if reading from a file.
-    def fastForward(self,aircraft,bytesToSkip):
-            if aircraft.demoMode:
-                try:
-                    for _ in range(bytesToSkip):
-                        next(self.ser)
-                except:
-                    # if error then just to start of file
-                    self.ser.seek(0)
-
-    def fastBackwards(self,aircraft,bytesToSkip):
-            if aircraft.demoMode:
-                self.ser.seek(0)
-
-
-    #############################################
-    ## Function: printTextModeData
-    def printTextModeData(self, aircraft):
-        hud_text.print_header("Decoded data from Input Module: %s"%(self.name))
-        hud_text.print_object(aircraft)
-
-        hud_text.changePos(2,40)
-        hud_text.print_header("Nav Data")
-        hud_text.print_object(aircraft.nav)
-
-        hud_text.changePos(2,75)
-        hud_text.print_header("Engine Data")
-        hud_text.print_object(aircraft.engine)
-
-        hud_text.print_DoneWithPage()
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

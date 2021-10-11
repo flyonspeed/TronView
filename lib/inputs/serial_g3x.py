@@ -225,28 +225,7 @@ class serial_g3x(Input):
 
         return aircraft
 
-    # fast forward if reading from a file.
-    def fastForward(self,aircraft,bytesToSkip):
-            if aircraft.demoMode:
-                try:
-                    for _ in range(bytesToSkip):
-                        next(self.ser)
-                except:
-                    # if error then just to start of file
-                    self.ser.seek(0)
 
-    def fastBackwards(self,aircraft,bytesToSkip):
-            if aircraft.demoMode:
-                self.ser.seek(0)
-
-
-    #############################################
-    ## Function: printTextModeData
-    def printTextModeData(self, aircraft):
-        hud_text.print_header("Decoded data from Input Module: %s" % (self.name))
-        hud_text.print_object(aircraft)
-        hud_text.print_object(aircraft.gps)
-        hud_text.print_DoneWithPage()
 
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

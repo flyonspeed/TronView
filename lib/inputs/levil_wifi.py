@@ -135,20 +135,25 @@ class levil_wifi(Input):
 
 
                 elif(msg[3]==1): # ahrs and air data.
-                    # h   h     h   h      h         h,    h   H        h     B   B
-                    Roll,Pitch,Yaw,Inclin,TurnCoord,GLoad,ias,pressAlt,vSpeed,AOA,OAT = struct.unpack(">hhhhhhhHhBB",msg[5:25]) 
-                    aircraft.roll = Roll * 0.1
-                    aircraft.pitch = Pitch * 0.1
-                    aircraft.mag_head = Yaw * 0.1
-                    aircraft.slip_skid = TurnCoord * 0.01
-                    aircraft.vert_G = GLoad * 0.1
-                    aircraft.ias = ias * 0.115078 # convert to MPH
-                    aircraft.PALT = pressAlt
-                    aircraft.vsi = vSpeed
-                    if(msg[4]==2): # if version is 2 then read AOA and OAT
-                        aircraft.aoa = AOA
-                        aircraft.oat = OAT
-                    aircraft.msg_last = msg
+                    #print("len:"+str(len(msg))+" "+str(msg[len(msg)-1]))
+                    if(len(msg)==27):
+                        # h   h     h   h      h         h,    h   H        h     B   B
+                        Roll,Pitch,Yaw,Inclin,TurnCoord,GLoad,ias,pressAlt,vSpeed,AOA,OAT = struct.unpack(">hhhhhhhHhBB",msg[5:25]) 
+                        aircraft.roll = Roll * 0.1
+                        aircraft.pitch = Pitch * 0.1
+                        aircraft.mag_head = Yaw * 0.1
+                        aircraft.slip_skid = TurnCoord * 0.01
+                        aircraft.vert_G = GLoad * 0.1
+                        aircraft.ias = ias * 0.115078 # convert to MPH
+                        aircraft.PALT = pressAlt
+                        aircraft.vsi = vSpeed
+                        if(msg[4]==2): # if version is 2 then read AOA and OAT
+                            aircraft.aoa = AOA
+                            aircraft.oat = OAT
+                        aircraft.msg_last = msg
+                        aircraft.msg_count += 1
+                    else:
+                        aircraft.msg_bad +=1
 
                 elif(msg[3]==2): # more metrics.. like AOA for BOM.
                     #print("additonal metrics message len:"+str(len(msg)))

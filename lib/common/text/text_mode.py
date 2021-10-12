@@ -56,12 +56,12 @@ class threadReadKeyboard(threading.Thread):
                 loadScreen(hud_utils.findScreen("current")) # load current screen
             #elif key==339: #page up
             #elif key==338: #page up
-            elif key==23:  #cntrl w
+            elif key==23 or key==ord('1'):  #cntrl w
                 try:
                     shared.CurrentInput.startLog(shared.aircraft)
                 except :
                     pass
-            elif key==5: #cnrtl e
+            elif key==5 or key==ord('2'): #cnrtl e
                 try:
                     shared.CurrentInput.stopLog(shared.aircraft)
                 except :

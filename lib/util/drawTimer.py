@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import pygame
-
+from lib.common import shared
 
 white    = (255, 255, 255)
 tron_whi = (189, 254, 255)
@@ -93,41 +93,94 @@ def processAllDrawTimers(pyscreen):
                 timer.draw(pyscreen)
 
 def make_box_label(font,text, postion, colour, pyscreen):
-    screen_w, screen_h = pygame.display.get_surface().get_size()
+    #screen_w, screen_h = pygame.display.get_surface().get_size()
+    #screen_w = shared.smartdisplay.
     width, height = font.size(text)
     padding = 15
 
+    x_start = shared.smartdisplay.x_start
+    y_start = shared.smartdisplay.y_start
+    x_end = shared.smartdisplay.x_end
+    y_end = shared.smartdisplay.y_end
+    screen_w = shared.smartdisplay.width
+    screen_h = shared.smartdisplay.height
+
     if postion == CENTER:  # center of screen.
-        x = (screen_w/2)-(width/2)
-        y = (screen_h/2)-(height/2)
+        x = x_start + (shared.smartdisplay.widthCenter)-(width/2)
+        y = y_start + (shared.smartdisplay.heightCenter)-(height/2)
     if postion == TOP_LEFT:  # top left
-        x = padding
-        y = padding
+        x = x_start + padding
+        y = y_start + padding
     if postion == TOP_CENTER:  # top middle
-        x = (screen_w/2)-(width/2)
-        y = padding
+        x = x_start + (shared.smartdisplay.widthCenter)-(width/2)
+        y = y_start + padding
     if postion == TOP_RIGHT:  # top right
-        x = (screen_w)-(width)-padding
-        y = padding
+        x = (x_end)-(width)-padding
+        y = y_start + padding
     if postion == MIDDLE_LEFT:  # middle left
-        x = padding
+        x = x_start + padding
         y = (screen_h/2)-(height/2)
     if postion == MIDDLE_RIGHT:  # middle right
-        x = (screen_w)-(width)-padding
-        y = (screen_h/2)-(height/2)
+        x = (x_end)-(width)-padding
+        y = (shared.smartdisplay.heightCenter)-(height/2)
     if postion == BOTTOM_LEFT:  # bottom left
-        x = padding
-        y = (screen_h)-(height)-padding
+        x = x_start + padding
+        y = (y_end)-(height)-padding
     if postion == BOTTOM_CENTER:  # bottom middle
-        x = (screen_w/2)-(width/2)
-        y = (screen_h)-(height)-padding
+        x = (shared.smartdisplay.widthCenter)-(width/2)
+        y = (y_end)-(height)-padding
     if postion == BOTTOM_RIGHT:  # bottom right
         x = (screen_w)-(width)-padding
-        y = (screen_h)-(height)-padding
+        y = (y_end)-(height)-padding
 
     pygame.draw.rect(pyscreen, colour, (x-padding,y-padding,width+padding+10,height+padding+10),0)
     label=font.render(text, 1, (0,0,0))
     pyscreen.blit(label,(x,y))
+
+# def make_box_label(font,text, postion, colour, pyscreen):
+#     #screen_w, screen_h = pygame.display.get_surface().get_size()
+#     #screen_w = shared.smartdisplay.
+#     width, height = font.size(text)
+#     padding = 15
+
+#     x_start = shared.smartdisplay.x_start
+#     y_start = shared.smartdisplay.y_start
+#     x_end = shared.smartdisplay.x_end
+#     y_end = shared.smartdisplay.y_end
+#     screen_w = shared.smartdisplay.width
+#     screen_h = shared.smartdisplay.height
+
+#     if postion == CENTER:  # center of screen.
+#         x = (screen_w/2)-(width/2)
+#         y = (screen_h/2)-(height/2)
+#     if postion == TOP_LEFT:  # top left
+#         x = padding
+#         y = padding
+#     if postion == TOP_CENTER:  # top middle
+#         x = (screen_w/2)-(width/2)
+#         y = padding
+#     if postion == TOP_RIGHT:  # top right
+#         x = (screen_w)-(width)-padding
+#         y = padding
+#     if postion == MIDDLE_LEFT:  # middle left
+#         x = padding
+#         y = (screen_h/2)-(height/2)
+#     if postion == MIDDLE_RIGHT:  # middle right
+#         x = (screen_w)-(width)-padding
+#         y = (screen_h/2)-(height/2)
+#     if postion == BOTTOM_LEFT:  # bottom left
+#         x = padding
+#         y = (screen_h)-(height)-padding
+#     if postion == BOTTOM_CENTER:  # bottom middle
+#         x = (screen_w/2)-(width/2)
+#         y = (screen_h)-(height)-padding
+#     if postion == BOTTOM_RIGHT:  # bottom right
+#         x = (screen_w)-(width)-padding
+#         y = (screen_h)-(height)-padding
+
+#     pygame.draw.rect(pyscreen, colour, (x-padding,y-padding,width+padding+10,height+padding+10),0)
+#     label=font.render(text, 1, (0,0,0))
+#     pyscreen.blit(label,(x,y))
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python
 

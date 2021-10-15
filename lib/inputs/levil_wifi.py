@@ -17,7 +17,6 @@ class levil_wifi(Input):
         self.name = "levil"
         self.version = 1.0
         self.inputtype = "network"
-        self.port = 43211
 
     def initInput(self,aircraft):
         Input.initInput( self, aircraft )  # call parent init Input.

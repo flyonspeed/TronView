@@ -268,7 +268,7 @@ class serial_mgl(Input):
                         pass
                         #self.ser.flushInput()  # flush the serial after every message else we see delays
 
-                    if self.output_logFile != None and aircraft.msg_last != None:
+                    if self.output_logFile != None:
                         Input.addToLog(self,self.output_logFile,bytearray([5,2]))
                         Input.addToLog(self,self.output_logFile,MessageHeader)
                         Input.addToLog(self,self.output_logFile,Message)

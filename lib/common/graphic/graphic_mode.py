@@ -50,13 +50,13 @@ def main_graphical():
                 elif event.key == pygame.K_LEFT and mods & pygame.KMOD_CTRL :
                     print("jump backwards data...")
                     shared.CurrentInput.fastBackwards(shared.aircraft,500)
-                elif (event.key == pygame.K_w and mods & pygame.KMOD_CTRL) or event.key == pygame.key.key_code("1") :
+                elif (event.key == pygame.K_w and mods & pygame.KMOD_CTRL) or event.key == pygame.K_1 :
                     try:
                         shared.CurrentInput.startLog(shared.aircraft)
                         drawTimer.addGrowlNotice("Created log: %s"%(shared.CurrentInput.output_logFileName),3000,drawTimer.nerd_yellow,drawTimer.CENTER)
                     except :
                         drawTimer.addGrowlNotice("Unable to create log: "+shared.CurrentInput.name,3000,drawTimer.nerd_yellow,drawTimer.CENTER)
-                elif (event.key == pygame.K_e and mods & pygame.KMOD_CTRL) or event.key == pygame.key.key_code("2") :
+                elif (event.key == pygame.K_e and mods & pygame.KMOD_CTRL) or event.key == pygame.K_2 :
                     try:
                         Saved,SendingTo = shared.CurrentInput.stopLog(shared.aircraft)
                         drawTimer.addGrowlNotice("Saved log: %s"%(shared.CurrentInput.output_logFileName),3000,drawTimer.nerd_yellow,drawTimer.CENTER) 

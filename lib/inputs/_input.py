@@ -200,9 +200,9 @@ class Input:
         if self.output_logFile != None:
             Input.closeLogFile(self,self.output_logFile)
             self.output_logFile = None
-            if(rpi_hardware.is_raspberrypi()==True):
-                if(rpi_hardware.is_server_available()==True):
-                    serverAvail = "FlyOnSpeed.org"
+            #if(rpi_hardware.is_raspberrypi()==True):
+            #    if(rpi_hardware.is_server_available()==True):
+            #        serverAvail = "FlyOnSpeed.org"
             return True, serverAvail
 
         return False,None

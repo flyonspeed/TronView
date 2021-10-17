@@ -66,9 +66,17 @@ class SmartDisplay(object):
 
         self.pos_horz_padding = 15
 
+
     def setDisplaySize(self,width,height):
         self.org_width = width
         self.org_height = height
+        self.font = pygame.font.SysFont(
+            "monospace", 22
+        )  # default font
+        self.fontBig = pygame.font.SysFont(
+            "monospace", 40
+        )  # default font
+
 
     def setDrawableArea(self,x_start,y_start,x_end,y_end):
         self.x_start = x_start
@@ -193,6 +201,7 @@ class SmartDisplay(object):
     # justify: 0=left justify text, 1=right, 2= center in box.
     def draw_box_text( self, drawAtPos, font, text, textcolor, width, height, linecolor, thickness,posAdjustment=(0,0),justify=0):
         newSurface = pygame.Surface((width, height))
+        if(font==None): font = self.font
         label = font.render(text, 1, textcolor)
         pygame.draw.rect(newSurface, linecolor, (0, 0, width, height), thickness)
         if justify==0:
@@ -208,6 +217,7 @@ class SmartDisplay(object):
     # and padding to automaticaly pad the left if needed. padding 4 means it will always be 4 chars wide.
     def draw_box_text_padding( self, drawAtPos, font, text, textcolor, padding , linecolor, thickness,posAdjustment=(0,0)):
         text = text.rjust(padding)
+        if(font==None): font = self.font
         label = font.render(text, 1, textcolor, (0,0,0)) # use a black background color
         newSurface = pygame.Surface((label.get_width(), label.get_height()-label.get_height()/6)) # trim height of font.
         newSurface.blit(label,(0,0))
@@ -224,6 +234,8 @@ class SmartDisplay(object):
     # and padding to automaticaly pad the left if needed. padding 4 means it will always be 4 chars wide.
     def draw_box_text_with_big_and_small_text( self, drawAtPos, font1, font2, text, charLenToUseForRight, textcolor, padding , linecolor, thickness,posAdjustment=(0,0)):
         strlen = len(text)
+        if(font1==None): font1 = self.fontBig
+        if(font2==None): font2 = self.font
         # split the string up
         if(strlen>charLenToUseForRight):
             rightText = text[strlen-charLenToUseForRight:strlen]
@@ -252,6 +264,7 @@ class SmartDisplay(object):
     # smart draw text.
     def draw_text(self, drawAtPos, font, text, color,posAdjustment=(0,0),justify=0):
         backgroundcolor = (0,0,0)
+        if(font==None): font = self.font
         if justify==0:
             self.blit_next(font.render(text, 1, color,backgroundcolor), drawAtPos,posAdjustment)
         elif justify==1:
@@ -277,6 +290,7 @@ class SmartDisplay(object):
     # justify (the text): 0=left justify text, 1=right, 2= center in circle.
     def draw_circle_text( self, pos, font, text, textcolor, radius , linecolor, thickness,posAdjustment=(0,0),justify=0):
         newSurface = pygame.Surface((radius*2, radius*2))
+        if(font==None): font = self.font
         label = font.render(text, 1, textcolor)
         ylabelStart = (radius) - label.get_height() /2
         pygame.draw.circle(

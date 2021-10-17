@@ -155,8 +155,10 @@ if __name__ == "__main__":
     shared.CurrentInput = loadInput(1,DataInputToLoad)
     if DataInputToLoad2 != "none":
         shared.CurrentInput2 = loadInput(2,DataInputToLoad2)
+    if(shared.aircraft.errorFoundNeedToExit==True): sys.exit()
     # check and load screen module. (if not starting in text mode)
     initAircraft()
+    if(shared.aircraft.errorFoundNeedToExit==True): sys.exit()
     if not shared.aircraft.textMode:
         if hud_utils.findScreen(ScreenNameToLoad) == False:
             print(("Screen module not found: %s"%(ScreenNameToLoad)))

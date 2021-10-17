@@ -30,6 +30,7 @@ class serial_logger(Input):
             self.efis_data_baudrate = hud_utils.readConfigInt(
                 "DataInput", "baudrate", 115200
             )
+            self.read_in_size = hud_utils.readConfigInt( "DataInput", "read_in_size", 100)
 
             # open serial connection.
             self.ser = serial.Serial(
@@ -41,11 +42,9 @@ class serial_logger(Input):
                 timeout=1,
             )
 
-
-
     def closeInput(self,aircraft):
         if aircraft.demoMode:
-            self.ser.close()
+            aircraft.errorFoundNeedToExit = True
         else:
             self.ser.close()
 
@@ -56,7 +55,7 @@ class serial_logger(Input):
         if aircraft.errorFoundNeedToExit: return aircraft
         if self.skipReadInput == True: return aircraft
         try:
-            Message = self.ser.read(100)
+            Message = self.ser.read(self.read_in_size)
 
             aircraft.msg_count += 1
             if(self.textMode_showRaw==True): aircraft.msg_last = binascii.hexlify(Message) # save last message.

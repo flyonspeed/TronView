@@ -48,6 +48,15 @@ class Input:
     ## Method: openLogFile
     def openLogFile(self,filename,attribs):
         try:
+            if rpi_hardware.mount_usb_drive() == True:
+                openFileName = "/mnt/usb/"+filename
+                logFile = open(openFileName, attribs)
+                print("Opening USB Logfile: "+openFileName)
+                return logFile,openFileName
+        except :
+            pass
+
+        try:
             openFileName = self.path_datarecorder+filename
             logFile = open(openFileName, attribs)
             print("Opening Logfile: "+openFileName)

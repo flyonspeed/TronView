@@ -40,7 +40,7 @@ CurrentScreen = None
 ####################################
 ## Default flight log dir.
 ## default location where flight logs are saved. Can be overwritten in config file.
-DefaultFlightLogDir = "~/flightlog/"
+DefaultFlightLogDir = "/flightlog/"
 
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

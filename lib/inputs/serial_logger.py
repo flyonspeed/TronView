@@ -42,6 +42,13 @@ class serial_logger(Input):
                 timeout=1,
             )
 
+            self.textMode_showNav = False
+            self.textMode_showAir = True
+            self.textMode_showTraffic = False
+            self.textMode_showEngine = False
+            self.textMode_showFuel = False
+
+
     def closeInput(self,aircraft):
         if aircraft.demoMode:
             aircraft.errorFoundNeedToExit = True
@@ -57,9 +64,12 @@ class serial_logger(Input):
         try:
             Message = self.ser.read(self.read_in_size)
 
+            if(len(Message)==0):
+                aircraft.msg_last = "No serial data recieved"
+                return aircraft
+
             aircraft.msg_count += 1
-            if(self.textMode_showRaw==True): aircraft.msg_last = binascii.hexlify(Message) # save last message.
-            else: aircraft.msg_last = None
+            aircraft.msg_last = binascii.hexlify(Message) # save last message.
 
             # make the aircraft look like it's doing something.
             if(aircraft.roll>180): aircraft.roll = -180

@@ -190,6 +190,11 @@ class Aircraft(object):
 class InteralData(object):
     def __init__(self):
         self.Temp = 0 # internal temp of cpu
+        self.LoadAvg = None
+        self.MemFree = None
+        self.OS = None
+        self.OSVer = None
+        self.Hardware = None
 
 
 #############################################

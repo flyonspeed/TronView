@@ -48,7 +48,7 @@ class myThreadEfisInputReader(threading.Thread):
             shared.aircraft = shared.CurrentInput.readMessage(shared.aircraft)
             internalLoopCounter = internalLoopCounter - 1
             if internalLoopCounter < 0:
-                internalLoopCounter = 500
+                internalLoopCounter = 1500
                 checkInternals()
 
 #############################################
@@ -59,8 +59,10 @@ def checkInternals():
     if isRunningOnPi == True:
         temp, msg = rpi_hardware.check_CPU_temp()
         shared.aircraft.internal.Temp = temp
+        shared.aircraft.internal.LoadAvg = rpi_hardware.get_load_average()
+        shared.aircraft.internal.MemFree = rpi_hardware.get_memory_usage()["free_memory"]
     elif isRunningOnMac == True:
-        shared.aircraft.internal.Temp = mac_hardware.check_CPU_temp()
+        pass
 
 #############################################
 ## Function: loadInput
@@ -141,7 +143,11 @@ if __name__ == "__main__":
             rpi_hardware.list_serial_ports(True)
             sys.exit()
     isRunningOnPi = rpi_hardware.is_raspberrypi()
-    if isRunningOnPi == True: print("Running on RaspberryPi")
+    if isRunningOnPi == True: 
+        print("Running on RaspberryPi")
+        shared.aircraft.internal.Hardware = "RaspberryPi"
+        shared.aircraft.internal.OS = rpi_hardware.get_full_os_name()
+        shared.aircraft.internal.OSVer = rpi_hardware.get_kernel_release()
     isRunningOnMac = mac_hardware.is_macosx()
     if isRunningOnMac == True: print("Running on Mac OSX")
     if DataInputToLoad == "none":

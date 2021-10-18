@@ -96,3 +96,49 @@ def is_server_available():
     # else:
     #     return False
 
+
+def get_thermal_temperature():
+    thermal = subprocess.check_output(
+        "cat /sys/class/thermal/thermal_zone0/temp", shell=True).decode("utf8")
+    return float(thermal) / 1000.0
+
+# uptime in seconds
+def get_uptime():
+    uptime = subprocess.check_output(
+        "cat /proc/uptime", shell=True).decode("utf8")
+    return float(uptime.split(" ")[0])
+
+# returns load averages for 1, 5, and 15 minutes
+def get_load_average():
+    uptime = subprocess.check_output("uptime", shell=True).decode("utf8")
+    load_average = uptime.split("load average:")[1].split(",")
+    return list(map(float, load_average))
+
+def get_kernel_release():
+    return subprocess.check_output("uname -r", shell=True).decode("utf8").strip()
+
+def get_full_os_name():
+    import platform
+    import os
+    return os.name + " " + platform.system() + " " + str(platform.release())
+
+
+ #returns total, free and available memory in kB
+def get_memory_usage():
+    meminfo = subprocess.check_output("cat /proc/meminfo", shell=True).decode("utf8").strip()        
+    memory_usage = meminfo.split("\n")
+
+    total_memory = [x for x in memory_usage if 'MemTotal' in x][0]
+    free_memory = [x for x in memory_usage if 'MemFree' in x][0]
+    available_memory = [x for x in memory_usage if 'MemAvailable' in x][0]
+
+    total_memory = re.findall(r'\d+', total_memory)[0]
+    free_memory = re.findall(r'\d+', free_memory)[0]
+    available_memory = re.findall(r'\d+', available_memory)[0]
+
+    data = {
+        "total_memory": int(total_memory),
+        "free_memory": int(free_memory),
+        "available_memory": int(available_memory)
+    }
+    return data

@@ -3,4 +3,5 @@ output.log
 output_error.log
 *.pyc
 .DS_Store
+lib/.DS_Store
 

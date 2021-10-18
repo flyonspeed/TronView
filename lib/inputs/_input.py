@@ -7,6 +7,7 @@ from lib import hud_text
 from lib import hud_utils
 from lib.util import rpi_hardware
 import re
+from lib.common import shared # global shared objects stored here.
 
 class Input:
     def __init__(self):
@@ -19,7 +20,7 @@ class Input:
     def initInput(self, aircraft):
         self.ser = None # is is the input source... File, serial device, network connection...
 
-        self.path_datarecorder = hud_utils.readConfig("DataRecorder", "path", "/tmp/")
+        self.path_datarecorder = hud_utils.readConfig("DataRecorder", "path", shared.DefaultFlightLogDir)
 
         self.shouldExit = False
 
@@ -76,7 +77,8 @@ class Input:
             else:
                 logFile = open(openFileName, "w")
             return logFile,openFileName
-        except :
+        except Exception as e: 
+            print(e)
             print("Error createLogFile() %s"%(openFileName))
             return  "",""
 
@@ -107,11 +109,25 @@ class Input:
     ## get next log file to open.
     def getNextLogFile(self,dirname,fileExtension):
         from os.path import exists
+        import os
+        from pathlib import Path
+        try:
+            user_home = str(Path.home())
+            fullpath = dirname.replace("~",user_home) # expand out full user dir if it's in the path.
+            if(exists(fullpath)==False):
+                print("Creating dir: "+fullpath)
+                os.mkdir(fullpath) # make sure the dir exists..
+        except Exception as e: 
+            print(e)
+            print("Error creating log dir: "+dirname)
+            shared.aircraft.errorFoundNeedToExit = True
+            return False
         number = 1
-        newFilename = dirname + self.name + "_" + str(number) + fileExtension
+        if fullpath.endswith('/')==False: fullpath = fullpath + "/" # add a slash if needed.
+        newFilename = fullpath + self.name + "_" + str(number) + fileExtension
         while exists(newFilename) == True:
             number = number + 1
-            newFilename = dirname + self.name + "_" + str(number) + fileExtension
+            newFilename = fullpath + self.name + "_" + str(number) + fileExtension
         #print("using filename %s"%(newFilename))
         return newFilename
 

@@ -3,6 +3,8 @@
 import math, os, sys, random
 import configparser
 import importlib
+from lib.common import shared 
+
 
 #############################################
 ## Function: readConfig
@@ -90,7 +92,7 @@ def getScreens():
 ## function: getLogDataFiles()
 ## return list of example files in standard dir and in user defined dir.
 def getLogDataFiles():
-    extraPath = readConfig("DataRecorder", "path", "/tmp/")
+    extraPath = readConfig("DataRecorder", "path", shared.DefaultFlightLogDir)
     files = []
     extrafiles = []
     lst = os.listdir("lib/inputs/_example_data")
@@ -111,7 +113,7 @@ def listLogDataFiles():
     print("\nAvailable log demo files: (located in lib/inputs/_example_data folder)")
     for file in files:
         print(file)
-    extraPath = readConfig("DataRecorder", "path", "/tmp/")
+    extraPath = readConfig("DataRecorder", "path", shared.DefaultFlightLogDir)
     print("\nYour Log output files: (located in "+extraPath+")")
     for file in extrafiles:
         print(file)

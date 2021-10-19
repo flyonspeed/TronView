@@ -17,7 +17,7 @@ class Input:
         self.path_datarecorder = ""
 
 
-    def initInput(self, aircraft):
+    def initInput(self, num, aircraft):
         self.ser = None # is is the input source... File, serial device, network connection...
 
         self.path_datarecorder = hud_utils.readConfig("DataRecorder", "path", shared.DefaultFlightLogDir)
@@ -32,6 +32,7 @@ class Input:
         self.output_logFile = None
         self.output_logFileName = ""
         self.input_logFileName = ""
+        self.inputNum = num
 
         return
 
@@ -166,8 +167,11 @@ class Input:
         if self.textMode_whatToShow==0 or self.textMode_whatToShow==6:
             hud_text.print_header("Fuel Data")
             hud_text.print_object(aircraft.fuel)
-            hud_text.print_header("Input Source")
+            hud_text.print_header("Input Source 1")
             hud_text.print_object(aircraft.input1)
+            if(aircraft.input2.Name != None):
+                hud_text.print_header("Input Source 2")
+                hud_text.print_object(aircraft.input2)                
             hud_text.print_header("Internal Data")
             hud_text.print_object(aircraft.internal)
 

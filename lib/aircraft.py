@@ -202,9 +202,9 @@ class InteralData(object):
 ## Class: InputData
 class InputData(object):
     def __init__(self):
-        self.Name = "" # Name of input
+        self.Name = None # Name of input
         self.Ver = 0
-        self.Connect = "NA" # Connect Type.. IE serial, wifi
+        self.InputType = "NA" # Connect Type.. IE serial, wifi
         self.Battery = None
 
 #############################################

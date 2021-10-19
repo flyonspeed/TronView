@@ -20,8 +20,8 @@ class serial_skyview(Input):
         self.inputtype = "serial"
         self.EOL = 10
 
-    def initInput(self,aircraft):
-        Input.initInput( self, aircraft )  # call parent init Input.
+    def initInput(self,num,aircraft):
+        Input.initInput( self,num, aircraft )  # call parent init Input.
         
         if aircraft.demoMode:
             # if in demo mode then load example data file.
@@ -42,8 +42,6 @@ class serial_skyview(Input):
                 bytesize=serial.EIGHTBITS,
                 timeout=1
             )
-
-        aircraft.input1.Name="skyview"
 
     # close this data input 
     def closeInput(self,aircraft):

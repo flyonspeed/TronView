@@ -19,8 +19,8 @@ class serial_mgl(Input):
         self.version = 1.0
         self.inputtype = "serial"
 
-    def initInput(self,aircraft):
-        Input.initInput( self, aircraft )  # call parent init Input.
+    def initInput(self,num,aircraft):
+        Input.initInput( self,num, aircraft )  # call parent init Input.
         #Input.setLogLinePrefixSuffix(struct.pack('5B', *newFileBytes))
         if aircraft.demoMode:
             # if in demo mode then load example data file.

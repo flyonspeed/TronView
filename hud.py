@@ -68,13 +68,17 @@ def checkInternals():
 ## Function: loadInput
 # load input.
 def loadInput(num,nameToLoad):
-    #global aircraft
     print(("Input data module %d: %s"%(num,nameToLoad)))
     module = ".%s" % (nameToLoad)
     mod = importlib.import_module(module, "lib.inputs")  # dynamically load class
     class_ = getattr(mod, nameToLoad)
     newInput = class_()
-    newInput.initInput(shared.aircraft)
+    newInput.initInput(num,shared.aircraft)
+    label = aircraft.InputData()
+    label.Name = newInput.name
+    label.Ver = newInput.version
+    label.InputType = newInput.inputtype
+    setattr(shared.aircraft, 'input'+str(num), label)
     return newInput
 
 #############################################

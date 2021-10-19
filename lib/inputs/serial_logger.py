@@ -42,12 +42,8 @@ class serial_logger(Input):
                 timeout=1,
             )
 
-            self.textMode_showNav = False
-            self.textMode_showAir = True
-            self.textMode_showTraffic = False
-            self.textMode_showEngine = False
-            self.textMode_showFuel = False
-
+            self.textMode_whatToShow = 1 # default to only showing basic air info.
+            self.textMode_showRaw = true
 
     def closeInput(self,aircraft):
         if aircraft.demoMode:

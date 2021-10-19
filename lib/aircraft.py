@@ -195,7 +195,8 @@ class InteralData(object):
         self.OS = None
         self.OSVer = None
         self.Hardware = None
-
+        self.PythonVer = None
+        self.PyGameVer = None
 
 #############################################
 ## Class: InputData

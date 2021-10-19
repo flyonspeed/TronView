@@ -149,7 +149,15 @@ if __name__ == "__main__":
         shared.aircraft.internal.OS = rpi_hardware.get_full_os_name()
         shared.aircraft.internal.OSVer = rpi_hardware.get_kernel_release()
     isRunningOnMac = mac_hardware.is_macosx()
-    if isRunningOnMac == True: print("Running on Mac OSX")
+    if isRunningOnMac == True: 
+        import platform
+        import os
+        print("Running on Mac OSX")
+        shared.aircraft.internal.Hardware = "Mac"
+        shared.aircraft.internal.OS = "OSx"
+        shared.aircraft.internal.OSVer = os.name + " " + platform.system() + " " + str(platform.release())
+    shared.aircraft.internal.PythonVer = str(sys.version_info[0])+"."+str(sys.version_info[1])+"."+str(sys.version_info[2])
+    shared.aircraft.internal.PyGameVer = pygame.version.ver
     if DataInputToLoad == "none":
         print("No inputsource given")
         hud_utils.showArgs()

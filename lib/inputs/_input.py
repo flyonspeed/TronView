@@ -24,12 +24,7 @@ class Input:
 
         self.shouldExit = False
 
-        self.textMode_showAir = True
-        self.textMode_showNav = True
-        self.textMode_showTraffic = True
-        self.textMode_showEngine = True
-        self.textMode_showFuel = True
-        self.textMode_showGps = True
+        self.textMode_whatToShow = 0 # 0 means show all
         self.textMode_showRaw = False
 
         self.skipReadInput = False
@@ -143,32 +138,32 @@ class Input:
     #############################################
     ## Function: printTextModeData
     def printTextModeData(self, aircraft):
-        hud_text.print_header("Decoded data from Input Module: %s (Keys: n=nav, a=all, r=raw)"%(self.name))
+        hud_text.print_header("Decoded data from Input Module: %s (Keys: space=cycle data, r=raw)"%(self.name))
         if len(aircraft.demoFile):
             hud_text.print_header("Playing Log: %s"%(aircraft.demoFile))
 
-        if self.textMode_showAir==True:
+        if self.textMode_whatToShow==0 or self.textMode_whatToShow==1:
             hud_text.print_object(aircraft)
 
-        if self.textMode_showNav==True:
-            hud_text.changePos(2,34)
+        if self.textMode_whatToShow==0 or self.textMode_whatToShow==2:
+            if self.textMode_whatToShow==0: hud_text.changePos(2,34)
             hud_text.print_header("Nav Data")
             hud_text.print_object(aircraft.nav)
 
-        if self.textMode_showTraffic==True:
+        if self.textMode_whatToShow==0 or self.textMode_whatToShow==3:
             hud_text.print_header("Traffic Data")
             hud_text.print_object(aircraft.traffic)
 
-        if self.textMode_showGps==True:
+        if self.textMode_whatToShow==0 or self.textMode_whatToShow==4:
             hud_text.print_header("GPS Data")
             hud_text.print_object(aircraft.gps)
 
-        if self.textMode_showEngine==True:
-            hud_text.changePos(2,62)
+        if self.textMode_whatToShow==0 or self.textMode_whatToShow==5:
+            if self.textMode_whatToShow==0: hud_text.changePos(2,62)
             hud_text.print_header("Engine Data")
             hud_text.print_object(aircraft.engine)
 
-        if self.textMode_showFuel==True:
+        if self.textMode_whatToShow==0 or self.textMode_whatToShow==6:
             hud_text.print_header("Fuel Data")
             hud_text.print_object(aircraft.fuel)
             hud_text.print_header("Input Source")
@@ -182,20 +177,9 @@ class Input:
     ## Function: textModeKeyInput
     ## this is only called when in text mode. And is used to changed text mode options.
     def textModeKeyInput(self, key, aircraft):
-        if key==ord('n'):
-            self.textMode_showNav = True
-            self.textMode_showAir = False
-            self.textMode_showTraffic = False
-            self.textMode_showEngine = False
-            self.textMode_showFuel = False
-            hud_text.print_Clear()
-            return 0,0
-        elif key==ord('a'):
-            self.textMode_showNav = True
-            self.textMode_showAir = True
-            self.textMode_showTraffic = True
-            self.textMode_showEngine = True
-            self.textMode_showFuel = True
+        if key==ord(' '):
+            self.textMode_whatToShow = self.textMode_whatToShow + 1
+            if self.textMode_whatToShow > 6: self.textMode_whatToShow=0
             hud_text.print_Clear()
             return 0,0
         elif key==ord('r'):

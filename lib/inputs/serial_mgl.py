@@ -91,6 +91,8 @@ class serial_mgl(Input):
                             aircraft.roll = BankAngle * 0.1  #
                             if HeadingMag != 0:
                                 aircraft.mag_head = HeadingMag * 0.1
+                            aircraft.YawAngle = YawAngle
+                            aircraft.TurnRate = TurnRate
                             aircraft.slip_skid = Slip * 0.01 #LRForce * 0.01 
                             aircraft.vert_G = GForce * 0.01
                             aircraft.msg_count += 1
@@ -105,7 +107,7 @@ class serial_mgl(Input):
                             )
                             if GS > 0:
                                 aircraft.gndspeed = GS * 0.06213712 # convert to mph
-                            # aircraft.agl = AGL
+                            aircraft.agl = AGL
                             aircraft.gndtrack = int(TrackTrue * 0.1)
                             aircraft.mag_decl = Variation * 0.1 # Magnetic variation 10th/deg West = Neg
                             if (aircraft.mag_head == 0):  # if no mag heading use ground track
@@ -194,7 +196,7 @@ class serial_mgl(Input):
                             aircraft.nav.HeadBug = HeadBug
                             aircraft.nav.AltBug = AltBug
 
-                            aircraft.nav.WPDist = WPDist
+                            aircraft.nav.WPDist = WPDist * 0.0539957 # KM (tenths) to NM (0.0539957), Statue Mile (.0621371) Conversion
                             aircraft.nav.WPTrack = WPTrack
 
                             aircraft.nav.ILSDev = ILSDev

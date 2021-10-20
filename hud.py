@@ -48,7 +48,7 @@ class myThreadEfisInputReader(threading.Thread):
             shared.aircraft = shared.CurrentInput.readMessage(shared.aircraft)
             internalLoopCounter = internalLoopCounter - 1
             if internalLoopCounter < 0:
-                internalLoopCounter = 500
+                internalLoopCounter = 1500
                 checkInternals()
 
 #############################################
@@ -59,20 +59,26 @@ def checkInternals():
     if isRunningOnPi == True:
         temp, msg = rpi_hardware.check_CPU_temp()
         shared.aircraft.internal.Temp = temp
+        shared.aircraft.internal.LoadAvg = rpi_hardware.get_load_average()
+        shared.aircraft.internal.MemFree = rpi_hardware.get_memory_usage()["free_memory"]
     elif isRunningOnMac == True:
-        shared.aircraft.internal.Temp = mac_hardware.check_CPU_temp()
+        pass
 
 #############################################
 ## Function: loadInput
 # load input.
 def loadInput(num,nameToLoad):
-    #global aircraft
     print(("Input data module %d: %s"%(num,nameToLoad)))
     module = ".%s" % (nameToLoad)
     mod = importlib.import_module(module, "lib.inputs")  # dynamically load class
     class_ = getattr(mod, nameToLoad)
     newInput = class_()
-    newInput.initInput(shared.aircraft)
+    newInput.initInput(num,shared.aircraft)
+    label = aircraft.InputData()
+    label.Name = newInput.name
+    label.Ver = newInput.version
+    label.InputType = newInput.inputtype
+    setattr(shared.aircraft, 'input'+str(num), label)
     return newInput
 
 #############################################
@@ -141,9 +147,21 @@ if __name__ == "__main__":
             rpi_hardware.list_serial_ports(True)
             sys.exit()
     isRunningOnPi = rpi_hardware.is_raspberrypi()
-    if isRunningOnPi == True: print("Running on RaspberryPi")
+    if isRunningOnPi == True: 
+        print("Running on RaspberryPi")
+        shared.aircraft.internal.Hardware = "RaspberryPi"
+        shared.aircraft.internal.OS = rpi_hardware.get_full_os_name()
+        shared.aircraft.internal.OSVer = rpi_hardware.get_kernel_release()
     isRunningOnMac = mac_hardware.is_macosx()
-    if isRunningOnMac == True: print("Running on Mac OSX")
+    if isRunningOnMac == True: 
+        import platform
+        import os
+        print("Running on Mac OSX")
+        shared.aircraft.internal.Hardware = "Mac"
+        shared.aircraft.internal.OS = "OSx"
+        shared.aircraft.internal.OSVer = os.name + " " + platform.system() + " " + str(platform.release())
+    shared.aircraft.internal.PythonVer = str(sys.version_info[0])+"."+str(sys.version_info[1])+"."+str(sys.version_info[2])
+    shared.aircraft.internal.PyGameVer = pygame.version.ver
     if DataInputToLoad == "none":
         print("No inputsource given")
         hud_utils.showArgs()
@@ -155,8 +173,10 @@ if __name__ == "__main__":
     shared.CurrentInput = loadInput(1,DataInputToLoad)
     if DataInputToLoad2 != "none":
         shared.CurrentInput2 = loadInput(2,DataInputToLoad2)
+    if(shared.aircraft.errorFoundNeedToExit==True): sys.exit()
     # check and load screen module. (if not starting in text mode)
     initAircraft()
+    if(shared.aircraft.errorFoundNeedToExit==True): sys.exit()
     if not shared.aircraft.textMode:
         if hud_utils.findScreen(ScreenNameToLoad) == False:
             print(("Screen module not found: %s"%(ScreenNameToLoad)))

@@ -7,6 +7,7 @@ from lib import hud_text
 from lib import hud_utils
 from lib.util import rpi_hardware
 import re
+from lib.common import shared # global shared objects stored here.
 
 class Input:
     def __init__(self):
@@ -16,19 +17,14 @@ class Input:
         self.path_datarecorder = ""
 
 
-    def initInput(self, aircraft):
+    def initInput(self, num, aircraft):
         self.ser = None # is is the input source... File, serial device, network connection...
 
-        self.path_datarecorder = hud_utils.readConfig("DataRecorder", "path", "/tmp/")
+        self.path_datarecorder = hud_utils.readConfig("DataRecorder", "path", shared.DefaultFlightLogDir)
 
         self.shouldExit = False
 
-        self.textMode_showAir = True
-        self.textMode_showNav = True
-        self.textMode_showTraffic = True
-        self.textMode_showEngine = True
-        self.textMode_showFuel = True
-        self.textMode_showGps = True
+        self.textMode_whatToShow = 0 # 0 means show all
         self.textMode_showRaw = False
 
         self.skipReadInput = False
@@ -36,6 +32,7 @@ class Input:
         self.output_logFile = None
         self.output_logFileName = ""
         self.input_logFileName = ""
+        self.inputNum = num
 
         return
 
@@ -46,6 +43,15 @@ class Input:
     #############################################
     ## Method: openLogFile
     def openLogFile(self,filename,attribs):
+        try:
+            if rpi_hardware.mount_usb_drive() == True:
+                openFileName = "/mnt/usb/"+filename
+                logFile = open(openFileName, attribs)
+                print("Opening USB Logfile: "+openFileName)
+                return logFile,openFileName
+        except :
+            pass
+
         try:
             openFileName = self.path_datarecorder+filename
             logFile = open(openFileName, attribs)
@@ -76,7 +82,8 @@ class Input:
             else:
                 logFile = open(openFileName, "w")
             return logFile,openFileName
-        except :
+        except Exception as e: 
+            print(e)
             print("Error createLogFile() %s"%(openFileName))
             return  "",""
 
@@ -107,47 +114,64 @@ class Input:
     ## get next log file to open.
     def getNextLogFile(self,dirname,fileExtension):
         from os.path import exists
+        import os
+        from pathlib import Path
+        try:
+            user_home = str(Path.home())
+            fullpath = dirname.replace("~",user_home) # expand out full user dir if it's in the path.
+            if(exists(fullpath)==False):
+                print("Creating dir: "+fullpath)
+                os.mkdir(fullpath) # make sure the dir exists..
+        except Exception as e: 
+            print(e)
+            print("Error creating log dir: "+dirname)
+            shared.aircraft.errorFoundNeedToExit = True
+            return False
         number = 1
-        newFilename = dirname + self.name + "_" + str(number) + fileExtension
+        if fullpath.endswith('/')==False: fullpath = fullpath + "/" # add a slash if needed.
+        newFilename = fullpath + self.name + "_" + str(number) + fileExtension
         while exists(newFilename) == True:
             number = number + 1
-            newFilename = dirname + self.name + "_" + str(number) + fileExtension
+            newFilename = fullpath + self.name + "_" + str(number) + fileExtension
         #print("using filename %s"%(newFilename))
         return newFilename
 
     #############################################
     ## Function: printTextModeData
     def printTextModeData(self, aircraft):
-        hud_text.print_header("Decoded data from Input Module: %s (Keys: n=nav, a=all, r=raw)"%(self.name))
+        hud_text.print_header("Decoded data from Input Module: %s (Keys: space=cycle data, r=raw)"%(self.name))
         if len(aircraft.demoFile):
             hud_text.print_header("Playing Log: %s"%(aircraft.demoFile))
 
-        if self.textMode_showAir==True:
+        if self.textMode_whatToShow==0 or self.textMode_whatToShow==1:
             hud_text.print_object(aircraft)
 
-        if self.textMode_showNav==True:
-            hud_text.changePos(2,34)
+        if self.textMode_whatToShow==0 or self.textMode_whatToShow==2:
+            if self.textMode_whatToShow==0: hud_text.changePos(2,34)
             hud_text.print_header("Nav Data")
             hud_text.print_object(aircraft.nav)
 
-        if self.textMode_showTraffic==True:
+        if self.textMode_whatToShow==0 or self.textMode_whatToShow==3:
             hud_text.print_header("Traffic Data")
             hud_text.print_object(aircraft.traffic)
 
-        if self.textMode_showGps==True:
+        if self.textMode_whatToShow==0 or self.textMode_whatToShow==4:
             hud_text.print_header("GPS Data")
             hud_text.print_object(aircraft.gps)
 
-        if self.textMode_showEngine==True:
-            hud_text.changePos(2,62)
+        if self.textMode_whatToShow==0 or self.textMode_whatToShow==5:
+            if self.textMode_whatToShow==0: hud_text.changePos(2,62)
             hud_text.print_header("Engine Data")
             hud_text.print_object(aircraft.engine)
 
-        if self.textMode_showFuel==True:
+        if self.textMode_whatToShow==0 or self.textMode_whatToShow==6:
             hud_text.print_header("Fuel Data")
             hud_text.print_object(aircraft.fuel)
-            hud_text.print_header("Input Source")
+            hud_text.print_header("Input Source 1")
             hud_text.print_object(aircraft.input1)
+            if(aircraft.input2.Name != None):
+                hud_text.print_header("Input Source 2")
+                hud_text.print_object(aircraft.input2)                
             hud_text.print_header("Internal Data")
             hud_text.print_object(aircraft.internal)
 
@@ -157,20 +181,9 @@ class Input:
     ## Function: textModeKeyInput
     ## this is only called when in text mode. And is used to changed text mode options.
     def textModeKeyInput(self, key, aircraft):
-        if key==ord('n'):
-            self.textMode_showNav = True
-            self.textMode_showAir = False
-            self.textMode_showTraffic = False
-            self.textMode_showEngine = False
-            self.textMode_showFuel = False
-            hud_text.print_Clear()
-            return 0,0
-        elif key==ord('a'):
-            self.textMode_showNav = True
-            self.textMode_showAir = True
-            self.textMode_showTraffic = True
-            self.textMode_showEngine = True
-            self.textMode_showFuel = True
+        if key==ord(' '):
+            self.textMode_whatToShow = self.textMode_whatToShow + 1
+            if self.textMode_whatToShow > 6: self.textMode_whatToShow=0
             hud_text.print_Clear()
             return 0,0
         elif key==ord('r'):
@@ -200,9 +213,9 @@ class Input:
         if self.output_logFile != None:
             Input.closeLogFile(self,self.output_logFile)
             self.output_logFile = None
-            if(rpi_hardware.is_raspberrypi()==True):
-                if(rpi_hardware.is_server_available()==True):
-                    serverAvail = "FlyOnSpeed.org"
+            #if(rpi_hardware.is_raspberrypi()==True):
+            #    if(rpi_hardware.is_server_available()==True):
+            #        serverAvail = "FlyOnSpeed.org"
             return True, serverAvail
 
         return False,None

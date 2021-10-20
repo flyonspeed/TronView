@@ -50,13 +50,13 @@ def main_graphical():
                 elif event.key == pygame.K_LEFT and mods & pygame.KMOD_CTRL :
                     print("jump backwards data...")
                     shared.CurrentInput.fastBackwards(shared.aircraft,500)
-                elif (event.key == pygame.K_w and mods & pygame.KMOD_CTRL) or event.key == pygame.key.key_code("1") :
+                elif (event.key == pygame.K_w and mods & pygame.KMOD_CTRL) or event.key == pygame.K_1 or event.key == pygame.K_KP1 :
                     try:
                         shared.CurrentInput.startLog(shared.aircraft)
                         drawTimer.addGrowlNotice("Created log: %s"%(shared.CurrentInput.output_logFileName),3000,drawTimer.nerd_yellow,drawTimer.CENTER)
                     except :
                         drawTimer.addGrowlNotice("Unable to create log: "+shared.CurrentInput.name,3000,drawTimer.nerd_yellow,drawTimer.CENTER)
-                elif (event.key == pygame.K_e and mods & pygame.KMOD_CTRL) or event.key == pygame.key.key_code("2") :
+                elif (event.key == pygame.K_e and mods & pygame.KMOD_CTRL) or event.key == pygame.K_2 or event.key == pygame.K_KP2:
                     try:
                         Saved,SendingTo = shared.CurrentInput.stopLog(shared.aircraft)
                         drawTimer.addGrowlNotice("Saved log: %s"%(shared.CurrentInput.output_logFileName),3000,drawTimer.nerd_yellow,drawTimer.CENTER) 
@@ -106,6 +106,8 @@ def main_graphical():
         shared.smartdisplay.draw_loop_start()
         shared.CurrentScreen.draw(shared.aircraft,shared.smartdisplay)  # draw method for current screen object
         drawTimer.processAllDrawTimers(pygamescreen) # process / remove / draw any active drawTimers...
+        if(shared.aircraft.demoMode==True):
+            shared.smartdisplay.draw_text(shared.smartdisplay.LEFT_MID_UP, None, "PLAYBACK Log: %s" % (shared.aircraft.demoFile), (255, 255, 0))
         shared.smartdisplay.draw_loop_done()
 
         #now make pygame update display.

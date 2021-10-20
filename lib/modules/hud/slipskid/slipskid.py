@@ -4,6 +4,7 @@
 # Module: SlipSkid
 # Topher 2021.
 # Adapted from F18 HUD Screen code by Brian Chesteen.
+# reads data in from aircraft object slip data. -100 to 100.  Postive is to the left.
 
 from lib.modules._module import Module
 from lib import hud_graphics

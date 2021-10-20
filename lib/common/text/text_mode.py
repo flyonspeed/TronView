@@ -27,8 +27,14 @@ def main_text_mode():
     threadKey = threadReadKeyboard() # read keyboard input for text mode using curses
     threadKey.start()
     print(shared.aircraft.textMode)
+    clearTimer = 0
     while not shared.aircraft.errorFoundNeedToExit and shared.aircraft.textMode:
+        clearTimer += 1
+        if(clearTimer>20): 
+            hud_text.print_Clear()
+            clearTimer = 0
         shared.CurrentInput.printTextModeData(shared.aircraft)
+        time.sleep(.05) # wait a bit if in text mode... else we eat up to much cpu time.
 
 #############################################
 ## Class: threadReadKeyboard (FOR TEXT MODE ONLY...)
@@ -68,7 +74,7 @@ class threadReadKeyboard(threading.Thread):
                     pass
             else: #else send this key to the input (if it has the ability)
                 try:
-                    retrn,returnMsg = shared.CurrentInput.textModeKeyInput(key,hud.aircraft)
+                    retrn,returnMsg = shared.CurrentInput.textModeKeyInput(key,shared.aircraft)
                     if retrn == 'quit':
                         curses.endwin()
                         shared.aircraft.errorFoundNeedToExit = True

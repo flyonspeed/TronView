@@ -19,8 +19,8 @@ class serial_mgl(Input):
         self.version = 1.0
         self.inputtype = "serial"
 
-    def initInput(self,aircraft):
-        Input.initInput( self, aircraft )  # call parent init Input.
+    def initInput(self,num,aircraft):
+        Input.initInput( self,num, aircraft )  # call parent init Input.
         #Input.setLogLinePrefixSuffix(struct.pack('5B', *newFileBytes))
         if aircraft.demoMode:
             # if in demo mode then load example data file.
@@ -91,9 +91,8 @@ class serial_mgl(Input):
                             aircraft.roll = BankAngle * 0.1  #
                             if HeadingMag != 0:
                                 aircraft.mag_head = HeadingMag * 0.1
-                            aircraft.YawAngle = YawAngle
                             aircraft.TurnRate = TurnRate
-                            aircraft.slip_skid = Slip * 0.01 #LRForce * 0.01 
+                            aircraft.slip_skid = (Slip * 0.01 * -1) * 2 # convert to aircraft format -100 to 100.  postive is to left. #LRForce * 0.01 
                             aircraft.vert_G = GForce * 0.01
                             aircraft.msg_count += 1
                             if(self.textMode_showRaw==True): aircraft.msg_last = binascii.hexlify(Message) # save last message.

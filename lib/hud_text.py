@@ -69,7 +69,7 @@ def print_data(label,value):
     else :
         # else its a object or something else so don't show it.
         return
-    sys.stdout.write("\x1b7\x1b[%d;%df%s : %s        \x1b8" % (lastTextX, lastTextY, bcolors.UNDERLINE + label + bcolors.ENDC, bcolors.OKGREEN + showValue + bcolors.ENDC))
+    sys.stdout.write("\x1b7\x1b[%d;%df%s : %s  \x1b8" % (lastTextX, lastTextY, bcolors.UNDERLINE + label + bcolors.ENDC, bcolors.OKGREEN + showValue + bcolors.ENDC))
     lastTextX = lastTextX + 1 #increment the text postion to next location for next time this is called.
 
 #############################################

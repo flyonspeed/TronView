@@ -29,8 +29,8 @@ class serial_g3x(Input):
         self.max_samples1 = 20
         self.EOL = 10
 
-    def initInput(self, aircraft):
-        Input.initInput(self, aircraft)  # call parent init Input.
+    def initInput(self,num, aircraft):
+        Input.initInput(self,num, aircraft)  # call parent init Input.
 
         if aircraft.demoMode:
             # if in demo mode then load example data file.

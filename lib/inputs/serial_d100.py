@@ -17,8 +17,8 @@ class serial_d100(Input):
         self.version = 1.0
         self.inputtype = "serial"
 
-    def initInput(self,aircraft):
-        Input.initInput( self, aircraft )  # call parent init Input.
+    def initInput(self,num,aircraft):
+        Input.initInput( self,num, aircraft )  # call parent init Input.
         
         if aircraft.demoMode:
             # if in demo mode then load example data file.

@@ -190,15 +190,21 @@ class Aircraft(object):
 class InteralData(object):
     def __init__(self):
         self.Temp = 0 # internal temp of cpu
-
+        self.LoadAvg = None
+        self.MemFree = None
+        self.OS = None
+        self.OSVer = None
+        self.Hardware = None
+        self.PythonVer = None
+        self.PyGameVer = None
 
 #############################################
 ## Class: InputData
 class InputData(object):
     def __init__(self):
-        self.Name = "" # Name of input
+        self.Name = None # Name of input
         self.Ver = 0
-        self.Connect = "NA" # Connect Type.. IE serial, wifi
+        self.InputType = "NA" # Connect Type.. IE serial, wifi
         self.Battery = None
 
 #############################################

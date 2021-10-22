@@ -1,22 +1,34 @@
 # TronView
 Project for connecting efis/flight data to a 2nd screen or HUD.
 
-Features Include:
+## Features Include:
 - Building custom efis or hud screens
 - Record and Playback flight log data
 - All screens look and work the same for all supported data input.
+- View text mode
+- Supports touch screen
+- > 30 FPS on Raspberry Pi 4 
+- Supports remote keypad / user input.
+- Display flight data in Knots, Standard, Metric, F or C
 
+## Traditional EFIS looking screen
 ![screenshot1](docs/efis_screenshot.png?raw=true)
 
 
+## F18 Style HUD
 ![hud_animation](docs/hud_animated_example.gif?raw=true)
 
 
+## Text Mode
+![hud_animation](docs/efis_screenshot_text.png?raw=true)
+
+
+# About
 
 This is a python application that will take in data from different input sources, process them into a common format, then output (draw) them to custom screens (HUD or efis style).  The system is created to have the inputs and screens seperate and non-dependent of each other.  For example a user running a MGL iEFIS can run the same screen as a user with a Dynon D100.  Issues can come up with a input source does not have all the data available as other input sources do.  But if the screen is written well enough it will hide or show data if it's available.
 
 
-Currently supports:
+## Currently supports:
 
 MGL iEFIS
 
@@ -28,7 +40,7 @@ Dynon D10/100
 
 Levil BOM (wifi)
 
-Generic serial logger
+Generic serial logger (Used for recording any serial data)
 
 
 We are using the rapberry pi 4B for taking serial data from a EFIS (MGL,Dynon,G3x) and displaying a graphical Display out the hdmi output on the pi.  This is plugged into a Display or HUD device like the Hudly Classic.  Any sort of HDMI screen could be hooked to the Pi for displaying this flight data.
@@ -152,9 +164,9 @@ q - quit
 
 cntrl d - show some debug info
 
-cntrl w - create log file
+1 - create flight data log file
 
-cnrtl e - close log file
+2 - close flight data log file
 
 PAGE UP - jump to next screen
 

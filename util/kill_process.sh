@@ -1,3 +1,3 @@
 #!/bin/bash
 
-sudo pkill -f -9 'hud.py'
+sudo pkill -f -9 'main.py'

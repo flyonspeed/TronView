@@ -12,7 +12,7 @@ def initDisplay(debug):
     disp_no = os.getenv("DISPLAY")
     print(("sys.platform:%s"%(sys.platform)))
     print(("platform.machine:%s"%(platform.machine())))
-    inWindow = hud_utils.readConfig("HUD", "window", "false")  # default screen to load
+    inWindow = hud_utils.readConfig("Main", "window", "false")  # default screen to load
     showFullScreen = True
 
     if inWindow != "false":
@@ -64,7 +64,7 @@ def initDisplay(debug):
             size = pygame.display.Info().current_w, pygame.display.Info().current_h
             screen = pygame.display.set_mode(size, pygame.FULLSCREEN)
 
-    showMouse = hud_utils.readConfig("HUD", "ShowMouse", "false")  # default screen to load
+    showMouse = hud_utils.readConfig("Main", "ShowMouse", "false")  # default screen to load
     if showMouse != "false":
         pygame.mouse.set_visible(True)  # show
     else:

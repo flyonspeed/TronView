@@ -8,9 +8,9 @@ from lib.common import shared
 
 #############################################
 ## Function: readConfig
-# load hud.cfg file if it exists.
+# load config.cfg file if it exists.
 configParser = configparser.RawConfigParser()
-configParser.read("hud.cfg")
+configParser.read("config.cfg")
 def readConfig(section, name, defaultValue=0, show_error=False):
     global configParser
     try:
@@ -62,7 +62,7 @@ def get_bin(x, n=8):
 #############################################
 ## Function: show command Args
 def showArgs():
-    print("hud.py -i <inputmodule> - s <screenmodule> <more options>")
+    print("main.py -i <inputmodule> - s <screenmodule> <more options>")
     print(" -i <Input Module Name> (Required)")
     print(" -s <Screen Module Name> (Required)")
     print(" -t Show text mode only")
@@ -72,15 +72,15 @@ def showArgs():
     print(" -l list serial ports")
 
 
-    if os.path.isfile("hud.cfg") == False:
-        print(" hud.cfg not found (default values will be used)")
+    if os.path.isfile("config.cfg") == False:
+        print(" config.cfg not found (default values will be used)")
     else:
-        screen = readConfig("HUD", "screen", "Not Set")
+        screen = readConfig("Main", "screen", "Not Set")
         inputsource = readConfig("DataInput", "inputsource", "Not Set")
         print("-------------")
-        print("hud.cfg FOUND")
-        print(("hud.cfg inputsource=%s"%(inputsource)))
-        print(("hud.cfg screen=%s"%(screen)))
+        print("config.cfg FOUND")
+        print(("config.cfg inputsource=%s"%(inputsource)))
+        print(("config.cfg screen=%s"%(screen)))
 
     findScreen() # Show screen modules
     findInput()  # Show input sources

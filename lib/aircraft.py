@@ -38,7 +38,7 @@ class Aircraft(object):
         self.turn_rate = 0
         self.wind_speed = None
         self.wind_dir = None
-        self.norm_wind_dir = None #corrected for aircraft heading for wind direction pointer TODO: Add wind direction pointer to HUD screen
+        self.norm_wind_dir = None #corrected for aircraft heading for wind direction pointer TODO: Add wind direction pointer to screen
         self.mag_decl = None #magnetic declination
 
         self.gps = GPSData()

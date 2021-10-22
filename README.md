@@ -11,6 +11,11 @@ Project for connecting efis/flight data to a 2nd screen or HUD.
 - Remote keypad / user input support.
 - Display flight data in Knots, Standard, Metric, F or C
 
+## Use as backup display screen on dash
+![cockpit1](docs/efis_cockpit1.jpeg?raw=true)
+![cockpit2](docs/efis_cockpit2.jpeg?raw=true)
+
+
 ## Traditional EFIS looking screen
 ![screenshot1](docs/efis_screenshot.png?raw=true)
 

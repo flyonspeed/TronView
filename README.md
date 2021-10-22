@@ -2,13 +2,13 @@
 Project for connecting efis/flight data to a 2nd screen or HUD.
 
 ## Features Include:
-- Building custom efis or hud screens
-- Record and Playback flight log data
+- Build custom efis or hud screens
+- Record and Playback flight log data ( and fast forward through playback )
 - All screens look and work the same for all supported data input.
-- View text mode
-- Supports touch screen
-- > 30 FPS on Raspberry Pi 4 
-- Supports remote keypad / user input.
+- Text mode
+- Touch screen support
+- 30 + FPS on Raspberry Pi 4 
+- Remote keypad / user input support.
 - Display flight data in Knots, Standard, Metric, F or C
 
 ## Traditional EFIS looking screen
@@ -25,7 +25,7 @@ Project for connecting efis/flight data to a 2nd screen or HUD.
 
 # About
 
-This is a python application that will take in data from different input sources, process them into a common format, then output (draw) them to custom screens (HUD or efis style).  The system is created to have the inputs and screens seperate and non-dependent of each other.  For example a user running a MGL iEFIS can run the same screen as a user with a Dynon D100.  Issues can come up with a input source does not have all the data available as other input sources do.  But if the screen is written well enough it will hide or show data if it's available.
+This is a python3 application that will take in data from different input sources, process them into a common format, then output (draw) them to custom screens (HUD or efis style).  The system is created to have the inputs and screens seperate and non-dependent of each other.  For example a user running a MGL iEFIS can run the same screen as a user with a Dynon D100.  Issues can come up with a input source does not have all the data available as other input sources do.  But if the screen is written well enough it will hide or show data if it's available.
 
 
 ## Currently supports:

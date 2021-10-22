@@ -6,7 +6,11 @@ Features Include:
 - Record and Playback flight log data
 - All screens look and work the same for all supported data input.
 
-![hud_animation](https://github.com/flyonspeed/TronView/blob/master/docs/hud_animated_example.gif?raw=true)
+![screenshot1](docs/efis_screenshot.png?raw=true)
+
+
+![hud_animation](docs/hud_animated_example.gif?raw=true)
+
 
 
 This is a python application that will take in data from different input sources, process them into a common format, then output (draw) them to custom screens (HUD or efis style).  The system is created to have the inputs and screens seperate and non-dependent of each other.  For example a user running a MGL iEFIS can run the same screen as a user with a Dynon D100.  Issues can come up with a input source does not have all the data available as other input sources do.  But if the screen is written well enough it will hide or show data if it's available.

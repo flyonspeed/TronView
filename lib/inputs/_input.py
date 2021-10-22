@@ -21,6 +21,7 @@ class Input:
         self.ser = None # is is the input source... File, serial device, network connection...
 
         self.path_datarecorder = hud_utils.readConfig("DataRecorder", "path", shared.DefaultFlightLogDir)
+        self.datarecorder_check_usb = hud_utils.readConfigBool("DataRecorder", "check_usb_drive", True)
 
         self.shouldExit = False
 
@@ -42,7 +43,9 @@ class Input:
 
     #############################################
     ## Method: openLogFile
+    # Open a log file for play back.
     def openLogFile(self,filename,attribs):
+        #first try usb drive if exists?
         try:
             if rpi_hardware.mount_usb_drive() == True:
                 openFileName = "/mnt/usb/"+filename
@@ -52,6 +55,7 @@ class Input:
         except :
             pass
 
+        # then try location for flight data recorder...
         try:
             openFileName = self.path_datarecorder+filename
             logFile = open(openFileName, attribs)
@@ -60,6 +64,7 @@ class Input:
         except :
             pass
 
+        # else try the example data last.
         try:
             openFileName = "lib/inputs/_example_data/"+filename
             print("Opening Logfile: "+openFileName)
@@ -70,9 +75,10 @@ class Input:
 
     #############################################
     ## Method: createLogFile
-    ## Create a new log file.
+    ## Create a new log file. (for saving flight data to)
     def createLogFile(self,fileExtension,isBinary):
-        if rpi_hardware.mount_usb_drive() == True:
+        # should we check if the usb drive is available to write to?
+        if (rpi_hardware.mount_usb_drive() == True and self.datarecorder_check_usb == True):
             openFileName = self.getNextLogFile("/mnt/usb/",fileExtension)
         else:
             openFileName = self.getNextLogFile(self.path_datarecorder,fileExtension)

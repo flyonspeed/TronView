@@ -49,6 +49,7 @@ class Aircraft(object):
         self.internal = InteralData()
         self.input1 = InputData()
         self.input2 = InputData()
+        self.alerts = []
 
         self.msg_count = 0
         self.msg_bad = 0
@@ -184,6 +185,14 @@ class Aircraft(object):
             return "%d %s" % (v,d)
         else:
             return "+%d %s" % (v,d)
+
+#############################################
+## Class: AlertData
+class AlertData(object):
+    def __init__(self):
+        self.Priority = 0 # 0 to 10.  where 10 is top priorty.
+        self.Message = None
+
 
 #############################################
 ## Class: InteralData

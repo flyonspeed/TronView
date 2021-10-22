@@ -30,6 +30,17 @@ def readConfig(section, name, defaultValue=0, show_error=False):
 def readConfigInt(section, name, defaultValue=0):
     return int(readConfig(section, name, defaultValue=defaultValue))
 
+#############################################
+## Function: readConfigBool
+def readConfigBool(section, name, defaultValue=False):
+    theValue = readConfig(section, name, defaultValue=defaultValue)
+    if(type(theValue) == type(True)): return theValue
+    if(isinstance(theValue, str)): 
+        if(theValue.upper()=="TRUE"): return True
+        if(theValue.upper()=="FALSE"): return False
+    # else return default value.
+    return defaultValue
+
 # https://stackoverflow.com/questions/699866/python-int-to-binary#699891
 def get_bin(x, n=8):
     """

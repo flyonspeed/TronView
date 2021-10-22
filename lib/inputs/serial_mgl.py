@@ -159,8 +159,8 @@ class serial_mgl(Input):
                             )
 
 
-                    elif msgType == 6:  # Traffic message
-                        Message = self.ser.read(msgLength)+6
+                    elif msgType == 5:  # Traffic message
+                        Message = self.ser.read(msgLength+6)
                         if len(Message) == 4:
                             TrafficMode, NumOfTraffic, NumMsg, MsgNum = struct.unpack(
                                 "!BBBB", Message
@@ -170,9 +170,8 @@ class serial_mgl(Input):
                             aircraft.traffic.NumMsg = NumMsg
                             aircraft.traffic.MsgNum = ThisMsgNum
 
-                            aircraft.traffic.msg_count += 1
-                            if(self.textMode_showRaw==True): aircraft.traffic.msg_last = binascii.hexlify(Message) # save last message.
-                            else: aircraft.traffic.msg_last = None
+                        aircraft.traffic.msg_count += 1
+                        if(self.textMode_showRaw==True): aircraft.traffic.msg_last = binascii.hexlify(Message) # save last message.
 
 
                     elif msgType == 30:  # Navigation message

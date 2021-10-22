@@ -1,15 +1,15 @@
-# efis_to_hud
-Project for connecting efis/flight data to a HUD or 2nd screen.
+# TronView
+Project for connecting efis/flight data to a 2nd screen or HUD.
 
 Features Include:
 - Building custom efis or hud screens
-- Playback flight log data
+- Record and Playback flight log data
 - All screens look and work the same for all supported data input.
 
-![hud_animation](https://github.com/flyonspeed/efis_to_hud/blob/master/docs/hud_animated_example.gif?raw=true)
+![hud_animation](https://github.com/flyonspeed/TronView/blob/master/docs/hud_animated_example.gif?raw=true)
 
 
-This is a python application that will take in data from different input sources, process them into a common format, then output (draw) them to custom screens (HUD or efis style).  The system is created to have the inputs and screens seperate and non-dependent of each other.  For example a user running a MGL iEFIS can run the same HUD screen as a user with a Dynon D100.  Issues can come up with a input source does not have all the data available as other input sources do.  But if the screen is written well enough it will hide or show data if it's available.
+This is a python application that will take in data from different input sources, process them into a common format, then output (draw) them to custom screens (HUD or efis style).  The system is created to have the inputs and screens seperate and non-dependent of each other.  For example a user running a MGL iEFIS can run the same screen as a user with a Dynon D100.  Issues can come up with a input source does not have all the data available as other input sources do.  But if the screen is written well enough it will hide or show data if it's available.
 
 
 Currently supports:
@@ -22,15 +22,19 @@ Dynon Skyview
 
 Dynon D10/100
 
+Levil BOM (wifi)
 
-We are using the rapberry pi 4B for taking serial data from a EFIS (MGL,Dynon,G3x) and displaying a graphical HUD out the hdmi output on the pi.  This is plugged into a HUD device like the Hudly Classic.  Any sort of HDMI screen could be hooked to the Pi for displaying this flight data.
+Generic serial logger
 
-Code is written in Python 3.7 and the Pygame module for handling the graphics.
+
+We are using the rapberry pi 4B for taking serial data from a EFIS (MGL,Dynon,G3x) and displaying a graphical Display out the hdmi output on the pi.  This is plugged into a Display or HUD device like the Hudly Classic.  Any sort of HDMI screen could be hooked to the Pi for displaying this flight data.
+
+Code is written in Python 3.7 and the Pygame 2.0 module for handling the graphics.
 
 You can run this code in either raspbian full or lite.
 
 Raspbian full install contains the xwindow desktop system.  The lite version does not.
-Efis2Hud supports both versions.
+This supports both versions.
 
 Get raspbian-stretch-lite SD image for pi. Latest can be gotten here.
 https://downloads.raspberrypi.org/raspbian_lite_latest
@@ -39,7 +43,7 @@ Following install guide if you need help.  https://www.raspberrypi.org/documenta
 
 Setup your serial input using the GPIO pins on pi zero.  This page will help you. https://www.instructables.com/id/Read-and-write-from-serial-port-with-Raspberry-Pi/
 
-## Steps to get the HUD software running on raspberry pi
+## Steps to get the software running on raspberry pi
 
 1) WIFI and autologin. You’ll want to get the pi on your wifi network so it can download the latest source.  Here are some instructions online that might help.  https://www.raspberrypi.org/documentation/configuration/wireless/wireless-cli.md
 
@@ -53,17 +57,17 @@ Enter the command `sudo raspi-config` Scroll down to Boot Options and select Con
 
 3) clone the source from github
 
-`git clone https://github.com/flyonspeed/efis_to_hud.git`
+`git clone https://github.com/flyonspeed/TronView.git`
 
 this will ask for username/email password from github.
 
-when done this will create a efis_to_hud dir
+when done this will create a TronView dir
 
 4) run the setup.sh script to finish install.  This will setup serial port (if not allready setup), and install python libraries needed.
 
-go into the efis_to_hud by typing
+go into the TronView by typing
 
-`cd efis_to_hud/util`
+`cd TronView/util`
 
 then to run the script type
 
@@ -76,11 +80,11 @@ then to run the script type
 6) Test the hud/efis screen with existing example data.  
 run the following.  First make sure you are in the efis_hud dir.
 
-`cd efis_hud`
+`cd TronView`
 
 Then run the python script and use the example data for dynon d100.
 
-`sudo python hud.py -i serial_d100 -e`
+`sudo python main.py -i serial_d100 -e`
 
 You should see a basic hud on the screen.  And it slowy moving around.  
 If not then your video setup maybe be F'd up.  
@@ -90,9 +94,9 @@ To exit you hit "q" on the keyboard.
 
 7a) Next if you want to run live serial data from your efis.
 run the serial_read.py script to confirm data being sent is correct.
-go into efis_hud dir then type
+go into TronView dir then type
 
-`cd efis_hud`
+`cd TronView`
 
 `sudo python util/serial_read.py`
 
@@ -102,13 +106,13 @@ make sure the data is coming through and looks good.
 
 to exit hit cntrl-c
 
-7b) run hud
+7b) run it
 
 Note:  You have to run using sudo in order to get access to serial port.
 
 Example:
 
-`sudo python hud.py -i serial_mgl`
+`sudo python main.py -i serial_mgl`
 
 will show you command line arguments.
 
@@ -126,13 +130,13 @@ load a input module for where to get the air data from.
 
 Run the command with no arguments and it will show you which input modules and screen modules are available to use.
 
-`sudo python hud.py`
+`sudo python main.py`
 
 ## More help on raspberry pi.
 
 Here are more instructions on setting up for raspberry pi.
 
-https://github.com/flyonspeed/efis_to_hud/blob/master/docs/rpi_setup.md
+https://github.com/flyonspeed/TronView/blob/master/docs/rpi_setup.md
 
 ## DefaultScreen
 
@@ -155,7 +159,7 @@ PAGE DOWN - go to previous screen
 To run with
 
 
-## Creating your own Hud screen file
+## Creating your own custom screen file
 
 Screen files are located in lib/screens folder.  For a quick start you can duplicate the DefaultScreen.py file and rename it to your own.  What ever name you give it you must name the Class in that file to the same name.  For exmaple if I create MyHud.py then in that file I must set the class to the following
 
@@ -198,15 +202,15 @@ Input sources are located in lib/inputs folder.  Create your own!  You can use e
 
 
 
-## hud.cfg
+## config.cfg
 
-hud.cfg can be created and sit in the same dir as the hud.py python app.  It's used for configuring the hud.  View hud_config_example.cfg for a example of options.
+config.cfg can be created and sit in the same dir as the main.py python app.  It's used for configuring the hud.  View config_example.cfg for a example of options.
 
-Here is a example hud.cfg file:
+Here is a example config.cfg file:
 
 <pre>
 
-[HUD]
+[Main]
 #when running in xwindows,mac,win this will show hud in window if set.
 window=640,480
 
@@ -236,6 +240,15 @@ baudrate = 115200
 # Set temperate to F or C (defaults to F)
 #temperature = C
 
+[DataRecorder]
+# change the path were the default flight log files are saved. Make sure this dir exists.
+# default path is /flightlog/
+#path = /home/pi/flightlog/
+
+# check if usb drive is available for creating log files?
+# defaults to true
+#check_usb_drive = True
+
 </pre>
 
 # Demo Sample EFIS Data
@@ -246,7 +259,7 @@ baudrate = 115200
   
   Example to run the MGL_V2.bin demo data file would look like this:
   
-  `sudo python hud.py -i serial_mgl -c MGL_V2.bin`
+  `sudo python main.py -i serial_mgl -c MGL_V2.bin`
 
 
 # MGL Data

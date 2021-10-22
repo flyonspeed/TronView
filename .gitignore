@@ -1,4 +1,5 @@
 hud.cfg
+config.cfg
 output.log
 output_error.log
 *.pyc

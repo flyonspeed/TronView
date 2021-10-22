@@ -2,13 +2,14 @@
 
 #######################################################################################################################################
 #######################################################################################################################################
-# hud.py
+# main.py
 #
-# Python hud script for taking in efis data and displaying it in a custom HUD style format.
-# Have Fun.
+# Read multiple formats of EFIS data, Engine Data, Flight data, or play back existing flight data 
+# Display data on screen or HUD.
+# All data is feed in and formated to a common data format (into aircraft object).  Then screens read data from aircarft object to display.
 #
-# 1/23/2019 Refactor to make pretty.  Christopher Jones
-#
+# 1/23/2019 Refactor to make pretty.
+# 10/22/2021 Name Change.   
 #
 
 import math, os, sys, random
@@ -111,7 +112,7 @@ def initAircraft():
 # Main function.
 #
 
-ScreenNameToLoad = hud_utils.readConfig("HUD", "screen", "Default")  # default screen to load
+ScreenNameToLoad = hud_utils.readConfig("Main", "screen", "Default")  # default screen to load
 DataInputToLoad = hud_utils.readConfig("DataInput", "inputsource", "none")  # input method
 DataInputToLoad2 = hud_utils.readConfig("DataInput2", "inputsource", "none")  # optional 2nd input
 

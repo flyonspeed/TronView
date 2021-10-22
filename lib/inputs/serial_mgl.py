@@ -91,7 +91,7 @@ class serial_mgl(Input):
                             aircraft.roll = BankAngle * 0.1  #
                             if HeadingMag != 0:
                                 aircraft.mag_head = HeadingMag * 0.1
-                            aircraft.turn_rate = TurnRate
+                            aircraft.turn_rate = TurnRate * 0.1
                             aircraft.slip_skid = (Slip * 0.01 * -1) * 2 # convert to aircraft format -100 to 100.  postive is to left. #LRForce * 0.01 
                             aircraft.vert_G = GForce * 0.01
                             aircraft.msg_count += 1
@@ -282,7 +282,8 @@ class serial_mgl(Input):
                 aircraft.msg_bad += 1 #bad message found.
 
                 return aircraft
-        except serial.serialutil.SerialException:
+        except serial.serialutil.SerialException as e:
+            print(e)
             print("mgl serial exception")
             aircraft.errorFoundNeedToExit = True
         return aircraft

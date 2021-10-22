@@ -33,8 +33,10 @@ class serial_g3x(Input):
         Input.initInput(self,num, aircraft)  # call parent init Input.
 
         if aircraft.demoMode:
-            # if in demo mode then load example data file.
-            self.ser = open("lib/inputs/_example_data/garmin_g3x_data1.txt", "r")
+            # play a log file?
+            defaultTo = "garmin_g3x_data1.txt"
+            aircraft.demoFile = hud_utils.readConfig(self.name, "demofile", defaultTo)
+            self.ser,self.input_logFileName = Input.openLogFile(self,aircraft.demoFile,"r")
         else:
             self.efis_data_format = hud_utils.readConfig("DataInput", "format", "none")
             self.efis_data_port = hud_utils.readConfig(
@@ -233,7 +235,8 @@ class serial_g3x(Input):
                 #    self.ser.flushInput()  # flush the serial after every message else we see delays
                 return aircraft
 
-        except serial.serialutil.SerialException:
+        except serial.serialutil.SerialException as e:
+            print(e)
             print("G3X serial exception")
             aircraft.errorFoundNeedToExit = True
 

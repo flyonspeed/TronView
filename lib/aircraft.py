@@ -4,7 +4,8 @@ from enum import Enum
 
 #############################################
 ## Class: Aircraft
-## Store status and converted datat from input modules into this class for use by screens.
+## Store status and converted data from input modules into this class for use by screens.
+## Data should be converted into a common format and store here.  Details for what is "standard" format is below.  If input data source is different then it should convert it before saving it here.
 ##
 class Aircraft(object):
     # measurment data formats (static vars)
@@ -18,27 +19,27 @@ class Aircraft(object):
         self.sys_time_string = "" 
         self.pitch = 0.0 # degrees
         self.roll = 0.0  # degrees
-        self.ias = 1 # in knots
-        self.tas = 1
+        self.ias = 0 # in mph
+        self.tas = 0 # mph
         self.alt = 0 # in Ft
-        self.agl = 0
+        self.agl = None # ft ( if available )
         self.PALT = 0 # in ft
         self.BALT = 0 # in ft
         self.DA = None # in ft
-        self.aoa = 0 # percentage 0 to 100
+        self.aoa = None # percentage 0 to 100 (if available)
         self.mag_head = 0 # 0 to 360
         self.gndtrack = 0 #TODO: Move to GPSData class?
         self.baro = 0 # inches of mercury
         self.baro_diff = 0
         self.vsi = 0 # ft/min
-        self.gndspeed = 1 #TODO: Move to GPSData class?
-        self.oat = 0
+        self.gndspeed = 0 # mph
+        self.oat = 0 # outside air temp in F
         self.vert_G = 0
         self.slip_skid = None # -99 to +99.  (-99 is full right)
-        self.turn_rate = 0
+        self.turn_rate = 0 # Turn rate in 10th of a degree per second
         self.wind_speed = None
         self.wind_dir = None
-        self.norm_wind_dir = None #corrected for aircraft heading for wind direction pointer TODO: Add wind direction pointer to screen
+        self.norm_wind_dir = None #corrected for aircraft heading for wind direction pointer
         self.mag_decl = None #magnetic declination
 
         self.gps = GPSData()

@@ -5,11 +5,15 @@ Project for connecting efis/flight data to a 2nd screen or HUD.
 - Build custom efis or hud screens
 - Record and Playback flight log data ( and fast forward through playback )
 - All screens look and work the same for all supported data input.
+- All display screen sizes and ratios supported.
 - Text mode
 - Touch screen support
 - 30 + FPS on Raspberry Pi 4 
 - Remote keypad / user input support.
 - Display flight data in Knots, Standard, Metric, F or C
+- Designed for Raspberry Pi but also runs on Mac OSx, Windows, and other linux systems.
+- Show NAV needles for approaches. (If NAV data is available)
+- Use multiple data sources
 
 ## Use as backup display screen on dash
 ![cockpit1](docs/efis_cockpit1.jpeg?raw=true)

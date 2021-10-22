@@ -21,14 +21,11 @@ class serial_mgl(Input):
 
     def initInput(self,num,aircraft):
         Input.initInput( self,num, aircraft )  # call parent init Input.
-        #Input.setLogLinePrefixSuffix(struct.pack('5B', *newFileBytes))
         if aircraft.demoMode:
-            # if in demo mode then load example data file.
-            # get demo file to read from config.  else default to..
+            # Get playback file.
             if not len(aircraft.demoFile):
                 defaultTo = "MGL_Flight1.bin"
                 aircraft.demoFile = hud_utils.readConfig(self.name, "demofile", defaultTo)
-            #self.ser = open("lib/inputs/_example_data/%s"%(aircraft.demoFile), "rb")
             self.ser,self.input_logFileName = Input.openLogFile(self,aircraft.demoFile,"rb")
         else:
             self.efis_data_format = hud_utils.readConfig("DataInput", "format", "none")

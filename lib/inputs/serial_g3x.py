@@ -31,11 +31,11 @@ class serial_g3x(Input):
 
     def initInput(self,num, aircraft):
         Input.initInput(self,num, aircraft)  # call parent init Input.
-
         if aircraft.demoMode:
             # play a log file?
-            defaultTo = "garmin_g3x_data1.txt"
-            aircraft.demoFile = hud_utils.readConfig(self.name, "demofile", defaultTo)
+            if not len(aircraft.demoFile):
+                defaultTo = "garmin_g3x_data1.txt"
+                aircraft.demoFile = hud_utils.readConfig(self.name, "demofile", defaultTo)
             self.ser,self.input_logFileName = Input.openLogFile(self,aircraft.demoFile,"r")
         else:
             self.efis_data_format = hud_utils.readConfig("DataInput", "format", "none")

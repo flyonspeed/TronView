@@ -24,8 +24,11 @@ class serial_skyview(Input):
         Input.initInput( self,num, aircraft )  # call parent init Input.
         
         if aircraft.demoMode:
-            # if in demo mode then load example data file.
-            self.ser = open("lib/inputs/_example_data/dynon_skyview_data1.txt", "r") 
+            # load playback file.
+            if not len(aircraft.demoFile):
+                defaultTo = "dynon_skyview_data1.txt"
+                aircraft.demoFile = hud_utils.readConfig(self.name, "demofile", defaultTo)
+            self.ser,self.input_logFileName = Input.openLogFile(self,aircraft.demoFile,"r")
         else:
             self.efis_data_format = hud_utils.readConfig("DataInput", "format", "none")
             self.efis_data_port = hud_utils.readConfig("DataInput", "port", "/dev/ttyS0")

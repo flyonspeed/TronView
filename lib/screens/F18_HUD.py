@@ -145,7 +145,7 @@ class F18_HUD(Screen):
         self.slipskid.draw(aircraft,smartdisplay,(smartdisplay.x_center,smartdisplay.y_end-35))
 
         # draw AOA indicator
-        self.aoa.draw(aircraft,smartdisplay,(smartdisplay.x_start + 140 ,smartdisplay.y_start + 350))
+        self.aoa.draw(aircraft,smartdisplay,(smartdisplay.x_start + 140 ,smartdisplay.y_end - 133))
       
         # draw roll indicator
         self.roll_indicator.draw(aircraft,smartdisplay)

@@ -28,7 +28,6 @@ class F18_HUD(Screen):
     def __init__(self):
         Screen.__init__(self)
         self.name = "F18 HUD"  # set name for this screen
-        self.alt_box_mode = 1  # default on
         self.caged_mode = 1 # default on
         self.MainColor = (0, 255, 0)  # main color of hud graphics
 
@@ -182,16 +181,6 @@ class F18_HUD(Screen):
     # handle key events
     def processEvent(self, event, aircraft, smartdisplay):
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_a:
-                self.alt_box_mode = not self.alt_box_mode
-            if event.key == pygame.K_l:
-                self.line_thickness += 1
-                if self.line_thickness > 8:
-                    self.line_thickness = 2
-            if event.key == pygame.K_c:
-                self.horizon.center_circle_mode += 1
-                if self.horizon.center_circle_mode > 4:
-                    self.horizon.center_circle_mode = 0
             if event.key == pygame.K_x:
                 self.caged_mode = not self.caged_mode
 

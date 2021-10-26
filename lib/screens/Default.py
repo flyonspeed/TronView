@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 #################################################
-# Default example screen for hud system
-# To create your own hud duplicate this file and rename class DefaultScreen to your new filename (without the .py)
+# Default screen
+# To create your own screen duplicate this file and rename class DefaultScreen to your new filename (without the .py)
 # for example MyHud.py would have a class name of MyHud in it.
 # 7/9/2021 Topher.
 

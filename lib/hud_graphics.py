@@ -283,14 +283,14 @@ def hud_draw_circle(pygamescreen,color,center,radius,width):
 
 def hud_draw_debug(aircraft,smartdisplay,font):
     # render debug text
-    label = font.render("Pitch: %d Roll: %d" % (aircraft.pitch,aircraft.roll), 1, (255, 255, 0))
+    label = font.render("Pitch: %0.1f Roll: %0.1f" % (aircraft.pitch,aircraft.roll), 1, (255, 255, 0))
     smartdisplay.pygamescreen.blit(label, (smartdisplay.x_start, smartdisplay.y_start+20))
     
-    label = font.render("IAS: %d  VSI: %d" % (aircraft.ias, aircraft.vsi), 1, (255, 255, 0))
+    label = font.render("IAS: %d mph  VSI: %d fpm gndspeed: %0.1f" % (aircraft.ias, aircraft.vsi,aircraft.gndspeed), 1, (255, 255, 0))
     smartdisplay.pygamescreen.blit(label, (smartdisplay.x_start, smartdisplay.y_start+40))
 
     label = font.render(
-        "Alt: %d  PresALT:%d  BaroAlt:%d   AGL: %d"
+        "Alt: %d ft  PresALT:%d  BaroAlt:%d   AGL: %d"
         % (aircraft.alt, aircraft.PALT, aircraft.BALT, aircraft.agl),
         1,
         (255, 255, 0),
@@ -316,12 +316,10 @@ def hud_draw_debug(aircraft,smartdisplay,font):
     )
     smartdisplay.pygamescreen.blit(label, (smartdisplay.x_start, smartdisplay.y_start+120))
 
-    label = font.render(
-        "size: %d,%d" % (smartdisplay.width, smartdisplay.height), 1, (20, 255, 0)
-    )
+    label = font.render("time: %s msg count: %d msg bad: %d" % (aircraft.sys_time_string,aircraft.msg_count,aircraft.msg_bad), 1, (255, 255, 0))
     smartdisplay.pygamescreen.blit(label, (smartdisplay.x_start, smartdisplay.y_start+140))
 
-    label = font.render("time: %s msg count: %d" % (aircraft.sys_time_string,aircraft.msg_count), 1, (255, 255, 0))
+    label = font.render("turn_rate: %0.2f  slip_skid: %0.2f" % (aircraft.turn_rate,aircraft.slip_skid), 1, (255, 255, 0))
     smartdisplay.pygamescreen.blit(label, (smartdisplay.x_start, smartdisplay.y_start+160))
 
     # print FPS on the bottom of screen.

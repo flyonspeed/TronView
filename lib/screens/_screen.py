@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-# HUD Screen praent class.
-# All hud screens should inherit from this class.
+# Screen praent class.
+# All screens should inherit from this class.
 
 from .. import hud_graphics
 import pygame
@@ -9,7 +9,7 @@ import pygame
 
 class Screen:
     def __init__(self):
-        self.name = "HUD Screen"
+        self.name = "Parent Screen"
         self.screenVersion = 1.0
         self.width = 640
         self.height = 480

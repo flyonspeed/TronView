@@ -300,7 +300,7 @@ class Horizon(Module):
             (255, 0, 255),
             (
                 (smartdisplay.width / 2 + self.x_offset) - (int(fpv_x) * 5),
-                smartdisplay.y_center - (aircraft.vsi / 15),
+                smartdisplay.y_center - (aircraft.vsi / 2),
             ),
             15,
             2,
@@ -310,7 +310,7 @@ class Horizon(Module):
             (255, 0, 255),
             (
                 (smartdisplay.width / 2 + self.x_offset +1) - (int(fpv_x) * 5),
-                smartdisplay.y_center - (aircraft.vsi / 15),
+                smartdisplay.y_center - (aircraft.vsi / 2),
             ),
             15,
             2,
@@ -320,11 +320,11 @@ class Horizon(Module):
             (255, 0, 255),
             [
                 (smartdisplay.width / 2 + self.x_offset) - (int(fpv_x) * 5) - 15,
-                smartdisplay.y_center - (aircraft.vsi / 15),
+                smartdisplay.y_center - (aircraft.vsi / 2),
             ],
             [
                 (smartdisplay.width / 2 + self.x_offset) - (int(fpv_x) * 5) - 30,
-                smartdisplay.y_center - (aircraft.vsi / 15),
+                smartdisplay.y_center - (aircraft.vsi / 2),
             ],
             2,
         )
@@ -333,11 +333,11 @@ class Horizon(Module):
             (255, 0, 255),
             [
                 (smartdisplay.width / 2 + self.x_offset) - (int(fpv_x) * 5) + 15,
-                smartdisplay.y_center - (aircraft.vsi / 15),
+                smartdisplay.y_center - (aircraft.vsi / 2),
             ],
             [
                 (smartdisplay.width / 2 + self.x_offset) - (int(fpv_x) * 5) + 30,
-                smartdisplay.y_center - (aircraft.vsi / 15),
+                smartdisplay.y_center - (aircraft.vsi / 2),
             ],
             2,
         )
@@ -346,11 +346,11 @@ class Horizon(Module):
             (255, 0, 255),
             [
                 (smartdisplay.width / 2 + self.x_offset) - (int(fpv_x) * 5),
-                smartdisplay.y_center - (aircraft.vsi / 15) - 15,
+                smartdisplay.y_center - (aircraft.vsi / 2) - 15,
             ],
             [
                 (smartdisplay.width / 2 + self.x_offset) - (int(fpv_x) * 5),
-                smartdisplay.y_center - (aircraft.vsi / 15) - 30,
+                smartdisplay.y_center - (aircraft.vsi / 2) - 30,
             ],
             2,
         )
@@ -360,11 +360,11 @@ class Horizon(Module):
                 (255, 0, 255),
                 [
                     (smartdisplay.width / 2 + self.x_offset) - (int(gfpv_x) * 5) - 15,
-                    smartdisplay.y_center - (aircraft.vsi / 15),
+                    smartdisplay.y_center - (aircraft.vsi / 2),
                 ],
                 [
                     (smartdisplay.width / 2 + self.x_offset) - (int(gfpv_x) * 5) - 30,
-                    smartdisplay.y_center - (aircraft.vsi / 15),
+                    smartdisplay.y_center - (aircraft.vsi / 2),
                 ],
                 2,
             )
@@ -373,11 +373,11 @@ class Horizon(Module):
                 (255, 0, 255),
                 [
                     (smartdisplay.width / 2 + self.x_offset) - (int(gfpv_x) * 5) + 15,
-                    smartdisplay.y_center - (aircraft.vsi / 15),
+                    smartdisplay.y_center - (aircraft.vsi / 2),
                 ],
                 [
                     (smartdisplay.width / 2 + self.x_offset) - (int(gfpv_x) * 5) + 30,
-                    smartdisplay.y_center - (aircraft.vsi / 15),
+                    smartdisplay.y_center - (aircraft.vsi / 2),
                 ],
                 2,
             )
@@ -386,11 +386,11 @@ class Horizon(Module):
                 (255, 0, 255),
                 [
                     (smartdisplay.width / 2 + self.x_offset) - (int(gfpv_x) * 5),
-                    smartdisplay.y_center - (aircraft.vsi / 15) - 15,
+                    smartdisplay.y_center - (aircraft.vsi / 2) - 15,
                 ],
                 [
                     (smartdisplay.width / 2 + self.x_offset) - (int(gfpv_x) * 5),
-                    smartdisplay.y_center - (aircraft.vsi / 15) - 30,
+                    smartdisplay.y_center - (aircraft.vsi / 2) - 30,
                 ],
                 2,
             )

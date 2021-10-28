@@ -57,7 +57,7 @@ class AOA(Module):
         x,y = pos
 
         # AOA Indicator
-        if aircraft.aoa > 0:
+        if aircraft.aoa != None and aircraft.aoa > 0:
 
             #draw center circle.
             hud_graphics.hud_draw_circle(

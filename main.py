@@ -47,6 +47,8 @@ class myThreadEfisInputReader(threading.Thread):
         internalLoopCounter = 1
         while shared.aircraft.errorFoundNeedToExit == False:
             shared.aircraft = shared.CurrentInput.readMessage(shared.aircraft)
+            if(shared.CurrentInput2 != None): # if there is a 2nd input then read message from that too.
+                shared.aircraft = shared.CurrentInput2.readMessage(shared.aircraft)
             internalLoopCounter = internalLoopCounter - 1
             if internalLoopCounter < 0:
                 internalLoopCounter = 1500
@@ -164,15 +166,16 @@ if __name__ == "__main__":
     shared.aircraft.internal.PythonVer = str(sys.version_info[0])+"."+str(sys.version_info[1])+"."+str(sys.version_info[2])
     shared.aircraft.internal.PyGameVer = pygame.version.ver
     if DataInputToLoad == "none":
-        print("No inputsource given")
+        print("No input source given")
         hud_utils.showArgs()
     # Check and load input source
     if hud_utils.findInput(DataInputToLoad) == False:
-        print(("Input module not found: %s"%(DataInputToLoad)))
+        print(("Input source not found: %s"%(DataInputToLoad)))
         hud_utils.findInput() # show available inputs
         sys.exit()
     shared.CurrentInput = loadInput(1,DataInputToLoad)
     if DataInputToLoad2 != "none":
+        print("Input source 2:"+DataInputToLoad2) 
         shared.CurrentInput2 = loadInput(2,DataInputToLoad2)
     if(shared.aircraft.errorFoundNeedToExit==True): sys.exit()
     # check and load screen module. (if not starting in text mode)

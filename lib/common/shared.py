@@ -21,7 +21,7 @@ aircraft = aircraft.Aircraft()
 ## stuff the data into the aircraft object for the screens to use.
 ## Inputs can be from Serial, Files, wifi, etc...
 CurrentInput = None
-CurrentInput1 = None
+CurrentInput2 = None
 
 ####################################
 ## SmartDisplay Obect

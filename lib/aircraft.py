@@ -23,6 +23,7 @@ class Aircraft(object):
         self.ias = 0 # in mph
         self.tas = 0 # mph
         self.alt = None # in Ft
+        self.altUseGPS = False
         self.agl = None # ft ( if available )
         self.PALT = None # in ft
         self.BALT = None # in ft

@@ -115,6 +115,7 @@ class serial_mgl(Input):
                             aircraft.gps.SatsTracked = SatsTracked
                             aircraft.gps.GPSStatus = GPSStatus
                             aircraft.gps.msg_count += 1
+                            aircraft.gps.Source = "MGL"
                             if(self.textMode_showRaw==True): aircraft.gps.msg_last = binascii.hexlify(Message) # save last message.
                             else: aircraft.gps.msg_last = None
 

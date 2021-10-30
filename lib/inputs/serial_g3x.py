@@ -119,6 +119,7 @@ class serial_g3x(Input):
                                 aircraft.gndtrack = _utils.gndtrack(
                                     EWVelDir, EWVelmag, NSVelDir, NSVelmag
                                 )
+                                aircraft.gps.Source = "G3X"
                                 aircraft.wind_speed, aircraft.wind_dir, aircraft.norm_wind_dir = _utils.windSpdDir(
                                     aircraft.tas * 0.8689758, # back to knots.
                                     aircraft.gndspeed * 0.8689758, # convert back to knots

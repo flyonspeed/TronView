@@ -11,6 +11,11 @@ from lib import hud_text
 import binascii
 import time
 import socket
+import re
+import sys
+import traceback
+from lib.aircraft import Target
+import time
 
 class stratux_wifi(Input):
     def __init__(self):
@@ -189,11 +194,44 @@ class stratux_wifi(Input):
                 elif(msg[1]==20): # Traffic report
                     #print("GDL 90 Traffic message id:"+str(msg[1])+" len:"+str(len(msg)))
                     #print(msg.hex())
-                    aircraft.traffic.status = msg[2]
-                    aircraft.traffic.callsign = str(msg[20:28].rstrip())
+
+                    callsign = re.sub(r'[^A-Za-z0-9]+', '', msg[20:28].rstrip().decode('ascii', errors='ignore') ) # clean the N number.
+                    targetStatus = _thunkByte(msg[2], 0x0b11110000, -4) ;# status
+                    targetType = _thunkByte(msg[2], 0b00001111) ;# type
+
+                    target = Target(callsign)
+                    target.aStat = targetStatus
+                    target.type = targetType
+                    # get lat/lon
+                    latLongIncrement = 180.0 / (2**23)
+                    target.lat = _signed24(msg[6:]) * latLongIncrement
+                    target.lon = _signed24(msg[9:]) * latLongIncrement
+                    # alt of target.
+                    alt = _thunkByte(msg[12], 0xff, 4) + _thunkByte(msg[13], 0xf0, -4)
+                    target.alt = (alt * 25) - 1000
+                    #speed
+                    horzVelo = _thunkByte(msg[15], 0xff, 4) + _thunkByte(msg[16], 0xf0, -4)
+                    if horzVelo == 0xfff:  # no hvelocity info available
+                        horzVelo = 0
+                    target.speed = int(horzVelo)
+                    # heading
+                    trackIncrement = 360.0 / 256
+                    target.track = int(msg[18] * trackIncrement)  # track/heading, 0-358.6 degrees
+                    # vert speed. 12-bit signed value of 64 fpm increments
+                    vertVelo = _thunkByte(msg[16], 0x0f, 8) + _thunkByte(msg[17])
+                    if vertVelo == 0x800:   # not avail
+                        vertVelo = 0
+                    elif (vertVelo >= 0x1ff and vertVelo <= 0x7ff) or (vertVelo >= 0x801 and vertVelo <= 0xe01):  # not used, invalid
+                        vertVelo = 0
+                    elif vertVelo > 2047:  # two's complement, negative values
+                        vertVelo -= 4096
+                    target.vspeed = (vertVelo * 64) ;# vertical velocity
+
+                    aircraft.traffic.addTarget(target) # add/update target to traffic list.
+
+                    aircraft.traffic.msg_count += 1
                     if(self.textMode_showRaw==True): 
                         aircraft.traffic.msg_last = binascii.hexlify(msg)
-                        aircraft.traffic.msg_len = len(msg)
                     pass
                 elif(msg[1]==101): # Foreflight id?
                     pass
@@ -214,9 +252,69 @@ class stratux_wifi(Input):
             #error with read in length.. ignore for now?
             #print("Error with read in length")
             pass
+        except Exception as e:
+            aircraft.errorFoundNeedToExit = True
+            print(e)
+            print(traceback.format_exc())
         return aircraft
 
 
+def _unsigned24(data, littleEndian=False):
+    """return a 24-bit unsigned integer with selectable Endian"""
+    assert len(data) >= 3
+    if littleEndian:
+        b0 = data[2]
+        b1 = data[1]
+        b2 = data[0]
+    else:
+        b0 = data[0]
+        b1 = data[1]
+        b2 = data[2]
+    
+    val = (b0 << 16) + (b1 << 8) + b2
+    return val
 
+
+def _signed24(data, littleEndian=False):
+    """return a 24-bit signed integer with selectable Endian"""
+    val = _unsigned24(data, littleEndian)
+    if val > 8388607:
+        val -= 16777216
+    return val
+
+
+def _unsigned16(data, littleEndian=False):
+    """return a 16-bit unsigned integer with selectable Endian"""
+    assert len(data) >= 2
+    if littleEndian:
+        b0 = data[1]
+        b1 = data[0]
+    else:
+        b0 = data[0]
+        b1 = data[1]
+    
+    val = (b0 << 8) + b1
+    return val
+
+
+def _signed16(data, littleEndian=False):
+    """return a 16-bit signed integer with selectable Endian"""
+    val = _unsigned16(data, littleEndian)
+    if val > 32767:
+        val -= 65536
+    return val
+
+def _thunkByte(c, mask=0xff, shift=0):
+    """extract an integer from a byte applying a mask and a bit shift
+    @c character byte
+    @mask the AND mask to get the desired bits
+    @shift negative to shift right, positive to shift left, zero for no shift
+    """
+    val = c & mask
+    if shift < 0:
+        val = val >> abs(shift)
+    elif shift > 0:
+        val = val << shift
+    return val
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

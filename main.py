@@ -53,6 +53,7 @@ class myThreadEfisInputReader(threading.Thread):
             if internalLoopCounter < 0:
                 internalLoopCounter = 1500
                 checkInternals()
+                shared.aircraft.traffic.cleanUp() # check if old traffic targets should be cleared up.
             if shared.aircraft.textMode == True: # if in text mode.. lets delay a bit.. this keeps the cpu from heating up on my mac.
                 time.sleep(.01)
 

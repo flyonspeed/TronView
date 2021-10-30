@@ -33,7 +33,8 @@ def main_text_mode():
         if(clearTimer>20): 
             hud_text.print_Clear()
             clearTimer = 0
-        shared.CurrentInput.printTextModeData(shared.aircraft)
+        if(shared.aircraft.errorFoundNeedToExit==False):
+            shared.CurrentInput.printTextModeData(shared.aircraft)
         time.sleep(.05) # wait a bit if in text mode... else we eat up to much cpu time.
 
 #############################################

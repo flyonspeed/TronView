@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from enum import Enum
+import time
 
 #############################################
 ## Class: Aircraft
@@ -321,15 +322,63 @@ class FuelData(object):
 ## Class: TrafficData
 class TrafficData(object):
     def __init__(self):
-        self.TrafficCount = 0
+        self.count = 0
 
-        self.TrafficMode = 0
-        self.NumMsg = 0
-        self.ThisMsgNum = 0
+        self.targets = []
 
         self.msg_count = 0
         self.msg_last = ""
 
+    def contains(self, target): # search for callsign
+        for x in self.targets:
+            if x.callsign == target.callsign:
+                return True
+        return False
+
+    def remove(self, callsign): # callsign to remove
+        for i, t in enumerate(self.targets):
+            if t.callsign == callsign:
+                del self.targets[i]
+                return
+
+    def replace(self,target): # replace target with new one..
+        for i, t in enumerate(self.targets):
+            if t.callsign == target.callsign:
+                self.targets[i] = target
+                return
+
+    # add or replace a target.
+    def addTarget(self, target):
+        target.time = int(time.time()) # always update the time when this target was added/updated..
+        if(self.contains(target)==False):
+            self.targets.append(target)
+        else:
+            self.replace(target)
+
+        self.count = len(self.targets)
+
+    # go through targets and remove old ones.
+    def cleanUp(self):
+        for i, t in enumerate(self.targets):
+            self.targets[i].age = int(time.time() - self.targets[i].time) # track age last time this target was updated.
+            if(self.targets[i].age > 100):
+                self.targets[i].old = True
+                self.remove(self.targets[i].callsign)
+
+
+class Target(object):
+    def __init__(self, callsign):
+        self.callsign = callsign
+        self.aStat = None
+        self.type = None
+
+        self.lat = 0
+        self.lon = 0
+        self.alt = 0
+        self.track = 0
+        self.speed = 0
+        self.vspeed = 0
+        self.time = 0
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python
 

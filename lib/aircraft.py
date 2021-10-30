@@ -17,15 +17,15 @@ class Aircraft(object):
     TEMP_C = 1
 
     def __init__(self):
-        self.sys_time_string = "" 
+        self.sys_time_string = None 
         self.pitch = 0.0 # degrees
         self.roll = 0.0  # degrees
         self.ias = 0 # in mph
         self.tas = 0 # mph
-        self.alt = 0 # in Ft
+        self.alt = None # in Ft
         self.agl = None # ft ( if available )
-        self.PALT = 0 # in ft
-        self.BALT = 0 # in ft
+        self.PALT = None # in ft
+        self.BALT = None # in ft
         self.DA = None # in ft
         self.aoa = None # percentage 0 to 100 (if available)
         self.mag_head = 0 # 0 to 360
@@ -85,12 +85,16 @@ class Aircraft(object):
 
     # get ground speed in converted format.
     def get_gs(self):
+        if(self.gps.GndSpeed != None):
+            useSpeed = self.gps.GndSpeed
+        else:
+            useSpeed = self.gndspeed
         if(self.data_format==0):
-            return self.gndspeed # mph
+            return useSpeed # mph
         if(self.data_format==1):
-            return self.gndspeed * 0.8689758 #knots
+            return useSpeed * 0.8689758 #knots
         if(self.data_format==2):
-            return self.gndspeed * 1.609 #km/h
+            return useSpeed* 1.609 #km/h
 
     # get true airspeed in converted format.
     def get_tas(self):
@@ -112,6 +116,7 @@ class Aircraft(object):
 
     # get ALT in converted format.
     def get_alt(self):
+        #use GPS Alt?
         if(self.data_format==0):
             return self.alt # ft
         if(self.data_format==1):
@@ -121,6 +126,9 @@ class Aircraft(object):
 
     # get Baro Alt in converted format.
     def get_balt(self):
+        if((self.BALT == None and self.gps.GPSAlt != None) or self.altUseGPS == True):
+            self.BALT = self.gps.GPSAlt
+            self.altUseGPS = True
         if(self.data_format==0):
             return self.BALT # ft
         if(self.data_format==1):
@@ -222,6 +230,7 @@ class InputData(object):
 ## Class: GPSData
 class GPSData(object):
     def __init__(self):
+        self.Source = None
         self.LatHemi = None # North or South
         self.LatDeg = None
         self.LatMin = None  # x.xxx
@@ -230,6 +239,7 @@ class GPSData(object):
         self.LonMin = None  # x.xxx
         self.GPSAlt = None  # ft MSL
         self.GndTrack = None # True track from GPS.
+        self.GndSpeed = None
         self.EWVelDir = None  # E or W
         self.EWVelmag = None  # x.x m/s
         self.NSVelDir = None  # N or S

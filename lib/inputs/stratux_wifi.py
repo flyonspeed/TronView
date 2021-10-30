@@ -139,17 +139,18 @@ class stratux_wifi(Input):
                         aircraft.mag_head = Yaw * 0.1
                         aircraft.slip_skid = TurnCoord * 0.01
                         aircraft.vert_G = GLoad * 0.1
-                        aircraft.ias = ias * 0.115078 # convert to MPH
-                        aircraft.PALT = pressAlt
+                        if(ias<500):
+                            aircraft.ias = ias * 0.115078 # convert to MPH
+                        aircraft.PALT = pressAlt -5000 # 5000 is sea level.
                         aircraft.vsi = vSpeed
                         if(msg[4]==2): # if version is 2 then read AOA and OAT
                             aircraft.aoa = AOA
                             aircraft.oat = OAT
-                        aircraft.msg_last = msg
+                        if(self.textMode_showRaw==True): aircraft.msg_last = msg
                         aircraft.msg_count += 1
                     else:
                         aircraft.msg_bad +=1
-                        aircraft.msg_len = len(msg)
+                        #aircraft.msg_len = len(msg)
 
                 elif(msg[3]==2): # more metrics.. 
                     #print("additonal metrics message len:"+str(len(msg)))
@@ -193,16 +194,29 @@ class stratux_wifi(Input):
                     timeStamp = _unsigned16(msg[4:], littleEndian=True)
                     if (statusByte2 & 0b10000000) != 0:
                         timeStamp += (1 << 16)
-                    aircraft.sys_time_string = timeStamp
+                    aircraft.sys_time_string = timeStamp  # get time stamp for gdl hearbeat.
                 elif(msg[1]==10): # GDL ownership
                     #print("GDL 90 HeartBeat message id:"+str(msg[1])+" len:"+str(len(msg)))
                     #print(msg.hex())
-                    latLongIncrement = 180.0 / (2**23)
-                    aircraft.gps.LatDeg = _signed24(msg[6:]) * latLongIncrement ;# latitude
-                    aircraft.gps.LonDeg = _signed24(msg[9:]) * latLongIncrement ;# longitude
-                    alt = _thunkByte(msg[12], 0xff, 4) + _thunkByte(msg[13], 0xf0, -4)
-                    aircraft.gps.GPSAlt = (alt * 25) - 1000
-                    
+                    # if no gps data is currently being tracked then use it from GDL source.
+                    if(aircraft.gps.Source == None or aircraft.gps.Source == self.name):
+                        aircraft.gps.Source = self.name
+                        latLongIncrement = 180.0 / (2**23)
+                        aircraft.gps.LatDeg = _signed24(msg[6:]) * latLongIncrement ;# latitude
+                        aircraft.gps.LonDeg = _signed24(msg[9:]) * latLongIncrement ;# longitude
+                        alt = _thunkByte(msg[12], 0xff, 4) + _thunkByte(msg[13], 0xf0, -4)
+                        aircraft.gps.GPSAlt = (alt * 25) - 1000
+                        aircraft.gps.GPSStatus = 3
+
+                        horzVelo = _thunkByte(msg[15], 0xff, 4) + _thunkByte(msg[16], 0xf0, -4)
+                        if horzVelo == 0xfff:  # no info available
+                            horzVelo = None
+                        aircraft.gps.GndSpeed = int(horzVelo)
+
+                        trackIncrement = 360.0 / 256
+                        aircraft.gps.GndTrack = int(msg[18] * trackIncrement)  # track/heading, 0-358.6 degrees
+                        aircraft.gndtrack = aircraft.gps.GndTrack
+
                     pass
                 elif(msg[1]==20): # Traffic report
                     #print("GDL 90 Traffic message id:"+str(msg[1])+" len:"+str(len(msg)))

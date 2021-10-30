@@ -130,6 +130,8 @@ class Aircraft(object):
         if((self.BALT == None and self.gps.GPSAlt != None) or self.altUseGPS == True):
             self.BALT = self.gps.GPSAlt
             self.altUseGPS = True
+        elif(self.BALT == None):
+            return 0
         if(self.data_format==0):
             return self.BALT # ft
         if(self.data_format==1):

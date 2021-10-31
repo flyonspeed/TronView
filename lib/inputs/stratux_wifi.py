@@ -35,7 +35,7 @@ class stratux_wifi(Input):
                 aircraft.demoFile = hud_utils.readConfig(self.name, "demofile", defaultTo)
             self.ser,self.input_logFileName = Input.openLogFile(self,aircraft.demoFile,"rb")
         else:
-            self.udpport = hud_utils.readConfigInt("DataInput", "udpport", "4000")
+            self.udpport = hud_utils.readConfigInt("Stratux", "udpport", "4000")
 
             # open udp connection.
             self.ser = socket.socket(socket.AF_INET, #Internet
@@ -50,6 +50,10 @@ class stratux_wifi(Input):
             #doesn't get any data
             #self.ser.settimeout(.1)
             self.ser.setblocking(0)
+
+        self.use_ahrs = hud_utils.readConfigBool("Stratux", "use_ahrs", True)
+        if(self.use_ahrs==False):
+            print("Skipping AHRS data from Stratux")
 
     def closeInput(self,aircraft):
         if aircraft.demoMode:
@@ -121,6 +125,10 @@ class stratux_wifi(Input):
                 #print(msg)
                 #print("Len:"+str(len(msg)))
                 #print("Message ID "+format(msg[3]));
+                # check if we want to read in ahrs data input.
+                if(self.use_ahrs == False):
+                    return aircraft
+
                 if(msg[3]==0): # status message
                     #print(msg)
                     #print("status message len:"+str(len(msg)))
@@ -197,6 +205,7 @@ class stratux_wifi(Input):
                     #Status1,Status2 = struct.unpack(">BB",msg[2:4]) 
                     #Time = struct.unpack(">H",msg[4:6]) 
                     #print("Time "+str(Time))
+                    if(self.use_ahrs==False): return aircraft
                     if(len(msg)==11):
                         statusByte2 = msg[3]
                         timeStamp = _unsigned16(msg[4:], littleEndian=True)
@@ -227,6 +236,7 @@ class stratux_wifi(Input):
                             aircraft.gndtrack = aircraft.gps.GndTrack
 
                 elif(msg[1]==11): # GDL OwnershipGeometricAltitude
+                    if(self.use_ahrs==False): return aircraft
                     # get alt from GDL90
                     aircraft.alt = _signed16(msg[2:]) * 5
 

@@ -108,8 +108,8 @@ class serial_mgl(Input):
                             aircraft.mag_decl = Variation * 0.1 # Magnetic variation 10th/deg West = Neg
                             if (aircraft.mag_head == 0):  # if no mag heading use ground track
                                 aircraft.mag_head = aircraft.gndtrack
-                            aircraft.gps.LatDeg = Latitude / 180.000
-                            aircraft.gps.LonDeg = Longitude / 180.000
+                            aircraft.gps.LatDeg = Latitude / 180000
+                            aircraft.gps.LonDeg = Longitude / 180000
                             aircraft.gps.GPSAlt = GPSAltitude # ft MSL
                             aircraft.gps.SatsVisible = SatsVisible
                             aircraft.gps.SatsTracked = SatsTracked
@@ -193,8 +193,8 @@ class serial_mgl(Input):
                             aircraft.nav.AltBug = AltBug
 
                             aircraft.nav.WPDist = WPDist * 0.0539957 # KM (tenths) to NM (0.0539957), Statue Mile (.0621371) Conversion
-                            aircraft.nav.WPLat = WPLat / 180.000
-                            aircraft.nav.WPLon = WPLon / 180.000
+                            aircraft.nav.WPLat = WPLat / 180000
+                            aircraft.nav.WPLon = WPLon / 180000
 
                             aircraft.nav.WPTrack = WPTrack
 

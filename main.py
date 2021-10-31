@@ -179,8 +179,10 @@ if __name__ == "__main__":
         sys.exit()
     shared.CurrentInput = loadInput(1,DataInputToLoad)
     if DataInputToLoad2 != "none":
-        print("Input source 2:"+DataInputToLoad2) 
-        shared.CurrentInput2 = loadInput(2,DataInputToLoad2)
+        if(DataInputToLoad2==DataInputToLoad): print("Skipping Input source 2: same as input 1")
+        else:
+            print("Input source 2:"+DataInputToLoad2) 
+            shared.CurrentInput2 = loadInput(2,DataInputToLoad2)
     if(shared.aircraft.errorFoundNeedToExit==True): sys.exit()
     # check and load screen module. (if not starting in text mode)
     initAircraft()

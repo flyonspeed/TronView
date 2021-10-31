@@ -59,8 +59,10 @@ class stratux_wifi(Input):
 
     def getNextChunck(self,aircraft):
         if aircraft.demoMode:
-            data = self.ser.read(300)
-            if(len(data)==0): self.ser.seek(0)
+            data = self.ser.read(800)
+            if(len(data)==0): 
+                self.ser.seek(0)
+                print("Replaying file: "+self.input_logFileName)
             #TODO: read to the next ~ in the file??
             return data
         else:
@@ -88,17 +90,23 @@ class stratux_wifi(Input):
         #print("chunk:"+str(msg))
 
         for line in msg.split(b'~~'):
-            if(len(line)>3):
+            theLen = len(line)
+            if(theLen>3):
                 if(line[0]!=126): # if no ~ then add one...
                     newline = b''.join([b'~',line])
+                    theLen += 1
                 else:
                     newline = line
+                if(newline[theLen-1]!=126): # add ~ on the end if not there.
+                    newline = b''.join([newline,b'~'])
                 aircraft = self.processSingleMessage(newline,aircraft)
+
+                if self.output_logFile != None:
+                    Input.addToLog(self,self.output_logFile,newline)
+
             #key = wait_key()
             #if(key=='q'): aircraft.errorFoundNeedToExit = True
 
-        if self.output_logFile != None:
-            Input.addToLog(self,self.output_logFile,msg)
 
 
         return aircraft
@@ -189,31 +197,34 @@ class stratux_wifi(Input):
                     #Status1,Status2 = struct.unpack(">BB",msg[2:4]) 
                     #Time = struct.unpack(">H",msg[4:6]) 
                     #print("Time "+str(Time))
-                    statusByte2 = msg[3]
-                    timeStamp = _unsigned16(msg[4:], littleEndian=True)
-                    if (statusByte2 & 0b10000000) != 0:
-                        timeStamp += (1 << 16)
-                    aircraft.sys_time_string = timeStamp  # get time stamp for gdl hearbeat.
+                    if(len(msg)==11):
+                        statusByte2 = msg[3]
+                        timeStamp = _unsigned16(msg[4:], littleEndian=True)
+                        if (statusByte2 & 0b10000000) != 0:
+                            timeStamp += (1 << 16)
+                        aircraft.sys_time_string = timeStamp  # get time stamp for gdl hearbeat.
 
                 elif(msg[1]==10): # GDL ownership
-                    # if no gps data is currently being tracked then use it from GDL source.
-                    if(aircraft.gps.Source == None or aircraft.gps.Source == self.name):
-                        aircraft.gps.Source = self.name
-                        latLongIncrement = 180.0 / (2**23)
-                        aircraft.gps.LatDeg = _signed24(msg[6:]) * latLongIncrement ;# latitude
-                        aircraft.gps.LonDeg = _signed24(msg[9:]) * latLongIncrement ;# longitude
-                        alt = _thunkByte(msg[12], 0xff, 4) + _thunkByte(msg[13], 0xf0, -4)
-                        aircraft.gps.GPSAlt = (alt * 25) - 1000
-                        aircraft.gps.GPSStatus = 3
+                    #print("GDL 90 owership id:"+str(msg[1])+" len:"+str(len(msg)))
+                    if(len(msg)==32):
+                        # if no gps data is currently being tracked then use it from GDL source.
+                        if(aircraft.gps.Source == None or aircraft.gps.Source == self.name):
+                            aircraft.gps.Source = self.name
+                            latLongIncrement = 180.0 / (2**23)
+                            aircraft.gps.LatDeg = _signed24(msg[6:]) * latLongIncrement ;# latitude
+                            aircraft.gps.LonDeg = _signed24(msg[9:]) * latLongIncrement ;# longitude
+                            alt = _thunkByte(msg[12], 0xff, 4) + _thunkByte(msg[13], 0xf0, -4)
+                            aircraft.gps.GPSAlt = (alt * 25) - 1000
+                            aircraft.gps.GPSStatus = 3
 
-                        horzVelo = _thunkByte(msg[15], 0xff, 4) + _thunkByte(msg[16], 0xf0, -4)
-                        if horzVelo == 0xfff:  # no info available
-                            horzVelo = None
-                        aircraft.gps.GndSpeed = int(horzVelo)
+                            horzVelo = _thunkByte(msg[15], 0xff, 4) + _thunkByte(msg[16], 0xf0, -4)
+                            if horzVelo == 0xfff:  # no info available
+                                horzVelo = None
+                            aircraft.gps.GndSpeed = int(horzVelo)
 
-                        trackIncrement = 360.0 / 256
-                        aircraft.gps.GndTrack = int(msg[18] * trackIncrement)  # track/heading, 0-358.6 degrees
-                        aircraft.gndtrack = aircraft.gps.GndTrack
+                            trackIncrement = 360.0 / 256
+                            aircraft.gps.GndTrack = int(msg[18] * trackIncrement)  # track/heading, 0-358.6 degrees
+                            aircraft.gndtrack = aircraft.gps.GndTrack
 
                 elif(msg[1]==11): # GDL OwnershipGeometricAltitude
                     # get alt from GDL90
@@ -221,51 +232,56 @@ class stratux_wifi(Input):
 
                 elif(msg[1]==20): # Traffic report
                     #print("GDL 90 Traffic message id:"+str(msg[1])+" len:"+str(len(msg)))
-                    #print(msg.hex())
+                    if(len(msg)==32): 
+                        #print(msg.hex())
 
-                    callsign = re.sub(r'[^A-Za-z0-9]+', '', msg[20:28].rstrip().decode('ascii', errors='ignore') ) # clean the N number.
-                    targetStatus = _thunkByte(msg[2], 0x0b11110000, -4) # status
-                    targetType = _thunkByte(msg[2], 0b00001111) # type
+                        callsign = re.sub(r'[^A-Za-z0-9]+', '', msg[20:28].rstrip().decode('ascii', errors='ignore') ) # clean the N number.
+                        targetStatus = _thunkByte(msg[2], 0x0b11110000, -4) # status
+                        targetType = _thunkByte(msg[2], 0b00001111) # type
 
-                    target = Target(callsign)
-                    target.aStat = targetStatus
-                    target.type = targetType
-                    target.address =  (msg[3] << 16) + (msg[4] << 8) + msg[5] # address
-                    # get lat/lon
-                    latLongIncrement = 180.0 / (2**23)
-                    target.lat = _signed24(msg[6:]) * latLongIncrement
-                    target.lon = _signed24(msg[9:]) * latLongIncrement
-                    # alt of target.
-                    alt = _thunkByte(msg[12], 0xff, 4) + _thunkByte(msg[13], 0xf0, -4)
-                    target.alt = (alt * 25) - 1000
-                    #speed
-                    horzVelo = _thunkByte(msg[15], 0xff, 4) + _thunkByte(msg[16], 0xf0, -4)
-                    if horzVelo == 0xfff:  # no hvelocity info available
-                        horzVelo = 0
-                    target.speed = int(horzVelo)
-                    # heading
-                    trackIncrement = 360.0 / 256
-                    target.track = int(msg[18] * trackIncrement)  # track/heading, 0-358.6 degrees
-                    # vert speed. 12-bit signed value of 64 fpm increments
-                    vertVelo = _thunkByte(msg[16], 0x0f, 8) + _thunkByte(msg[17])
-                    if vertVelo == 0x800:   # not avail
-                        vertVelo = 0
-                    elif (vertVelo >= 0x1ff and vertVelo <= 0x7ff) or (vertVelo >= 0x801 and vertVelo <= 0xe01):  # not used, invalid
-                        vertVelo = 0
-                    elif vertVelo > 2047:  # two's complement, negative values
-                        vertVelo -= 4096
-                    target.vspeed = (vertVelo * 64) ;# vertical velocity
+                        target = Target(callsign)
+                        target.aStat = targetStatus
+                        target.type = targetType
+                        target.address =  (msg[3] << 16) + (msg[4] << 8) + msg[5] # address
+                        # get lat/lon
+                        latLongIncrement = 180.0 / (2**23)
+                        target.lat = _signed24(msg[6:]) * latLongIncrement
+                        target.lon = _signed24(msg[9:]) * latLongIncrement
+                        # alt of target.
+                        alt = _thunkByte(msg[12], 0xff, 4) + _thunkByte(msg[13], 0xf0, -4)
+                        target.alt = (alt * 25) - 1000
+                        #speed
+                        horzVelo = _thunkByte(msg[15], 0xff, 4) + _thunkByte(msg[16], 0xf0, -4)
+                        if horzVelo == 0xfff:  # no hvelocity info available
+                            horzVelo = 0
+                        target.speed = int(horzVelo)
+                        # heading
+                        trackIncrement = 360.0 / 256
+                        target.track = int(msg[18] * trackIncrement)  # track/heading, 0-358.6 degrees
+                        # vert speed. 12-bit signed value of 64 fpm increments
+                        vertVelo = _thunkByte(msg[16], 0x0f, 8) + _thunkByte(msg[17])
+                        if vertVelo == 0x800:   # not avail
+                            vertVelo = 0
+                        elif (vertVelo >= 0x1ff and vertVelo <= 0x7ff) or (vertVelo >= 0x801 and vertVelo <= 0xe01):  # not used, invalid
+                            vertVelo = 0
+                        elif vertVelo > 2047:  # two's complement, negative values
+                            vertVelo -= 4096
+                        target.vspeed = (vertVelo * 64) ;# vertical velocity
 
-                    # check distance. if we know our location..
-                    if(aircraft.gps.LatDeg != None and aircraft.gps.LonDeg != None):
-                        target.dist = _distance(aircraft.gps.LatDeg,aircraft.gps.LonDeg,target.lat,target.lon)
+                        # check distance. if we know our location..
+                        if(aircraft.gps.LatDeg != None and aircraft.gps.LonDeg != None):
+                            target.dist = _distance(aircraft.gps.LatDeg,aircraft.gps.LonDeg,target.lat,target.lon)
 
-                    aircraft.traffic.addTarget(target) # add/update target to traffic list.
+                        aircraft.traffic.addTarget(target) # add/update target to traffic list.
 
-                    aircraft.traffic.msg_count += 1
+                        aircraft.traffic.msg_count += 1
+                    else:
+                        aircraft.traffic.msg_bad += 1
+
                     if(self.textMode_showRaw==True): 
                         aircraft.traffic.msg_last = binascii.hexlify(msg)
-                    pass
+                        aircraft.traffic.msg_len = len(msg)
+
                 elif(msg[1]==101): # Foreflight id?
                     pass
 
@@ -294,7 +310,8 @@ class stratux_wifi(Input):
 
 def _unsigned24(data, littleEndian=False):
     """return a 24-bit unsigned integer with selectable Endian"""
-    assert len(data) >= 3
+    #if(len(data) >= 3): raise Exception("_unsigned24 len(data) >= 3")
+    if(len(data)<3): return 0
     if littleEndian:
         b0 = data[2]
         b1 = data[1]
@@ -318,7 +335,8 @@ def _signed24(data, littleEndian=False):
 
 def _unsigned16(data, littleEndian=False):
     """return a 16-bit unsigned integer with selectable Endian"""
-    assert len(data) >= 2
+    #if(len(data) >= 2): raise Exception("_unsigned16 len(data) >= 2")
+    if(len(data)<2): return 0
     if littleEndian:
         b0 = data[1]
         b1 = data[0]

@@ -341,6 +341,7 @@ class TrafficData(object):
 
         self.msg_count = 0
         self.msg_last = ""
+        self.msg_bad = 0
 
     def contains(self, target): # search for callsign
         for x in self.targets:

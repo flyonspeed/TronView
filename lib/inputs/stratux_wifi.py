@@ -282,12 +282,13 @@ class stratux_wifi(Input):
                         # check distance. if we know our location..
                         if(aircraft.gps.LatDeg != None and aircraft.gps.LonDeg != None):
                             target.dist = _distance(aircraft.gps.LatDeg,aircraft.gps.LonDeg,target.lat,target.lon)
-                            brng = Geodesic.WGS84.Inverse(aircraft.gps.LatDeg,aircraft.gps.LonDeg,target.lat,target.lon)['azi1']
-                            if(brng<0): target.brng = int(360 - (abs(brng))) # convert foward azimuth to bearing to.
-                            elif(brng!=brng):
-                                #its NaN.
-                                target.brng = None
-                            else: target.brng = int(brng)
+                            if(target.dist<500):
+                                brng = Geodesic.WGS84.Inverse(aircraft.gps.LatDeg,aircraft.gps.LonDeg,target.lat,target.lon)['azi1']
+                                if(brng<0): target.brng = int(360 - (abs(brng))) # convert foward azimuth to bearing to.
+                                elif(brng!=brng):
+                                    #its NaN.
+                                    target.brng = None
+                                else: target.brng = int(brng)
 
                         aircraft.traffic.addTarget(target) # add/update target to traffic list.
 

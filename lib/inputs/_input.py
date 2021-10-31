@@ -149,6 +149,9 @@ class Input:
         if len(aircraft.demoFile):
             hud_text.print_header("Playing Log: %s"%(aircraft.demoFile))
 
+        if(self.textMode_whatToShow==0): showHowManyListItems = 1
+        else: showHowManyListItems = -1
+
         if self.textMode_whatToShow==0 or self.textMode_whatToShow==1:
             hud_text.print_object(aircraft)
 
@@ -159,7 +162,7 @@ class Input:
 
         if self.textMode_whatToShow==0 or self.textMode_whatToShow==3:
             hud_text.print_header("Traffic Data")
-            hud_text.print_object(aircraft.traffic)
+            hud_text.print_object(aircraft.traffic,showHowManyListItems=showHowManyListItems)
 
         if self.textMode_whatToShow==0 or self.textMode_whatToShow==4:
             hud_text.print_header("GPS Data")

@@ -51,7 +51,7 @@ def print_header(header):
 
 #############################################
 ## Function print at next location
-def print_data(label,value,forceIfObject=False,sameLine=False,indent=False):
+def print_data(label,value,forceIfObject=False,sameLine=False,indent=False,showHowManyListItems=-1):
     global lastTextX, lastTextY, startTextY
     theType = type(value)
     if( theType is str):
@@ -78,13 +78,13 @@ def print_data(label,value,forceIfObject=False,sameLine=False,indent=False):
                 for v in value:
                     objCount += 1
                     print_data(str(objCount)+":","",sameLine=True)
-                    print_data("",v,forceIfObject=True)
+                    print_data("",v,forceIfObject=True, showHowManyListItems=showHowManyListItems)
                 return
         else:
             showValue = "[]"
     else :
         if(forceIfObject==True):
-            print_object(value,sameLine=True,indent=True)
+            print_object(value,sameLine=True,indent=True,showHowManyItems=showHowManyListItems)
             lastTextY = startTextY
             lastTextX = lastTextX + 1
         # else its a object or something else so don't show it.
@@ -104,9 +104,13 @@ def print_data(label,value,forceIfObject=False,sameLine=False,indent=False):
 
 #############################################
 ## Function to print all object values.
-def print_object(obj,sameLine=False,indent=False):
+## if showHowManyItems = -1 then show all items in object.. else its a count of how many to show.
+def print_object(obj,sameLine=False,indent=False,showHowManyItems=-1,showHowManyListItems=-1):
+    count = 0
     for attr, value in list(vars(obj).items()):
-        print_data(attr,value,forceIfObject=False,sameLine=sameLine,indent=indent)
+        count += 1
+        print_data(attr,value,forceIfObject=False,sameLine=sameLine,indent=indent,showHowManyListItems=showHowManyListItems)
+        if(showHowManyItems != -1 and showHowManyItems == count): return
 
 #############################################
 ## Function change the x,y postions to start printing from.

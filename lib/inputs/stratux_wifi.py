@@ -139,8 +139,7 @@ class stratux_wifi(Input):
                         aircraft.mag_head = Yaw * 0.1
                         aircraft.slip_skid = TurnCoord * 0.01
                         aircraft.vert_G = GLoad * 0.1
-                        if(ias<500):
-                            aircraft.ias = ias * 0.115078 # convert to MPH
+                        #aircraft.ias = ias # if ias is 32767 then no airspeed given?
                         aircraft.PALT = pressAlt -5000 # 5000 is sea level.
                         aircraft.vsi = vSpeed
                         if(msg[4]==2): # if version is 2 then read AOA and OAT
@@ -195,9 +194,8 @@ class stratux_wifi(Input):
                     if (statusByte2 & 0b10000000) != 0:
                         timeStamp += (1 << 16)
                     aircraft.sys_time_string = timeStamp  # get time stamp for gdl hearbeat.
+
                 elif(msg[1]==10): # GDL ownership
-                    #print("GDL 90 HeartBeat message id:"+str(msg[1])+" len:"+str(len(msg)))
-                    #print(msg.hex())
                     # if no gps data is currently being tracked then use it from GDL source.
                     if(aircraft.gps.Source == None or aircraft.gps.Source == self.name):
                         aircraft.gps.Source = self.name
@@ -217,18 +215,22 @@ class stratux_wifi(Input):
                         aircraft.gps.GndTrack = int(msg[18] * trackIncrement)  # track/heading, 0-358.6 degrees
                         aircraft.gndtrack = aircraft.gps.GndTrack
 
-                    pass
+                elif(msg[1]==11): # GDL OwnershipGeometricAltitude
+                    # get alt from GDL90
+                    aircraft.alt = _signed16(msg[2:]) * 5
+
                 elif(msg[1]==20): # Traffic report
                     #print("GDL 90 Traffic message id:"+str(msg[1])+" len:"+str(len(msg)))
                     #print(msg.hex())
 
                     callsign = re.sub(r'[^A-Za-z0-9]+', '', msg[20:28].rstrip().decode('ascii', errors='ignore') ) # clean the N number.
-                    targetStatus = _thunkByte(msg[2], 0x0b11110000, -4) ;# status
-                    targetType = _thunkByte(msg[2], 0b00001111) ;# type
+                    targetStatus = _thunkByte(msg[2], 0x0b11110000, -4) # status
+                    targetType = _thunkByte(msg[2], 0b00001111) # type
 
                     target = Target(callsign)
                     target.aStat = targetStatus
                     target.type = targetType
+                    target.address =  (msg[3] << 16) + (msg[4] << 8) + msg[5] # address
                     # get lat/lon
                     latLongIncrement = 180.0 / (2**23)
                     target.lat = _signed24(msg[6:]) * latLongIncrement

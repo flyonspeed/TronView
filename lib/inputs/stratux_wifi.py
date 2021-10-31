@@ -18,6 +18,7 @@ from lib.aircraft import Target
 import time
 import math
 import pyproj
+from geographiclib.geodesic import Geodesic
 
 class stratux_wifi(Input):
     def __init__(self):
@@ -283,11 +284,10 @@ class stratux_wifi(Input):
 
                         # check distance. if we know our location..
                         if(aircraft.gps.LatDeg != None and aircraft.gps.LonDeg != None):
-                            #target.dist2 = _distance(aircraft.gps.LatDeg,aircraft.gps.LonDeg,target.lat,target.lon)
-                            fwd_azimuth,back_azimuth,dist = self.geodesic.inv(aircraft.gps.LonDeg,aircraft.gps.LatDeg,target.lon,target.lat)
-                            if(fwd_azimuth<0): target.bearingTo = int(360 - (abs(fwd_azimuth))) # convert foward azimuth to bearing to.
-                            else: target.bearingTo = int(fwd_azimuth)
-                            target.dist = dist * 0.0006213712
+                            target.dist = _distance(aircraft.gps.LatDeg,aircraft.gps.LonDeg,target.lat,target.lon)
+                            brng = Geodesic.WGS84.Inverse(aircraft.gps.LatDeg,aircraft.gps.LonDeg,target.lat,target.lon)['azi1']
+                            if(brng<0): target.brng = int(360 - (abs(brng))) # convert foward azimuth to bearing to.
+                            else: target.brng = int(brng)
 
                         aircraft.traffic.addTarget(target) # add/update target to traffic list.
 

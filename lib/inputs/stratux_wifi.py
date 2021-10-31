@@ -17,7 +17,6 @@ import traceback
 from lib.aircraft import Target
 import time
 import math
-import pyproj
 from geographiclib.geodesic import Geodesic
 
 class stratux_wifi(Input):
@@ -28,8 +27,6 @@ class stratux_wifi(Input):
 
     def initInput(self,num,aircraft):
         Input.initInput( self,num, aircraft )  # call parent init Input.
-
-        self.geodesic = pyproj.Geod(ellps='WGS84')
 
         if aircraft.demoMode:
             # if in demo mode then load example data file.
@@ -287,6 +284,9 @@ class stratux_wifi(Input):
                             target.dist = _distance(aircraft.gps.LatDeg,aircraft.gps.LonDeg,target.lat,target.lon)
                             brng = Geodesic.WGS84.Inverse(aircraft.gps.LatDeg,aircraft.gps.LonDeg,target.lat,target.lon)['azi1']
                             if(brng<0): target.brng = int(360 - (abs(brng))) # convert foward azimuth to bearing to.
+                            elif(brng!=brng):
+                                #its NaN.
+                                target.brng = None
                             else: target.brng = int(brng)
 
                         aircraft.traffic.addTarget(target) # add/update target to traffic list.
@@ -311,9 +311,11 @@ class stratux_wifi(Input):
 
 
             return aircraft
-        except ValueError:
+        except ValueError as e :
             print("stratux value error exception")
             aircraft.errorFoundNeedToExit = True
+            print(e)
+            print(traceback.format_exc())
         except struct.error:
             #error with read in length.. ignore for now?
             #print("Error with read in length")

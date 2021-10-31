@@ -36,6 +36,7 @@ case $yn in
 		pip3 install serial
 		pip3 install pygame_menu
 		pip3 install MacTmp
+		pip3 install pyproj 
 		;;
 	[Nn]* )echo "..."; 
 esac

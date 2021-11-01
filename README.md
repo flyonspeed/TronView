@@ -137,21 +137,30 @@ Note:  You have to run using sudo in order to get access to serial port.
 
 Example:
 
-`sudo python main.py -i serial_mgl`
+`sudo python3 main.py -i serial_mgl`
 
 will show you command line arguments.
 
-`-i {input data source module}`
+`-i {input data source 1}` 
 
 load a input module for where to get the air data from. 
 
+--in1 {input source 1} (same as -i)
+
+--in2 {input source 2} 
+
 -s (optional) {screen module name to load} (located in the lib/screens folder)
 
--t (optional) will let you see the data in text mode
+-t (optional) start up in text mode
 
 -e (optional) demo mode. load default example demo data for input source selected.
 
--c FILENAME (optional) custom demo mode file. Enter filename of custom example demo file to use.
+-c FILENAME (optional) custom playback file. Enter filename of custom example demo file to use.
+
+--playfile1 (optional) same as -c.. set playback file for input 1
+
+--playfile2 (optional) set playback file for input 2
+
 
 Run the command with no arguments and it will show you which input modules and screen modules are available to use.
 
@@ -170,6 +179,8 @@ The default screen has the following keyboard commands.
 current commands are:
 
 q - quit
+
+t - switch to text mode
 
 cntrl d - show some debug info
 

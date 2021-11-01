@@ -64,16 +64,16 @@ def get_bin(x, n=8):
 def showArgs():
     print("main.py -i <inputsource> - s <screenmodule> <more options>")
     print(" -i  <Input 1 Source> Main input source (Required unless defined in config.cfg)")
-    print(" -i1 <Input 1 Source> same as using -i")
-    print(" -i2 <Input 2 Source> optional 2nd input source")
+    print(" --in1 <Input 1 Source> same as using -i")
+    print(" --in2 <Input 2 Source> optional 2nd input source")
 
     print(" -s <Screen Name> (Required unless defined in config.cfg, or in text mode)")
     print(" -t Start in text mode")
 
     print(" -e demo mode. Use default example data for main input module")
     print(" -c <custom data filename> use custom log data file to play back")
-    print(" -pf1 playback logfile for input 1 (main input source)")
-    print(" -pf2 playback logfile for input 2")
+    print(" --playfile1 playback logfile for input 1 (main input source)")
+    print(" --playfile2 playback logfile for input 2")
 
     print(" -r list log data files")
     print(" -l list serial ports")

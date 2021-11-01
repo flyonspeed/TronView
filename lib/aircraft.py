@@ -222,8 +222,8 @@ class InteralData(object):
 class InputDetails(object):
     def __init__(self):
         self.Name = None # Name of input
-        self.Ver = 0
-        self.InputType = "NA" # Connect Type.. IE serial, wifi
+        self.Ver = None
+        self.InputType = None # Connect Type.. IE serial, wifi
         self.Battery = None
         self.PlayFile = None
         self.RecFile = None

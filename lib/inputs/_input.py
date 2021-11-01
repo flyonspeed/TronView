@@ -156,7 +156,7 @@ class Input:
         else: showHowManyListItems = -1
 
         if self.textMode_whatToShow==0 or self.textMode_whatToShow==1:
-            hud_text.print_object(aircraft)
+            hud_text.print_object(aircraft,showHowManyListItems=showHowManyListItems)
 
         if self.textMode_whatToShow==0 or self.textMode_whatToShow==2:
             if self.textMode_whatToShow==0: hud_text.changePos(2,34)

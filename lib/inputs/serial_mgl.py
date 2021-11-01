@@ -67,6 +67,7 @@ class serial_mgl(Input):
                 else:
                     if self.isPlaybackMode:  # if no bytes read and in playback mode.  then reset the file pointer to the start of the file.
                         self.ser.seek(0)
+                        print("MGL file reset")
                     return aircraft
             stx = ord(self.ser.read(1))
 

@@ -65,7 +65,7 @@ class stratux_wifi(Input):
 
     def getNextChunck(self,aircraft):
         if self.isPlaybackMode:
-            data = self.ser.read(800)
+            data = self.ser.read(80)
             if(len(data)==0): 
                 self.ser.seek(0)
                 print("Replaying file: "+self.input_logFileName)

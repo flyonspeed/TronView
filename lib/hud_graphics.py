@@ -310,7 +310,7 @@ def hud_draw_debug(aircraft,smartdisplay,font):
     )
     smartdisplay.pygamescreen.blit(label, (smartdisplay.x_start, smartdisplay.y_start+100))
     label = font.render(
-        "Baro: %0.2f diff: %0.4f" % (aircraft.baro, aircraft.baro_diff, turn_rate),
+        "Baro: %0.2f diff: %0.4f" % (aircraft.baro, aircraft.baro_diff),
         1,
         (20, 255, 0),
     )

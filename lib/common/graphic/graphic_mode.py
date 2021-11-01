@@ -47,19 +47,27 @@ def main_graphical():
                 if event.key == pygame.K_RIGHT and mods & pygame.KMOD_CTRL :
                     print("fast forward...")
                     shared.CurrentInput.fastForward(shared.aircraft,500)
+                    if(shared.CurrentInput2 != None): shared.CurrentInput2.fastForward(shared.aircraft,500)
                 elif event.key == pygame.K_LEFT and mods & pygame.KMOD_CTRL :
                     print("jump backwards data...")
                     shared.CurrentInput.fastBackwards(shared.aircraft,500)
+                    if(shared.CurrentInput2 != None): shared.CurrentInput2.fastBackwards(shared.aircraft,500)
                 elif (event.key == pygame.K_w and mods & pygame.KMOD_CTRL) or event.key == pygame.K_1 or event.key == pygame.K_KP1 :
                     try:
                         shared.CurrentInput.startLog(shared.aircraft)
-                        drawTimer.addGrowlNotice("Created log: %s"%(shared.CurrentInput.output_logFileName),3000,drawTimer.nerd_yellow,drawTimer.CENTER)
+                        drawTimer.addGrowlNotice("Log: %s"%(shared.CurrentInput.output_logFileName),3000,drawTimer.nerd_yellow,drawTimer.CENTER)
+                        if(shared.CurrentInput2 != None): 
+                            shared.CurrentInput2.startLog(shared.aircraft)
+                            drawTimer.addGrowlNotice("Log2: %s"%(shared.CurrentInput2.output_logFileName),3000,drawTimer.nerd_yellow,drawTimer.BOTTOM_CENTER)
                     except :
                         drawTimer.addGrowlNotice("Unable to create log: "+shared.CurrentInput.name,3000,drawTimer.nerd_yellow,drawTimer.CENTER)
                 elif (event.key == pygame.K_e and mods & pygame.KMOD_CTRL) or event.key == pygame.K_2 or event.key == pygame.K_KP2:
                     try:
                         Saved,SendingTo = shared.CurrentInput.stopLog(shared.aircraft)
-                        drawTimer.addGrowlNotice("Saved log: %s"%(shared.CurrentInput.output_logFileName),3000,drawTimer.nerd_yellow,drawTimer.CENTER) 
+                        drawTimer.addGrowlNotice("Log: %s"%(shared.CurrentInput.output_logFileName),3000,drawTimer.nerd_yellow,drawTimer.CENTER) 
+                        if(shared.CurrentInput2 != None):
+                            Saved,SendingTo = shared.CurrentInput2.stopLog(shared.aircraft)
+                            drawTimer.addGrowlNotice("Log2: %s"%(shared.CurrentInput2.output_logFileName),3000,drawTimer.nerd_yellow,drawTimer.BOTTOM_CENTER) 
                         if(SendingTo!=None):
                             drawTimer.addGrowlNotice("Uploading to %s"%(SendingTo),3000,drawTimer.nerd_yellow,drawTimer.TOP_LEFT) 
                     except ValueError:

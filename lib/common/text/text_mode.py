@@ -55,8 +55,10 @@ class threadReadKeyboard(threading.Thread):
                 shared.aircraft.errorFoundNeedToExit = True
             elif key==curses.KEY_RIGHT:
                 shared.CurrentInput.fastForward(shared.aircraft,500)
+                if(shared.CurrentInput2 != None): shared.CurrentInput2.fastForward(shared.aircraft,500)
             elif key==curses.KEY_LEFT:
                 shared.CurrentInput.fastBackwards(shared.aircraft,500)
+                if(shared.CurrentInput2 != None): shared.CurrentInput2.fastBackwards(shared.aircraft,500)
             elif key==27:  # escape key.
                 curses.endwin()
                 shared.aircraft.textMode = False
@@ -66,11 +68,13 @@ class threadReadKeyboard(threading.Thread):
             elif key==23 or key==ord('1'):  #cntrl w
                 try:
                     shared.CurrentInput.startLog(shared.aircraft)
+                    if(shared.CurrentInput2 != None): shared.CurrentInput2.startLog(shared.aircraft)
                 except :
                     pass
             elif key==5 or key==ord('2'): #cnrtl e
                 try:
                     shared.CurrentInput.stopLog(shared.aircraft)
+                    if(shared.CurrentInput2 != None): shared.CurrentInput2.stopLog(shared.aircraft)
                 except :
                     pass
             else: #else send this key to the input (if it has the ability)

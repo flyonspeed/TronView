@@ -81,11 +81,9 @@ def loadInput(num,nameToLoad):
     class_ = getattr(mod, nameToLoad)
     newInput = class_()
     newInput.initInput(num,shared.aircraft)
-    label = aircraft.InputData()
-    label.Name = newInput.name
-    label.Ver = newInput.version
-    label.InputType = newInput.inputtype
-    setattr(shared.aircraft, 'input'+str(num), label)
+    shared.aircraft.inputs[num].Name = newInput.name
+    shared.aircraft.inputs[num].Ver = newInput.version
+    shared.aircraft.inputs[num].InputType = newInput.inputtype
     return newInput
 
 #############################################
@@ -127,7 +125,7 @@ if __name__ == "__main__":
     #print 'ARGV      :', sys.argv[1:]
     try:
         opts, args = getopt.getopt(
-            sys.argv[1:], "hs:i:tec:lr",
+            sys.argv[1:], "hs:i:tec:lr",['pf1=','pf2=']
         )
     except getopt.GetoptError:
         print("unknown command line args given..")
@@ -137,13 +135,18 @@ if __name__ == "__main__":
         if opt == '-t':
             shared.aircraft.textMode = True
         if opt == '-e':
-            shared.aircraft.demoMode = True
+            shared.aircraft.inputs[0].PlayFile = True
         if opt == '-c':  #custom example file name.
-            shared.aircraft.demoMode = True
-            shared.aircraft.demoFile = arg
+            shared.aircraft.inputs[0].PlayFile = arg
         if opt == '-r':  # list example files
             hud_utils.listLogDataFiles()
             sys.exit()
+        if opt in ("", "--pf1"):
+            shared.aircraft.inputs[0].PlayFile = arg
+            print("Input1 playing log file: "+arg)
+        if opt in ("", "--pf2"):
+            shared.aircraft.inputs[1].PlayFile = arg
+            print("Input2 playing log file: "+arg)
         if opt in ("-h", "--help"):
             hud_utils.showArgs()
         if opt in ("-i"):
@@ -177,12 +180,12 @@ if __name__ == "__main__":
         print(("Input source not found: %s"%(DataInputToLoad)))
         hud_utils.findInput() # show available inputs
         sys.exit()
-    shared.CurrentInput = loadInput(1,DataInputToLoad)
+    shared.CurrentInput = loadInput(0,DataInputToLoad)
     if DataInputToLoad2 != "none":
         if(DataInputToLoad2==DataInputToLoad): print("Skipping Input source 2: same as input 1")
         else:
             print("Input source 2:"+DataInputToLoad2) 
-            shared.CurrentInput2 = loadInput(2,DataInputToLoad2)
+            shared.CurrentInput2 = loadInput(1,DataInputToLoad2)
     if(shared.aircraft.errorFoundNeedToExit==True): sys.exit()
     # check and load screen module. (if not starting in text mode)
     initAircraft()

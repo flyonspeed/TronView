@@ -50,8 +50,7 @@ class Aircraft(object):
         self.traffic = TrafficData()
         self.fuel = FuelData()
         self.internal = InteralData()
-        self.input1 = InputData()
-        self.input2 = InputData()
+        self.inputs = [InputDetails(),InputDetails()]
         self.alerts = []
 
         self.msg_count = 0
@@ -59,8 +58,6 @@ class Aircraft(object):
         self.msg_unknown = 0
         self.msg_last = ""
         self.errorFoundNeedToExit = False
-        self.demoMode = False
-        self.demoFile = ""
         self.textMode = False
         self.show_FPS = False #show screen refresh rate in frames per second for performance tuning
         self.fps = 0
@@ -221,13 +218,15 @@ class InteralData(object):
         self.PyGameVer = None
 
 #############################################
-## Class: InputData
-class InputData(object):
+## Class: InputDetails
+class InputDetails(object):
     def __init__(self):
         self.Name = None # Name of input
         self.Ver = 0
         self.InputType = "NA" # Connect Type.. IE serial, wifi
         self.Battery = None
+        self.PlayFile = None
+        self.RecFile = None
 
 #############################################
 ## Class: GPSData

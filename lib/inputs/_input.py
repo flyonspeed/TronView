@@ -32,8 +32,9 @@ class Input:
         self.skipTextOutput = False
         self.output_logFile = None
         self.output_logFileName = ""
-        self.input_logFileName = ""
+        self.input_logFileName = None
         self.inputNum = num
+        self.isPlaybackMode = False
 
         return
 
@@ -146,8 +147,10 @@ class Input:
     ## Function: printTextModeData
     def printTextModeData(self, aircraft):
         hud_text.print_header("Decoded data from Input Module: %s (Keys: space=cycle data, r=raw)"%(self.name))
-        if len(aircraft.demoFile):
-            hud_text.print_header("Playing Log: %s"%(aircraft.demoFile))
+        if aircraft.inputs[0].PlayFile!=None:
+            hud_text.print_header("Playing Log1: %s"%(aircraft.inputs[0].PlayFile))
+        if aircraft.inputs[1].PlayFile!=None:
+            hud_text.print_header("Playing Log2: %s"%(aircraft.inputs[1].PlayFile))
 
         if(self.textMode_whatToShow==0): showHowManyListItems = 1
         else: showHowManyListItems = -1
@@ -177,10 +180,10 @@ class Input:
             hud_text.print_header("Fuel Data")
             hud_text.print_object(aircraft.fuel)
             hud_text.print_header("Input Source 1")
-            hud_text.print_object(aircraft.input1)
-            if(aircraft.input2.Name != None):
+            hud_text.print_object(aircraft.inputs[0])
+            if(aircraft.inputs[1].Name != None):
                 hud_text.print_header("Input Source 2")
-                hud_text.print_object(aircraft.input2)                
+                hud_text.print_object(aircraft.inputs[1])                
             hud_text.print_header("Internal Data")
             hud_text.print_object(aircraft.internal)
 
@@ -232,7 +235,7 @@ class Input:
     #############################################
     # fast forward if reading from a file.
     def fastForward(self,aircraft,bytesToSkip):
-            if aircraft.demoMode:
+            if aircraft.inputs[self.inputNum].PlayFile != None:
                 current = self.ser.tell()
                 moveTo = current - bytesToSkip
                 try:
@@ -246,7 +249,7 @@ class Input:
     #############################################
     # fast backwards if reading from a file.
     def fastBackwards(self,aircraft,bytesToSkip):
-            if aircraft.demoMode:
+            if aircraft.inputs[self.inputNum].PlayFile != None:
                 self.skipReadInput = True  # lets pause reading from the file for second while we mess with the file pointer.
                 current = self.ser.tell()
                 moveTo = current - bytesToSkip
@@ -260,6 +263,7 @@ class Input:
                     self.ser.seek(0)
                 #print("fastForward() before="+str(current)+" goto:"+str(moveTo)+" done="+str(self.ser.tell()))
                 self.skipReadInput = False
+
 
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

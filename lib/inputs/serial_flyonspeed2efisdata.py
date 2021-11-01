@@ -20,9 +20,12 @@ class serial_flyonspeed2efisdata(Input):
     def initInput(self,num,aircraft):
         Input.initInput( self,num,s aircraft )  # call parent init Input.
         
-        if aircraft.demoMode:
-            # if in demo mode then load example data file.
-            self.ser = open("lib/inputs/_example_data/flyonspeed2efisdata_data1.csv", "r") 
+        if(aircraft.inputs[self.inputNum].PlayFile!=None):
+            if aircraft.inputs[self.inputNum].PlayFile==True:
+                defaultTo = "flyonspeed2efisdata_data1.csv"
+                aircraft.inputs[self.inputNum].PlayFile = hud_utils.readConfig(self.name, "playback_file", defaultTo)
+            self.ser,self.input_logFileName = Input.openLogFile(self,aircraft.inputs[self.inputNum].PlayFile,"r")
+            self.isPlaybackMode = True
         else:
             self.efis_data_format = hud_utils.readConfig("DataInput", "format", "none")
             self.efis_data_port = hud_utils.readConfig("DataInput", "port", "/dev/ttyS0")
@@ -42,7 +45,7 @@ class serial_flyonspeed2efisdata(Input):
 
     # close this data input 
     def closeInput(self,aircraft):
-        if aircraft.demoMode:
+        if self.isPlaybackMode:
             self.ser.close()
         else:
             self.ser.close()
@@ -62,7 +65,7 @@ class serial_flyonspeed2efisdata(Input):
                     msg += t
                     #print(t)
                 else:
-                    if aircraft.demoMode:  # if no bytes read and in demo mode.  then reset the file pointer to the start of the file.
+                    if self.isPlaybackMode:  # if no bytes read and in playback mode.  then reset the file pointer to the start of the file.
                         self.ser.seek(0)
                     return aircraft
             msgArray = msg.split(",")  # split up csv format
@@ -86,7 +89,7 @@ class serial_flyonspeed2efisdata(Input):
                     aircraft.vsi = int(msgArray[20]) 
                     aircraft.msg_count += 1
 
-                    if aircraft.demoMode:  #if demo mode then add a delay.  Else reading a file is way to fast.
+                    if self.isPlaybackMode:  #if playback mode then add a delay.  Else reading a file is way to fast.
                         time.sleep(.05)
                     else:
                         self.ser.flushInput()  # flush the serial after every message else we see delays
@@ -96,7 +99,7 @@ class serial_flyonspeed2efisdata(Input):
 
             else:
                 aircraft.msg_bad += 1 # count this as a bad message
-                if aircraft.demoMode:  #if demo mode then add a delay.  Else reading a file is way to fast.
+                if self.isPlaybackMode:  #if playback mode then add a delay.  Else reading a file is way to fast.
                     time.sleep(.01)
                 else:
                     self.ser.flushInput()  # flush the serial after every message else we see delays

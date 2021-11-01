@@ -22,7 +22,7 @@ class serial_logger(Input):
 
     def initInput(self,num,aircraft):
         Input.initInput( self,num, aircraft )  # call parent init Input.
-        if aircraft.demoMode:
+        if(aircraft.inputs[self.inputNum].PlayFile!=None):
             print("serial_logger can not play back files. Only used to record data.")
             aircraft.errorFoundNeedToExit = True
         else:
@@ -46,7 +46,7 @@ class serial_logger(Input):
             self.textMode_showRaw = true
 
     def closeInput(self,aircraft):
-        if aircraft.demoMode:
+        if self.isPlaybackMode = True:
             aircraft.errorFoundNeedToExit = True
         else:
             self.ser.close()

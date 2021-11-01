@@ -63,11 +63,15 @@ def get_bin(x, n=8):
 ## Function: show command Args
 def showArgs():
     print("main.py -i <inputmodule> - s <screenmodule> <more options>")
-    print(" -i <Input Module Name> (Required)")
-    print(" -s <Screen Module Name> (Required)")
-    print(" -t Show text mode only")
+    print(" -i <Input Module Name> (Required unless defined in config.cfg)")
+    print(" -s <Screen Module Name> (Required unless defined in config.cfg)")
+    print(" -t Start in text mode")
+
     print(" -e demo mode. Use default example data for input module")
     print(" -c <custom data filename> use custom log data file to play back")
+    print(" -pf1 playback logfile for input 1 (main input source)")
+    print(" -pf2 playback logfile for input 2")
+
     print(" -r list log data files")
     print(" -l list serial ports")
 

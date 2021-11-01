@@ -28,13 +28,14 @@ class stratux_wifi(Input):
     def initInput(self,num,aircraft):
         Input.initInput( self,num, aircraft )  # call parent init Input.
 
-        if aircraft.demoMode:
-            # if in demo mode then load example data file.
-            # get demo file to read from config.  else default to..
-            if not len(aircraft.demoFile):
+        if(aircraft.inputs[self.inputNum].PlayFile!=None):
+            # if in playback mode then load example data file.
+            # get file to read from config.  else default to..
+            if aircraft.inputs[self.inputNum].PlayFile==True:
                 defaultTo = "stratux_data1.bin"
-                aircraft.demoFile = hud_utils.readConfig(self.name, "demofile", defaultTo)
-            self.ser,self.input_logFileName = Input.openLogFile(self,aircraft.demoFile,"rb")
+                aircraft.inputs[self.inputNum].PlayFile = hud_utils.readConfig(self.name, "playback_file", defaultTo)
+            self.ser,self.input_logFileName = Input.openLogFile(self,aircraft.inputs[self.inputNum].PlayFile,"rb")
+            self.isPlaybackMode = True
         else:
             self.udpport = hud_utils.readConfigInt("Stratux", "udpport", "4000")
 
@@ -57,13 +58,13 @@ class stratux_wifi(Input):
             print("Skipping AHRS data from Stratux")
 
     def closeInput(self,aircraft):
-        if aircraft.demoMode:
+        if self.isPlaybackMode:
             self.ser.close()
         else:
             self.ser.close()
 
     def getNextChunck(self,aircraft):
-        if aircraft.demoMode:
+        if self.isPlaybackMode:
             data = self.ser.read(800)
             if(len(data)==0): 
                 self.ser.seek(0)
@@ -135,10 +136,8 @@ class stratux_wifi(Input):
                     #print("status message len:"+str(len(msg)))
                     # B          B     H     B    B   
                     FirmwareVer, Batt, Error,WAAS,Aux = struct.unpack(">BBHBB",msg[5:11])
-                    aircraft.input1.Name = 'Stratux'
-                    aircraft.input1.Connect = 'UDP'
-                    aircraft.input1.Ver = FirmwareVer
-                    aircraft.input1.Battery = Batt
+                    aircraft.inputs[self.inputNum].FirmwareVer = FirmwareVer
+                    aircraft.inputs[self.inputNum].Battery = Batt
                     if(msg[4]==2):
                         if(WAAS==1):
                             aircraft.gps.GPSWAAS = 1
@@ -185,7 +184,7 @@ class stratux_wifi(Input):
                     #print(msg)
                     aircraft.msg_unknown += 1 #else unknown message.
                     
-                if aircraft.demoMode:  #if demo mode then add a delay.  Else reading a file is way to fast.
+                if self.isPlaybackMode:  #if playback mode then add a delay.  Else reading a file is way to fast.
                     time.sleep(.02)
                     pass
                 else:

@@ -106,8 +106,10 @@ def main_graphical():
         shared.smartdisplay.draw_loop_start()
         shared.CurrentScreen.draw(shared.aircraft,shared.smartdisplay)  # draw method for current screen object
         drawTimer.processAllDrawTimers(pygamescreen) # process / remove / draw any active drawTimers...
-        if(shared.aircraft.demoMode==True):
-            shared.smartdisplay.draw_text(shared.smartdisplay.LEFT_MID_UP, None, "PLAYBACK Log: %s" % (shared.aircraft.demoFile), (255, 255, 0))
+        if(shared.aircraft.inputs[1].PlayFile!=None):
+            shared.smartdisplay.draw_text(shared.smartdisplay.LEFT_MID_UP, None, "PLAYBACK log2: %s" % (shared.aircraft.inputs[1].PlayFile), (255, 255, 0))
+        if(shared.aircraft.inputs[0].PlayFile!=None):
+            shared.smartdisplay.draw_text(shared.smartdisplay.LEFT_MID_UP, None, "PLAYBACK log1: %s" % (shared.aircraft.inputs[0].PlayFile), (255, 255, 0))
         shared.smartdisplay.draw_loop_done()
 
         #now make pygame update display.

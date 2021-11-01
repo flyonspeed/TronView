@@ -31,12 +31,13 @@ class serial_g3x(Input):
 
     def initInput(self,num, aircraft):
         Input.initInput(self,num, aircraft)  # call parent init Input.
-        if aircraft.demoMode:
+        if(aircraft.inputs[self.inputNum].PlayFile!=None):
             # play a log file?
-            if not len(aircraft.demoFile):
+            if aircraft.inputs[self.inputNum].PlayFile==True:
                 defaultTo = "garmin_g3x_data1.txt"
-                aircraft.demoFile = hud_utils.readConfig(self.name, "demofile", defaultTo)
-            self.ser,self.input_logFileName = Input.openLogFile(self,aircraft.demoFile,"r")
+                aircraft.inputs[self.inputNum].PlayFile = hud_utils.readConfig(self.name, "playback_file", defaultTo)
+            self.ser,self.input_logFileName = Input.openLogFile(self,aircraft.inputs[self.inputNum].PlayFile,"r")
+            self.isPlaybackMode = True
         else:
             self.efis_data_format = hud_utils.readConfig("DataInput", "format", "none")
             self.efis_data_port = hud_utils.readConfig(
@@ -64,7 +65,7 @@ class serial_g3x(Input):
 
     # close this input source
     def closeInput(self, aircraft):
-        if aircraft.demoMode:
+        if self.isPlaybackMode:
             self.ser.close()
         else:
             self.ser.close()
@@ -136,9 +137,7 @@ class serial_g3x(Input):
                                 aircraft.gps.msg_bad += 1
 
                 else:
-                    if (
-                        aircraft.demoMode
-                    ):  # if no bytes read and in demo mode.  then reset the file pointer to the start of the file.
+                    if (self.isPlaybackMode ):  # if no bytes read and in playback mode.  then reset the file pointer to the start of the file.
                         self.ser.seek(0)
                     return aircraft
 
@@ -190,9 +189,7 @@ class serial_g3x(Input):
                         if len(self.readings) == self.max_samples:
                             self.readings.pop(0)
                         aircraft.msg_count += 1
-                        if (
-                            aircraft.demoMode
-                        ):  # if demo mode then add a delay.  Else reading a file is way to fast.
+                        if (self.isPlaybackMode):  # if playback mode then add a delay.  Else reading a file is way to fast.
                             time.sleep(0.08)
 
                         if self.output_logFile != None:
@@ -230,7 +227,7 @@ class serial_g3x(Input):
 
             else:
                 aircraft.msg_unknown += 1  # else unknown message.
-                if aircraft.demoMode:
+                if self.isPlaybackMode:
                     time.sleep(0.01)
                 # else:
                 #    self.ser.flushInput()  # flush the serial after every message else we see delays

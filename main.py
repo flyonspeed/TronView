@@ -125,7 +125,7 @@ if __name__ == "__main__":
     #print 'ARGV      :', sys.argv[1:]
     try:
         opts, args = getopt.getopt(
-            sys.argv[1:], "hs:i:tec:lr",['pf1=','pf2=']
+            sys.argv[1:], "hs:i:tec:lr",['i1=','i2=','pf1=','pf2=']
         )
     except getopt.GetoptError:
         print("unknown command line args given..")
@@ -141,6 +141,10 @@ if __name__ == "__main__":
         if opt == '-r':  # list example files
             hud_utils.listLogDataFiles()
             sys.exit()
+        if opt in ("", "--i1"):
+            DataInputToLoad = arg
+        if opt in ("", "--i2"):
+            DataInputToLoad2 = arg
         if opt in ("", "--pf1"):
             shared.aircraft.inputs[0].PlayFile = arg
             print("Input1 playing log file: "+arg)
@@ -182,9 +186,12 @@ if __name__ == "__main__":
         sys.exit()
     shared.CurrentInput = loadInput(0,DataInputToLoad)
     if DataInputToLoad2 != "none":
-        if(DataInputToLoad2==DataInputToLoad): print("Skipping Input source 2: same as input 1")
+        if(DataInputToLoad2==DataInputToLoad): print("Skipping 2nd Input source : same as input 1")
         else:
-            print("Input source 2:"+DataInputToLoad2) 
+            if hud_utils.findInput(DataInputToLoad2) == False:
+                print(("Input source 2 not found: %s"%(DataInputToLoad2)))
+                hud_utils.findInput() # show available inputs
+                sys.exit()
             shared.CurrentInput2 = loadInput(1,DataInputToLoad2)
     if(shared.aircraft.errorFoundNeedToExit==True): sys.exit()
     # check and load screen module. (if not starting in text mode)
@@ -196,7 +203,7 @@ if __name__ == "__main__":
             hud_utils.findScreen() # show available screens
             sys.exit()
         graphic_mode.loadScreen(ScreenNameToLoad) # load and init screen
-        drawTimer.addGrowlNotice("Datasource: %s"%(DataInputToLoad),3000,drawTimer.green,drawTimer.TOP_RIGHT)
+        drawTimer.addGrowlNotice("1: %s"%(DataInputToLoad),3000,drawTimer.green,drawTimer.TOP_RIGHT)
 
     thread1 = myThreadEfisInputReader()  # start thread for reading efis input.
     thread1.start()

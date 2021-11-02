@@ -392,6 +392,8 @@ class Target(object):
         self.speed = 0
         self.vspeed = 0
         self.time = 0
+        self.dist = None
+        self.brng = None
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python
 

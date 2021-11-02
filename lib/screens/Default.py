@@ -16,6 +16,7 @@ from lib.modules.hud.horizon import horizon
 from lib.modules.hud.aoa import aoa
 from lib.modules.hud.slipskid import slipskid
 from lib.modules.gui.menu import menu
+from lib.modules.efis.trafficscope import trafficscope
 
 class Default(Screen):
     # called only when object is first created.
@@ -63,6 +64,9 @@ class Default(Screen):
 
         self.menu = menu.Menu()
         self.menu.initMod(self.pygamescreen, 400, 300, "Options")
+
+        self.trafficScope = trafficscope.TrafficScope()
+        self.trafficScope.initMod(self.pygamescreen, 400, 400)
 
     # called every redraw for the screen
     def draw(self, aircraft, smartdisplay):
@@ -161,6 +165,10 @@ class Default(Screen):
         # Internal CPU temp
         smartdisplay.draw_text(smartdisplay.BOTTOM_RIGHT, self.fontIndicatorSmaller, "CPU:%d°C" % (aircraft.internal.Temp), (255, 255, 0))
 
+        # Show traffic?
+        if(self.mode_traffic>0):
+            self.trafficScope.draw(aircraft,smartdisplay,(smartdisplay.x_center-self.trafficScope.width/2,smartdisplay.y_center-self.trafficScope.height/2))
+
         if self.debug:
             hud_graphics.hud_draw_debug(aircraft,smartdisplay,self.myfont)
 
@@ -171,11 +179,18 @@ class Default(Screen):
 
     # handle key events
     def processEvent(self, event, aircraft, smartdisplay):
-        if event.type == pygame.KEYDOWN:
+        if(event.type=="modechange"):
+            self.setMode(event.key, event.value)
+            if(event.key=="traffic"):
+                event.value = self.mode_traffic
+                self.trafficScope.processEvent(event,aircraft,smartdisplay)
+
+
+        elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_h:
                 self.show_hud = not self.show_hud
 
-        if event.type == pygame.MOUSEBUTTONDOWN:
+        elif event.type == pygame.MOUSEBUTTONDOWN:
                 mx, my = pygame.mouse.get_pos()
                 if(mx<100 and my <100):
                     self.menu.draw(aircraft,smartdisplay)

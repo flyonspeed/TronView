@@ -22,6 +22,7 @@ from lib.modules.hud.slipskid import slipskid
 from lib.modules.hud.wind import wind
 #from lib.modules.hud.hsi import hsi
 from lib.modules.hud.heading import heading
+from lib.modules.efis.trafficscope import trafficscope
 
 class F18_HUD(Screen):
     # called only when object is first created.
@@ -71,6 +72,9 @@ class F18_HUD(Screen):
         
         self.cdi = cdi.cdi()
         self.cdi.initMod(self.pygamescreen, self.width, self.height)
+
+        self.trafficScope = trafficscope.TrafficScope()
+        self.trafficScope.initMod(self.pygamescreen, 400, 400)
 
     # called every redraw for the screen
     def draw(self, aircraft, smartdisplay):
@@ -166,6 +170,10 @@ class F18_HUD(Screen):
             2 # box line thickness
             )
 
+        # Show traffic?
+        if(self.mode_traffic>0):
+            self.trafficScope.draw(aircraft,smartdisplay,(smartdisplay.x_center-self.trafficScope.width/2,smartdisplay.y_center-self.trafficScope.height/2))
+
         # Internal CPU temp
         smartdisplay.draw_text(smartdisplay.TOP_RIGHT, self.fontIndicatorSmaller, "CPU:%d°C" % (aircraft.internal.Temp), (255, 255, 0))
 
@@ -183,7 +191,13 @@ class F18_HUD(Screen):
 
     # handle key events
     def processEvent(self, event, aircraft, smartdisplay):
-        if event.type == pygame.KEYDOWN:
+        if(event.type=="modechange"):
+            self.setMode(event.key, event.value)
+            if(event.key=="traffic"):
+                event.value = self.mode_traffic
+                self.trafficScope.processEvent(event,aircraft,smartdisplay)
+
+        elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_x:
                 self.caged_mode = not self.caged_mode
 

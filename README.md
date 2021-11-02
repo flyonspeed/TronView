@@ -188,6 +188,8 @@ cntrl d - show some debug info
 
 2 - close flight data log file
 
+3 - cylce through traffic display modes (if traffic input source available)
+
 PAGE UP - jump to next screen
 
 PAGE DOWN - go to previous screen

@@ -52,6 +52,7 @@ def main_graphical():
                     print("jump backwards data...")
                     shared.CurrentInput.fastBackwards(shared.aircraft,500)
                     if(shared.CurrentInput2 != None): shared.CurrentInput2.fastBackwards(shared.aircraft,500)
+                #### Press 1 - Start logging flight data
                 elif (event.key == pygame.K_w and mods & pygame.KMOD_CTRL) or event.key == pygame.K_1 or event.key == pygame.K_KP1 :
                     try:
                         shared.CurrentInput.startLog(shared.aircraft)
@@ -61,6 +62,7 @@ def main_graphical():
                             drawTimer.addGrowlNotice("Log2: %s"%(shared.CurrentInput2.output_logFileName),3000,drawTimer.nerd_yellow,drawTimer.BOTTOM_CENTER)
                     except :
                         drawTimer.addGrowlNotice("Unable to create log: "+shared.CurrentInput.name,3000,drawTimer.nerd_yellow,drawTimer.CENTER)
+                #### Press 2 - Stop log
                 elif (event.key == pygame.K_e and mods & pygame.KMOD_CTRL) or event.key == pygame.K_2 or event.key == pygame.K_KP2:
                     try:
                         Saved,SendingTo = shared.CurrentInput.stopLog(shared.aircraft)
@@ -71,7 +73,11 @@ def main_graphical():
                         if(SendingTo!=None):
                             drawTimer.addGrowlNotice("Uploading to %s"%(SendingTo),3000,drawTimer.nerd_yellow,drawTimer.TOP_LEFT) 
                     except ValueError:
-                        pass  
+                        pass
+                #### Press 3 - Cycle traffic modes.
+                elif event.key == pygame.K_3 or event.key == pygame.K_KP3:
+                    obj = MyEvent("modechange","traffic",-1)
+                    shared.CurrentScreen.processEvent(obj,shared.aircraft,shared.smartdisplay)
                 elif event.key == pygame.K_d and mods & pygame.KMOD_CTRL:
                     shared.CurrentScreen.debug = not shared.CurrentScreen.debug
                 elif event.key == pygame.K_q or event.key == pygame.K_ESCAPE:
@@ -128,6 +134,12 @@ def main_graphical():
     pygame.quit()
     pygame.display.quit()
 
+# used to pass along custom events to screens.
+class MyEvent(object):
+    def __init__(self, thetype,key,value):
+        self.type = thetype
+        self.key = key
+        self.value = value
 
 #############################################
 ## Function: loadScreen

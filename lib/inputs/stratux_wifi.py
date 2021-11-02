@@ -278,8 +278,8 @@ class stratux_wifi(Input):
                             vertVelo -= 4096
                         target.vspeed = (vertVelo * 64) ;# vertical velocity
 
-                        # check distance. if we know our location..
-                        if(aircraft.gps.LatDeg != None and aircraft.gps.LonDeg != None):
+                        # check distance and brng to target. if we know our location..
+                        if(aircraft.gps.LatDeg != None and aircraft.gps.LonDeg != None and target.lat != 0 and target.lon != 0):
                             target.dist = _distance(aircraft.gps.LatDeg,aircraft.gps.LonDeg,target.lat,target.lon)
                             if(target.dist<500):
                                 brng = Geodesic.WGS84.Inverse(aircraft.gps.LatDeg,aircraft.gps.LonDeg,target.lat,target.lon)['azi1']
@@ -288,6 +288,9 @@ class stratux_wifi(Input):
                                     #its NaN.
                                     target.brng = None
                                 else: target.brng = int(brng)
+                        # check difference in altitude from self.
+                        if(aircraft.gps.GPSAlt != None and target.alt != None):
+                            target.altDiff = target.alt - aircraft.gps.GPSAlt
 
                         aircraft.traffic.addTarget(target) # add/update target to traffic list.
 

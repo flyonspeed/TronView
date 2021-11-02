@@ -384,16 +384,18 @@ class Target(object):
         self.callsign = callsign
         self.aStat = None
         self.type = None
-
+        self.address = None # icao address of ads-b
+        
         self.lat = 0
         self.lon = 0
-        self.alt = 0
+        self.alt = None      # altitude above ground in ft.
         self.track = 0
         self.speed = 0
         self.vspeed = 0
         self.time = 0
-        self.dist = None
-        self.brng = None
+        self.dist = None     # distance in miles to target from self.
+        self.brng = None     # bearing to target from self
+        self.altDiff = None  # difference in alt from self.
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python
 

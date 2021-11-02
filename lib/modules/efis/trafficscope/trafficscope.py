@@ -147,8 +147,15 @@ class TrafficScope(Module):
                             1,
                         )
                         # show speed info
-                        labelMore = self.font.render(str(t.speed)+"mph", False, (200,255,255), (0,0,0))
-                        self.surface2.blit(labelMore, (xx, yy+label_rect.height))
+                        labelSpeed = self.font.render(str(t.speed)+"mph", False, (200,255,255), (0,0,0))
+                        labelSpeed_rect = labelSpeed.get_rect()
+                        self.surface2.blit(labelSpeed, (xx, yy+label_rect.height))
+                        # show altitude diff
+                        if(t.altDiff != None):
+                            if(t.altDiff>0): prefix = "+"
+                            else: prefix = ""
+                            labelAlt = self.font.render(prefix+str(t.altDiff)+"ft", False, (200,255,255), (0,0,0))
+                            self.surface2.blit(labelAlt, (xx+labelSpeed_rect.width+10, yy+label_rect.height))
 
 
 

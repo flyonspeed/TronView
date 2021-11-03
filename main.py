@@ -54,6 +54,9 @@ class myThreadEfisInputReader(threading.Thread):
                 internalLoopCounter = 1500
                 checkInternals()
                 shared.aircraft.traffic.cleanUp() # check if old traffic targets should be cleared up.
+
+            if (shared.aircraft.inputs[0].PlayFile != None): # if playing back a file.. add a little delay so it's closer to real world time.
+                time.sleep(.04)
             if shared.aircraft.textMode == True: # if in text mode.. lets delay a bit.. this keeps the cpu from heating up on my mac.
                 time.sleep(.01)
 

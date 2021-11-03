@@ -45,11 +45,9 @@ def main_graphical():
             if event.type == pygame.KEYDOWN:
                 mods = pygame.key.get_mods()
                 if event.key == pygame.K_RIGHT and mods & pygame.KMOD_CTRL :
-                    print("fast forward...")
                     shared.CurrentInput.fastForward(shared.aircraft,500)
                     if(shared.CurrentInput2 != None): shared.CurrentInput2.fastForward(shared.aircraft,500)
                 elif event.key == pygame.K_LEFT and mods & pygame.KMOD_CTRL :
-                    print("jump backwards data...")
                     shared.CurrentInput.fastBackwards(shared.aircraft,500)
                     if(shared.CurrentInput2 != None): shared.CurrentInput2.fastBackwards(shared.aircraft,500)
                 #### Press 1 - Start logging flight data

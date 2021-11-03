@@ -247,6 +247,7 @@ class Input:
                     # if error then just to start of file
                     self.ser.seek(0)
                 #print("fastForward() before="+str(current)+" goto:"+str(moveTo)+" done="+str(self.ser.tell()))
+                print("fastForward->"+self.name)
 
     #############################################
     # fast backwards if reading from a file.
@@ -265,7 +266,7 @@ class Input:
                     self.ser.seek(0)
                 #print("fastForward() before="+str(current)+" goto:"+str(moveTo)+" done="+str(self.ser.tell()))
                 self.skipReadInput = False
-
+                print("fastBackwards->"+self.name)
 
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

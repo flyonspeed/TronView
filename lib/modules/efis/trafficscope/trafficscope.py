@@ -109,8 +109,8 @@ class TrafficScope(Module):
                     self.surface2, 
                     ( 0, 255, 129), 
                     (xx, yy), 
-                    2, 
-                    8,
+                    4, 
+                    0,
                 )
                 # show callsign?
                 if(self.show_callsign==True):
@@ -124,7 +124,7 @@ class TrafficScope(Module):
                         radianTargetTrack = (t.track-90) * math.pi / 180
                         radianArrowPt = (t.track-82) * math.pi / 180
                         radianArrowPt2 = (t.track-98) * math.pi / 180
-                        d = t.speed / 10
+                        d = t.speed / 6
                         #print("line speed:"+str(d))
                         lineX = xx + (d * math.cos(radianTargetTrack))
                         lineY = yy + (d * math.sin(radianTargetTrack))

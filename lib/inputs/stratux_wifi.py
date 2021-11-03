@@ -53,7 +53,12 @@ class stratux_wifi(Input):
             #self.ser.settimeout(.1)
             self.ser.setblocking(0)
 
-        self.use_ahrs = hud_utils.readConfigBool("Stratux", "use_ahrs", True)
+        # if this input is not the first input then don't default to read the ahrs input.
+        if(num==0): 
+            defaultUseAHRS = True
+        else: 
+            defaultUseAHRS = False
+        self.use_ahrs = hud_utils.readConfigBool("Stratux", "use_ahrs", defaultUseAHRS)
         if(self.use_ahrs==False):
             print("Skipping AHRS data from Stratux")
 
@@ -65,12 +70,39 @@ class stratux_wifi(Input):
 
     def getNextChunck(self,aircraft):
         if self.isPlaybackMode:
-            data = self.ser.read(80)
-            if(len(data)==0): 
-                self.ser.seek(0)
-                print("Replaying file: "+self.input_logFileName)
-            #TODO: read to the next ~ in the file??
+            
+            x = 0
+            while x != 126: # read until ~
+                t = self.ser.read(1)
+                if len(t) != 0:
+                    x = ord(t)
+                    #print(str(x), end ="." )
+                else:
+                    self.ser.seek(0)
+                    print("Stratux file reset")
+
+            #print("first ~", end ="." )
+            x = 0
+            data = bytearray(b"~")
+            while x != 126: # read until ~
+                t = self.ser.read(1)
+                if len(t) != 0:
+                    x = ord(t)
+                    data.extend(t)
+                    #print(str(x), end ="." )
+                else:
+                    self.ser.seek(0)
+                    print("Stratux file reset")
+            #print("end ~", end ="." )
             return data
+            
+            #data = self.ser.read(80)
+            #if(len(data)==0): 
+            #    self.ser.seek(0)
+            #    print("Replaying file: "+self.input_logFileName)
+            #TODO: read to the next ~ in the file??
+            #print(type(data))
+            #return data
         else:
             try:
                 #Attempt to receive up to 1024 bytes of data

@@ -46,7 +46,7 @@ class TrafficScope(Module):
             self.surface, 
             (0,0,0), 
             (self.xCenter, self.yCenter), 
-            self.width/2, 
+            int(self.width/2), 
             0,
         )  
 

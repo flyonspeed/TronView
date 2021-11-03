@@ -385,7 +385,7 @@ class Target(object):
         self.aStat = None
         self.type = None
         self.address = None # icao address of ads-b
-        self.cat # Emitter Category - one of the following values to describe type/weight of aircraft
+        self.cat = None # Emitter Category - one of the following values to describe type/weight of aircraft
         # 0 = unkown
         # 1 = Light (ICAO) < 15 500 lbs
         # 2 = Small - 15 500 to 75 000 lbs

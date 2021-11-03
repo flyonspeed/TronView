@@ -102,15 +102,15 @@ class TrafficScope(Module):
                 if(brngToUse<0): brngToUse = 360 - abs(brngToUse)
 
                 radianAngle = (brngToUse-90) * math.pi / 180 # convert to radians
-                d = t.dist * 5
+                d = t.dist * 20
                 xx = self.xCenter + (d * math.cos(radianAngle))
                 yy = self.yCenter + (d * math.sin(radianAngle))
                 hud_graphics.hud_draw_circle(
                     self.surface2, 
-                    ( 0, 155, 79), 
+                    ( 0, 255, 129), 
                     (xx, yy), 
                     2, 
-                    2,
+                    8,
                 )
                 # show callsign?
                 if(self.show_callsign==True):
@@ -162,8 +162,11 @@ class TrafficScope(Module):
                         if(t.altDiff != None):
                             if(t.altDiff>0): prefix = "+"
                             else: prefix = ""
-                            labelAlt = self.font.render(prefix+str(t.altDiff)+"ft", False, (200,255,255), (0,0,0))
+                            labelAlt = self.font.render(prefix+'{:,}ft'.format(t.altDiff), False, (200,255,255), (0,0,0))
                             self.surface2.blit(labelAlt, (xx+labelSpeed_rect.width+10, yy+label_rect.height))
+                        # distance
+                        labelDist = self.font.render("%.1f mi."%(t.dist), False, (200,255,255), (0,0,0))
+                        self.surface2.blit(labelDist, (xx+label_rect.width+10, yy))
 
 
 

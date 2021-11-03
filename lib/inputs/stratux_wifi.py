@@ -301,7 +301,7 @@ class stratux_wifi(Input):
                         horzVelo = _thunkByte(msg[15], 0xff, 4) + _thunkByte(msg[16], 0xf0, -4)
                         if horzVelo == 0xfff:  # no hvelocity info available
                             horzVelo = 0
-                        target.speed = int(horzVelo)
+                        target.speed = int(horzVelo * 1.15078) # convert to mph
                         # heading
                         trackIncrement = 360.0 / 256
                         target.track = int(msg[18] * trackIncrement)  # track/heading, 0-358.6 degrees

@@ -30,7 +30,7 @@ from lib.util import drawTimer
 def main_graphical():
     #global aircraft
     # init common things.
-    maxframerate = hud_utils.readConfigInt("HUD", "maxframerate", 30)
+    maxframerate = hud_utils.readConfigInt("Main", "maxframerate", 30)
     clock = pygame.time.Clock()
     pygame.time.set_timer(pygame.USEREVENT, 1000) # fire User events ever sec.
 
@@ -160,7 +160,7 @@ def loadScreen(ScreenNameToLoad):
         pygamescreen, width, height
     )  # tell the screen we are about to start. 
     shared.smartdisplay.setPyGameScreen(pygamescreen)
-    drawableAreaString = hud_utils.readConfig("HUD", "drawable_area", "")
+    drawableAreaString = hud_utils.readConfig("Main", "drawable_area", "")
     if len(drawableAreaString)>0:
         print(("Found drawable area: %s"%(drawableAreaString)))
         area = drawableAreaString.split(",")

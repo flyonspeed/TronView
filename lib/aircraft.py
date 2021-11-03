@@ -400,13 +400,22 @@ class Target(object):
         # 14 = drone Unmanned aerial vehicle
         # 15 = space craft and aliens!
         # plus more...
+        self.misc = None # 4 bit field
+        self.NIC = None # Containment Radius (typically HPL).
+        self.NACp = None # encoded using the Estimated Position Uncertainty (typically HFOM).
+        # Targets with either a NIC or NACp value that is 4 or lower (HPL >= 1.0 NM, or HFOM >= 0.5 NM) should be depicted using an icon that denotes a degraded target.
+
         self.lat = 0
         self.lon = 0
         self.alt = None      # altitude above ground in ft.
-        self.track = 0
-        self.speed = 0
-        self.vspeed = 0
-        self.time = 0
+        self.track = 0  # The resolution is in units of 360/256 degrees (approximately 1.4 degrees).
+                        # if misc field tt says track is unknown then track should not be used.
+        self.speed = 0 # 0xFFF is reserved to convey that no horizontal velocity information is available.
+        self.vspeed = 0 # +/- 32,576 FPM, in units of 64 feet per minute (FPM)
+                        # The value 0x800 is reserved to convey that no vertical velocity information is available. The values 0x1FF through 0x7FF and 0x801 through 0xE01 are not used.
+
+        # the following are values that this software calculates per target received.
+        self.time = 0        # unix time stamp of time last heard.
         self.dist = None     # distance in miles to target from self.
         self.brng = None     # bearing to target from self
         self.altDiff = None  # difference in alt from self.

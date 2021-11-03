@@ -260,6 +260,11 @@ class stratux_wifi(Input):
                         # alt of target.
                         alt = _thunkByte(msg[12], 0xff, 4) + _thunkByte(msg[13], 0xf0, -4)
                         target.alt = (alt * 25) - 1000
+
+                        target.misc = _thunkByte(msg[13], 0x0f) # misc
+                        target.NIC = _thunkByte(msg[14], 0xf0, -4) # NIC
+                        target.NACp = _thunkByte(msg[14], 0x0f) # NACp
+
                         #speed
                         horzVelo = _thunkByte(msg[15], 0xff, 4) + _thunkByte(msg[16], 0xf0, -4)
                         if horzVelo == 0xfff:  # no hvelocity info available

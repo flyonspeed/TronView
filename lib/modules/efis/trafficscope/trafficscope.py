@@ -97,7 +97,9 @@ class TrafficScope(Module):
                 # adjust bearing to target based on the aircraft heading.
                 if(aircraft.mag_head != None):
                     brngToUse = brngToUse - aircraft.mag_head
-                    if(brngToUse<0): brngToUse = 360 - abs(brngToUse)
+                elif(aircraft.gps.GndTrack != None): # else use gps ground track if we have it.
+                    brngToUse = brngToUse - aircraft.gps.GndTrack
+                if(brngToUse<0): brngToUse = 360 - abs(brngToUse)
 
                 radianAngle = (brngToUse-90) * math.pi / 180 # convert to radians
                 d = t.dist * 5

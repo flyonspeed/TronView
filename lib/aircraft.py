@@ -385,7 +385,21 @@ class Target(object):
         self.aStat = None
         self.type = None
         self.address = None # icao address of ads-b
-        
+        self.cat # Emitter Category - one of the following values to describe type/weight of aircraft
+        # 0 = unkown
+        # 1 = Light (ICAO) < 15 500 lbs
+        # 2 = Small - 15 500 to 75 000 lbs
+        # 3 = Large - 75 000 to 300 000 lbs
+        # 4 = High Vortex Large (e.g., aircraft 24 such as B757)
+        # 5 = Heavy (ICAO) - > 300 000 lbs
+        # 7 = Rotorcraft
+        # 9 = Glider
+        # 10 = lighter then air
+        # 11 = sky diver
+        # 12 = ultra light
+        # 14 = drone Unmanned aerial vehicle
+        # 15 = space craft and aliens!
+        # plus more...
         self.lat = 0
         self.lon = 0
         self.alt = None      # altitude above ground in ft.

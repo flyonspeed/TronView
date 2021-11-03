@@ -278,6 +278,8 @@ class stratux_wifi(Input):
                             vertVelo -= 4096
                         target.vspeed = (vertVelo * 64) ;# vertical velocity
 
+                        target.cat = int(msg[19]) # emitter category (type/size of aircraft)
+
                         # check distance and brng to target. if we know our location..
                         if(aircraft.gps.LatDeg != None and aircraft.gps.LonDeg != None and target.lat != 0 and target.lon != 0):
                             target.dist = _distance(aircraft.gps.LatDeg,aircraft.gps.LonDeg,target.lat,target.lon)

@@ -71,14 +71,14 @@ class TrafficScope(Module):
             self.surface, 
             self.darkGrey, 
             (self.xCenter, self.yCenter), 
-            self.width/2, 
+            int(self.width/2), 
             1,
         ) 
         hud_graphics.hud_draw_circle(
             self.surface, 
             self.darkGrey, 
             (self.xCenter, self.yCenter), 
-            self.width/4, 
+            int(self.width/4), 
             1,
         )  
 
@@ -93,7 +93,13 @@ class TrafficScope(Module):
         # go through all targets and draw them
         for i, t in enumerate(aircraft.traffic.targets):
             if(t.dist!=None and t.dist<100 and t.brng !=None):
-                radianAngle = (t.brng-90) * math.pi / 180
+                brngToUse = t.brng
+                # adjust bearing to target based on the aircraft heading.
+                if(aircraft.mag_head != None):
+                    brngToUse = brngToUse - aircraft.mag_head
+                    if(brngToUse<0): brngToUse = 360 - abs(brngToUse)
+
+                radianAngle = (brngToUse-90) * math.pi / 180 # convert to radians
                 d = t.dist * 5
                 xx = self.xCenter + (d * math.cos(radianAngle))
                 yy = self.yCenter + (d * math.sin(radianAngle))

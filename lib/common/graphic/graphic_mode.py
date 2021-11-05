@@ -77,9 +77,13 @@ def main_graphical():
                     obj = MyEvent("modechange","traffic",-1)
                     shared.CurrentScreen.processEvent(obj,shared.aircraft,shared.smartdisplay)
 
-                #### Press 4 - Drop target beacon
+                #### Press 4 - Drop target Buoy
                 elif event.key == pygame.K_4 or event.key == pygame.K_KP4:
                     shared.aircraft.traffic.dropTargetBuoy(shared.aircraft,speed=-1)
+
+                #### Press 5 - Drop target Buoy ahead of us.
+                elif event.key == pygame.K_5 or event.key == pygame.K_KP5:
+                    shared.aircraft.traffic.dropTargetBuoy(shared.aircraft,speed=-1, direction="ahead")
 
                 elif event.key == pygame.K_d and mods & pygame.KMOD_CTRL:
                     shared.CurrentScreen.debug = not shared.CurrentScreen.debug

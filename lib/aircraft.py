@@ -368,18 +368,28 @@ class TrafficData(object):
         target.time = int(time.time()) # always update the time when this target was added/updated..
 
         # if dist&brng was not calculated... check distance and brng to target. if we know our location..
+        # use geographiclib to solve this.
+        # https://geographiclib.sourceforge.io/1.46/python/code.html#geographiclib.geodesic.Geodesic.Direct
         if(aircraft.gps.LatDeg != None and aircraft.gps.LonDeg != None and target.lat != 0 and target.lon != 0):
-            target.dist = _distance(aircraft.gps.LatDeg,aircraft.gps.LonDeg,target.lat,target.lon)
-            if(target.dist<500):
-                brng = Geodesic.WGS84.Inverse(aircraft.gps.LatDeg,aircraft.gps.LonDeg,target.lat,target.lon)['azi1']
+            solve = Geodesic.WGS84.Inverse(aircraft.gps.LatDeg,aircraft.gps.LonDeg,target.lat,target.lon)
+            brng = solve['azi1']
+            dist = solve['s12'] * 0.0006213712
+            if(dist!=dist):
+                # NaN. no distance found.  
+                pass
+            elif(dist<500):
+                target.dist = dist
                 if(brng<0): target.brng = int(360 - (abs(brng))) # convert foward azimuth to bearing to.
                 elif(brng!=brng):
                     #its NaN.
                     target.brng = None
                 else: target.brng = int(brng)
         # check difference in altitude from self.
-        if(aircraft.gps.GPSAlt != None and target.alt != None):
-            target.altDiff = target.alt - aircraft.gps.GPSAlt
+        if(target.alt != None):
+            if(aircraft.PALT != None ):
+                target.altDiff = target.alt - aircraft.gps.GPSAlt
+            elif(aircraft.gps.GPSAlt != None):
+                target.altDiff = target.alt - aircraft.gps.GPSAlt
 
         if(self.contains(target)==False):
             self.targets.append(target)
@@ -413,15 +423,22 @@ class TrafficData(object):
                 self.targets[i].old = True
                 self.remove(self.targets[i].callsign)
 
-    def dropTargetBuoy(self,aircraft,name=None,speed=None):
+    def dropTargetBuoy(self,aircraft,name=None,speed=None,direction=None,distance=None):
         self.beaconCount += 1
         if(name==None): name = "Buoy"+str(self.beaconCount)
         t = Target(name)
         t.beaconNum  = self.beaconCount
         t.address = 0000
         t.cat = 1
-        t.lat = aircraft.gps.LatDeg
-        t.lon = aircraft.gps.LonDeg
+        if(direction=="ahead"):
+            if(distance!=None): distance = distance * 1609.344 # convert to meters.
+            else: distance = 1 * 1609.344 # else drop off 1 mile ahead.
+            solve = Geodesic.WGS84.Direct(aircraft.gps.LatDeg,aircraft.gps.LonDeg,aircraft.mag_head,distance)
+            t.lat = solve['lat2']
+            t.lon = solve['lon2']
+        else:
+            t.lat = aircraft.gps.LatDeg
+            t.lon = aircraft.gps.LonDeg
         t.alt = aircraft.gps.GPSAlt
         if(aircraft.mag_head): t.track = aircraft.mag_head
         elif(aircraft.gps.GndTrack): t.track = aircraft.gps.GndTrack
@@ -478,19 +495,19 @@ class Target(object):
         self.brng = None     # bearing to target from self
         self.altDiff = None  # difference in alt from self.
 
-def _distance(la1,lo1, la2,lo2):
-    R = 6370 # in KM.
-    lat1 = math.radians(la1)  #insert value
-    lon1 = math.radians(lo1)
-    lat2 = math.radians(la2)
-    lon2 = math.radians(lo2)
-    dlon = lon2 - lon1
-    dlat = lat2 - lat1
+# def _distance(la1,lo1, la2,lo2):
+#     R = 6370 # in KM.
+#     lat1 = math.radians(la1)  #insert value
+#     lon1 = math.radians(lo1)
+#     lat2 = math.radians(la2)
+#     lon2 = math.radians(lo2)
+#     dlon = lon2 - lon1
+#     dlat = lat2 - lat1
 
-    a = math.sin(dlat / 2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2)**2
-    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
-    distance = (R * c) * 0.6213712 # convert to miles.
-    return distance
+#     a = math.sin(dlat / 2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2)**2
+#     c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+#     distance = (R * c) * 0.6213712 # convert to miles.
+#     return distance
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python
 

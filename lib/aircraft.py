@@ -379,11 +379,11 @@ class TrafficData(object):
                 pass
             elif(dist<500):
                 target.dist = dist
-                if(brng<0): target.brng = int(360 - (abs(brng))) # convert foward azimuth to bearing to.
+                if(brng<0): target.brng = 360 - (abs(brng)) # convert foward azimuth to bearing to.
                 elif(brng!=brng):
                     #its NaN.
                     target.brng = None
-                else: target.brng = int(brng)
+                else: target.brng = brng
         # check difference in altitude from self.
         if(target.alt != None):
             if(aircraft.PALT != None ):

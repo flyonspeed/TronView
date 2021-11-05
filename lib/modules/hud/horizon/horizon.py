@@ -43,6 +43,11 @@ class Horizon(Module):
         self.caged_mode = 1 # default on
         self.center_circle_mode = hud_utils.readConfigInt("HUD", "center_circle", 4)
 
+        self.fov_x = hud_utils.readConfigInt("HUD", "fov_x", 13.942)
+        self.fov_x_each_side = self.fov_x / 2
+        self.x_degree_per_pixel = self.fov_x / self.width
+        print("HUD x degree_per_pixel: %f"%(self.x_degree_per_pixel))
+
         # sampling for flight path.
         self.readings = []  # Setup moving averages to smooth a bit
         self.max_samples = 20 # FPM smoothing
@@ -413,10 +418,33 @@ class Horizon(Module):
             self.font,
             self.pxy_div,
         )
+
+
+        # go through targets if there are any.
+        for t in aircraft.traffic.targets:
+            if t.dist < 100:
+                result = aircraft.mag_head - t.brng
+                if(result   > - self.fov_x_each_side  and  result < self.fov_x_each_side):
+                    # bam! target is in view!?!
+                    center_deg = result + self.fov_x_each_side
+                    x_offset = self.width - (center_deg / self.x_degree_per_pixel)
+
+                    # render target distance and alt
+                    txtTargetDist = self.font.render("%.2fmi %dft"%(t.dist,t.alt), False, (0,0,0),(255,200,130))
+                    text_widthD, text_heightD = txtTargetDist.get_size()
+                    self.surface.blit(txtTargetDist, (x_offset-int(text_widthD/2), smartdisplay.y_end-text_heightD))
+                    # render target callsign.
+                    textTargetCall = self.font.render(str(t.callsign), False, (0,0,0),(255,200,130))
+                    text_widthC, text_heightC = textTargetCall.get_size()
+                    self.surface.blit(textTargetCall, (x_offset-int(text_widthC/2), smartdisplay.y_end-text_heightC-text_heightD))
+
+
         self.pygamescreen.blit(self.surface, ( -(0), -(0)))
 
         self.draw_center(smartdisplay)
         self.draw_flight_path(aircraft,smartdisplay)
+
+
 
     # update a setting
     def setting(self,key,var):

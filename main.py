@@ -128,7 +128,7 @@ if __name__ == "__main__":
     #print 'ARGV      :', sys.argv[1:]
     try:
         opts, args = getopt.getopt(
-            sys.argv[1:], "hs:i:tec:lr",['in1=','in2=','playfile1=','playfile2=']
+            sys.argv[1:], "hs:i:tec:lr",['in1=','in2=','playfile1=','playfile2=','screen=']
         )
     except getopt.GetoptError:
         print("unknown command line args given..")
@@ -158,7 +158,7 @@ if __name__ == "__main__":
             hud_utils.showArgs()
         if opt in ("-i"):
             DataInputToLoad = arg
-        if opt == "-s":
+        if opt in ("-s", "--screen"):
             ScreenNameToLoad = arg
         if opt == "-l":
             rpi_hardware.list_serial_ports(True)

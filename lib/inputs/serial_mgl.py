@@ -89,7 +89,7 @@ class serial_mgl(Input):
                             aircraft.pitch = PitchAngle * 0.1  #
                             aircraft.roll = BankAngle * 0.1  #
                             if HeadingMag != 0:
-                                aircraft.mag_head = (HeadingMag * 0.1) + .5
+                                aircraft.mag_head = (HeadingMag * 0.1)
                             aircraft.turn_rate = TurnRate * 0.1
                             aircraft.slip_skid = (Slip * 0.01 * -1) * 2 # convert to aircraft format -100 to 100.  postive is to left. #LRForce * 0.01 
                             aircraft.vert_G = GForce * 0.01

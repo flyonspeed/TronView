@@ -51,9 +51,9 @@ class myThreadEfisInputReader(threading.Thread):
                 shared.aircraft = shared.CurrentInput2.readMessage(shared.aircraft)
             internalLoopCounter = internalLoopCounter - 1
             if internalLoopCounter < 0:
-                internalLoopCounter = 1500
+                internalLoopCounter = 100
                 checkInternals()
-                shared.aircraft.traffic.cleanUp() # check if old traffic targets should be cleared up.
+                shared.aircraft.traffic.cleanUp(shared.aircraft) # check if old traffic targets should be cleared up.
 
             if (shared.aircraft.inputs[0].PlayFile != None): # if playing back a file.. add a little delay so it's closer to real world time.
                 time.sleep(.04)

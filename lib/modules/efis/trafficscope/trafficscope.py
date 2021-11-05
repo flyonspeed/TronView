@@ -29,11 +29,17 @@ class TrafficScope(Module):
 
         self.show_callsign = False
         self.show_details = False
+        self.scope_scale = 0
+        self.scope_scale_miles = 0
 
         self.xCenter = self.width/2
         self.yCenter = self.height/2
 
         self.font = pygame.font.SysFont("monospace", 12, bold=False)
+        self.setScaleInMiles(10)
+
+
+    def buildBaseSurface(self):
         self.surface = pygame.Surface((self.width, self.height))
         self.surface2= pygame.Surface((self.width, self.height),pygame.SRCALPHA)
         #self.surface.set_alpha(128)
@@ -80,14 +86,29 @@ class TrafficScope(Module):
             (self.xCenter, self.yCenter), 
             int(self.width/4), 
             1,
-        )  
+        )
+
+        # show scale.
+        labelScale = self.font.render(str(self.scope_scale_miles)+" mi.", False, (200,255,255), (0,0,0))
+        labelScale_rect = labelScale.get_rect()
+        self.surface.blit(labelScale, (self.xCenter-labelScale_rect.width, 5))
+
+        # show scale.
+        labelScale = self.font.render("%.1f mi."%(self.scope_scale_miles/2), False, (200,255,255), (0,0,0))
+        labelScale_rect = labelScale.get_rect()
+        self.surface.blit(labelScale, (self.xCenter-labelScale_rect.width, int(self.height/4)+5 ))
+
+
+    def setScaleInMiles(self,miles):
+        self.scope_scale = (self.width/2) / miles 
+        #self.scope_scale = miles * 16
+        self.scope_scale_miles = miles
+        self.buildBaseSurface()
 
     # called every redraw for the mod
     def draw(self, aircraft, smartdisplay, pos):
 
-        x,y = pos
-        #self.surface.fill((0, 0, 0))
-        #newSurface = self.surface
+        # Clear using the base surface.
         self.surface2.blit(self.surface, (0, 0))
 
         # go through all targets and draw them
@@ -102,7 +123,7 @@ class TrafficScope(Module):
                 if(brngToUse<0): brngToUse = 360 - abs(brngToUse)
 
                 radianAngle = (brngToUse-90) * math.pi / 180 # convert to radians
-                d = t.dist * 20
+                d = t.dist * self.scope_scale
                 xx = self.xCenter + (d * math.cos(radianAngle))
                 yy = self.yCenter + (d * math.sin(radianAngle))
                 hud_graphics.hud_draw_circle(
@@ -119,12 +140,12 @@ class TrafficScope(Module):
                     self.surface2.blit(label, (xx, yy))
                 # show details?
                 if(self.show_details==True):
-                    if(t.speed != None and t.speed > 0 and t.track != None):
+                    if(t.speed != None and t.speed > -1 and t.track != None):
                         # generate line in direct aircraft is flying..
                         radianTargetTrack = (t.track-90) * math.pi / 180
                         radianArrowPt = (t.track-82) * math.pi / 180
                         radianArrowPt2 = (t.track-98) * math.pi / 180
-                        d = t.speed / 6
+                        d = t.speed / 3
                         #print("line speed:"+str(d))
                         lineX = xx + (d * math.cos(radianTargetTrack))
                         lineY = yy + (d * math.sin(radianTargetTrack))
@@ -140,19 +161,21 @@ class TrafficScope(Module):
                             (lineX, lineY),
                             1,
                         )
+                        #draw_triangle(self.surface2,(200,255,255),(lineX,lineY), 4, (xx,yy))
+
                         pygame.draw.line(  # arrow head 1
-                            self.surface2,
-                            (200,255,255),
-                            (lineX,lineY),
-                            (arrowX, arrowY),
-                            1,
+                           self.surface2,
+                           (200,255,255),
+                           (lineX,lineY),
+                           (arrowX, arrowY),
+                           1,
                         )
                         pygame.draw.line(  # arrow head 2
-                            self.surface2,
-                            (200,255,255),
-                            (lineX,lineY),
-                            (arrowX2, arrowY2),
-                            1,
+                           self.surface2,
+                           (200,255,255),
+                           (lineX,lineY),
+                           (arrowX2, arrowY2),
+                           1,
                         )
                         # show speed info
                         labelSpeed = self.font.render(str(t.speed)+"mph", False, (200,255,255), (0,0,0))
@@ -167,9 +190,6 @@ class TrafficScope(Module):
                         # distance
                         labelDist = self.font.render("%.1f mi."%(t.dist), False, (200,255,255), (0,0,0))
                         self.surface2.blit(labelDist, (xx+label_rect.width+10, yy))
-
-
-
 
         self.pygamescreen.blit(self.surface2, pos)
 
@@ -187,16 +207,49 @@ class TrafficScope(Module):
             if(event.key=="traffic"):
                 if(event.value==2):
                     self.show_callsign = True
-                    print("TrafficScope showing callsigns")
+                    print("TrafficScope showing callsigns. 5mi.")
+                    self.setScaleInMiles(5)
+                    self.show_details = True
                 elif(event.value==3):
-                    print("TrafficScope showing callsigns & details")
+                    print("TrafficScope showing callsigns & details. 2mi.")
                     self.show_details = True
                     self.show_callsign = True
+                    self.setScaleInMiles(2)
                 else:
+                    self.setScaleInMiles(10)
                     self.show_callsign = False
                     self.show_details = False
 
         pass
+
+
+    # def draw_triangle(screen,color,center, radius, mouse_position):
+    #     # calculate the normalized vector pointing from center to mouse_position
+    #     length = math.hypot(mouse_position[0] - center[0], mouse_position[1] - center[1])
+    #     # (note we only need the x component since y falls 
+    #     # out of the dot product, so we won't bother to calculate y)
+    #     angle_vector_x = (mouse_position[0] - center[0]) / length
+
+    #     # calculate the angle between that vector and the x axis vector (aka <1,0> or i)
+    #     angle = math.acos(angle_vector_x)
+
+    #     # list of un-rotated point locations
+    #     t = [0, (3 * math.pi / 4), (5 * math.pi / 4)]
+
+    #     # apply the circle formula
+    #     x1 = center[0] + radius * math.cos(t[0] + angle)
+    #     y1 = center[1] + radius * math.sin(t[0] + angle)
+
+    #     x2 = center[0] + radius * math.cos(t[1] + angle)
+    #     y2 = center[1] + radius * math.sin(t[1] + angle)
+
+    #     x3 = center[0] + radius * math.cos(t[2] + angle)
+    #     y3 = center[1] + radius * math.sin(t[2] + angle)
+
+    #     pygame.draw.polygon(screen, color, [(x1,y1),(x2,y2),(x3,y3)], 1)
+
+    #     return
+
 
 '''
         (boxLat1,boxLon2),(boxLat2,boxLon2) = getLatLonAreaAroundPoint(aircraft.gps.LatDeg, aircraft.gps.LonDeg, 50)

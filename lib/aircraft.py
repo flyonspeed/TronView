@@ -2,6 +2,8 @@
 
 from enum import Enum
 import time
+from geographiclib.geodesic import Geodesic
+import math
 
 #############################################
 ## Class: Aircraft
@@ -337,6 +339,7 @@ class TrafficData(object):
         self.count = 0
 
         self.targets = []
+        self.beaconCount = 0
 
         self.msg_count = 0
         self.msg_last = ""
@@ -361,8 +364,23 @@ class TrafficData(object):
                 return
 
     # add or replace a target.
-    def addTarget(self, target):
+    def addTarget(self, target, aircraft):
         target.time = int(time.time()) # always update the time when this target was added/updated..
+
+        # if dist&brng was not calculated... check distance and brng to target. if we know our location..
+        if(aircraft.gps.LatDeg != None and aircraft.gps.LonDeg != None and target.lat != 0 and target.lon != 0):
+            target.dist = _distance(aircraft.gps.LatDeg,aircraft.gps.LonDeg,target.lat,target.lon)
+            if(target.dist<500):
+                brng = Geodesic.WGS84.Inverse(aircraft.gps.LatDeg,aircraft.gps.LonDeg,target.lat,target.lon)['azi1']
+                if(brng<0): target.brng = int(360 - (abs(brng))) # convert foward azimuth to bearing to.
+                elif(brng!=brng):
+                    #its NaN.
+                    target.brng = None
+                else: target.brng = int(brng)
+        # check difference in altitude from self.
+        if(aircraft.gps.GPSAlt != None and target.alt != None):
+            target.altDiff = target.alt - aircraft.gps.GPSAlt
+
         if(self.contains(target)==False):
             self.targets.append(target)
         else:
@@ -370,13 +388,52 @@ class TrafficData(object):
 
         self.count = len(self.targets)
 
-    # go through targets and remove old ones.
-    def cleanUp(self):
+    # get nearest target (if any)
+    def getNearestTarget(self,lessThenMilage=5):
+        nearest = None
+        for i, t in enumerate(self.targets):
+            if(self.targets[i].dist != None and self.targets[i].dist <= lessThenMilage):
+                if(nearest != None):
+                    if (self.targets[i].dist < nearest.dist):
+                        nearest = self.targets[i]
+                else:
+                    nearest = self.targets[i]
+        
+        return nearest
+
+    # go through targets, update,  and remove old ones.
+    def cleanUp(self,aircraft):
         for i, t in enumerate(self.targets):
             self.targets[i].age = int(time.time() - self.targets[i].time) # track age last time this target was updated.
+            # check if it's a beacon we dropped.. if so update it.
+            if(self.targets[i].beaconNum != None):
+                self.addTarget(self.targets[i],aircraft) # update it by adding it again.
+            # if old target then remove it...    
             if(self.targets[i].age > 100):
                 self.targets[i].old = True
                 self.remove(self.targets[i].callsign)
+
+    def dropTargetBuoy(self,aircraft,name=None,speed=None):
+        self.beaconCount += 1
+        if(name==None): name = "Buoy"+str(self.beaconCount)
+        t = Target(name)
+        t.beaconNum  = self.beaconCount
+        t.address = 0000
+        t.cat = 1
+        t.lat = aircraft.gps.LatDeg
+        t.lon = aircraft.gps.LonDeg
+        t.alt = aircraft.gps.GPSAlt
+        if(aircraft.mag_head): t.track = aircraft.mag_head
+        elif(aircraft.gps.GndTrack): t.track = aircraft.gps.GndTrack
+        if(speed != None and speed != -1): t.speed = speed
+        elif(speed == -1 ):  # if they pass in -1 then use the current speed of aircraft. 
+            if(aircraft.ias != None and aircraft.ias != 0 ): t.speed = int(aircraft.ias)
+            elif(aircraft.gps.GndSpeed != None and aircraft.gps.GndSpeed != 0 ): t.speed = int(aircraft.gps.GndSpeed)
+            else: t.speed = 0
+        else:
+            t.speed = 100 # default speed?
+        self.addTarget(t,aircraft)
+        pass
 
 
 class Target(object):
@@ -386,6 +443,7 @@ class Target(object):
         self.type = None
         self.address = None # icao address of ads-b
         self.cat = None # Emitter Category - one of the following values to describe type/weight of aircraft
+        self.beaconNum = None
         # 0 = unkown
         # 1 = Light (ICAO) < 15 500 lbs
         # 2 = Small - 15 500 to 75 000 lbs
@@ -419,6 +477,20 @@ class Target(object):
         self.dist = None     # distance in miles to target from self.
         self.brng = None     # bearing to target from self
         self.altDiff = None  # difference in alt from self.
+
+def _distance(la1,lo1, la2,lo2):
+    R = 6370 # in KM.
+    lat1 = math.radians(la1)  #insert value
+    lon1 = math.radians(lo1)
+    lat2 = math.radians(la2)
+    lon2 = math.radians(lo2)
+    dlon = lon2 - lon1
+    dlat = lat2 - lat1
+
+    a = math.sin(dlat / 2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2)**2
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+    distance = (R * c) * 0.6213712 # convert to miles.
+    return distance
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python
 

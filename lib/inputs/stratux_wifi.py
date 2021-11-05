@@ -317,21 +317,21 @@ class stratux_wifi(Input):
 
                         target.cat = int(msg[19]) # emitter category (type/size of aircraft)
 
-                        # check distance and brng to target. if we know our location..
-                        if(aircraft.gps.LatDeg != None and aircraft.gps.LonDeg != None and target.lat != 0 and target.lon != 0):
-                            target.dist = _distance(aircraft.gps.LatDeg,aircraft.gps.LonDeg,target.lat,target.lon)
-                            if(target.dist<500):
-                                brng = Geodesic.WGS84.Inverse(aircraft.gps.LatDeg,aircraft.gps.LonDeg,target.lat,target.lon)['azi1']
-                                if(brng<0): target.brng = int(360 - (abs(brng))) # convert foward azimuth to bearing to.
-                                elif(brng!=brng):
-                                    #its NaN.
-                                    target.brng = None
-                                else: target.brng = int(brng)
-                        # check difference in altitude from self.
-                        if(aircraft.gps.GPSAlt != None and target.alt != None):
-                            target.altDiff = target.alt - aircraft.gps.GPSAlt
+                        # # check distance and brng to target. if we know our location..
+                        # if(aircraft.gps.LatDeg != None and aircraft.gps.LonDeg != None and target.lat != 0 and target.lon != 0):
+                        #     target.dist = _distance(aircraft.gps.LatDeg,aircraft.gps.LonDeg,target.lat,target.lon)
+                        #     if(target.dist<500):
+                        #         brng = Geodesic.WGS84.Inverse(aircraft.gps.LatDeg,aircraft.gps.LonDeg,target.lat,target.lon)['azi1']
+                        #         if(brng<0): target.brng = int(360 - (abs(brng))) # convert foward azimuth to bearing to.
+                        #         elif(brng!=brng):
+                        #             #its NaN.
+                        #             target.brng = None
+                        #         else: target.brng = int(brng)
+                        # # check difference in altitude from self.
+                        # if(aircraft.gps.GPSAlt != None and target.alt != None):
+                        #     target.altDiff = target.alt - aircraft.gps.GPSAlt
 
-                        aircraft.traffic.addTarget(target) # add/update target to traffic list.
+                        aircraft.traffic.addTarget(target,aircraft) # add/update target to traffic list.
 
                         aircraft.traffic.msg_count += 1
                     else:
@@ -428,20 +428,5 @@ def _thunkByte(c, mask=0xff, shift=0):
     elif shift > 0:
         val = val << shift
     return val
-
-def _distance(la1,lo1, la2,lo2):
-    R = 6370 # in KM.
-    lat1 = math.radians(la1)  #insert value
-    lon1 = math.radians(lo1)
-    lat2 = math.radians(la2)
-    lon2 = math.radians(lo2)
-    dlon = lon2 - lon1
-    dlat = lat2 - lat1
-
-    a = math.sin(dlat / 2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2)**2
-    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
-    distance = (R * c) * 0.6213712 # convert to miles.
-    return distance
-
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

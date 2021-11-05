@@ -175,7 +175,25 @@ class F18_HUD(Screen):
             self.trafficScope.draw(aircraft,smartdisplay,(smartdisplay.x_center-self.trafficScope.width/2,smartdisplay.y_center-self.trafficScope.height/2))
 
         # Internal CPU temp
-        smartdisplay.draw_text(smartdisplay.TOP_RIGHT, self.fontIndicatorSmaller, "CPU:%d°C" % (aircraft.internal.Temp), (255, 255, 0))
+        smartdisplay.draw_text(smartdisplay.BOTTOM_RIGHT, self.fontIndicatorSmaller, "CPU:%d°C" % (aircraft.internal.Temp), (255, 255, 0))
+
+        # nearest traffic alert.
+        target = aircraft.traffic.getNearestTarget()
+        if(target!=None):
+            line2 = str(target.speed)+"mph"
+            if(target.altDiff != None):
+                if(target.altDiff>0): prefix = "+"
+                else: prefix = ""
+                line2 = line2 + " "+prefix+'{:,}ft'.format(target.altDiff)
+            line1 = target.callsign + " %.1fmi. %d\xb0 "%(target.dist,target.brng)
+            line3 = "Target Trk: "+str(target.track) + "\xb0"
+
+            smartdisplay.draw_text(smartdisplay.RIGHT_MID_UP, self.myfont, " " , (255, 255, 0))
+            smartdisplay.draw_text(smartdisplay.RIGHT_MID_UP, self.myfont, line3 , (255, 255, 0))
+            smartdisplay.draw_text(smartdisplay.RIGHT_MID_UP, self.myfont, line2 , (255, 255, 0))
+            smartdisplay.draw_text(smartdisplay.RIGHT_MID_UP, self.myfont, line1 , (255, 255, 0))
+            smartdisplay.draw_text(smartdisplay.RIGHT_MID_UP, self.myfont, "Nearest Target:" , (255, 255, 0))
+
 
         # update entire display..
         pygame.display.flip()

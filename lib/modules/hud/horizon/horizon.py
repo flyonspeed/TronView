@@ -73,6 +73,8 @@ class Horizon(Module):
                 length = screen_width * 0.49
             elif (deg_ref % 5) == 0:
                 length = screen_width * 0.25
+            else:
+                length = screen_width * 0.10
         else:
             if deg_ref == 0:
                 length = screen_width * 0.5
@@ -80,6 +82,8 @@ class Horizon(Module):
                 length = screen_width * 0.25
             elif (deg_ref % 5) == 0:
                 length = screen_width * 0.11
+            else:
+                length = screen_width * 0.5
 
         ahrs_center_x, ahrs_center_y = ahrs_center
         px_per_deg_y = screen_height / pxy_div
@@ -166,6 +170,7 @@ class Horizon(Module):
 
             # draw below or above the horz
             if l < 0:
+                # draw below.
                 z=1+1
                 self.draw_dashed_line(
                     self.surface,
@@ -191,6 +196,7 @@ class Horizon(Module):
                     line_thickness
                 )
             else:
+                #draw above horiz.
                 pygame.draw.lines(
                     self.surface,
                     color,

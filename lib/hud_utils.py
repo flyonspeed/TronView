@@ -15,6 +15,7 @@ def readConfig(section, name, defaultValue=0, show_error=False):
     global configParser
     try:
         value = configParser.get(section, name)
+        print("Config used: ["+section+"] "+name+": "+value)
         return value
     except Exception as e:
         if show_error == True:

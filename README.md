@@ -194,7 +194,9 @@ cntrl d - show some debug info (same as using the number 6 key)
 
 5 - drop target buoy exactly 1 mile ahead of aircraft heading.
 
-6 - cycle through debug modes (in graphic mode)
+6 - clear all target buoys.
+
+7 - cycle through debug modes (in graphic mode)
 
 PAGE UP - jump to next screen
 

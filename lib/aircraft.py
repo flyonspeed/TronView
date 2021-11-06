@@ -339,7 +339,7 @@ class TrafficData(object):
         self.count = 0
 
         self.targets = []
-        self.beaconCount = 0
+        self.buoyCount = 0
 
         self.msg_count = 0
         self.msg_last = ""
@@ -415,20 +415,29 @@ class TrafficData(object):
     def cleanUp(self,aircraft):
         for i, t in enumerate(self.targets):
             self.targets[i].age = int(time.time() - self.targets[i].time) # track age last time this target was updated.
-            # check if it's a beacon we dropped.. if so update it.
-            if(self.targets[i].beaconNum != None):
+            # check if it's a buoy we dropped.. if so update it.
+            if(self.targets[i].buoyNum != None):
                 self.addTarget(self.targets[i],aircraft) # update it by adding it again.
             # if old target then remove it...    
             if(self.targets[i].age > 100):
                 self.targets[i].old = True
                 self.remove(self.targets[i].callsign)
 
+    # clear all buoy targets
+    def clearBuoyTargets(self):
+        numCleared = 0
+        for i, t in enumerate(self.targets):
+            if(self.targets[i].buoyNum != None):
+                numCleared += 1
+                del self.targets[i]
+        if(numCleared>0): self.clearBuoyTargets()
+
     def dropTargetBuoy(self,aircraft,name=None,speed=None,direction=None,distance=None):
-        self.beaconCount += 1
-        if(name==None): name = "Buoy"+str(self.beaconCount)
+        self.buoyCount += 1
+        if(name==None): name = "Buoy"+str(self.buoyCount)
         t = Target(name)
-        t.beaconNum  = self.beaconCount
-        t.address = 0000
+        t.buoyNum  = self.buoyCount
+        t.address = self.buoyCount
         t.cat = 1
         if(direction=="ahead"):
             if(distance!=None): distance = distance * 1609.344 # convert to meters.
@@ -460,7 +469,7 @@ class Target(object):
         self.type = None
         self.address = None # icao address of ads-b
         self.cat = None # Emitter Category - one of the following values to describe type/weight of aircraft
-        self.beaconNum = None
+        self.buoyNum = None
         # 0 = unkown
         # 1 = Light (ICAO) < 15 500 lbs
         # 2 = Small - 15 500 to 75 000 lbs

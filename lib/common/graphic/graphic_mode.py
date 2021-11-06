@@ -87,7 +87,12 @@ def main_graphical():
                 elif event.key == pygame.K_5 or event.key == pygame.K_KP5:
                     shared.aircraft.traffic.dropTargetBuoy(shared.aircraft,speed=-1, direction="ahead")
 
+                #### Press 6 - Clear all Buouy targets
                 elif event.key == pygame.K_6 or event.key == pygame.K_KP6 or (event.key == pygame.K_d and mods & pygame.KMOD_CTRL):
+                    shared.aircraft.traffic.clearBuoyTargets()
+
+                #### Enable debug graphics mode.
+                elif event.key == pygame.K_7 or event.key == pygame.K_KP7 or (event.key == pygame.K_d and mods & pygame.KMOD_CTRL):
                     debug_mode += 1
                     if(debug_mode>5): debug_mode = 0
                 elif event.key == pygame.K_q or event.key == pygame.K_ESCAPE:

@@ -422,7 +422,7 @@ class Horizon(Module):
 
         # go through targets if there are any.
         for t in aircraft.traffic.targets:
-            if t.dist < 100:
+            if t.dist != None and t.dist < 100:
                 result = aircraft.mag_head - t.brng
                 if(result   > - self.fov_x_each_side  and  result < self.fov_x_each_side):
                     # bam! target is in view!?!

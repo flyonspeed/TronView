@@ -28,11 +28,13 @@ from lib.util import drawTimer
 ## Function: main
 ## Main loop.  read global var data of efis data and display graphicaly
 def main_graphical():
-    #global aircraft
+    global debug_font
     # init common things.
     maxframerate = hud_utils.readConfigInt("Main", "maxframerate", 30)
     clock = pygame.time.Clock()
     pygame.time.set_timer(pygame.USEREVENT, 1000) # fire User events ever sec.
+    debug_mode = 0
+    debug_font = pygame.font.SysFont("monospace", 25, bold=False)
 
     ##########################################
     # Main graphics draw loop
@@ -85,8 +87,9 @@ def main_graphical():
                 elif event.key == pygame.K_5 or event.key == pygame.K_KP5:
                     shared.aircraft.traffic.dropTargetBuoy(shared.aircraft,speed=-1, direction="ahead")
 
-                elif event.key == pygame.K_d and mods & pygame.KMOD_CTRL:
-                    shared.CurrentScreen.debug = not shared.CurrentScreen.debug
+                elif event.key == pygame.K_6 or event.key == pygame.K_KP6 or (event.key == pygame.K_d and mods & pygame.KMOD_CTRL):
+                    debug_mode += 1
+                    if(debug_mode>5): debug_mode = 0
                 elif event.key == pygame.K_q or event.key == pygame.K_ESCAPE:
                     shared.aircraft.errorFoundNeedToExit = True
                 elif event.key == pygame.K_PAGEUP:
@@ -132,6 +135,9 @@ def main_graphical():
         if(shared.aircraft.inputs[0].PlayFile!=None):
             shared.smartdisplay.draw_text(shared.smartdisplay.LEFT_MID_UP, None, "PLAYBACK log1: %s" % (shared.aircraft.inputs[0].PlayFile), (255, 255, 0))
         shared.smartdisplay.draw_loop_done()
+
+        if(debug_mode>0):
+            draw_debug(debug_mode,shared.aircraft,shared.smartdisplay)
 
         #now make pygame update display.
         pygame.display.update()
@@ -185,6 +191,197 @@ def drawMouseBox():
     x, y = pygame.mouse.get_pos()
     padding = 15
     pygame.draw.rect(pygamescreen, (drawTimer.red), (x-padding,y-padding,padding*2,padding*2),0)
+
+
+    debug_font = 0
+    last_debug_x = 0
+    last_debug_y = 0
+
+def draw_label_debug_value(key,value,postfix="",newline=False,precsion=4):
+    global last_debug_x,last_debug_y,debug_font
+    theType = type(value)
+    if(value==None):
+        showValue = "None"
+    elif( theType is str):
+        showValue = value
+    elif( theType is int):
+        showValue = str(value)
+    elif( theType is float):
+        showValue = str(round(value,precsion))
+    elif( theType is bool):
+        showValue = str(value)
+    elif( theType is bytes):
+        showValue = str(value)
+    elif( theType is bytearray):
+        showValue = str(value)
+    elif( isinstance(value, list)):
+        # list
+        if(len(value)>1):
+            # if list of str,int,floats.. then print it out.
+            if(isCustomObject(value[0])==False):
+                showValue = str(value)
+            else:
+                # else it's a list of objects.. print out each obj.
+                # skip
+                return
+        else:
+            showValue = "[]"
+    else :
+        # else object.
+        #showValue = "obj"
+        return
+
+    label = debug_font.render(key+":"+showValue+postfix, 1, (255, 255, 0),(0,0,0))
+    label_rect = label.get_rect()
+
+    if(newline==True):
+        last_debug_x = 0
+        last_debug_y += label_rect.height + 4
+    else:
+        # if we are at end of line.. goto next line.
+        if(last_debug_x+label_rect.width >= shared.smartdisplay.x_end):
+            last_debug_x = 0
+            last_debug_y += label_rect.height + 4
+            newline = False
+
+    shared.smartdisplay.pygamescreen.blit(label, (last_debug_x, last_debug_y))
+
+    last_debug_x += label_rect.width + 10
+
+
+def draw_label_debug_title(title,newline=True):
+    global last_debug_x,last_debug_y,debug_font
+
+    label = debug_font.render(title, 1, (255, 255, 180),(0,0,0))
+    label_rect = label.get_rect()
+
+    if(newline==True):
+        last_debug_x = 0
+        last_debug_y += label_rect.height + 2
+    else:
+        # if we are at end of line.. goto next line.
+        if(last_debug_x+label_rect.width >= shared.smartdisplay.x_end):
+            last_debug_x = 0
+            last_debug_y += label_rect.height + 4
+            newline = False
+
+    shared.smartdisplay.pygamescreen.blit(label, (last_debug_x, last_debug_y))
+
+    last_debug_x += label_rect.width + 10
+
+
+#############################################
+## Function to print all object values.
+def draw_debug_object(obj):
+    count = 0
+    for attr, value in list(vars(obj).items()):
+        count += 1
+        draw_label_debug_value(attr,value)
+
+
+def draw_debug(debug_mode,aircraft,smartdisplay):
+    global last_debug_x,last_debug_y,debug_font
+    last_debug_x = 0
+    last_debug_y = smartdisplay.y_start + 20
+
+    if(debug_mode==1):
+        draw_label_debug_title("Aircraft Object")
+        draw_debug_object(aircraft)
+
+    if(debug_mode==2):
+        draw_label_debug_title("GPS  Object")
+        draw_debug_object(aircraft.gps)
+
+        draw_label_debug_title("Nav  Object")
+        draw_debug_object(aircraft.nav)
+
+    if(debug_mode==3):
+        draw_label_debug_title("Traffic  Object")
+        draw_debug_object(aircraft.traffic)
+        count = 0
+        for t in aircraft.traffic.targets:
+            count += 1
+            draw_label_debug_title(str(count))
+            draw_debug_object(t)
+
+    if(debug_mode==4):
+        draw_label_debug_title("Engine  Object")
+        draw_debug_object(aircraft.engine)
+        draw_label_debug_title("Fuel  Object")
+        draw_debug_object(aircraft.fuel)
+
+    if(debug_mode==5):
+        draw_label_debug_title("Input1")
+        draw_debug_object(aircraft.inputs[0])
+        draw_label_debug_title("Input2")
+        draw_debug_object(aircraft.inputs[1])
+        draw_label_debug_title("Internatl")
+        draw_debug_object(aircraft.internal)
+
+
+
+def isCustomObject(v):
+    theType = type(v)
+    if( theType is str):
+        return False
+    elif( theType is int):
+        return False
+    elif( theType is float):
+        return False
+    elif( theType is bool):
+        return False
+    elif( theType is bytes):
+        return False
+    elif( theType is bytearray):
+        return False
+    elif( isinstance(v, list)):
+        return False
+    else :
+        return True
+
+
+    # # render debug text
+    # label = font.render("Pitch: %0.1f Roll: %0.1f" % (aircraft.pitch,aircraft.roll), 1, (255, 255, 0))
+    # smartdisplay.pygamescreen.blit(label, (smartdisplay.x_start, smartdisplay.y_start+20))
+    
+    # label = font.render("IAS: %d mph  VSI: %d fpm gndspeed: %0.1f" % (aircraft.ias, aircraft.vsi,aircraft.gndspeed), 1, (255, 255, 0))
+    # smartdisplay.pygamescreen.blit(label, (smartdisplay.x_start, smartdisplay.y_start+40))
+
+    # label = font.render(
+    #     "Alt: %d ft  PresALT:%d  BaroAlt:%d   AGL: %d"
+    #     % (aircraft.alt, aircraft.PALT, aircraft.BALT, aircraft.agl),
+    #     1,
+    #     (255, 255, 0),
+    # )
+    # smartdisplay.pygamescreen.blit(label, (smartdisplay.x_start, smartdisplay.y_start+60))
+    # if aircraft.aoa != None:
+    #     label = font.render("AOA: %d" % (aircraft.aoa), 1, (255, 255, 0))
+    #     smartdisplay.pygamescreen.blit(label, (smartdisplay.x_start, smartdisplay.y_start+80))
+    # else:
+    #     label = font.render("AOA: NA", 1, (255, 255, 0))
+    #     smartdisplay.pygamescreen.blit(label, (smartdisplay.x_start, smartdisplay.y_start+80))
+    # # Mag heading
+    # label = font.render(
+    #     "MagHead: %d  TrueTrack: %d" % (aircraft.mag_head, aircraft.gndtrack),
+    #     1,
+    #     (255, 255, 0),
+    # )
+    # smartdisplay.pygamescreen.blit(label, (smartdisplay.x_start, smartdisplay.y_start+100))
+    # label = font.render(
+    #     "Baro: %0.2f diff: %0.4f" % (aircraft.baro, aircraft.baro_diff),
+    #     1,
+    #     (20, 255, 0),
+    # )
+    # smartdisplay.pygamescreen.blit(label, (smartdisplay.x_start, smartdisplay.y_start+120))
+
+    # label = font.render("time: %s msg count: %d msg bad: %d" % (aircraft.sys_time_string,aircraft.msg_count,aircraft.msg_bad), 1, (255, 255, 0))
+    # smartdisplay.pygamescreen.blit(label, (smartdisplay.x_start, smartdisplay.y_start+140))
+
+    # label = font.render("turn_rate: %0.2f  slip_skid: %0.2f" % (aircraft.turn_rate,aircraft.slip_skid), 1, (255, 255, 0))
+    # smartdisplay.pygamescreen.blit(label, (smartdisplay.x_start, smartdisplay.y_start+160))
+
+    # # print FPS on the bottom of screen.
+    # smartdisplay.draw_text(smartdisplay.BOTTOM_RIGHT, font, "%0.2f FPS" % (aircraft.fps), (255, 255, 0))
 
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

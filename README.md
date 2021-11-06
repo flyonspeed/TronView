@@ -182,13 +182,19 @@ q - quit
 
 t - switch to text mode
 
-cntrl d - show some debug info
+cntrl d - show some debug info (same as using the number 6 key)
 
 1 - create flight data log file
 
 2 - close flight data log file
 
-3 - cylce through traffic display modes (if traffic input source available)
+3 - cylce through traffic scope modes and ranges (if traffic input source available)
+
+4 - drop target buoy at current location and altitude.  Will be visiable on traffic scope
+
+5 - drop target buoy exactly 1 mile ahead of aircraft heading.
+
+6 - cycle through debug modes (in graphic mode)
 
 PAGE UP - jump to next screen
 

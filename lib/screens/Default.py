@@ -40,7 +40,7 @@ class Default(Screen):
         )  # font used by horz lines
         self.myfont = pygame.font.SysFont(
             "monospace", 22
-        )  # font used by debug. initialize font; must be called after 'pygame.init()' to avoid 'Font not Initialized' error
+        )  # small font; must be called after 'pygame.init()' to avoid 'Font not Initialized' error
         self.fontIndicator = pygame.font.SysFont("monospace", 100)  # ie IAS and ALT
         self.fontAltSmall = pygame.font.SysFont("monospace", 50)  # or ALT small right chars.
         self.fontIndicatorSmaller = pygame.font.SysFont(
@@ -168,10 +168,6 @@ class Default(Screen):
         # Show traffic?
         if(self.mode_traffic>0):
             self.trafficScope.draw(aircraft,smartdisplay,(smartdisplay.x_center-self.trafficScope.width/2,smartdisplay.y_center-self.trafficScope.height/2))
-
-        if self.debug:
-            hud_graphics.hud_draw_debug(aircraft,smartdisplay,self.myfont)
-
 
     # called before screen draw.  To clear the screen to your favorite color.
     def clearScreen(self):

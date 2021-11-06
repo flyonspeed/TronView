@@ -40,7 +40,7 @@ class F18_HUD(Screen):
         print("Init ", self.name,self.width,self.height)
 
         # fonts
-        self.myfont = pygame.font.SysFont("monospace", 20, bold=False) #debug font.
+        self.myfont = pygame.font.SysFont("monospace", 20, bold=False) #small font.
         self.fontIndicator = pygame.font.SysFont("monospace", 100, bold=False)  # ie IAS and ALT
         self.fontAltSmall = pygame.font.SysFont("monospace", 50, bold=False)  # smaller font for right side of ALT
         self.fontIndicatorSmaller = pygame.font.SysFont("monospace", 30, bold=False)  # ie. baro and VSI, etc
@@ -197,10 +197,6 @@ class F18_HUD(Screen):
 
         # update entire display..
         pygame.display.flip()
-
-        # render debug text
-        if self.debug:
-            hud_graphics.hud_draw_debug(aircraft,smartdisplay,self.myfont)
 
 
     # called before screen draw.  To clear the screen to your favorite color.

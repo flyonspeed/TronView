@@ -139,6 +139,31 @@ def listLogDataFiles():
     return 
 
 ##############################################
+## function: getDataRecorderDir()
+## creates the data dir if it doesn't already exist..
+## return fullpath if succes or already exists.
+def getDataRecorderDir(exitOnFail=False):
+    from os.path import exists
+    import os
+    from pathlib import Path
+    path_datarecorder = readConfig("DataRecorder", "path", shared.DefaultFlightLogDir)
+    fullpath = ""
+    try:
+        user_home = str(Path.home())
+        fullpath = path_datarecorder.replace("~",user_home) # expand out full user dir if it's in the path.
+        if(exists(fullpath)==False):
+            print("Creating DataRecorder dir: "+fullpath)
+            os.mkdir(fullpath) # make sure the dir exists..
+    except Exception as e: 
+        print(e)
+        print("Error DataRecorder dir: "+dirname)
+        shared.aircraft.errorFoundNeedToExit = True
+        if(exitOnFail==True): sys.exit()
+        return False
+    if fullpath.endswith('/')==False: fullpath = fullpath + "/" # add a slash if needed.
+    return fullpath
+
+##############################################
 ## function: findScreen()
 ## list python screens available to show in the lib/screens dir.
 ## if you pass in "next" then it will try to load the next screen from the last loaded screen.

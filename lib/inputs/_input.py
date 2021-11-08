@@ -120,22 +120,22 @@ class Input:
     ## Method: getNextLogFile
     ## get next log file to open.
     def getNextLogFile(self,dirname,fileExtension):
-        from os.path import exists
-        import os
-        from pathlib import Path
-        try:
-            user_home = str(Path.home())
-            fullpath = dirname.replace("~",user_home) # expand out full user dir if it's in the path.
-            if(exists(fullpath)==False):
-                print("Creating dir: "+fullpath)
-                os.mkdir(fullpath) # make sure the dir exists..
-        except Exception as e: 
-            print(e)
-            print("Error creating log dir: "+dirname)
-            shared.aircraft.errorFoundNeedToExit = True
-            return False
+        #from os.path import exists
+        #import os
+        #from pathlib import Path
+        # try:
+        #     user_home = str(Path.home())
+        #     fullpath = dirname.replace("~",user_home) # expand out full user dir if it's in the path.
+        #     if(exists(fullpath)==False):
+        #         print("Creating dir: "+fullpath)
+        #         os.mkdir(fullpath) # make sure the dir exists..
+        # except Exception as e: 
+        #     print(e)
+        #     print("Error creating log dir: "+dirname)
+        #     shared.aircraft.errorFoundNeedToExit = True
+        #     return False
+        fullpath = hud_utils.getDataRecorderDir()
         number = 1
-        if fullpath.endswith('/')==False: fullpath = fullpath + "/" # add a slash if needed.
         newFilename = fullpath + self.name + "_" + str(number) + fileExtension
         while exists(newFilename) == True:
             number = number + 1

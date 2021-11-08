@@ -163,6 +163,7 @@ if __name__ == "__main__":
         if opt == "-l":
             rpi_hardware.list_serial_ports(True)
             sys.exit()
+    hud_utils.getDataRecorderDir(exitOnFail=True)
     isRunningOnPi = rpi_hardware.is_raspberrypi()
     if isRunningOnPi == True: 
         print("Running on RaspberryPi")

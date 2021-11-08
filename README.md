@@ -180,9 +180,9 @@ current commands are:
 
 q - quit
 
-t - switch to text mode
+t - switch to text mode  ( can not switch back to graphic mode after you enter text mode )
 
-cntrl d - show some debug info (same as using the number 6 key)
+cntrl d - show some debug info (same as using the number 7 key)
 
 1 - create flight data log file
 

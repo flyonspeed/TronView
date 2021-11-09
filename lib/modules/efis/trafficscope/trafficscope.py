@@ -138,7 +138,7 @@ class TrafficScope(Module):
                 )
                 # show callsign?
                 if(self.show_callsign==True):
-                    label = self.self.font_target.render(t.callsign, False, (200,255,255), (0,0,0))
+                    label = self.font_target.render(t.callsign, False, (200,255,255), (0,0,0))
                     label_rect = label.get_rect()
                     self.surface2.blit(label, (xx, yy))
                 # show details?
@@ -181,17 +181,17 @@ class TrafficScope(Module):
                            1,
                         )
                         # show speed info
-                        labelSpeed = self.self.font_target.render(str(t.speed)+"mph", False, (200,255,255), (0,0,0))
+                        labelSpeed = self.font_target.render(str(t.speed)+"mph", False, (200,255,255), (0,0,0))
                         labelSpeed_rect = labelSpeed.get_rect()
                         self.surface2.blit(labelSpeed, (xx, yy+label_rect.height))
                         # show altitude diff
                         if(t.altDiff != None):
                             if(t.altDiff>0): prefix = "+"
                             else: prefix = ""
-                            labelAlt = self.self.font_target.render(prefix+'{:,}ft'.format(t.altDiff), False, (200,255,255), (0,0,0))
+                            labelAlt = self.font_target.render(prefix+'{:,}ft'.format(t.altDiff), False, (200,255,255), (0,0,0))
                             self.surface2.blit(labelAlt, (xx+labelSpeed_rect.width+10, yy+label_rect.height))
                         # distance
-                        labelDist = self.self.font_target.render("%.1f mi."%(t.dist), False, (200,255,255), (0,0,0))
+                        labelDist = self.font_target.render("%.1f mi."%(t.dist), False, (200,255,255), (0,0,0))
                         self.surface2.blit(labelDist, (xx+label_rect.width+10, yy))
 
         self.pygamescreen.blit(self.surface2, pos)

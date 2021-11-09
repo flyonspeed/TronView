@@ -35,7 +35,10 @@ class TrafficScope(Module):
         self.xCenter = self.width/2
         self.yCenter = self.height/2
 
+        target_font_size = hud_utils.readConfigInt("TrafficScope", "target_font_size", 16)
         self.font = pygame.font.SysFont("monospace", 12, bold=False)
+        self.font_target = pygame.font.SysFont("monospace", target_font_size, bold=False)
+
         self.setScaleInMiles(10)
 
 
@@ -135,7 +138,7 @@ class TrafficScope(Module):
                 )
                 # show callsign?
                 if(self.show_callsign==True):
-                    label = self.font.render(t.callsign, False, (200,255,255), (0,0,0))
+                    label = self.self.font_target.render(t.callsign, False, (200,255,255), (0,0,0))
                     label_rect = label.get_rect()
                     self.surface2.blit(label, (xx, yy))
                 # show details?
@@ -178,17 +181,17 @@ class TrafficScope(Module):
                            1,
                         )
                         # show speed info
-                        labelSpeed = self.font.render(str(t.speed)+"mph", False, (200,255,255), (0,0,0))
+                        labelSpeed = self.self.font_target.render(str(t.speed)+"mph", False, (200,255,255), (0,0,0))
                         labelSpeed_rect = labelSpeed.get_rect()
                         self.surface2.blit(labelSpeed, (xx, yy+label_rect.height))
                         # show altitude diff
                         if(t.altDiff != None):
                             if(t.altDiff>0): prefix = "+"
                             else: prefix = ""
-                            labelAlt = self.font.render(prefix+'{:,}ft'.format(t.altDiff), False, (200,255,255), (0,0,0))
+                            labelAlt = self.self.font_target.render(prefix+'{:,}ft'.format(t.altDiff), False, (200,255,255), (0,0,0))
                             self.surface2.blit(labelAlt, (xx+labelSpeed_rect.width+10, yy+label_rect.height))
                         # distance
-                        labelDist = self.font.render("%.1f mi."%(t.dist), False, (200,255,255), (0,0,0))
+                        labelDist = self.self.font_target.render("%.1f mi."%(t.dist), False, (200,255,255), (0,0,0))
                         self.surface2.blit(labelDist, (xx+label_rect.width+10, yy))
 
         self.pygamescreen.blit(self.surface2, pos)

@@ -225,13 +225,15 @@ def findScreen(name=""):
     for screenName in lst:
         count+=1
         if name == "": # if no name passed in then print out all screens.
-            print(screenName)
+            print(screenName, end=", ")
         else:
             if screenName == name: # found screen name.
                 selectedScreenPos = count
                 return True
     if name != "":
-        return False   
+        return False
+    else:
+        print("") # print on new line.
 
 ##############################################
 ## function: findInput()
@@ -244,12 +246,14 @@ def findInput(name=""):
         if d.endswith(".py") and not d.startswith("_"):
             inputName = d[:-3]
             if name == "": # if no name passed in then print out all input sources.
-                print(inputName)
+                print(inputName, end=", ")
             else:
                 if inputName == name: # found input
                     return True
     if name != "":
         return False
+    else:
+        print("") # print on new line.
 
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

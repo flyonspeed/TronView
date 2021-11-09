@@ -238,13 +238,15 @@ class stratux_wifi(Input):
                     #Status1,Status2 = struct.unpack(">BB",msg[2:4]) 
                     #Time = struct.unpack(">H",msg[4:6]) 
                     #print("Time "+str(Time))
-                    if(self.use_ahrs==False): return aircraft
                     if(len(msg)==11):
                         statusByte2 = msg[3]
                         timeStamp = _unsigned16(msg[4:], littleEndian=True)
                         if (statusByte2 & 0b10000000) != 0:
                             timeStamp += (1 << 16)
-                        aircraft.sys_time_string = str(datetime.timedelta(seconds=int(timeStamp)))   # get time stamp for gdl hearbeat.
+                        aircraft.traffic.lcl_time_string = str(datetime.timedelta(seconds=int(timeStamp)))   # get time stamp for gdl hearbeat.
+
+                    if(self.use_ahrs==True): 
+                        aircraft.sys_time_string = aircraft.traffic.lcl_time_string
 
                 elif(msg[1]==10): # GDL ownership
                     #print("GDL 90 owership id:"+str(msg[1])+" len:"+str(len(msg)))

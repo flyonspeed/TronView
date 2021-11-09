@@ -337,15 +337,16 @@ class FuelData(object):
 class TrafficData(object):
     def __init__(self):
         self.count = 0
-
-        self.targets = []
-        self.buoyCount = 0
-
         self.src_lat = None     # traffic source lat/lon.. 
         self.src_lon = None
         self.src_alt = None
         self.src_gndtrack = None
         self.src_gndspeed = None
+        self.lcl_time_string = ""
+
+        self.targets = []
+        self.buoyCount = 0
+
 
         self.msg_count = 0
         self.msg_last = ""

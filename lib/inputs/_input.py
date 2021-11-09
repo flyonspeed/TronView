@@ -152,6 +152,8 @@ class Input:
             hud_text.print_header("Playing Log1: %s"%(aircraft.inputs[0].PlayFile))
         if aircraft.inputs[1].PlayFile!=None:
             hud_text.print_header("Playing Log2: %s"%(aircraft.inputs[1].PlayFile))
+        if(shared.CurrentInput.isPaused==True):
+            hud_text.print_header("PLAYBACK PAUSED!")
 
         if(self.textMode_whatToShow==0): showHowManyListItems = 1
         else: showHowManyListItems = -1

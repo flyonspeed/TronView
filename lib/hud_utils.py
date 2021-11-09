@@ -4,6 +4,7 @@ import math, os, sys, random
 import configparser
 import importlib
 from lib.common import shared 
+from lib.util import rpi_hardware
 
 
 #############################################

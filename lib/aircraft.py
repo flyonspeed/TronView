@@ -387,7 +387,7 @@ class TrafficData(object):
         # check difference in altitude from self.
         if(target.alt != None):
             if(aircraft.PALT != None ):
-                target.altDiff = target.alt - aircraft.gps.GPSAlt
+                target.altDiff = target.alt - aircraft.PALT
             elif(aircraft.gps.GPSAlt != None):
                 target.altDiff = target.alt - aircraft.gps.GPSAlt
 

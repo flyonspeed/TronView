@@ -53,6 +53,12 @@ class threadReadKeyboard(threading.Thread):
             if key==ord('q'):
                 curses.endwin()
                 shared.aircraft.errorFoundNeedToExit = True
+            if key==ord('p'):
+                if(shared.CurrentInput.isPlaybackMode==True):
+                    if(shared.CurrentInput.isPaused==False):
+                        shared.CurrentInput.isPaused = True
+                    else:
+                        shared.CurrentInput.isPaused = False
             elif key==curses.KEY_RIGHT:
                 shared.CurrentInput.fastForward(shared.aircraft,500)
                 if(shared.CurrentInput2 != None): shared.CurrentInput2.fastForward(shared.aircraft,500)

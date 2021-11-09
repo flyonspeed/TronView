@@ -222,7 +222,10 @@ def draw_label_debug_value(key,value,postfix="",newline=False,precsion=4):
     elif( theType is int):
         showValue = str(value)
     elif( theType is float):
-        showValue = str(round(value,precsion))
+        if 'lat' in key.lower() or 'lon' in key.lower():  # if showing lat/lon then show all decimals.
+            showValue = "%f" %(value)
+        else:
+            showValue = str(round(value,precsion))
     elif( theType is bool):
         showValue = str(value)
     elif( theType is bytes):

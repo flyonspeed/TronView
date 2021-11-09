@@ -18,6 +18,7 @@ from lib.aircraft import Target
 import time
 import math
 from geographiclib.geodesic import Geodesic
+import datetime
 
 class stratux_wifi(Input):
     def __init__(self):
@@ -243,29 +244,37 @@ class stratux_wifi(Input):
                         timeStamp = _unsigned16(msg[4:], littleEndian=True)
                         if (statusByte2 & 0b10000000) != 0:
                             timeStamp += (1 << 16)
-                        aircraft.sys_time_string = timeStamp  # get time stamp for gdl hearbeat.
+                        aircraft.sys_time_string = str(datetime.timedelta(seconds=int(timeStamp)))   # get time stamp for gdl hearbeat.
 
                 elif(msg[1]==10): # GDL ownership
                     #print("GDL 90 owership id:"+str(msg[1])+" len:"+str(len(msg)))
                     if(len(msg)==32):
+
+                        # save gps data coming from traffic source..
+                        latLongIncrement = 180.0 / (2**23)
+                        aircraft.traffic.src_lat = _signed24(msg[6:]) * latLongIncrement
+                        aircraft.traffic.src_lon = _signed24(msg[9:]) * latLongIncrement
+                        alt = _thunkByte(msg[12], 0xff, 4) + _thunkByte(msg[13], 0xf0, -4)
+                        aircraft.traffic.srt_alt = (alt * 25) - 1000
+
+                        horzVelo = _thunkByte(msg[15], 0xff, 4) + _thunkByte(msg[16], 0xf0, -4)
+                        if horzVelo == 0xfff:  # no info available
+                            horzVelo = None
+                        aircraft.traffic.src_gndspeed = int(horzVelo)
+
+                        trackIncrement = 360.0 / 256
+                        aircraft.traffic.src_gndtrack = int(msg[18] * trackIncrement)  # track/heading, 0-358.6 degrees
+
                         # if no gps data is currently being tracked then use it from GDL source.
                         if(aircraft.gps.Source == None or aircraft.gps.Source == self.name):
                             aircraft.gps.Source = self.name
-                            latLongIncrement = 180.0 / (2**23)
-                            aircraft.gps.LatDeg = _signed24(msg[6:]) * latLongIncrement ;# latitude
-                            aircraft.gps.LonDeg = _signed24(msg[9:]) * latLongIncrement ;# longitude
-                            alt = _thunkByte(msg[12], 0xff, 4) + _thunkByte(msg[13], 0xf0, -4)
-                            aircraft.gps.GPSAlt = (alt * 25) - 1000
+                            aircraft.gps.LatDeg = aircraft.traffic.src_lat
+                            aircraft.gps.LonDeg = aircraft.traffic.src_lon
+                            aircraft.gps.GPSAlt = aircraft.traffic.src_alt
                             aircraft.gps.GPSStatus = 3
-
-                            horzVelo = _thunkByte(msg[15], 0xff, 4) + _thunkByte(msg[16], 0xf0, -4)
-                            if horzVelo == 0xfff:  # no info available
-                                horzVelo = None
-                            aircraft.gps.GndSpeed = int(horzVelo)
-
-                            trackIncrement = 360.0 / 256
-                            aircraft.gps.GndTrack = int(msg[18] * trackIncrement)  # track/heading, 0-358.6 degrees
-                            aircraft.gndtrack = aircraft.gps.GndTrack
+                            aircraft.gps.GndSpeed = aircraft.traffic.src_gndspeed
+                            aircraft.gndtrack = aircraft.traffic.src_gndtrack
+                            aircraft.gps.GndTrack = aircraft.traffic.src_gndtrack
 
                 elif(msg[1]==11): # GDL OwnershipGeometricAltitude
                     if(self.use_ahrs==False): return aircraft

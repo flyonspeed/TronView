@@ -341,6 +341,12 @@ class TrafficData(object):
         self.targets = []
         self.buoyCount = 0
 
+        self.src_lat = None     # traffic source lat/lon.. 
+        self.src_lon = None
+        self.src_alt = None
+        self.src_gndtrack = None
+        self.src_gndspeed = None
+
         self.msg_count = 0
         self.msg_last = ""
         self.msg_bad = 0

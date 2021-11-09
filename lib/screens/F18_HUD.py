@@ -39,6 +39,8 @@ class F18_HUD(Screen):
         )  # call parent init screen.
         print("Init ", self.name,self.width,self.height)
 
+        self.show_lat_lon = hud_utils.readConfigBool("F18_HUD", "show_lat_lon", False)
+
         # fonts
         self.myfont = pygame.font.SysFont("monospace", 20, bold=False) #small font.
         self.fontIndicator = pygame.font.SysFont("monospace", 100, bold=False)  # ie IAS and ALT
@@ -122,6 +124,12 @@ class F18_HUD(Screen):
         smartdisplay.draw_text(smartdisplay.RIGHT_MID_DOWN, self.myfont, "gps:"+aircraft.gps.get_status_string(), (255, 255, 0))
         if(aircraft.gps.Source != None):
             smartdisplay.draw_text(smartdisplay.RIGHT_MID_DOWN, self.myfont, "src:"+aircraft.gps.Source, (255, 255, 0))
+
+        if(self.show_lat_lon==True):
+            if(aircraft.gps.LatDeg != None and aircraft.gps.LonDeg != None):
+                smartdisplay.draw_text(smartdisplay.RIGHT_MID_DOWN, self.myfont, "%f"%(aircraft.gps.LatDeg), (255, 255, 0))
+                smartdisplay.draw_text(smartdisplay.RIGHT_MID_DOWN, self.myfont, "%f"%(aircraft.gps.LonDeg), (255, 255, 0))
+
 
         # VSI text
         smartdisplay.draw_text(smartdisplay.RIGHT_MID_UP, self.fontIndicatorSmaller, aircraft.get_vsi_string(), (255, 255, 0))

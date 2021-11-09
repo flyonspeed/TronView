@@ -52,6 +52,16 @@ def main_graphical():
                 elif event.key == pygame.K_LEFT and mods & pygame.KMOD_CTRL :
                     shared.CurrentInput.fastBackwards(shared.aircraft,500)
                     if(shared.CurrentInput2 != None): shared.CurrentInput2.fastBackwards(shared.aircraft,500)
+                elif event.key == pygame.K_p :
+                    if(shared.CurrentInput.isPlaybackMode==True):
+                        if(shared.CurrentInput.isPaused==False):
+                            shared.CurrentInput.isPaused = True
+                            print("Playback Paused!")
+                            drawTimer.addGrowlNotice("Playback paused",1000,drawTimer.nerd_yellow,drawTimer.CENTER)
+                        else:
+                            shared.CurrentInput.isPaused = False
+                            print("Plaback resumed.")
+                            drawTimer.addGrowlNotice("Fullspeed ahead!",1000,drawTimer.nerd_yellow,drawTimer.CENTER)
                 #### Press 1 - Start logging flight data
                 elif (event.key == pygame.K_w and mods & pygame.KMOD_CTRL) or event.key == pygame.K_1 or event.key == pygame.K_KP1 :
                     try:

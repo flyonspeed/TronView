@@ -46,9 +46,12 @@ class myThreadEfisInputReader(threading.Thread):
         #global CurrentInput, CurrentInput2, aircraft
         internalLoopCounter = 1
         while shared.aircraft.errorFoundNeedToExit == False:
-            shared.aircraft = shared.CurrentInput.readMessage(shared.aircraft)
-            if(shared.CurrentInput2 != None): # if there is a 2nd input then read message from that too.
-                shared.aircraft = shared.CurrentInput2.readMessage(shared.aircraft)
+            if(shared.CurrentInput.isPaused==True):
+                pass
+            else:
+                shared.aircraft = shared.CurrentInput.readMessage(shared.aircraft)
+                if(shared.CurrentInput2 != None): # if there is a 2nd input then read message from that too.
+                    shared.aircraft = shared.CurrentInput2.readMessage(shared.aircraft)
             internalLoopCounter = internalLoopCounter - 1
             if internalLoopCounter < 0:
                 internalLoopCounter = 100

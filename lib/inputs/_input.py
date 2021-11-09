@@ -35,6 +35,7 @@ class Input:
         self.input_logFileName = None
         self.inputNum = num
         self.isPlaybackMode = False
+        self.isPaused = False
 
         return
 

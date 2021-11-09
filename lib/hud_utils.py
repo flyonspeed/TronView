@@ -170,7 +170,7 @@ def listUSBLogDataFiles():
     files,extrafiles,usbfiles = getLogDataFiles(showErrorIfNoUSB=True)
     if(len(usbfiles)>0):
         print("\nUSB Log files found:")
-        for usbfiles in usbfiles:
+        for file in usbfiles:
             print(file)
     return 
 

@@ -261,7 +261,7 @@ class stratux_wifi(Input):
                         aircraft.traffic.src_lat = _signed24(msg[6:]) * latLongIncrement
                         aircraft.traffic.src_lon = _signed24(msg[9:]) * latLongIncrement
                         alt = _thunkByte(msg[12], 0xff, 4) + _thunkByte(msg[13], 0xf0, -4)
-                        aircraft.traffic.srt_alt = (alt * 25) - 1000
+                        aircraft.traffic.src_alt = (alt * 25) - 1000
 
                         horzVelo = _thunkByte(msg[15], 0xff, 4) + _thunkByte(msg[16], 0xf0, -4)
                         if horzVelo == 0xfff:  # no info available

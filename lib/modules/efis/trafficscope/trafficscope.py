@@ -39,6 +39,8 @@ class TrafficScope(Module):
         self.font = pygame.font.SysFont("monospace", 12, bold=False)
         self.font_target = pygame.font.SysFont("monospace", target_font_size, bold=False)
 
+        self.target_show_lat_lon = hud_utils.readConfigBool("TrafficScope", "target_show_lat_lon", False)
+
         self.setScaleInMiles(10)
 
 
@@ -202,6 +204,16 @@ class TrafficScope(Module):
                         # distance
                         labelDist = self.font_target.render("%.1f mi."%(t.dist), False, (200,255,255), (0,0,0))
                         self.surface2.blit(labelDist, (xx+label_rect.width+10, yy))
+
+                        #show lat lon?
+                        if(self.target_show_lat_lon==True):
+                            labelLat = self.font_target.render("%f "%(t.lat), False, (200,255,255), (0,0,0))
+                            self.surface2.blit(labelLat, (xx, yy+labelSpeed_rect.height+label_rect.height))
+                            labelLat_rect = labelLat.get_rect()
+                            labelLon = self.font_target.render("%f "%(t.lon), False, (200,255,255), (0,0,0))
+                            self.surface2.blit(labelLon, (xx, yy+labelSpeed_rect.height+label_rect.height+labelLat_rect.height))
+
+
 
         self.pygamescreen.blit(self.surface2, pos)
 

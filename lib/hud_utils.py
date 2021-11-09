@@ -16,7 +16,7 @@ def readConfig(section, name, defaultValue=0, show_error=False,hideoutput=False)
     global configParser
     try:
         value = configParser.get(section, name)
-        if(hideoutput!=False): print("Config.cfg: ["+section+"] "+name+": "+value)
+        if(hideoutput==False): print("Config.cfg: ["+section+"] "+name+": "+value)
         return value
     except Exception as e:
         if show_error == True:

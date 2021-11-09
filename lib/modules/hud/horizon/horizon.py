@@ -26,11 +26,12 @@ class Horizon(Module):
             self, pygamescreen, width, height
         )  # call parent init screen.
         print(("Init Mod: %s %dx%d"%(self.name,self.width,self.height)))
+        target_font_size = hud_utils.readConfigInt("HUD", "target_font_size", 40)
 
         # fonts
-        self.font = pygame.font.SysFont(
-            None, int(self.height / 20)
-        )
+        self.font = pygame.font.SysFont(None, 30)
+        self.font_target = pygame.font.SysFont(None, target_font_size)
+
         self.surface = pygame.Surface((self.width * 2, self.height * 2))
         self.ahrs_bg_width = self.surface.get_width()
         self.ahrs_bg_height = self.surface.get_height()
@@ -49,7 +50,7 @@ class Horizon(Module):
         print("HUD x degree_per_pixel: %f"%(self.x_degree_per_pixel))
 
         # traffic range
-        self.showTrafficMiles = hud_utils.readConfigInt("HUD", "show_traffic_within_miles", 100)
+        self.showTrafficMiles = hud_utils.readConfigInt("HUD", "show_traffic_within_miles", 5)
 
         # sampling for flight path.
         self.readings = []  # Setup moving averages to smooth a bit
@@ -430,7 +431,7 @@ class Horizon(Module):
 
 
         # go through targets if there are any.
-        if(aircraft.mag_head != None):
+        if(aircraft.mag_head != None and self.showTrafficMiles > 0):
             for t in aircraft.traffic.targets:
                 if t.dist != None and t.dist < self.showTrafficMiles:
                     result = aircraft.mag_head - t.brng
@@ -440,11 +441,11 @@ class Horizon(Module):
                         x_offset = self.width - (center_deg / self.x_degree_per_pixel) # convert bearing to target to pixel location on screen.
 
                         # render target distance and alt
-                        txtTargetDist = self.font.render("%.2fmi %dft"%(t.dist,t.alt), False, (0,0,0),(255,200,130))
+                        txtTargetDist = self.font_target.render("%.2fmi %dft"%(t.dist,t.alt), False, (0,0,0),(255,200,130))
                         text_widthD, text_heightD = txtTargetDist.get_size()
                         self.surface.blit(txtTargetDist, (x_offset-int(text_widthD/2), smartdisplay.y_end-text_heightD))
                         # render target callsign.
-                        textTargetCall = self.font.render(str(t.callsign), False, (0,0,0),(255,200,130))
+                        textTargetCall = self.font_target.render(str(t.callsign), False, (0,0,0),(255,200,130))
                         text_widthC, text_heightC = textTargetCall.get_size()
                         self.surface.blit(textTargetCall, (x_offset-int(text_widthC/2), smartdisplay.y_end-text_heightC-text_heightD))
 

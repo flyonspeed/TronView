@@ -161,6 +161,12 @@ load a input module for where to get the air data from.
 
 --playfile2 (optional) set playback file for input 2
 
+--listlogs (optional) show logs you saved. location id defined in config.cfg
+
+--listusblogs (optional) show logs saved to usb drive (if available)
+
+-- listexamplelogs (optional) show example log files to playback
+
 
 Run the command with no arguments and it will show you which input modules and screen modules are available to use.
 

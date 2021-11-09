@@ -128,7 +128,7 @@ if __name__ == "__main__":
     #print 'ARGV      :', sys.argv[1:]
     try:
         opts, args = getopt.getopt(
-            sys.argv[1:], "hs:i:tec:lr",['in1=','in2=','playfile1=','playfile2=','screen=']
+            sys.argv[1:], "hs:i:tec:lr",['in1=','in2=','playfile1=','playfile2=','screen=','listusblogs','listexamplelogs','listlogs']
         )
     except getopt.GetoptError:
         print("unknown command line args given..")
@@ -141,8 +141,14 @@ if __name__ == "__main__":
             shared.aircraft.inputs[0].PlayFile = True
         if opt == '-c':  #custom example file name.
             shared.aircraft.inputs[0].PlayFile = arg
-        if opt == '-r':  # list example files
+        if opt in ("","--listlogs"):
             hud_utils.listLogDataFiles()
+            sys.exit()
+        if opt in ("","--listexamplelogs"):
+            hud_utils.listExampleLogs()
+            sys.exit()
+        if opt in ("","--listusblogs"):
+            hud_utils.listUSBLogDataFiles()
             sys.exit()
         if opt in ("", "--in1"):
             DataInputToLoad = arg

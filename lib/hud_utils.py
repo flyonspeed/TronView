@@ -11,11 +11,11 @@ from lib.common import shared
 # load config.cfg file if it exists.
 configParser = configparser.RawConfigParser()
 configParser.read("config.cfg")
-def readConfig(section, name, defaultValue=0, show_error=False):
+def readConfig(section, name, defaultValue=0, show_error=False,hideoutput=False):
     global configParser
     try:
         value = configParser.get(section, name)
-        print("Config used: ["+section+"] "+name+": "+value)
+        if(hideoutput!=False): print("Config.cfg: ["+section+"] "+name+": "+value)
         return value
     except Exception as e:
         if show_error == True:
@@ -63,6 +63,7 @@ def get_bin(x, n=8):
 #############################################
 ## Function: show command Args
 def showArgs():
+    extraPath = readConfig("DataRecorder", "path", shared.DefaultFlightLogDir,hideoutput=True)
     print("main.py -i <inputsource> - s <screenmodule> <more options>")
     print(" -i  <Input 1 Source> Main input source (Required unless defined in config.cfg)")
     print(" --in1 <Input 1 Source> same as using -i")
@@ -76,7 +77,9 @@ def showArgs():
     print(" --playfile1 playback logfile for input 1 (main input source)")
     print(" --playfile2 playback logfile for input 2")
 
-    print(" -r list log data files")
+    print(" --listlogs list log data files ("+extraPath+")")
+    print(" --listusblogs list log data files found on usb drive (if plugged in)")
+    print(" --listexamplelogs list example log data files (lib/inputs/_example_data)")
     print(" -l list serial ports")
 
 
@@ -109,33 +112,65 @@ def getScreens():
 
 ##############################################
 ## function: getLogDataFiles()
-## return list of example files in standard dir and in user defined dir.
-def getLogDataFiles():
+## return list of log files in standard dir and in user defined dir.
+def getLogDataFiles(showErrorIfNoUSB=False):
     extraPath = readConfig("DataRecorder", "path", shared.DefaultFlightLogDir)
     files = []
     extrafiles = []
+    usbfiles = []
+    # list files in inputs example folder.
     lst = os.listdir("lib/inputs/_example_data")
     for d in lst:
         if not d.startswith("_"):
             files.append(d)
+    # list datarecorder path.
     lst = os.listdir(extraPath)
     for d in lst:
         if d.endswith(".dat") or d.endswith(".log") or d.endswith(".bin"):
             extrafiles.append(d)
+    # list files found on usb drive if any.
+    try:
+        if rpi_hardware.mount_usb_drive() == True:
+            usbpath = "/mnt/usb/"
+            lst = os.listdir(usbpath)
+            for d in lst:
+                if d.endswith(".dat") or d.endswith(".log") or d.endswith(".bin"):
+                    usbfiles.append(d)
+        else:
+            if(showErrorIfNoUSB==True): print("Not USB drive found.")
+    except :
+        if(showErrorIfNoUSB==True): print("Error: finding USB drive.")
+        pass
 
-    return files, extrafiles
+    return files, extrafiles, usbfiles
 
 ##############################################
 ## function: listLogDataFiles()
 def listLogDataFiles():
-    files,extrafiles = getLogDataFiles()
-    print("\nAvailable log demo files: (located in lib/inputs/_example_data folder)")
-    for file in files:
-        print(file)
+    files,extrafiles,usbfiles = getLogDataFiles()
     extraPath = readConfig("DataRecorder", "path", shared.DefaultFlightLogDir)
     print("\nYour Log output files: (located in "+extraPath+")")
     for file in extrafiles:
         print(file)
+    return 
+
+##############################################
+## function: listExampleLogs()
+def listExampleLogs():
+    files,extrafiles,usbfiles = getLogDataFiles()
+    print("\nAvailable log demo files: (located in lib/inputs/_example_data folder)")
+    for file in files:
+        print(file)
+    return 
+
+##############################################
+## function: listUSBLogDataFiles()
+def listUSBLogDataFiles():
+    files,extrafiles,usbfiles = getLogDataFiles(showErrorIfNoUSB=True)
+    if(len(usbfiles)>0):
+        print("\nUSB Log files found:")
+        for usbfiles in usbfiles:
+            print(file)
     return 
 
 ##############################################

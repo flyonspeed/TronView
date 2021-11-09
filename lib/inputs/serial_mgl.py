@@ -249,12 +249,14 @@ class serial_mgl(Input):
                             # Then read in a small int for each egt and cht.
                             for x in range(NumberOfEGT):
                                 EGTCHTMessage = self.ser.read(2)
-                                EGTinC  = struct.unpack("<h", EGTCHTMessage)
-                                aircraft.engine.EGT[x] = round((EGTinC[0] * 1.8) + 32) # convert from C to F
+                                if(len(EGTCHTMessage)==2):
+                                    EGTinC  = struct.unpack("<h", EGTCHTMessage)
+                                    aircraft.engine.EGT[x] = round((EGTinC[0] * 1.8) + 32) # convert from C to F
                             for x in range(NumberOfCHT):
                                 EGTCHTMessage = self.ser.read(2)
-                                CHTinC  = struct.unpack("<h", EGTCHTMessage)
-                                aircraft.engine.CHT[x] = round((CHTinC[0] * 1.8) + 32)
+                                if(len(EGTCHTMessage)==2):
+                                    CHTinC  = struct.unpack("<h", EGTCHTMessage)
+                                    aircraft.engine.CHT[x] = round((CHTinC[0] * 1.8) + 32)
 
                             Checksum = self.ser.read(4) # read in last checksum part
 

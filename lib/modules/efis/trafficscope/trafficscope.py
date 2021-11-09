@@ -145,10 +145,19 @@ class TrafficScope(Module):
                 if(self.show_details==True):
                     if(t.speed != None and t.speed > -1 and t.track != None):
                         # generate line in direct aircraft is flying..
-                        radianTargetTrack = (t.track-90) * math.pi / 180
-                        radianArrowPt = (t.track-82) * math.pi / 180
-                        radianArrowPt2 = (t.track-98) * math.pi / 180
+
+                        targetBrngToUse = t.track # get brng the target is going.
+                        if(aircraft.mag_head != None):  # change it based on what direction we are going because up is now our heading.. not north.
+                            targetBrngToUse = targetBrngToUse - aircraft.mag_head
+                        elif(aircraft.gps.GndTrack != None): # else use gps ground track if we have it.
+                            targetBrngToUse = targetBrngToUse - aircraft.gps.GndTrack
+                        if(targetBrngToUse<0): targetBrngToUse = 360 - abs(targetBrngToUse)
+
+                        radianTargetTrack = (targetBrngToUse-90) * math.pi / 180
+                        radianArrowPt = (targetBrngToUse-82) * math.pi / 180
+                        radianArrowPt2 = (targetBrngToUse-98) * math.pi / 180
                         d = t.speed / 3
+                        if(d>60): d = 60  # cap at 60 pixels length for arrow.
                         #print("line speed:"+str(d))
                         lineX = xx + (d * math.cos(radianTargetTrack))
                         lineY = yy + (d * math.sin(radianTargetTrack))

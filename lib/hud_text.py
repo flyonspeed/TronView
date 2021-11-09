@@ -59,7 +59,10 @@ def print_data(label,value,forceIfObject=False,sameLine=False,indent=False,showH
     elif( theType is int):
         showValue = str(value)
     elif( theType is float):
-        showValue = "%0.4f" %(value)
+        if 'lat' in label.lower() or 'lon' in label.lower():  # if showing lat/lon then show all decimals.
+            showValue = "%f" %(value)
+        else:
+            showValue = "%0.4f" %(value)
     elif( theType is bool):
         showValue = str(value)
     elif( theType is bytes):

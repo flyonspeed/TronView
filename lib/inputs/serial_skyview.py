@@ -87,6 +87,10 @@ class serial_skyview(Input):
                     ) 
                     #print(msg)
                     aircraft.sys_time_string = "%d:%d:%d"%(int(HH),int(MM),int(SS))
+                    self.time_stamp_string = aircraft.sys_time_string
+                    self.time_stamp_min = int(MM)
+                    self.time_stamp_sec = int(SS)
+                    
                     #print("time: "+aircraft.sys_time_string)
                     #print("pitch:"+str(pitch))
                     aircraft.pitch = Input.cleanInt(self,pitch) * 0.1

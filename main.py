@@ -50,8 +50,15 @@ class myThreadEfisInputReader(threading.Thread):
                 pass
             else:
                 shared.aircraft = shared.CurrentInput.readMessage(shared.aircraft)
+                shared.aircraft.inputs[0].time_stamp = shared.CurrentInput.time_stamp_string
                 if(shared.CurrentInput2 != None): # if there is a 2nd input then read message from that too.
                     shared.aircraft = shared.CurrentInput2.readMessage(shared.aircraft)
+                    shared.aircraft.inputs[1].time_stamp = shared.CurrentInput2.time_stamp_string
+                    # show diff between time stamps if we have them.
+                    if(shared.CurrentInput2.time_stamp_string != None and shared.CurrentInput.time_stamp_string != None):
+                        time1Secs =  (shared.CurrentInput.time_stamp_min * 60) + shared.CurrentInput.time_stamp_sec
+                        time2Secs =  (shared.CurrentInput2.time_stamp_min * 60) + shared.CurrentInput2.time_stamp_sec
+                        shared.aircraft.inputs[0].time_diff_secs = abs(time2Secs - time1Secs)
                 internalLoopCounter = internalLoopCounter - 1
                 if internalLoopCounter < 0:
                     internalLoopCounter = 100

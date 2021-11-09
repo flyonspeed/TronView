@@ -76,6 +76,10 @@ class serial_d100(Input):
 
                 if True:
                     aircraft.sys_time_string = "%d:%d:%d"%(int(HH),int(MM),int(SS))
+                    self.time_stamp_string = aircraft.sys_time_string
+                    self.time_stamp_min = int(MM)
+                    self.time_stamp_sec = int(SS)
+
                     aircraft.roll = int(roll) * 0.1
                     aircraft.pitch = int(pitch) * 0.1
                     aircraft.ias = int(IAS) * 0.224  # airspeed in units of 1/10 m/s (1555 = 155.5 m/s) convert to MPH

@@ -95,6 +95,9 @@ class serial_g3x(Input):
                             if CRLF[0] == self.EOL:
                                 aircraft.msg_count += 1
                                 aircraft.sys_time_string = "%d:%d:%d"%(int(UTCHour),int(UTCMin),int(UTCSec))
+                                self.time_stamp_string = aircraft.sys_time_string
+                                self.time_stamp_min = int(UTCMin)
+                                self.time_stamp_sec = int(UTCSec)
                                 aircraft.gps.LatHemi = LatHemi  # North or South
                                 aircraft.gps.LatDeg = int(LatDeg)
                                 aircraft.gps.LatMin = int(LatMin) * 0.001  # x.xxx

@@ -3,8 +3,6 @@
 import math, os, sys, random
 import configparser
 import importlib
-from lib.common import shared 
-from lib.util import rpi_hardware
 
 
 #############################################
@@ -64,6 +62,8 @@ def get_bin(x, n=8):
 #############################################
 ## Function: show command Args
 def showArgs():
+    from lib.common import shared 
+
     extraPath = readConfig("DataRecorder", "path", shared.DefaultFlightLogDir,hideoutput=True)
     print("main.py -i <inputsource> - s <screenmodule> <more options>")
     print(" -i  <Input 1 Source> Main input source (Required unless defined in config.cfg)")
@@ -115,6 +115,8 @@ def getScreens():
 ## function: getLogDataFiles()
 ## return list of log files in standard dir and in user defined dir.
 def getLogDataFiles(showErrorIfNoUSB=False):
+    from lib.common import shared 
+
     extraPath = readConfig("DataRecorder", "path", shared.DefaultFlightLogDir)
     files = []
     extrafiles = []
@@ -148,6 +150,8 @@ def getLogDataFiles(showErrorIfNoUSB=False):
 ##############################################
 ## function: listLogDataFiles()
 def listLogDataFiles():
+    from lib.common import shared 
+
     files,extrafiles,usbfiles = getLogDataFiles()
     extraPath = readConfig("DataRecorder", "path", shared.DefaultFlightLogDir)
     print("\nYour Log output files: (located in "+extraPath+")")
@@ -182,6 +186,8 @@ def getDataRecorderDir(exitOnFail=False):
     from os.path import exists
     import os
     from pathlib import Path
+    from lib.common import shared 
+
     path_datarecorder = readConfig("DataRecorder", "path", shared.DefaultFlightLogDir)
     fullpath = ""
     try:

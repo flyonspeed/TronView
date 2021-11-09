@@ -145,6 +145,9 @@ class serial_mgl(Input):
                             )  # 0.00108 of inches of mercury change per foot.
                             aircraft.oat = int((OAT * 1.8) + 32) # convert from c to f
                             aircraft.sys_time_string = "%d:%d:%d"%(Hour,Min,Sec)
+                            self.time_stamp_string = aircraft.sys_time_string
+                            self.time_stamp_min = Min
+                            self.time_stamp_sec = Sec
 
                             aircraft.msg_count += 1
                             if(self.textMode_showRaw==True): aircraft.msg_last = binascii.hexlify(Message) # save last message.

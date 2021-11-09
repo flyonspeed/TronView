@@ -4,6 +4,7 @@ from enum import Enum
 import time
 from geographiclib.geodesic import Geodesic
 import math
+from . import hud_utils
 
 #############################################
 ## Class: Aircraft
@@ -229,6 +230,8 @@ class InputDetails(object):
         self.Battery = None
         self.PlayFile = None
         self.RecFile = None
+        self.time_stamp = None
+        self.time_diff_secs = None
 
 #############################################
 ## Class: GPSData
@@ -347,10 +350,13 @@ class TrafficData(object):
         self.targets = []
         self.buoyCount = 0
 
-
         self.msg_count = 0
         self.msg_last = ""
         self.msg_bad = 0
+
+        # check if we should ignore traffic beyond a certain distance (in miles.)
+        self.ignore_traffic_beyond_distance = hud_utils.readConfigInt("Main", "ignore_traffic_beyond_distance", 0)
+
 
     def contains(self, target): # search for callsign
         for x in self.targets:
@@ -377,8 +383,9 @@ class TrafficData(object):
         # if dist&brng was not calculated... check distance and brng to target. if we know our location..
         # use geographiclib to solve this.
         # https://geographiclib.sourceforge.io/1.46/python/code.html#geographiclib.geodesic.Geodesic.Direct
-        if(aircraft.gps.LatDeg != None and aircraft.gps.LonDeg != None and target.lat != 0 and target.lon != 0):
-            solve = Geodesic.WGS84.Inverse(aircraft.gps.LatDeg,aircraft.gps.LonDeg,target.lat,target.lon)
+        # use lat/lon from traffic source. 
+        if(self.src_lat != None and self.src_lon != None and target.lat != 0 and target.lon != 0):
+            solve = Geodesic.WGS84.Inverse(self.src_lat,self.src_lon,target.lat,target.lon)
             brng = solve['azi1']
             dist = solve['s12'] * 0.0006213712
             if(dist!=dist):
@@ -393,10 +400,17 @@ class TrafficData(object):
                 else: target.brng = brng
         # check difference in altitude from self.
         if(target.alt != None):
+            if(self.src_alt != None ):  # default to using alt from traffic source...
+                target.altDiff = target.alt - self.src_alt
             if(aircraft.PALT != None ):
                 target.altDiff = target.alt - aircraft.PALT
             elif(aircraft.gps.GPSAlt != None):
                 target.altDiff = target.alt - aircraft.gps.GPSAlt
+
+        if(self.ignore_traffic_beyond_distance != 0):
+            if(target.dist == None or target.dist > self.ignore_traffic_beyond_distance):
+                # target is beyond distance that we want to listen to.. so bye bye baby!
+                return
 
         if(self.contains(target)==False):
             self.targets.append(target)

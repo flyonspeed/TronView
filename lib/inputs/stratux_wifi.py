@@ -244,6 +244,10 @@ class stratux_wifi(Input):
                         if (statusByte2 & 0b10000000) != 0:
                             timeStamp += (1 << 16)
                         aircraft.traffic.lcl_time_string = str(datetime.timedelta(seconds=int(timeStamp)))   # get time stamp for gdl hearbeat.
+                        self.time_stamp_string = aircraft.traffic.lcl_time_string
+                        time = datetime.datetime.strptime(aircraft.traffic.lcl_time_string, "%H:%M:%S")
+                        self.time_stamp_min = int(time.minute)
+                        self.time_stamp_sec = int(time.second)
 
                     if(self.use_ahrs==True): 
                         aircraft.sys_time_string = aircraft.traffic.lcl_time_string

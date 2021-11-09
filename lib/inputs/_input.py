@@ -36,6 +36,9 @@ class Input:
         self.inputNum = num
         self.isPlaybackMode = False
         self.isPaused = False
+        self.time_stamp_string = None # time from this input source.. if any..
+        self.time_stamp_min = None  
+        self.time_stamp_sec = None  
 
         return
 

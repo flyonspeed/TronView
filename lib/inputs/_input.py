@@ -83,16 +83,16 @@ class Input:
     ## Create a new log file. (for saving flight data to)
     def createLogFile(self,fileExtension,isBinary):
         # should we check if the usb drive is available to write to?
-        if (rpi_hardware.mount_usb_drive() == True and self.datarecorder_check_usb == True):
-            openFileName = self.getNextLogFile("/mnt/usb/",fileExtension)
-        else:
-            openFileName = self.getNextLogFile(self.path_datarecorder,fileExtension)
         try:
-            if isBinary == True:
-                logFile = open(openFileName, "w+b")
+            if (rpi_hardware.mount_usb_drive() == True and self.datarecorder_check_usb == True):
+                openFileName = self.getNextLogFile("/mnt/usb/",fileExtension)
             else:
-                logFile = open(openFileName, "w")
-            return logFile,openFileName
+                openFileName = self.getNextLogFile(self.path_datarecorder,fileExtension)
+                if isBinary == True:
+                    logFile = open(openFileName, "w+b")
+                else:
+                    logFile = open(openFileName, "w")
+                return logFile,openFileName
         except Exception as e: 
             print(e)
             print("Error createLogFile() %s"%(openFileName))
@@ -124,20 +124,7 @@ class Input:
     ## Method: getNextLogFile
     ## get next log file to open.
     def getNextLogFile(self,dirname,fileExtension):
-        #from os.path import exists
-        #import os
-        #from pathlib import Path
-        # try:
-        #     user_home = str(Path.home())
-        #     fullpath = dirname.replace("~",user_home) # expand out full user dir if it's in the path.
-        #     if(exists(fullpath)==False):
-        #         print("Creating dir: "+fullpath)
-        #         os.mkdir(fullpath) # make sure the dir exists..
-        # except Exception as e: 
-        #     print(e)
-        #     print("Error creating log dir: "+dirname)
-        #     shared.aircraft.errorFoundNeedToExit = True
-        #     return False
+        from os.path import exists
         fullpath = hud_utils.getDataRecorderDir()
         number = 1
         newFilename = fullpath + self.name + "_" + str(number) + fileExtension

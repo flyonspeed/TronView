@@ -87,12 +87,13 @@ class Input:
             if (rpi_hardware.mount_usb_drive() == True and self.datarecorder_check_usb == True):
                 openFileName = self.getNextLogFile("/mnt/usb/",fileExtension)
             else:
-                openFileName = self.getNextLogFile(self.path_datarecorder,fileExtension)
-                if isBinary == True:
-                    logFile = open(openFileName, "w+b")
-                else:
-                    logFile = open(openFileName, "w")
-                return logFile,openFileName
+                DataRecorderPath = hud_utils.getDataRecorderDir()
+                openFileName = self.getNextLogFile(DataRecorderPath,fileExtension)
+            if isBinary == True:
+                logFile = open(openFileName, "w+b")
+            else:
+                logFile = open(openFileName, "w")
+            return logFile,openFileName
         except Exception as e: 
             print(e)
             print("Error createLogFile() %s"%(openFileName))
@@ -125,13 +126,15 @@ class Input:
     ## get next log file to open.
     def getNextLogFile(self,dirname,fileExtension):
         from os.path import exists
-        fullpath = hud_utils.getDataRecorderDir()
+        print("getNextLogFile() "+dirname+" "+fileExtension)
+        #fullpath = hud_utils.getDataRecorderDir()
+        fullpath = dirname
         number = 1
         newFilename = fullpath + self.name + "_" + str(number) + fileExtension
         while exists(newFilename) == True:
             number = number + 1
             newFilename = fullpath + self.name + "_" + str(number) + fileExtension
-        #print("using filename %s"%(newFilename))
+        print("using filename %s"%(newFilename))
         return newFilename
 
     #############################################

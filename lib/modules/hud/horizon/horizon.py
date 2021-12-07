@@ -39,7 +39,7 @@ class Horizon(Module):
         self.MainColor = (0, 255, 0)  # main color of hud graphics
         self.line_thickness = hud_utils.readConfigInt("HUD", "line_thickness", 2)
         self.ahrs_line_deg = hud_utils.readConfigInt("HUD", "vertical_degrees", 5)
-        self.pxy_div = 30  # Y axis number of pixels per degree divisor
+        self.pxy_div = hud_utils.readConfigInt("HUD", "vertical_pixels_per_degree", 30)  # Y axis number of pixels per degree divisor
         self.line_mode = hud_utils.readConfigInt("HUD", "line_mode", 1)
         self.caged_mode = 1 # default on
         self.center_circle_mode = hud_utils.readConfigInt("HUD", "center_circle", 4)

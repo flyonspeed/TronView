@@ -115,7 +115,8 @@ def getScreens():
 ## function: getLogDataFiles()
 ## return list of log files in standard dir and in user defined dir.
 def getLogDataFiles(showErrorIfNoUSB=False):
-    from lib.common import shared 
+    from lib.common import shared
+    from lib.util import rpi_hardware
 
     extraPath = readConfig("DataRecorder", "path", shared.DefaultFlightLogDir)
     files = []
@@ -141,8 +142,10 @@ def getLogDataFiles(showErrorIfNoUSB=False):
                     usbfiles.append(d)
         else:
             if(showErrorIfNoUSB==True): print("Not USB drive found.")
-    except :
-        if(showErrorIfNoUSB==True): print("Error: finding USB drive.")
+    except Exception as e: 
+        if(showErrorIfNoUSB==True): 
+            print(e)
+            print("Error: finding USB drive.")
         pass
 
     return files, extrafiles, usbfiles

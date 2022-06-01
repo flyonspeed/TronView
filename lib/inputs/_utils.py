@@ -3,7 +3,7 @@
 ##Library of useful functions that can be used inside of input modules
 ##02/06/2019 Brian Chesteen
 
-from __future__ import print_function
+
 import math
 from lib.geomag import declination
 
@@ -11,6 +11,7 @@ from lib.geomag import declination
 ## Function: ias2tas By: Brian Chesteen
 ## Converts indicated airspeed to true airspeed based on
 ## outside air temp and pressure altitude.
+# inputs are in knots, cel, ft.
 
 def ias2tas(ias, oat, palt):
     tas = ias * (math.sqrt((273.0 + oat) / 288.0)) * ((1.0 - palt / 144000.0) ** -2.75)
@@ -77,7 +78,7 @@ def gndtrack(EWVelDir, EWVelmag, NSVelDir, NSVelmag):
 #############################################
 ## Function: windSpdDir By: Brian Chesteen
 ## Calculates wind speed and direction
-
+# tas and gndspeed in knots
 def windSpdDir(tas, gndspeed, gndtrack, mag_head, mag_decl):
     if tas > 30 and gndspeed > 30:
         crs = math.radians(gndtrack) #convert degrees to radians

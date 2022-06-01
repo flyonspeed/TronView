@@ -3,8 +3,8 @@
 # Serial input source
 # Dynon D10 and D100
 # 2/2/2019 Christopher Jones
-from __future__ import print_function
-from _input import Input
+
+from ._input import Input
 from lib import hud_utils
 import serial
 import struct
@@ -17,12 +17,15 @@ class serial_d100(Input):
         self.version = 1.0
         self.inputtype = "serial"
 
-    def initInput(self,aircraft):
-        Input.initInput( self, aircraft )  # call parent init Input.
+    def initInput(self,num,aircraft):
+        Input.initInput( self,num, aircraft )  # call parent init Input.
         
-        if aircraft.demoMode:
-            # if in demo mode then load example data file.
-            self.ser = open("lib/inputs/_example_data/dynon_d100_data1.txt", "r") 
+        if(aircraft.inputs[self.inputNum].PlayFile!=None):
+            # load log file to playback.
+            if aircraft.inputs[self.inputNum].PlayFile==True:
+                defaultTo = "dynon_d100_data1.txt"
+                aircraft.inputs[self.inputNum].PlayFile = hud_utils.readConfig(self.name, "playback_file", defaultTo)
+            self.ser,self.input_logFileName = Input.openLogFile(self,aircraft.inputs[self.inputNum].PlayFile,"r")
         else:
             self.efis_data_format = hud_utils.readConfig("DataInput", "format", "none")
             self.efis_data_port = hud_utils.readConfig("DataInput", "port", "/dev/ttyS0")
@@ -42,7 +45,7 @@ class serial_d100(Input):
 
     # close this data input 
     def closeInput(self,aircraft):
-        if aircraft.demoMode:
+        if self.isPlaybackMode:
             self.ser.close()
         else:
             self.ser.close()
@@ -59,20 +62,24 @@ class serial_d100(Input):
                 if len(t) != 0:
                     x = ord(t)
                 else:
-                    if aircraft.demoMode:  # if no bytes read and in demo mode.  then reset the file pointer to the start of the file.
+                    if self.isPlaybackMode:  # if no bytes read and in playback mode.  then reset the file pointer to the start of the file.
                         self.ser.seek(0)
                     return aircraft
             msg = self.ser.read(51)  
             if len(msg) == 51:
                 msg = (msg[:51]) if len(msg) > 51 else msg
                 aircraft.msg_last = msg
-                # 8b      4b    5b   3b  4b   5b   4b        3b        3b         2b   6b                2b          2s  
-                timechunk,pitch,roll,yaw,IAS, Alt, TurnRate, LatAccel, VertAccel, AOA, StatusBitMaskHex, InteralUse, Checksum = struct.unpack(
-                    "8s4s5s3s4s5s4s3s3s2s6s2s2s", msg
+                # 8b        4b    5b   3b  4b   5b   4b        3b        3b         2b   6b                2b          2s  
+                HH,MM,SS,FF,pitch,roll,yaw,IAS, Alt, TurnRate, LatAccel, VertAccel, AOA, StatusBitMaskHex, InteralUse, Checksum = struct.unpack(
+                    "2s2s2s2s4s5s3s4s5s4s3s3s2s6s2s2s", str.encode(msg)
                 )
 
                 if True:
-                    aircraft.sys_time_string = timechunk
+                    aircraft.sys_time_string = "%d:%d:%d"%(int(HH),int(MM),int(SS))
+                    self.time_stamp_string = aircraft.sys_time_string
+                    self.time_stamp_min = int(MM)
+                    self.time_stamp_sec = int(SS)
+
                     aircraft.roll = int(roll) * 0.1
                     aircraft.pitch = int(pitch) * 0.1
                     aircraft.ias = int(IAS) * 0.224  # airspeed in units of 1/10 m/s (1555 = 155.5 m/s) convert to MPH
@@ -95,7 +102,7 @@ class serial_d100(Input):
 
                     aircraft.msg_count += 1
 
-                    if aircraft.demoMode:  #if demo mode then add a delay.  Else reading a file is way to fast.
+                    if self.isPlaybackMode:  #if playback mode then add a delay.  Else reading a file is way to fast.
                         time.sleep(.05)
                     else:
                         self.ser.flushInput()  # flush the serial after every message else we see delays
@@ -105,28 +112,20 @@ class serial_d100(Input):
 
             else:
                 aircraft.msg_bad += 1 # count this as a bad message
-                if aircraft.demoMode:  #if demo mode then add a delay.  Else reading a file is way to fast.
+                if self.isPlaybackMode:  #if playback mode then add a delay.  Else reading a file is way to fast.
                     time.sleep(.01)
                 else:
                     self.ser.flushInput()  # flush the serial after every message else we see delays
                 return aircraft
         except ValueError as ex:
-            print("dynon data conversion error")
+            print("dynon d100 data conversion error")
             print(ex)
             aircraft.errorFoundNeedToExit = True
         except serial.serialutil.SerialException:
-            print("dynon serial exception")
+            print("dynon d100 serial exception")
             aircraft.errorFoundNeedToExit = True
         return aircraft
 
 
-
-    #############################################
-    ## Function: printTextModeData
-    def printTextModeData(self, aircraft):
-        hud_text.print_header("Decoded data from Input Module: %s" % (self.name))
-        hud_text.print_object(aircraft)
-        hud_text.print_object(aircraft.gps)
-        hud_text.print_DoneWithPage()
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

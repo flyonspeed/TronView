@@ -1,24 +1,40 @@
 #!/usr/bin/env python
 
-import math, os, sys, random
+import math, os, sys, random, platform
 import argparse, pygame
 from operator import add
-import hud_utils
+from . import hud_utils
 
 #############################################
 ## Function: initDisplay
 def initDisplay(debug):
     pygame.init()
     disp_no = os.getenv("DISPLAY")
-    print("sys.platform:%s"%(sys.platform))
+    print(("sys.platform:%s"%(sys.platform)))
+    print(("platform.machine:%s"%(platform.machine())))
+    inWindow = hud_utils.readConfig("Main", "window", "false")  # default screen to load
+    showFullScreen = True
+
+    if inWindow != "false":
+        # if they want a windowed version..
+        size = 640, 480 # default to 640,480 for window size.
+        showFullScreen = False
+        if len(inWindow)>0:
+            print(("Window size from config: %s"%(inWindow)))
+            winsize = inWindow.split(",")
+            try:
+                size = int(winsize[0]),int(winsize[1])
+            except:
+                raise Exception("Config error: ",sys.exc_info()[0]," . window size is not valid in config")
+
     if disp_no:
-        # assume we are in xdisplay.  Go full screen with no frame.
-        print("default to XDisplay {0}".format(disp_no))
-        inWindow = hud_utils.readConfig("HUD", "window", "false")  # default screen to load
-        if inWindow == "true":
-            size = 640, 480
+        # assume we are in xdisplay. in xwindows on linux/rpi
+        print(("default to XDisplay {0}".format(disp_no)))
+        if showFullScreen == False:
             screen = pygame.display.set_mode(size)
+            pygame.display.set_caption('efis')
         else:
+            # Go full screen with no frame.
             size = pygame.display.Info().current_w, pygame.display.Info().current_h
             screen = pygame.display.set_mode((0,0), pygame.NOFRAME)
     else:
@@ -30,7 +46,7 @@ def initDisplay(debug):
             try:
                 pygame.display.init()
             except pygame.error:
-                print("Driver: {0} failed.".format(driver))
+                print(("Driver: {0} failed.".format(driver)))
                 continue
 
             found = True
@@ -39,12 +55,20 @@ def initDisplay(debug):
         if not found:
             raise Exception("No video driver found.  Exiting.")
 
-        if sys.platform.startswith('win'):
-            size = 640, 480
+        # check if we want to show fullscreen or window.
+        if showFullScreen == False:
             screen = pygame.display.set_mode(size, pygame.RESIZABLE)
+            pygame.display.set_caption('efis')
         else:
+            # else go full screen.
             size = pygame.display.Info().current_w, pygame.display.Info().current_h
             screen = pygame.display.set_mode(size, pygame.FULLSCREEN)
+
+    showMouse = hud_utils.readConfig("Main", "ShowMouse", "false")  # default screen to load
+    if showMouse != "false":
+        pygame.mouse.set_visible(True)  # show
+    else:
+        pygame.mouse.set_visible(False)  # hide the mouse
 
     return screen, size
 
@@ -136,9 +160,9 @@ def hud_draw_dashed_line(surf, color, start_pos, end_pos, width=1, dash_length=1
     target = Point(end_pos)
     displacement = target - origin
     length = len(displacement)
-    slope = displacement / length
+    slope = Point((displacement.x / length, displacement.y/length))
 
-    for index in range(0, length / dash_length, 2):
+    for index in range(0, length // dash_length, 2):
         start = origin + (slope * index * dash_length)
         end = origin + (slope * (index + 1) * dash_length)
         pygame.draw.line(surf, color, start.get(), end.get(), width)
@@ -203,6 +227,7 @@ def hud_draw_horz_lines(
                 width=line_thickness,
                 dash_length=5,
             )
+            # draw winglets facing up
             pygame.draw.lines(surface,
                 color,
                 False,
@@ -237,8 +262,22 @@ def hud_draw_horz_lines(
             top = int(line_coords[1][1]) - text_height / 2
             surface.blit(text, (left, top))
 
-    top_left = (
-        -(surface.get_width() - width) / 2,
-        -(surface.get_height() - height) / 2,
+        # draw center circle.
+        hud_draw_circle(
+                 surface,
+                 color,
+                 ahrs_center,
+                 15,
+                 1,
+             )
+
+
+def hud_draw_circle(pygamescreen,color,center,radius,width):
+    pygame.draw.circle(
+        pygamescreen,
+        color,
+        (int(center[0]),int(center[1])),
+        radius,
+        width,
     )
-    pygamescreen.blit(surface, top_left)
+

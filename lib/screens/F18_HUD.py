@@ -209,7 +209,8 @@ class F18_HUD(Screen):
 
     # called before screen draw.  To clear the screen to your favorite color.
     def clearScreen(self):
-        self.pygamescreen.fill((0, 0, 0))  # clear screen
+        #self.pygamescreen.fill((0, 0, 0))  # clear screen
+        pass
 
     # handle key events
     def processEvent(self, event, aircraft, smartdisplay):

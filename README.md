@@ -2,23 +2,22 @@
 Project for connecting efis/flight data to a 2nd screen or HUD (Heads Up Display)
 
 ## Features Include:
-- Supports serial input from MGL iEFIS, Garmin G3x, Dynon Skyview & D100.
-- Supports wifi input from Stratux, iLevil BOM, iLevil 3 Portable, Dynon ADSB wifi, etc.
+- Supports serial from MGL, Garmin G3x, Dynon Skyview & D100.
+- Supports wifi from Stratux, iLevil BOM, iLevil 3, uAvionix Echo UAT, Dual XGPS190, Dynon ADSB wifi, etc.
 - Build custom efis or hud screens
 - Record and Playback flight log data to external usb drive (fast forward playback avail)
 - All screens look and work the same for all supported data input.
 - All display screen sizes and ratios supported. (set through config)
-- Text mode
 - Touch screen support
 - 30 + FPS on Raspberry Pi 4 
 - Remote keypad / user input support. (USB 10-key number pad works good)
-- Display flight data in Knots, Standard, Metric, F or C
+- Display flight data in Knots, Standard, Metric, F or C (set in config)
 - Designed for Raspberry Pi but also runs on Mac OSx, Windows, and other linux systems.
 - Show NAV needles for approaches. (If NAV data is available)
 - Use multiple data sources (IE. Serial and Wifi at the same time)
 - Shows traffic as scope or target flags (When traffic source input available)
 - User dropped buoy targets for virtual dogfighting
-- Display flight data in Knots, Standard, Metric, F or C (set in config file)
+- Text mode (Helpful to see raw data values during playback)
 - Now updated to Python 3!
 
 ## Example of HUD in Vans RV-8
@@ -57,7 +56,7 @@ Dynon Skyview
 
 Dynon D10/100
 
-Levil BOM and other Stratux wifi devices (Uses wifi connection)
+Levil BOM , uAvionix Echo UAT, and other Stratux wifi compatiable devices (Uses wifi connection)
 
 
 We are using the rapberry pi 4B for taking serial data from a EFIS (MGL,Dynon,G3x) and displaying a graphical Display out the hdmi output on the pi.  This is plugged into a Display or HUD device like the Hudly Classic.  Any sort of HDMI screen could be hooked to the Pi for displaying this flight data.
@@ -286,10 +285,28 @@ window=640,480
 #For Epic HUD use the following
 #drawable_area=0,159,1280,651
 
+# Show Mouse? set to true if you want to show the mouse. Defaults to false
+#showMouse = true
+
+#Which screen to run on startup.. "Default" screen is used if nothing entered.
+#screen = Default
+
+# Set max frame rate. defaults to 30 
+#maxframerate = 30
+
+# Ignore any traffic targets beyond a given distance in miles (defaults to importing all traffic into aircraft traffic object)
+#ignore_traffic_beyond_distance = 5
 
 [DataInput]
 # input source of data. These modules are located in lib/inputs. 
-inputsource = serial_mgl
+inputsource = serial_d100
+#inputsource = serial_skyview
+#inputsource = serial_mgl
+#inputsource = serial_g3x
+#inputsource = levil_wifi
+#inputsource = serial_logger
+#inputsource = stratux_wifi
+
 
 # port name for serial input. Default is /dev/ttyS0, for Windows you need to know the COM port you want to use ie: COM1, COM2, etc.
 # rpi built in serial is /dev/ttyS0
@@ -299,6 +316,18 @@ port = /dev/ttyS0
 # baud rate. Default is 115200
 # set this to the baud rate of your efis output.
 baudrate = 115200 
+
+[DataInput2]
+# set this to use a 2nd data input source
+# 2nd input source will overwrite the data from the 1st source (if data exists)
+#inputsource = stratux_wifi
+
+[Stratux]
+# To ignore ahrs data from stratux set use_ahrs=false, defaults to true
+#use_ahrs = false
+
+# set UPD port for network input.. defaults to 4000
+#udpport = 4000
 
 [Formats]
 # Set speed and distance to Knots, Standard, Metric (default is Standard)

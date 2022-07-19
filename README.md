@@ -1,19 +1,29 @@
 # TronView
-Project for connecting efis/flight data to a 2nd screen or HUD.
+Project for connecting efis/flight data to a 2nd screen or HUD (Heads Up Display)
 
 ## Features Include:
+- Supports serial input from MGL iEFIS, Garmin G3x, Dynon Skyview & D100.
+- Supports wifi input from Stratux, iLevil BOM, iLevil 3 Portable, Dynon ADSB wifi, etc.
 - Build custom efis or hud screens
-- Record and Playback flight log data ( and fast forward through playback )
+- Record and Playback flight log data to external usb drive (fast forward playback avail)
 - All screens look and work the same for all supported data input.
-- All display screen sizes and ratios supported.
+- All display screen sizes and ratios supported. (set through config)
 - Text mode
 - Touch screen support
 - 30 + FPS on Raspberry Pi 4 
-- Remote keypad / user input support.
+- Remote keypad / user input support. (USB 10-key number pad works good)
 - Display flight data in Knots, Standard, Metric, F or C
 - Designed for Raspberry Pi but also runs on Mac OSx, Windows, and other linux systems.
 - Show NAV needles for approaches. (If NAV data is available)
-- Use multiple data sources
+- Use multiple data sources (IE. Serial and Wifi at the same time)
+- Shows traffic as scope or target flags (When traffic source input available)
+- User dropped buoy targets for virtual dogfighting
+- Display flight data in Knots, Standard, Metric, F or C (set in config file)
+- Now updated to Python 3!
+
+## Example of HUD in Vans RV-8
+![cockpithud1](docs/efis_HUD_rv8.jpg?raw=true)
+
 
 ## Use as backup display screen on dash
 ![cockpit1](docs/efis_cockpit1.jpeg?raw=true)
@@ -47,9 +57,7 @@ Dynon Skyview
 
 Dynon D10/100
 
-Levil BOM (wifi)
-
-Generic serial logger (Used for recording any serial data)
+Levil BOM and other Stratux wifi devices (Uses wifi connection)
 
 
 We are using the rapberry pi 4B for taking serial data from a EFIS (MGL,Dynon,G3x) and displaying a graphical Display out the hdmi output on the pi.  This is plugged into a Display or HUD device like the Hudly Classic.  Any sort of HDMI screen could be hooked to the Pi for displaying this flight data.
@@ -319,6 +327,10 @@ baudrate = 115200
   
   `sudo python main.py -i serial_mgl -c MGL_V2.bin`
 
+
+# Stratux Data (Also works as iLevil BOM data)
+
+  stratux_1.dat = basic stratux data with traffic
 
 # MGL Data
 

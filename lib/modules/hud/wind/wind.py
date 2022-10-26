@@ -29,7 +29,7 @@ class Wind(Module):
         )  # call parent init screen.
         print(("Init Mod: %s %dx%d"%(self.name,self.width,self.height)))
 
-        self.myfont = pygame.font.SysFont("monospace", 20, bold=False)  # 
+        self.myfont = pygame.font.SysFont("monospace", 20, bold=True)  # 
         self.MainColor = (0, 255, 0)  # main color 
 
         self.arrow = pygame.image.load("lib/modules/hud/wind/arrow_g.bmp").convert()

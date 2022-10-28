@@ -19,6 +19,7 @@ class gcross(Module):
     def __init__(self):
         Module.__init__(self)
         self.name = "HUD gcross"  # set name
+        self.GunSight = 0
 
     # called once for setup
     def initMod(self, pygamescreen, width, height):
@@ -53,12 +54,12 @@ class gcross(Module):
         self.surface.fill((0, 0, 0))  # clear surface
 
         x,y = pos
-        GunSight = 1
        
 #  Test For Air_to_Air GunSight
          # Is GunSight Active?  self.vert_G > 0.1
          
-        if GunSight == 1:
+        if self.GunSight == 1:
+                aircraft.GunSight_string = 25
                 pygame.draw.line(
                 self.pygamescreen,
                 self.GColor_color,
@@ -110,9 +111,121 @@ class gcross(Module):
                 4,
             )
 
+        if self.GunSight == 2:
+                aircraft.GunSight_string = 30
+                pygame.draw.line(
+                self.pygamescreen,
+                self.GColor_color,
+                (smartdisplay.x_center - 15, smartdisplay.y_center - 120), (smartdisplay.x_center + 15, smartdisplay.y_center - 120),
+                4,
+            )
+                pygame.draw.line(
+                self.pygamescreen,
+                self.GColor_color,
+                (smartdisplay.x_center, smartdisplay.y_center - 135), (smartdisplay.x_center, smartdisplay.y_center - 105),
+                4,
+            )
+                pygame.draw.circle(
+                self.pygamescreen,
+                self.GColor_color,
+                (
+                    int(smartdisplay.x_center), 
+                    int(smartdisplay.y_center - 60),
+                ),
+                8,
+                0,
+            )
+                pygame.draw.circle(
+                self.pygamescreen,
+                self.GColor_color,
+                (
+                    int(smartdisplay.x_center), 
+                    int(smartdisplay.y_center + 60),
+                ),
+                8,
+                0,
+            )
+                pygame.draw.lines(
+                self.pygamescreen,
+                self.GColor_color,
+                False,
+                [[smartdisplay.x_center - 385, smartdisplay.y_center - 120], [smartdisplay.x_center - 193, smartdisplay.y_center - 60],
+                [smartdisplay.x_center - 128, smartdisplay.y_center], [smartdisplay.x_center - 96, smartdisplay.y_center + 60], 
+                [smartdisplay.x_center - 64, smartdisplay.y_center + 120], [smartdisplay.x_center - 48, smartdisplay.y_center + 180]],
+                4,
+            )
+                pygame.draw.lines(
+                self.pygamescreen,
+                self.GColor_color,
+                False,
+                [[smartdisplay.x_center + 385, smartdisplay.y_center - 120], [smartdisplay.x_center + 193, smartdisplay.y_center - 60],
+                [smartdisplay.x_center + 128, smartdisplay.y_center], [smartdisplay.x_center + 96, smartdisplay.y_center + 60], 
+                [smartdisplay.x_center + 64, smartdisplay.y_center + 120], [smartdisplay.x_center + 48, smartdisplay.y_center + 180]],
+                4,
+            )
+
+        if self.GunSight == 3:
+                aircraft.GunSight_string = 35
+                pygame.draw.line(
+                self.pygamescreen,
+                self.GColor_color,
+                (smartdisplay.x_center - 15, smartdisplay.y_center - 120), (smartdisplay.x_center + 15, smartdisplay.y_center - 120),
+                4,
+            )
+                pygame.draw.line(
+                self.pygamescreen,
+                self.GColor_color,
+                (smartdisplay.x_center, smartdisplay.y_center - 135), (smartdisplay.x_center, smartdisplay.y_center - 105),
+                4,
+            )
+                pygame.draw.circle(
+                self.pygamescreen,
+                self.GColor_color,
+                (
+                    int(smartdisplay.x_center), 
+                    int(smartdisplay.y_center - 60),
+                ),
+                8,
+                0,
+            )
+                pygame.draw.circle(
+                self.pygamescreen,
+                self.GColor_color,
+                (
+                    int(smartdisplay.x_center), 
+                    int(smartdisplay.y_center + 60),
+                ),
+                8,
+                0,
+            )
+                pygame.draw.lines(
+                self.pygamescreen,
+                self.GColor_color,
+                False,
+                [[smartdisplay.x_center - 449, smartdisplay.y_center - 120], [smartdisplay.x_center - 225, smartdisplay.y_center - 60],
+                [smartdisplay.x_center - 150, smartdisplay.y_center], [smartdisplay.x_center - 112, smartdisplay.y_center + 60], 
+                [smartdisplay.x_center - 75, smartdisplay.y_center + 120], [smartdisplay.x_center - 56, smartdisplay.y_center + 180]],
+                4,
+            )
+                pygame.draw.lines(
+                self.pygamescreen,
+                self.GColor_color,
+                False,
+                [[smartdisplay.x_center + 449, smartdisplay.y_center - 120], [smartdisplay.x_center + 225, smartdisplay.y_center - 60],
+                [smartdisplay.x_center + 150, smartdisplay.y_center], [smartdisplay.x_center + 112, smartdisplay.y_center + 60], 
+                [smartdisplay.x_center + 75, smartdisplay.y_center + 120], [smartdisplay.x_center + 56, smartdisplay.y_center + 180]],
+                4,
+            )
+
             # Gun Cross Funnel
             # End Test Graphics        
 
+
+    # cycle through the modes.
+    def cycleGunSight(self):
+        self.GunSight = self.GunSight + 1
+        if (self.GunSight > 3):
+	        self.GunSight = 0
 
     # called before screen draw.  To clear the screen to your favorite color.
     def clear(self):

@@ -120,7 +120,6 @@ class F18_HUD(Screen):
         # Draw Air_Air Gunsight
         self.gcross.draw(aircraft,smartdisplay,(smartdisplay.x_center,smartdisplay.y_center))
 
-
         # baro setting
         smartdisplay.draw_text(smartdisplay.RIGHT_MID_DOWN, self.fontIndicatorSmaller, "%0.2f %s" % (aircraft.get_baro(),aircraft.get_baro_description()), (255, 255, 0))
 
@@ -139,11 +138,17 @@ class F18_HUD(Screen):
         smartdisplay.draw_text(smartdisplay.RIGHT_MID_DOWN, self.fontIndicatorSmaller, "RPM %d" % (aircraft.engine.RPM), (255, 255, 0))
 
         # Next Way Point Distance
-        if aircraft.nav.WPDist < 0:
+        if aircraft.nav.WPDist > 0:
             aircraft.engine.RPM = 0
         smartdisplay.draw_text(smartdisplay.RIGHT_MID_DOWN, self.fontIndicatorSmaller, "WP Dist %0.1f" % (aircraft.nav.WPDist), (255, 255, 0))
 
-        # smartdisplay.draw_text(smartdisplay.RIGHT_MID_DOWN, self.myfont, "gps:"+aircraft.gps.get_status_string(), (255, 255, 0))
+        # Gun Cross Tgt Range  aircraft.GunSight_string
+        # if aircraft.GunSight_string > 0:
+        #    aircraft.engine.RPM = 0
+        # smartdisplay.draw_text(smartdisplay.RIGHT_MID_DOWN, self.fontIndicatorSmaller, "TgtRng %d" % (aircraft.engine.RPM), (255, 255, 0))
+
+
+        # smartdisplay.draw_text(smartdisplay.RIGHT_MID_DOWN, self.myfont, "gps:" aircraft.gps.get_status_string(), (255, 255, 0))
         # if(aircraft.gps.Source != None):
         #    smartdisplay.draw_text(smartdisplay.RIGHT_MID_DOWN, self.myfont, "src:"+aircraft.gps.Source, (255, 255, 0))
 
@@ -243,8 +248,10 @@ class F18_HUD(Screen):
                 self.trafficScope.processEvent(event,aircraft,smartdisplay)
 
         elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_x:
+            if event.key == pygame.K_9:
                 self.caged_mode = not self.caged_mode
+            if event.key == pygame.K_8:
+                self.gcross.cycleGunSight()
 
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

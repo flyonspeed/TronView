@@ -53,7 +53,7 @@ class SmartDisplay(object):
         self.widthCenter = (self.width / 2) 
         self.heightCenter = (self.height / 2)
         self.pygamescreen = 0
-        self.drawBorder = False
+        self.drawBorder = True
 
         self.pos_next_left_up = 0
         self.pos_next_left_down = 0
@@ -115,7 +115,7 @@ class SmartDisplay(object):
         # draw a border if it's smaller.
         if(self.drawBorder==True):
             pygame.draw.rect(self.pygamescreen, (255,255,255), (self.x_start, self.y_start, self.width, self.height), 1)
-
+ 
 
     # smart blit the next surface to the display given a location.
     # this automatically pads space from the last item that was displayed.

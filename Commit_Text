@@ -1,0 +1,188 @@
+efis_to_hud $ git add lib/inputs/_example_data/MGL_G430_Data_3Feb19_v7_Horz_Vert_Nedl_come_to_center.bin
+
+git status
+
+git diff README.md *** (Must be in or identify correct directory)
+
+mv MGL_G430_Data_3Feb19_v7_Horz_Vert_Nedl_come_to_center.txt MGL_G430_Data_3Feb19_v7_Horz_Vert_Nedl_come_to_center.bin
+
+ls ##(List whats in that directory)
+
+cp G430_Data_3Feb19_v7_Horz_Vert_Nedl_come\ to\ center.txt MGL_G430_Data_3Feb19_v7_Horz_Vert_Nedl_come_to_center.txt
+
+cd lib/inputs/_example_data/
+
+rn
+
+rm
+
+mv
+
+mv lib/inputs/_example_data/G430_Data_3Feb19_v7_Horz_Vert_Nedl_come to center.txt lib/inputs/_example_data/MGL_G430_Data_3Feb19_v7_Horz_Vert_Nedl_come_to_center.txt
+
+
+####  Identify and then commit changed files (must be on efis_to_hud directory)
+
+git add util/run_mgllive.sh 
+
+git add util/run_mgl.sh
+
+git add lib/screens/F18_HUD.py
+
+git status (Must be in efis_hud_directory to see status of all files)
+
+git commit -m "util/run_mgllive.sh"
+
+git commit -m "util/run_mgl.sh"
+
+git commit -m "lib/screens/F18_HUD.py"
+
+git push
+
+### Log In and Get any updated Files (must be on efis_to_hud directory)
+
+efis_to_hud $ git pull
+
+efis_to_hud $ cat hud.cfg (Look at HUD.cfg file)
+[HUD]
+#when running in xwindows,mac,win this will show hud in window if set.
+#window=640,480
+
+
+# define the drawable area for hud to use.  Useful on displays that have hidden areas.
+# this is defined as x1,y1,x2,y2 to draw up a box of usable area.
+drawable_area=0,159,1280,651
+
+#################################
+27 Oct22 attempt to commit
+
+pi@raspberry:~ $ cd_efis_hud
+bash: cd_efis_hud: command not found
+pi@raspberry:~ $ cd efis_to_hud
+pi@raspberry:~/efis_to_hud $ git pull
+remote: Enumerating objects: 14, done.
+remote: Counting objects: 100% (14/14), done.
+remote: Compressing objects: 100% (6/6), done.
+remote: Total 14 (delta 8), reused 13 (delta 8), pack-reused 0
+Unpacking objects: 100% (14/14), done.
+From https://github.com/flyonspeed/efis_to_hud
+   62997e0..93c4415  master     -> origin/master
+Already up to date.
+pi@raspberry:~/efis_to_hud $ git status
+On branch refactor
+Your branch is ahead of 'origin/refactor' by 3 commits.
+  (use "git push" to publish your local commits)
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git checkout -- <file>..." to discard changes in working directory)
+
+	modified:   lib/modules/hud/gcross/gcross.py
+	modified:   lib/screens/F18_HUD.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+
+	.Github push errors.swp
+	Boot Test Files
+	Commit_Text
+	Github push errors
+	lib/inputs/_example_data/Garmin G5 serial capture.txt
+	lib/inputs/_example_data/MGL_13Ap_GoodNavData.zip
+	lib/inputs/_example_data/MGL_LOG092921_1500_1st_Flt.bin
+	lib/inputs/_example_data/mgl_2.dat
+	lib/inputs/_example_data/mgl_4.dat
+	lib/inputs/_example_data/mgl_5.dat
+	lib/inputs/_example_data/mgl_6.dat
+	lib/inputs/_example_data/mgl_7.dat
+	lib/inputs/_example_data/mgl_8.dat
+	lib/inputs/_example_data/mgl_9.dat
+	lib/inputs/_example_data/stratux_2.dat
+	lib/inputs/_example_data/stratux_4.dat
+	lib/inputs/_example_data/stratux_5.dat
+	lib/inputs/_example_data/stratux_6.dat
+	lib/inputs/_example_data/stratux_7.dat
+	lib/inputs/_example_data/stratux_8.dat
+	lib/inputs/_example_data/stratux_9.dat
+	lib/inputs/serial_mgl_bak2.py
+	lib/modules/hud/gcross/gcross_nrads_Test.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
+pi@raspberry:~/efis_to_hud $ git add /lib/screens/F18_HUD.py
+fatal: Invalid path '/usr/lib/screens': No such file or directory
+pi@raspberry:~/efis_to_hud $ git add lib/screens/F18_HUD.py
+pi@raspberry:~/efis_to_hud $ git add lib/modules/hud/gcross/gcross.py
+pi@raspberry:~/efis_to_hud $ git add lib/modules/hud/wind/wind.py
+pi@raspberry:~/efis_to_hud $ git status
+On branch refactor
+Your branch is ahead of 'origin/refactor' by 3 commits.
+  (use "git push" to publish your local commits)
+
+Changes to be committed:
+  (use "git reset HEAD <file>..." to unstage)
+
+	modified:   lib/modules/hud/gcross/gcross.py
+	modified:   lib/screens/F18_HUD.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+
+	.Github push errors.swp
+	Boot Test Files
+	Commit_Text
+	Github push errors
+	lib/inputs/_example_data/Garmin G5 serial capture.txt
+	lib/inputs/_example_data/MGL_13Ap_GoodNavData.zip
+	lib/inputs/_example_data/MGL_LOG092921_1500_1st_Flt.bin
+	lib/inputs/_example_data/mgl_2.dat
+	lib/inputs/_example_data/mgl_4.dat
+	lib/inputs/_example_data/mgl_5.dat
+	lib/inputs/_example_data/mgl_6.dat
+	lib/inputs/_example_data/mgl_7.dat
+	lib/inputs/_example_data/mgl_8.dat
+	lib/inputs/_example_data/mgl_9.dat
+	lib/inputs/_example_data/stratux_2.dat
+	lib/inputs/_example_data/stratux_4.dat
+	lib/inputs/_example_data/stratux_5.dat
+	lib/inputs/_example_data/stratux_6.dat
+	lib/inputs/_example_data/stratux_7.dat
+	lib/inputs/_example_data/stratux_8.dat
+	lib/inputs/_example_data/stratux_9.dat
+	lib/inputs/serial_mgl_bak2.py
+	lib/modules/hud/gcross/gcross_nrads_Test.py
+
+pi@raspberry:~/efis_to_hud $ git commit -m "I addded 3 GunCross Graphics and gcross Module activated by 8 key but could not get a text display in F18_HUD.py of the actual range the gcross is for  whci is 25ft, 30ft, 35ft, need help here"
+[refactor 6c04590] I addded 3 GunCross Graphics and gcross Module activated by 8 key but could not get a text display in F18_HUD.py of the actual range the gcross is for  whci is 25ft, 30ft, 35ft, need help here
+ 2 files changed, 126 insertions(+), 6 deletions(-)
+pi@raspberry:~/efis_to_hud $ git push
+Username for 'https://github.com': hpmicrowave
+Password for 'https://hpmicrowave@github.com': 
+remote: Support for password authentication was removed on August 13, 2021.
+remote: Please see https://docs.github.com/en/get-started/getting-started-with-git/about-remote-repositories#cloning-with-https-urls for information on currently recommended modes of authentication.
+fatal: Authentication failed for 'https://github.com/flyonspeed/efis_to_hud.git/'
+
+
+pi@raspberry:~/efis_to_hud $ git push
+Username for 'https://github.com': hpmicrowave
+Password for 'https://hpmicrowave@github.com': 
+remote: Support for password authentication was removed on August 13, 2021.
+remote: Please see https://docs.github.com/en/get-started/getting-started-with-git/about-remote-repositories#cloning-with-https-urls for information on currently recommended modes of authentication.
+fatal: Authentication failed for 'https://github.com/flyonspeed/efis_to_hud.git/'
+pi@raspberry:~/efis_to_hud $ 
+
+git push
+Enumerating objects: 24, done.
+Counting objects: 100% (24/24), done.
+Delta compression using up to 4 threads
+Compressing objects: 100% (12/12), done.
+Writing objects: 100% (14/14), 3.26 KiB | 208.00 KiB/s, done.
+Total 14 (delta 10), reused 0 (delta 0)
+remote: Resolving deltas: 100% (10/10), completed with 8 local objects.
+remote: This repository moved. Please use the new location:
+remote:   https://github.com/flyonspeed/TronView.git
+To https://github.com/flyonspeed/efis_to_hud.git
+   6c04590..61d1861  refactor -> refactor
+
+
+
+

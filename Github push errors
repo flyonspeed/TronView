@@ -1,0 +1,101 @@
+pi@raspberry:~ $ cd efis_to_hud
+pi@raspberry:~/efis_to_hud $ git status
+On branch refactor
+Your branch is up to date with 'origin/refactor'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git checkout -- <file>..." to discard changes in working directory)
+
+	modified:   lib/modules/hud/wind/wind.py
+	modified:   lib/screens/F18_HUD.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+
+	Boot Test Files
+	Commit_Text
+	lib/inputs/_example_data/Garmin G5 serial capture.txt
+	lib/inputs/_example_data/MGL_13Ap_GoodNavData.zip
+	lib/inputs/_example_data/MGL_LOG092921_1500_1st_Flt.bin
+	lib/inputs/_example_data/mgl_2.dat
+	lib/inputs/_example_data/mgl_4.dat
+	lib/inputs/_example_data/mgl_5.dat
+	lib/inputs/_example_data/mgl_6.dat
+	lib/inputs/_example_data/mgl_7.dat
+	lib/inputs/_example_data/mgl_8.dat
+	lib/inputs/_example_data/mgl_9.dat
+	lib/inputs/_example_data/stratux_2.dat
+	lib/inputs/_example_data/stratux_4.dat
+	lib/inputs/_example_data/stratux_5.dat
+	lib/inputs/_example_data/stratux_6.dat
+	lib/inputs/_example_data/stratux_7.dat
+	lib/inputs/_example_data/stratux_8.dat
+	lib/inputs/_example_data/stratux_9.dat
+	lib/inputs/serial_mgl_bak2.py
+	lib/modules/hud/gcross/
+
+no changes added to commit (use "git add" and/or "git commit -a")
+pi@raspberry:~/efis_to_hud $ git add lib/screens/F18_HUD.py
+pi@raspberry:~/efis_to_hud $ git status
+On branch refactor
+Your branch is up to date with 'origin/refactor'.
+
+Changes to be committed:
+  (use "git reset HEAD <file>..." to unstage)
+
+	modified:   lib/screens/F18_HUD.py
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git checkout -- <file>..." to discard changes in working directory)
+
+	modified:   lib/modules/hud/wind/wind.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+
+	Boot Test Files
+	Commit_Text
+	lib/inputs/_example_data/Garmin G5 serial capture.txt
+	lib/inputs/_example_data/MGL_13Ap_GoodNavData.zip
+	lib/inputs/_example_data/MGL_LOG092921_1500_1st_Flt.bin
+	lib/inputs/_example_data/mgl_2.dat
+	lib/inputs/_example_data/mgl_4.dat
+	lib/inputs/_example_data/mgl_5.dat
+	lib/inputs/_example_data/mgl_6.dat
+	lib/inputs/_example_data/mgl_7.dat
+	lib/inputs/_example_data/mgl_8.dat
+	lib/inputs/_example_data/mgl_9.dat
+	lib/inputs/_example_data/stratux_2.dat
+	lib/inputs/_example_data/stratux_4.dat
+	lib/inputs/_example_data/stratux_5.dat
+	lib/inputs/_example_data/stratux_6.dat
+	lib/inputs/_example_data/stratux_7.dat
+	lib/inputs/_example_data/stratux_8.dat
+	lib/inputs/_example_data/stratux_9.dat
+	lib/inputs/serial_mgl_bak2.py
+	lib/modules/hud/gcross/
+
+pi@raspberry:~/efis_to_hud $ git commit -m "lib/screens/F18_HUD.py"
+[refactor 53e67c6] lib/screens/F18_HUD.py
+ 1 file changed, 48 insertions(+), 25 deletions(-)
+pi@raspberry:~/efis_to_hud $ git add lib/modules/hud/gcross/gcross.py
+pi@raspberry:~/efis_to_hud $ git add lib/modules/hud/gcross/gcross.py
+pi@raspberry:~/efis_to_hud $ git commit -m "lib/modules/hud/gcross/gcross.py"
+[refactor 6e0e9f1] lib/modules/hud/gcross/gcross.py
+ 1 file changed, 127 insertions(+)
+ create mode 100644 lib/modules/hud/gcross/gcross.py
+pi@raspberry:~/efis_to_hud $ git add lib/modules/hud/wind/wind.py
+pi@raspberry:~/efis_to_hud $ git commit -m "lib/modules/hud/wind/wind.py"
+[refactor 100c8b1] lib/modules/hud/wind/wind.py
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+pi@raspberry:~/efis_to_hud $ git push
+remote: Invalid username or password.
+fatal: Authentication failed for 'https://github.com/flyonspeed/efis_to_hud.git/'
+pi@raspberry:~/efis_to_hud $ git push
+Username for 'https://github.com': hpmicrowave 
+Password for 'https://hpmicrowave@github.com': 
+remote: Support for password authentication was removed on August 13, 2021.
+remote: Please see https://docs.github.com/en/get-started/getting-started-with-git/about-remote-repositories#cloning-with-https-urls for information on currently recommended modes of authentication.
+fatal: Authentication failed for 'https://github.com/flyonspeed/efis_to_hud.git/'

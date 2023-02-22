@@ -1,0 +1,13 @@
+cd /home/pi/efis_to_hud/ && sudo python3 main.py  &
+
+cd /home/pi/efis_to_hud/ && sudo python3 hud.py -i serial_mgl -s F18_HUD_CJ_CDIv1 -c MGL_LOCv1.bin &
+cd /home/pi/efis_to_hud/ && sudo python3 hud.py -i serial_mgl -t DefaultScreen -c MGL_HSIv1.bin &
+
+cd /home/pi/efis_to_hud/ && sudo python3 hud.py -i serial_g3x -s F18_HUD -c garmin_g3x_data1.txt &
+cd /home/pi/efis_to_hud/ && sudo python3 hud.py -i seial_mgl -s F18_HUD_CJ_CDIv1 -c MGL_CDIv2.bin &
+cd /home/pi/efis_to_hud/ && sudo python3 hud.py -i seial_mgl -s F18_HUD -c MGL_LOG092821_2034.bin
+
+  python3 hud.py -i serial_mgl -e -t  -c MGL_LOG092821_2034.bin
+python3 hud.py -i serial_mgl -e -t  -c MGL_iEfis_NavDataCapture_5Feb19.bin
+python3 hud.py -i serial_mgl -e -t  -c MGL_NavData_13Ap_HdgBug_360_10_20_30_to_360_001_002_003_to_010_v9.bin
+python3 hud.py -i serial_mgl -e -t  -c MGL_iEfis_NavDataCapture_5Feb19.bin

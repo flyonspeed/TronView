@@ -1,4 +1,4 @@
-# TronView
+# TronView  as of 28Oct22
 Project for connecting efis/flight data to a 2nd screen or HUD.
 
 ## Features Include:
@@ -14,6 +14,11 @@ Project for connecting efis/flight data to a 2nd screen or HUD.
 - Designed for Raspberry Pi but also runs on Mac OSx, Windows, and other linux systems.
 - Show NAV needles for approaches. (If NAV data is available)
 - Use multiple data sources
+- added A-A Gun Cross Funnel for A-A Gunnery demonstration  Use Keypad Key#8 to cycle from Off to 25ft Tgt Wingspan/to 30ft wingspan to 35ft wingspan to Off, 
+wingSpan ranges stert at 250ft at wide part of big U (& the Yellow + graphic), then extend to 500ft at first Yellow circle pipper, then to 750 ft, then 
+to 1,000 ft at next pipper, the 1500ft, and last at 2,000ft.
+- for better description of this function check these links;  http://falcon4.wikidot.com/avionics:hud  & Video at https://www.youtube.com/watch?v=oOa9eWgFllE
+- also added RPM and next Way Point Distance read out to right of HUD below the Altitude.
 
 ## Use as backup display screen on dash
 ![cockpit1](docs/efis_cockpit1.jpeg?raw=true)
@@ -34,7 +39,10 @@ Project for connecting efis/flight data to a 2nd screen or HUD.
 
 # About
 
-This is a python3 application that will take in data from different input sources, process them into a common format, then output (draw) them to custom screens (HUD or efis style).  The system is created to have the inputs and screens seperate and non-dependent of each other.  For example a user running a MGL iEFIS can run the same screen as a user with a Dynon D100.  Issues can come up with a input source does not have all the data available as other input sources do.  But if the screen is written well enough it will hide or show data if it's available.
+This is a python3 application that will take in data from different input sources, process them into a common format, then output (draw) 
+them to custom screens (HUD or efis style).  The system is created to have the inputs and screens seperate and non-dependent of each other.  
+For example a user running a MGL iEFIS can run the same screen as a user with a Dynon D100.  Issues can come up with a input source does not 
+have all the data available as other input sources do.  But if the screen is written well enough it will hide or show data if it's available.
 
 
 ## Currently supports:

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 #################################################
-# Module: Hud Horizon
+# Module: Gun Cross
 # Topher 2021.
 # Created by Cecil Jones 
 
@@ -12,7 +12,7 @@ from lib import smartdisplay
 from lib import aircraft
 import pygame
 import math
-
+import time
 
 class gcross(Module):
     # called only when object is first created.
@@ -34,19 +34,19 @@ class gcross(Module):
         )
         self.surface = pygame.Surface((self.width, self.height))
 
-        self.GColor = (255, 200, 100)  # Gun Cross Color = Yellow
-
+        self.GColor = ( 0,255, 0)  # Gun Cross Color = Yellow
+        self.y_offset = hud_utils.readConfigInt("HUD", "Horizon_Offset", 0)  #  Horizon/Waterline Pixel Offset
         #self.yBottomLineStart = height * 1.16 #
         #self.yTopLineEnd = height * 1.16
+        fpv_x = 0
         self.y_center = height / 2
-
         self.x_center = width / 2
-
+        self.x_offset = 0
         self.showLDMax = True
         self.yLDMaxDots = height - (height/8)
         self.xLDMaxDotsFromCenter = width/2
 
-        self.GColor_color = (255, 250, 10)  # Gun Cross Color = Yellow
+        self.GColor_color = ( 0,255, 0)  # Gun Cross Color = Yellow
 
     # called every redraw for the mod
     def draw(self, aircraft, smartdisplay, pos):
@@ -54,10 +54,68 @@ class gcross(Module):
         self.surface.fill((0, 0, 0))  # clear surface
 
         x,y = pos
-       
-#  Test For Air_to_Air GunSight
-         # Is GunSight Active?  self.vert_G > 0.1
-         
+
+        #  below for Gun Dir Test --------------------------------------
+        #  working Posn pipper_posn = (int(smartdisplay.x_center), int(smartdisplay.y_center))
+        #  pipper_posn = (int(smartdisplay.x_center), int((smartdisplay.y_center + self.y_offset) - (aircraft.vsi / 4)))  # Adjust pipper poaition for Waterline/Boresight and Vertical FPV No FltPath_V
+        #  pipper_posn = (int(smartdisplay.x_center - fpv_x), int((smartdisplay.y_center + self.y_offset) - (aircraft.vsi / 4)))  # Adjust pipper poaition for Waterline/Boresight and Vertical FPV   + self.x_offset
+        pipper_posn = (int(smartdisplay.x_center), int((smartdisplay.y_center + self.y_offset) - (aircraft.vsi / 4)))  # Adjust pipper poaition for Waterline/Boresight and Vertical FPV   + self.x_offset
+        color = self.GColor_color   
+        traffic_nm = 0.95  #  should place range in NM's (0.00) of closest ADSB Tgt here
+        screen = self.pygamescreen
+        
+        # Set circle radius and line width
+        circle_radius = 150
+        arc_radius = 148
+        circle_radius_ctrdot = 5
+        line_width = 2
+        arc_width = 10
+        #   End Gun Dir Test Setup Values --------------------------------
+        if self.GunSight == 0:
+                aircraft.GunSight_string = 0  #  Adds W-Waterline to display in Non-Gun Mode
+                pygame.draw.line(
+                smartdisplay.pygamescreen,
+                self.GColor,
+                [smartdisplay.x_center - 10 + self.x_offset, smartdisplay.y_center + self.y_offset + 20],
+                [smartdisplay.x_center + self.x_offset , smartdisplay.y_center + self.y_offset],
+                3,
+            )
+                pygame.draw.line(
+                smartdisplay.pygamescreen,
+                self.GColor,
+                [smartdisplay.x_center - 10 + self.x_offset, smartdisplay.y_center + self.y_offset + 20],
+                [smartdisplay.x_center - 20 + self.x_offset, smartdisplay.y_center + self.y_offset],
+                3,
+            )
+                pygame.draw.line(
+                smartdisplay.pygamescreen,
+                self.GColor,
+                [smartdisplay.x_center - 35 + self.x_offset, smartdisplay.y_center + self.y_offset],
+                [smartdisplay.x_center - 20 + self.x_offset, smartdisplay.y_center + self.y_offset],
+                3,
+            )
+                pygame.draw.line(
+                smartdisplay.pygamescreen,
+                self.GColor,
+                [smartdisplay.x_center + 10 + self.x_offset, smartdisplay.y_center + self.y_offset + 20],
+                [smartdisplay.x_center  + self.x_offset, smartdisplay.y_center + self.y_offset],
+                3,
+            )
+                pygame.draw.line(
+                smartdisplay.pygamescreen,
+                self.GColor,
+                [smartdisplay.x_center + 10 + self.x_offset, smartdisplay.y_center + self.y_offset + 20],
+                [smartdisplay.x_center + 20 + self.x_offset, smartdisplay.y_center + self.y_offset],
+                3,
+            )
+                pygame.draw.line(
+                smartdisplay.pygamescreen,
+                self.GColor,
+                [smartdisplay.x_center + 35 + self.x_offset, smartdisplay.y_center + self.y_offset],
+                [smartdisplay.x_center + 20 + self.x_offset, smartdisplay.y_center + self.y_offset],
+                3,
+            )
+
         if self.GunSight == 1:
                 aircraft.GunSight_string = 25
                 pygame.draw.line(
@@ -111,6 +169,7 @@ class gcross(Module):
                 4,
             )
 
+       
         if self.GunSight == 2:
                 aircraft.GunSight_string = 30
                 pygame.draw.line(
@@ -217,14 +276,71 @@ class gcross(Module):
                 4,
             )
 
-            # Gun Cross Funnel
-            # End Test Graphics        
+            # End Gun Cross Funnel  -------------------------------
+
+	# Start Gun Director Mode
+        if self.GunSight == 4:
+                aircraft.GunSight_string = 99
+                pygame.draw.line(
+                self.pygamescreen,
+                self.GColor_color,
+                (smartdisplay.x_center - 15, smartdisplay.y_center - 120), (smartdisplay.x_center + 15, smartdisplay.y_center - 120),
+                4,
+            )
+                pygame.draw.line(
+                self.pygamescreen,
+                self.GColor_color,
+                (smartdisplay.x_center, smartdisplay.y_center - 135), (smartdisplay.x_center, smartdisplay.y_center - 105),
+                4,
+            )
+                # pipper_posn = ((smartdisplay.x_center), (smartdisplay.y_center))
+            
+                # pipper_posn = (200, 200)     
+                # color = self.GColor_color   
+                # traffic_nm = 0.5
+                # screen = self.pygamescreen
+                #  Set circle radius and line width
+                # circle_radius = 50
+                # circle_radius_ctrdot = 3
+                # line_width = 1
+
+
+            
+                if traffic_nm <= 1.5:
+                    gun_rng = ((270 * traffic_nm) / 1.5)  # gun_director in decressing range in degrees
+
+                    gun_arc = ((270 - gun_rng) + 180)   # changing to pygame arc in degrees
+                if gun_arc > 360: 
+                    gun_arc = gun_arc-360    
+                    
+                pygame.draw.circle(screen, color, pipper_posn, circle_radius, line_width)    # Draw the gun circle
+
+                pygame.draw.circle(screen, color, pipper_posn, circle_radius_ctrdot)  # Draw the green gun pipper
+
+                start_angle = math.radians(gun_arc)  # Gun Range ARC is drawn counterclockwise in degrees from start angle to the Zero Range "end_angle"
+                end_angle = math.radians(90)
+                start_pos = (pipper_posn[0] + arc_radius * math.cos(start_angle), pipper_posn[1] + arc_radius * math.sin(start_angle))
+                end_pos = (pipper_posn[0] + arc_radius * math.cos(end_angle), pipper_posn[1] + arc_radius * math.sin(end_angle))
+                pygame.draw.arc(screen, color, (pipper_posn[0] - arc_radius, pipper_posn[1] - arc_radius, arc_radius * 2, arc_radius * 2), start_angle, end_angle, 5)
+
+
+                green_arc_radius = arc_radius - 5   # Draw the green range Tick Mark at beginning of Range Arc
+                green_arc_width = 15
+                start_angle = math.radians(gun_arc)
+                end_angle = math.radians(gun_arc+5)
+                start_pos = (pipper_posn[0] + green_arc_radius * math.cos(start_angle), pipper_posn[1] + green_arc_radius * math.sin(start_angle))
+                end_pos = (pipper_posn[0] + green_arc_radius * math.cos(end_angle), pipper_posn[1] + green_arc_radius * math.sin(end_angle))
+                pygame.draw.arc(screen, color, (pipper_posn[0] - green_arc_radius, pipper_posn[1] - green_arc_radius, green_arc_radius * 2, green_arc_radius * 2), start_angle, end_angle, green_arc_width)
+
+             # end of gun director
+#  -----------------------------------------------------
+			
 
 
     # cycle through the modes.
     def cycleGunSight(self):
         self.GunSight = self.GunSight + 1
-        if (self.GunSight > 3):
+        if (self.GunSight > 4):
 	        self.GunSight = 0
 
     # called before screen draw.  To clear the screen to your favorite color.
@@ -238,3 +354,4 @@ class gcross(Module):
 
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python
+

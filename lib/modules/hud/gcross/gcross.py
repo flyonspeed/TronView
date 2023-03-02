@@ -21,6 +21,7 @@ class gcross(Module):
         self.name = "HUD gcross"  # set name
         self.GunSightMode = 0 # Visual mode this gun sight is in.
         self.TargetWingSpan = 0 # value to show user of target wing span.
+        self.DogFightWithCallsign = ""
 
     # called once for setup
     def initMod(self, pygamescreen, width, height):
@@ -62,9 +63,19 @@ class gcross(Module):
         #  pipper_posn = (int(smartdisplay.x_center - aircraft.flightPathMarker_x), int((smartdisplay.y_center + self.y_offset) - (aircraft.vsi / 4)))  # Adjust pipper poaition for Waterline/Boresight and Vertical FPV   + self.x_offset
         pipper_posn = (int(smartdisplay.x_center), int((smartdisplay.y_center + self.y_offset) - (aircraft.vsi / 4)))  # Adjust pipper poaition for Waterline/Boresight and Vertical FPV   + self.x_offset
         color = self.GColor_color   
-        traffic_nm = 0.95  #  should place range in NM's (0.00) of closest ADSB Tgt here
         screen = self.pygamescreen
-        
+
+        # find nearest target.
+        nearestTarget = aircraft.traffic.getNearestTarget(10)
+        if(nearestTarget != None):
+            #print("Nearest Target is %s", nearestTarget.callsign)
+            traffic_nm = nearestTarget.dist
+            self.DogFightWithCallsign = nearestTarget.callsign
+        else:
+            traffic_nm = 0
+            self.DogFightWithCallsign = ""
+
+
         # Set circle radius and line width
         circle_radius = 150
         arc_radius = 148

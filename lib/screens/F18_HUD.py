@@ -134,7 +134,7 @@ class F18_HUD(Screen):
 
         # Gun Cross Mode, Target Wing span and DogFight Mode.
         if(self.gcross.GunSightMode == 4):
-            smartdisplay.draw_text(smartdisplay.RIGHT_MID_DOWN, self.fontIndicatorSmaller, "DGFT", (255, 255, 0))
+            smartdisplay.draw_text(smartdisplay.RIGHT_MID_DOWN, self.fontIndicatorSmaller, "DGFT %s" %(self.gcross.DogFightWithCallsign), (255, 255, 0))
         elif(self.gcross.GunSightMode != 0):
             smartdisplay.draw_text(smartdisplay.RIGHT_MID_DOWN, self.fontIndicatorSmaller, "TgtWgSpan %d" % (self.gcross.TargetWingSpan), (255, 255, 0))
 

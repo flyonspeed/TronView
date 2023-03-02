@@ -2,7 +2,7 @@
 
 #################################################
 # Module: Gun Cross
-# Topher 2021.
+# Topher 2023.
 # Created by Cecil Jones 
 
 from lib.modules._module import Module
@@ -19,7 +19,8 @@ class gcross(Module):
     def __init__(self):
         Module.__init__(self)
         self.name = "HUD gcross"  # set name
-        self.GunSight = 0
+        self.GunSightMode = 0 # Visual mode this gun sight is in.
+        self.TargetWingSpan = 0 # value to show user of target wing span.
 
     # called once for setup
     def initMod(self, pygamescreen, width, height):
@@ -36,9 +37,7 @@ class gcross(Module):
 
         self.GColor = ( 0,255, 0)  # Gun Cross Color = Yellow
         self.y_offset = hud_utils.readConfigInt("HUD", "Horizon_Offset", 0)  #  Horizon/Waterline Pixel Offset
-        #self.yBottomLineStart = height * 1.16 #
-        #self.yTopLineEnd = height * 1.16
-        fpv_x = 0
+        # use aircraft.flightPathMarker_x this value comes from the horizon code.
         self.y_center = height / 2
         self.x_center = width / 2
         self.x_offset = 0
@@ -47,6 +46,8 @@ class gcross(Module):
         self.xLDMaxDotsFromCenter = width/2
 
         self.GColor_color = ( 0,255, 0)  # Gun Cross Color = Yellow
+
+        self.TargetWingSpan - 0
 
     # called every redraw for the mod
     def draw(self, aircraft, smartdisplay, pos):
@@ -58,7 +59,7 @@ class gcross(Module):
         #  below for Gun Dir Test --------------------------------------
         #  working Posn pipper_posn = (int(smartdisplay.x_center), int(smartdisplay.y_center))
         #  pipper_posn = (int(smartdisplay.x_center), int((smartdisplay.y_center + self.y_offset) - (aircraft.vsi / 4)))  # Adjust pipper poaition for Waterline/Boresight and Vertical FPV No FltPath_V
-        #  pipper_posn = (int(smartdisplay.x_center - fpv_x), int((smartdisplay.y_center + self.y_offset) - (aircraft.vsi / 4)))  # Adjust pipper poaition for Waterline/Boresight and Vertical FPV   + self.x_offset
+        #  pipper_posn = (int(smartdisplay.x_center - aircraft.flightPathMarker_x), int((smartdisplay.y_center + self.y_offset) - (aircraft.vsi / 4)))  # Adjust pipper poaition for Waterline/Boresight and Vertical FPV   + self.x_offset
         pipper_posn = (int(smartdisplay.x_center), int((smartdisplay.y_center + self.y_offset) - (aircraft.vsi / 4)))  # Adjust pipper poaition for Waterline/Boresight and Vertical FPV   + self.x_offset
         color = self.GColor_color   
         traffic_nm = 0.95  #  should place range in NM's (0.00) of closest ADSB Tgt here
@@ -71,8 +72,7 @@ class gcross(Module):
         line_width = 2
         arc_width = 10
         #   End Gun Dir Test Setup Values --------------------------------
-        if self.GunSight == 0:
-                aircraft.GunSight_string = 0  #  Adds W-Waterline to display in Non-Gun Mode
+        if self.GunSightMode == 0:
                 pygame.draw.line(
                 smartdisplay.pygamescreen,
                 self.GColor,
@@ -116,8 +116,7 @@ class gcross(Module):
                 3,
             )
 
-        if self.GunSight == 1:
-                aircraft.GunSight_string = 25
+        if self.GunSightMode == 1:
                 pygame.draw.line(
                 self.pygamescreen,
                 self.GColor_color,
@@ -170,8 +169,7 @@ class gcross(Module):
             )
 
        
-        if self.GunSight == 2:
-                aircraft.GunSight_string = 30
+        if self.GunSightMode == 2:
                 pygame.draw.line(
                 self.pygamescreen,
                 self.GColor_color,
@@ -223,8 +221,7 @@ class gcross(Module):
                 4,
             )
 
-        if self.GunSight == 3:
-                aircraft.GunSight_string = 35
+        if self.GunSightMode == 3:
                 pygame.draw.line(
                 self.pygamescreen,
                 self.GColor_color,
@@ -279,8 +276,7 @@ class gcross(Module):
             # End Gun Cross Funnel  -------------------------------
 
 	# Start Gun Director Mode
-        if self.GunSight == 4:
-                aircraft.GunSight_string = 99
+        if self.GunSightMode == 4:
                 pygame.draw.line(
                 self.pygamescreen,
                 self.GColor_color,
@@ -339,9 +335,17 @@ class gcross(Module):
 
     # cycle through the modes.
     def cycleGunSight(self):
-        self.GunSight = self.GunSight + 1
-        if (self.GunSight > 4):
-	        self.GunSight = 0
+        self.GunSightMode = self.GunSightMode + 1
+        if (self.GunSightMode > 4):
+	        self.GunSightMode = 0
+        # based on mode show a different target wing span.
+        if (self.GunSightMode == 1):
+            self.TargetWingSpan = 25
+        elif (self.GunSightMode == 2):
+            self.TargetWingSpan = 30
+        elif (self.GunSightMode == 3):
+            self.TargetWingSpan = 35
+
 
     # called before screen draw.  To clear the screen to your favorite color.
     def clear(self):

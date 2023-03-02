@@ -404,6 +404,8 @@ class Horizon(Module):
                 2,
             )
 
+            aircraft.flightPathMarker_x = fpv_x # save to aircraft object for other modules to use.
+
 
     # called every redraw for the mod
     def draw(self, aircraft, smartdisplay):

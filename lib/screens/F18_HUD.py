@@ -132,19 +132,11 @@ class F18_HUD(Screen):
         # Next Way Point Distance
         smartdisplay.draw_text(smartdisplay.RIGHT_MID_DOWN, self.fontIndicatorSmaller, "WP Dist %0.1f" % (aircraft.nav.WPDist), (255, 255, 0))
 
-        # Gun Cross Tgt Range  aircraft.GunSight_string
-        #if(aircraft.GunSight_string = 99):
-        #            smartdisplay.draw_text(smartdisplay.RIGHT_MID_DOWN, self.fontIndicatorSmaller, "DGFT %d", (255, 255, 0))
-        #smartdisplay.draw_text(smartdisplay.RIGHT_MID_DOWN, self.fontIndicatorSmaller, "DGFT %d" % (aircraft.GunSight_string), (255, 255, 0))
-        smartdisplay.draw_text(smartdisplay.RIGHT_MID_DOWN, self.fontIndicatorSmaller, "TgtWgSpan %d" % (aircraft.GunSight_string), (255, 255, 0))
-
-
-	#	if aircraft.GunSight_string == 99:
-	#		smartdisplay.draw_text(smartdisplay.RIGHT_MID_DOWN, self.fontIndicatorSmaller, "DGFT %d" % (aircraft.GunSight_string), (255, 255, 0))
-	#	else:
-	#		smartdisplay.draw_text(smartdisplay.RIGHT_MID_DOWN, self.fontIndicatorSmaller, "TgtWgSpan %d" % (aircraft.GunSight_string), (255, 255, 0))
-			
-
+        # Gun Cross Mode, Target Wing span and DogFight Mode.
+        if(self.gcross.GunSightMode == 4):
+            smartdisplay.draw_text(smartdisplay.RIGHT_MID_DOWN, self.fontIndicatorSmaller, "DGFT", (255, 255, 0))
+        elif(self.gcross.GunSightMode != 0):
+            smartdisplay.draw_text(smartdisplay.RIGHT_MID_DOWN, self.fontIndicatorSmaller, "TgtWgSpan %d" % (self.gcross.TargetWingSpan), (255, 255, 0))
 
         # VSI text
         smartdisplay.draw_text(smartdisplay.RIGHT_MID_UP, self.fontIndicatorSmaller, aircraft.get_vsi_string(), (255, 255, 0))

@@ -13,9 +13,9 @@ from lib import hud_utils
 import pygame
 import math
 from lib import smartdisplay
-
 from lib.modules.hud.horizon import horizon
 from lib.modules.hud.cdi import cdi
+from lib.modules.hud.gcross import gcross
 from lib.modules.hud.rollindicator import rollindicator
 from lib.modules.hud.aoa import aoa
 from lib.modules.hud.slipskid import slipskid
@@ -42,10 +42,10 @@ class F18_HUD(Screen):
         self.show_lat_lon = hud_utils.readConfigBool("F18_HUD", "show_lat_lon", False)
 
         # fonts
-        self.myfont = pygame.font.SysFont("monospace", 20, bold=False) #small font.
-        self.fontIndicator = pygame.font.SysFont("monospace", 100, bold=False)  # ie IAS and ALT
-        self.fontAltSmall = pygame.font.SysFont("monospace", 50, bold=False)  # smaller font for right side of ALT
-        self.fontIndicatorSmaller = pygame.font.SysFont("monospace", 30, bold=False)  # ie. baro and VSI, etc
+        self.myfont = pygame.font.SysFont("monospace", 20, bold=True) #small font.
+        self.fontIndicator = pygame.font.SysFont("monospace", 100, bold=True)  # ie IAS and ALT
+        self.fontAltSmall = pygame.font.SysFont("monospace", 50, bold=True)  # smaller font for right side of ALT
+        self.fontIndicatorSmaller = pygame.font.SysFont("monospace", 30, bold=True)  # ie. baro and VSI, etc
 
         self.heading = heading.Heading()
         self.heading.initMod(self.pygamescreen, self.width, self.height)
@@ -75,6 +75,9 @@ class F18_HUD(Screen):
         self.cdi = cdi.cdi()
         self.cdi.initMod(self.pygamescreen, self.width, self.height)
 
+        self.gcross = gcross.gcross()
+        self.gcross.initMod(self.pygamescreen, self.width, self.height)
+
         self.trafficScope = trafficscope.TrafficScope()
         self.trafficScope.initMod(self.pygamescreen, 400, 400)
 
@@ -82,7 +85,7 @@ class F18_HUD(Screen):
     def draw(self, aircraft, smartdisplay):
 
         # draw the usable area for this screen.
-        smartdisplay.drawBorder = True
+        smartdisplay.drawBorder = False
 
         # draw roll indicator
         self.horizon.draw(aircraft,smartdisplay)
@@ -103,8 +106,8 @@ class F18_HUD(Screen):
             smartdisplay.RIGHT_MID, # postion
             self.fontIndicator, # big font
             self.fontAltSmall, # little font
-            "%d" % (aircraft.get_balt()), # text
-            3, # how many chars on the right do I want in small text.
+            "%s" % (aircraft.BALT), # text
+            2, # how many chars on the right do I want in small text.
             (255, 255, 0), # text color
             5, # total char space length (padding)
             self.MainColor, # line color
@@ -114,22 +117,26 @@ class F18_HUD(Screen):
         # Draw CDI Needles
         self.cdi.draw(aircraft,smartdisplay,(smartdisplay.x_center,smartdisplay.y_center))
 
-        # RadAlt  aircraft AGL Above Terrain
-        #smartdisplay.draw_text(smartdisplay.RIGHT_MID_DOWN, self.fontIndicatorSmaller, "%s RadAlt" % (aircraft.AGL), (255, 255, 0))
+        # Draw Air_Air Gunsight
+        self.gcross.draw(aircraft,smartdisplay,(smartdisplay.x_center,smartdisplay.y_center))
+
+        # RadAlt  aircraft AGL Above Terrain #
+        smartdisplay.draw_text(smartdisplay.RIGHT_MID_DOWN, self.fontIndicatorSmaller, "RadAlt %s" % (aircraft.agl), (255, 255, 0))
 
         # time string
         smartdisplay.draw_text(smartdisplay.RIGHT_MID_DOWN, self.fontIndicatorSmaller, "%s Lcl" % (aircraft.sys_time_string), (255, 255, 0))
-        # baro setting
-        smartdisplay.draw_text(smartdisplay.RIGHT_MID_DOWN, self.fontIndicatorSmaller, "%0.2f%s" % (aircraft.get_baro(),aircraft.get_baro_description()), (255, 255, 0))
-        smartdisplay.draw_text(smartdisplay.RIGHT_MID_DOWN, self.myfont, "gps:"+aircraft.gps.get_status_string(), (255, 255, 0))
-        if(aircraft.gps.Source != None):
-            smartdisplay.draw_text(smartdisplay.RIGHT_MID_DOWN, self.myfont, "src:"+aircraft.gps.Source, (255, 255, 0))
 
-        if(self.show_lat_lon==True):
-            if(aircraft.gps.LatDeg != None and aircraft.gps.LonDeg != None):
-                smartdisplay.draw_text(smartdisplay.RIGHT_MID_DOWN, self.myfont, "%f"%(aircraft.gps.LatDeg), (255, 255, 0))
-                smartdisplay.draw_text(smartdisplay.RIGHT_MID_DOWN, self.myfont, "%f"%(aircraft.gps.LonDeg), (255, 255, 0))
+        # Engine RPM
+        smartdisplay.draw_text(smartdisplay.RIGHT_MID_DOWN, self.fontIndicatorSmaller, "RPM %d" % (aircraft.engine.RPM), (255, 255, 0))
 
+        # Next Way Point Distance
+        smartdisplay.draw_text(smartdisplay.RIGHT_MID_DOWN, self.fontIndicatorSmaller, "WP Dist %0.1f" % (aircraft.nav.WPDist), (255, 255, 0))
+
+        # Gun Cross Mode, Target Wing span and DogFight Mode.
+        if(self.gcross.GunSightMode == 4):
+            smartdisplay.draw_text(smartdisplay.RIGHT_MID_DOWN, self.fontIndicatorSmaller, "DGFT", (255, 255, 0))
+        elif(self.gcross.GunSightMode != 0):
+            smartdisplay.draw_text(smartdisplay.RIGHT_MID_DOWN, self.fontIndicatorSmaller, "TgtWgSpan %d" % (self.gcross.TargetWingSpan), (255, 255, 0))
 
         # VSI text
         smartdisplay.draw_text(smartdisplay.RIGHT_MID_UP, self.fontIndicatorSmaller, aircraft.get_vsi_string(), (255, 255, 0))
@@ -137,29 +144,23 @@ class F18_HUD(Screen):
         # True aispeed
         smartdisplay.draw_text(smartdisplay.LEFT_MID_UP, self.fontIndicatorSmaller, "TAS %d %s" % (aircraft.get_tas(), aircraft.get_speed_description()), (255, 255, 0))
 
-        # OAT text
-        smartdisplay.draw_text(smartdisplay.LEFT_MID_UP, self.fontIndicatorSmaller, "%0.1f%s" % (aircraft.get_oat(),aircraft.get_temp_description()), (255, 255, 0))
-
-        #AOA text
-        if aircraft.ias < 20 or aircraft.aoa == 0 or aircraft.aoa == None:
-            smartdisplay.draw_text(smartdisplay.LEFT_MID_UP, self.fontIndicatorSmaller, "AOA: N/A", (255, 255, 0))
-        else:
-            smartdisplay.draw_text(smartdisplay.LEFT_MID_UP, self.fontIndicatorSmaller, "AOA: %d"%aircraft.aoa, (255, 255, 0))
-
         # Ground speed
         smartdisplay.draw_text(smartdisplay.LEFT_MID_DOWN, self.fontIndicatorSmaller, "GS %d" % (aircraft.get_gs()), (255, 255, 0))
+
+        # OAT text
+        smartdisplay.draw_text(smartdisplay.LEFT_MID_DOWN, self.fontIndicatorSmaller, "%0.1f%s" % (aircraft.get_oat(),aircraft.get_temp_description()), (255, 255, 0))
 
         # Vertical G
         smartdisplay.draw_text(smartdisplay.LEFT_MID_DOWN, self.fontIndicatorSmaller, "G %0.1f" % (aircraft.vert_G), (255, 255, 0))
 
         # draw wind direction
-        self.wind.draw(aircraft,smartdisplay,(10,smartdisplay.y_end-100))
+        self.wind.draw(aircraft,smartdisplay,(15,smartdisplay.y_end - 110))
 
         # draw Slip Skid
         self.slipskid.draw(aircraft,smartdisplay,(smartdisplay.x_center,smartdisplay.y_end-35))
 
         # draw AOA indicator
-        self.aoa.draw(aircraft,smartdisplay,(smartdisplay.x_start + 140 ,smartdisplay.y_end - 133))
+        self.aoa.draw(aircraft,smartdisplay,(smartdisplay.x_start + 140 ,smartdisplay.y_end - 140))
       
         # draw roll indicator
         self.roll_indicator.draw(aircraft,smartdisplay)
@@ -169,7 +170,7 @@ class F18_HUD(Screen):
 
         # Mag heading text
         smartdisplay.draw_box_text_padding(
-            smartdisplay.TOP_MID, # postion
+            smartdisplay.TOP_MID, # postion 
             self.fontAltSmall, # font
             "%d°" % (aircraft.mag_head), # text
             (255, 255, 0), # text color
@@ -181,9 +182,6 @@ class F18_HUD(Screen):
         # Show traffic?
         if(self.mode_traffic>0):
             self.trafficScope.draw(aircraft,smartdisplay,(smartdisplay.x_center-self.trafficScope.width/2,smartdisplay.y_center-self.trafficScope.height/2))
-
-        # Internal CPU temp
-        smartdisplay.draw_text(smartdisplay.BOTTOM_RIGHT, self.fontIndicatorSmaller, "CPU:%d°C" % (aircraft.internal.Temp), (255, 255, 0))
 
         # nearest traffic alert.
         target = aircraft.traffic.getNearestTarget()
@@ -221,8 +219,15 @@ class F18_HUD(Screen):
                 self.trafficScope.processEvent(event,aircraft,smartdisplay)
 
         elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_x:
-                self.caged_mode = not self.caged_mode
+            if event.key == pygame.K_KP9:
+                self.horizon.cyclecaged_mode()
+            if event.key == pygame.K_9:
+                self.horizon.cyclecaged_mode()
+            if event.key == pygame.K_8:
+                self.gcross.cycleGunSight()
+            if event.key == pygame.K_KP8:
+                self.gcross.cycleGunSight()
+
 
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

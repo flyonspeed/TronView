@@ -149,6 +149,7 @@ if __name__ == "__main__":
             shared.aircraft.textMode = True
         if opt == '-e':
             shared.aircraft.inputs[0].PlayFile = True
+            shared.aircraft.inputs[1].PlayFile = True
         if opt == '-c':  #custom example file name.
             shared.aircraft.inputs[0].PlayFile = arg
         if opt in ("","--listlogs"):

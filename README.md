@@ -1,4 +1,4 @@
-# TronView  as of 28Oct22
+# TronView
 Project for connecting efis/flight data to a 2nd screen or HUD.
 
 ## Features Include:
@@ -14,7 +14,7 @@ Project for connecting efis/flight data to a 2nd screen or HUD.
 - Designed for Raspberry Pi but also runs on Mac OSx, Windows, and other linux systems.
 - Show NAV needles for approaches. (If NAV data is available)
 - Use multiple data sources
-- added A-A Gun Cross Funnel for A-A Gunnery demonstration  Use Keypad Key#8 to cycle from Off to 25ft Tgt Wingspan/to 30ft wingspan to 35ft wingspan to Off, 
+- added A-A Gun Cross Funnel for A-A Gunnery demonstration  Use Keypad Key Num 8 to cycle from Off to 25ft Tgt Wingspan/to 30ft wingspan to 35ft wingspan to Off, 
 wingSpan ranges stert at 250ft at wide part of big U (& the Yellow + graphic), then extend to 500ft at first Yellow circle pipper, then to 750 ft, then 
 to 1,000 ft at next pipper, the 1500ft, and last at 2,000ft.
 - for better description of this function check these links;  http://falcon4.wikidot.com/avionics:hud  & Video at https://www.youtube.com/watch?v=oOa9eWgFllE

@@ -104,8 +104,8 @@ class serial_d100(Input):
 
                     if self.isPlaybackMode:  #if playback mode then add a delay.  Else reading a file is way to fast.
                         time.sleep(.05)
-                    else:
-                        self.ser.flushInput()  # flush the serial after every message else we see delays
+                    #else:
+                    #    self.ser.flushInput()  # flush the serial after every message else we see delays
                     return aircraft
                 else:
                     aircraft.msg_unknown += 1 # unknown message found.
@@ -114,8 +114,8 @@ class serial_d100(Input):
                 aircraft.msg_bad += 1 # count this as a bad message
                 if self.isPlaybackMode:  #if playback mode then add a delay.  Else reading a file is way to fast.
                     time.sleep(.01)
-                else:
-                    self.ser.flushInput()  # flush the serial after every message else we see delays
+                #else:
+                #   self.ser.flushInput()  # flush the serial after every message else we see delays
                 return aircraft
         except ValueError as ex:
             print("dynon d100 data conversion error")

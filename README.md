@@ -13,12 +13,25 @@ Project for connecting efis/flight data to a 2nd screen or HUD.
 - Display flight data in Knots, Standard, Metric, F or C
 - Designed for Raspberry Pi but also runs on Mac OSx, Windows, and other linux systems.
 - Show NAV needles for approaches. (If NAV data is available)
-- Use multiple data sources
-- added A-A Gun Cross Funnel for A-A Gunnery demonstration  Use Keypad Key Num 8 to cycle from Off to 25ft Tgt Wingspan/to 30ft wingspan to 35ft wingspan to Off, 
+- Use multiple data input sources
+
+
+## Includes F-18 style HUD screen:
+Comes with a built F-18 HUD screen which features the following.
+
+- F-18 style artificial horizon
+- Flight Path marker
+- Velocity Vector and Ghost Velocity Vector
+- Waterline
+- Glideslobe (If data is available)
+- Bank angle
+- Traffic Target Radar (Key 3 cycles with ranges)
+- A-A Gun Cross Funnel for A-A Gunnery demonstration  Use Keypad Key Num 8 to cycle from Off to 25ft Tgt Wingspan/to 30ft wingspan to 35ft wingspan to Off, 
 wingSpan ranges stert at 250ft at wide part of big U (& the Yellow + graphic), then extend to 500ft at first Yellow circle pipper, then to 750 ft, then 
-to 1,000 ft at next pipper, the 1500ft, and last at 2,000ft.
-- for better description of this function check these links;  http://falcon4.wikidot.com/avionics:hud  & Video at https://www.youtube.com/watch?v=oOa9eWgFllE
-- also added RPM and next Way Point Distance read out to right of HUD below the Altitude.
+to 1,000 ft at next pipper, the 1500ft, and last at 2,000ft.  for better description of this function check these links;  http://falcon4.wikidot.com/avionics:hud  & Video at https://www.youtube.com/watch?v=oOa9eWgFllE
+- Shows RPM and next Way Point Distance read out to right of HUD below the Altitude.
+- Amoung other commn things like Airspeed / altitude / VSI ...
+
 
 ## Use as backup display screen on dash
 ![cockpit1](docs/efis_cockpit1.jpeg?raw=true)
@@ -56,6 +69,8 @@ Dynon Skyview
 Dynon D10/100
 
 Levil BOM (wifi)
+
+Stratux or any stratux compatiable device (wifi)
 
 Generic serial logger (Used for recording any serial data)
 
@@ -145,7 +160,7 @@ Note:  You have to run using sudo in order to get access to serial port.
 
 Example:
 
-`sudo python3 main.py -i serial_mgl`
+`sudo python3 main.py -i serial_mgl -e`
 
 will show you command line arguments.
 
@@ -173,12 +188,28 @@ load a input module for where to get the air data from.
 
 --listusblogs (optional) show logs saved to usb drive (if available)
 
--- listexamplelogs (optional) show example log files to playback
+--listexamplelogs (optional) show example log files to playback
 
 
 Run the command with no arguments and it will show you which input modules and screen modules are available to use.
 
-`sudo python main.py`
+`sudo python3 main.py`
+
+## Examples command line arguments
+
+To set Input1 to garmin g3x and Input2 to stratux wifi and run default example data run the following.
+
+`sudo python3 main.py --in1 serial_g3x --in2 stratux_wifi -e`
+
+
+To run Input1 to MGL and Input2 as stratux.  then supply custom example log files...  Note that these custom log files are in the example data dir.  This will also check the DataRecorder path dir that you set in the config file. 
+
+`python3 main.py --in1 serial_mgl --playfile1 mgl_1.dat --in2 stratux_wifi --playfile2 startux_1.dat`
+
+
+Lauch app in text mode playing dynon D100 example data. Press 'Q' to exit Text Mode.
+
+`python3 main.py --in1 serial_d100 -t -e`
 
 ## More help on raspberry pi.
 
@@ -217,6 +248,8 @@ cntrl d - show some debug info (same as using the number 7 key)
 6 - clear all target buoys.
 
 7 - cycle through debug modes (in graphic mode)
+
+9 - show gun target in F-18 HUD screen.
 
 PAGE UP - jump to next screen
 
@@ -272,50 +305,11 @@ Input sources are located in lib/inputs folder.  Create your own!  You can use e
 
 config.cfg can be created and sit in the same dir as the main.py python app.  It's used for configuring the hud.  View config_example.cfg for a example of options.
 
+by using the config file you don't need to pass in so many arguments to the command line.
+
 Here is a example config.cfg file:
 
-<pre>
-
-[Main]
-#when running in xwindows,mac,win this will show hud in window if set.
-window=640,480
-
-# define the drawable area for hud to use.  Useful on displays that have hidden areas.
-# this is defined as x1,y1,x2,y2 to draw up a box of usable area.
-#drawable_area=0,144,1280,624
-#For Epic HUD use the following
-#drawable_area=0,159,1280,651
-
-
-[DataInput]
-# input source of data. These modules are located in lib/inputs. 
-inputsource = serial_mgl
-
-# port name for serial input. Default is /dev/ttyS0, for Windows you need to know the COM port you want to use ie: COM1, COM2, etc.
-# rpi built in serial is /dev/ttyS0
-# rpi usb serial is /dev/ttyUSB0
-port = /dev/ttyS0 
-
-# baud rate. Default is 115200
-# set this to the baud rate of your efis output.
-baudrate = 115200 
-
-[Formats]
-# Set speed and distance to Knots, Standard, Metric (default is Standard)
-#speed_distance = Metric 
-# Set temperate to F or C (defaults to F)
-#temperature = C
-
-[DataRecorder]
-# change the path were the default flight log files are saved. Make sure this dir exists.
-# default path is /flightlog/
-#path = /home/pi/flightlog/
-
-# check if usb drive is available for creating log files?
-# defaults to true
-#check_usb_drive = True
-
-</pre>
+https://github.com/flyonspeed/TronView/blob/master/config_example.cfg
 
 # Demo Sample EFIS Data
 
@@ -323,9 +317,11 @@ baudrate = 115200
   
   Using the -c FILENAME command line option loads data from the _example_data folder.
   
-  Example to run the MGL_V2.bin demo data file would look like this:
+  Example to run the MGL_2.dat demo data file would look like this:
   
-  `sudo python main.py -i serial_mgl -c MGL_V2.bin`
+  `sudo python3 main.py --in1 serial_mgl --playfile1 MGL_2.dat`
+
+  Note this is setting up input1.
 
 
 # MGL Data
@@ -373,3 +369,9 @@ baudrate = 115200
   Garmin G3X EFIS Sample Data Link: https://drive.google.com/open?id=1gHPC3OipAs9K06wj5zMw_uXn3_iqZriS
 
   Garmin G3X EFIS Serial Protocol Link: https://drive.google.com/open?id=1uRRO-wdG7ya6_6-CfDVrZaKJsiYit-lm
+
+# Stratux Data
+
+  Recorded data for stratux is saved in the example data.  stratux_1.dat shows traffic near by.  Like 0.5 miles away.
+
+

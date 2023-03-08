@@ -300,44 +300,42 @@ class gcross(Module):
                 (smartdisplay.x_center, smartdisplay.y_center - 135), (smartdisplay.x_center, smartdisplay.y_center - 105),
                 4,
             )
-                # pipper_posn = ((smartdisplay.x_center), (smartdisplay.y_center))
-            
-                # pipper_posn = (200, 200)     
-                # color = self.GColor_color   
-                # traffic_nm = 0.5
-                # screen = self.pygamescreen
-                #  Set circle radius and line width
-                # circle_radius = 50
-                # circle_radius_ctrdot = 3
-                # line_width = 1
-
+                pygame.draw.lines(
+                self.pygamescreen,
+                (255, 255, 255),      #  Bullet line color,
+                False,
+                [[smartdisplay.x_center + 0, smartdisplay.y_center - 95], [smartdisplay.x_center + 0, smartdisplay.y_center - 60],
+                [smartdisplay.x_center + 0, smartdisplay.y_center], [smartdisplay.x_center + 0, smartdisplay.y_center + 60], 
+                [smartdisplay.x_center + 0, smartdisplay.y_center + 120], [smartdisplay.x_center + 0, smartdisplay.y_center + 180]],
+                2,
+            )
 
             
                 if traffic_nm <= 1.5:
                     gun_rng = ((270 * traffic_nm) / 1.5)  # gun_director in decressing range in degrees
 
                     gun_arc = ((270 - gun_rng) + 180)   # changing to pygame arc in degrees
-                if gun_arc > 360: 
-                    gun_arc = gun_arc-360    
-                    
-                pygame.draw.circle(screen, color, pipper_posn, circle_radius, line_width)    # Draw the gun circle
+                    if gun_arc > 360: 
+                        gun_arc = gun_arc-360    
+                        
+                    pygame.draw.circle(screen, color, pipper_posn, circle_radius, line_width)    # Draw the gun circle
 
-                pygame.draw.circle(screen, color, pipper_posn, circle_radius_ctrdot)  # Draw the green gun pipper
+                    pygame.draw.circle(screen, color, pipper_posn, circle_radius_ctrdot)  # Draw the green gun pipper
 
-                start_angle = math.radians(gun_arc)  # Gun Range ARC is drawn counterclockwise in degrees from start angle to the Zero Range "end_angle"
-                end_angle = math.radians(90)
-                start_pos = (pipper_posn[0] + arc_radius * math.cos(start_angle), pipper_posn[1] + arc_radius * math.sin(start_angle))
-                end_pos = (pipper_posn[0] + arc_radius * math.cos(end_angle), pipper_posn[1] + arc_radius * math.sin(end_angle))
-                pygame.draw.arc(screen, color, (pipper_posn[0] - arc_radius, pipper_posn[1] - arc_radius, arc_radius * 2, arc_radius * 2), start_angle, end_angle, 5)
+                    start_angle = math.radians(gun_arc)  # Gun Range ARC is drawn counterclockwise in degrees from start angle to the Zero Range "end_angle"
+                    end_angle = math.radians(90)
+                    start_pos = (pipper_posn[0] + arc_radius * math.cos(start_angle), pipper_posn[1] + arc_radius * math.sin(start_angle))
+                    end_pos = (pipper_posn[0] + arc_radius * math.cos(end_angle), pipper_posn[1] + arc_radius * math.sin(end_angle))
+                    pygame.draw.arc(screen, color, (pipper_posn[0] - arc_radius, pipper_posn[1] - arc_radius, arc_radius * 2, arc_radius * 2), start_angle, end_angle, 5)
 
 
-                green_arc_radius = arc_radius - 5   # Draw the green range Tick Mark at beginning of Range Arc
-                green_arc_width = 15
-                start_angle = math.radians(gun_arc)
-                end_angle = math.radians(gun_arc+5)
-                start_pos = (pipper_posn[0] + green_arc_radius * math.cos(start_angle), pipper_posn[1] + green_arc_radius * math.sin(start_angle))
-                end_pos = (pipper_posn[0] + green_arc_radius * math.cos(end_angle), pipper_posn[1] + green_arc_radius * math.sin(end_angle))
-                pygame.draw.arc(screen, color, (pipper_posn[0] - green_arc_radius, pipper_posn[1] - green_arc_radius, green_arc_radius * 2, green_arc_radius * 2), start_angle, end_angle, green_arc_width)
+                    green_arc_radius = arc_radius - 5   # Draw the green range Tick Mark at beginning of Range Arc
+                    green_arc_width = 15
+                    start_angle = math.radians(gun_arc)
+                    end_angle = math.radians(gun_arc+5)
+                    start_pos = (pipper_posn[0] + green_arc_radius * math.cos(start_angle), pipper_posn[1] + green_arc_radius * math.sin(start_angle))
+                    end_pos = (pipper_posn[0] + green_arc_radius * math.cos(end_angle), pipper_posn[1] + green_arc_radius * math.sin(end_angle))
+                    pygame.draw.arc(screen, color, (pipper_posn[0] - green_arc_radius, pipper_posn[1] - green_arc_radius, green_arc_radius * 2, green_arc_radius * 2), start_angle, end_angle, green_arc_width)
 
              # end of gun director
 #  -----------------------------------------------------

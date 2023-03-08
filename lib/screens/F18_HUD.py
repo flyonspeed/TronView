@@ -115,9 +115,10 @@ class F18_HUD(Screen):
             )
             
         # Draw CDI Needles
-        self.cdi.draw(aircraft,smartdisplay,(smartdisplay.x_center,smartdisplay.y_center))
+        if(self.gcross.GunSightMode == 0):  # only draw CDI when not in a Gun Mode
+            self.cdi.draw(aircraft,smartdisplay,(smartdisplay.x_center,smartdisplay.y_center))
 
-        # Draw Air_Air Gunsight
+        # Draw Air_Air Gunsight 
         self.gcross.draw(aircraft,smartdisplay,(smartdisplay.x_center,smartdisplay.y_center))
 
         # RadAlt  aircraft AGL Above Terrain #
@@ -163,10 +164,12 @@ class F18_HUD(Screen):
         self.aoa.draw(aircraft,smartdisplay,(smartdisplay.x_start + 140 ,smartdisplay.y_end - 140))
       
         # draw roll indicator
-        self.roll_indicator.draw(aircraft,smartdisplay)
+        if(self.gcross.GunSightMode == 0):  # only draw CDI when not in a Gun Mode
+            self.roll_indicator.draw(aircraft,smartdisplay)
 
         # draw mag heading bar
-        self.heading.draw(aircraft,smartdisplay)
+        if(self.gcross.GunSightMode == 0):  # only draw CDI when not in a Gun Mode
+            self.heading.draw(aircraft,smartdisplay)
 
         # Mag heading text
         smartdisplay.draw_box_text_padding(
@@ -183,22 +186,25 @@ class F18_HUD(Screen):
         if(self.mode_traffic>0):
             self.trafficScope.draw(aircraft,smartdisplay,(smartdisplay.x_center-self.trafficScope.width/2,smartdisplay.y_center-self.trafficScope.height/2))
 
-        # nearest traffic alert.
+        # nearest traffic alert..
         target = aircraft.traffic.getNearestTarget()
         if(target!=None):
-            line2 = str(target.speed)+"mph"
+            line2 = str(target.speed)+"Kts"
             if(target.altDiff != None):
                 if(target.altDiff>0): prefix = "+"
                 else: prefix = ""
                 line2 = line2 + " "+prefix+'{:,}ft'.format(target.altDiff)
-            line1 = target.callsign + " %.1fmi. %d\xb0 "%(target.dist,target.brng)
-            line3 = "Target Trk: "+str(target.track) + "\xb0"
+            line1 = target.callsign + " %.2fnm. %d\xb0 "%(target.dist,target.brng)
+            line3 = "Target Brg: "+str(target.track) + "\xb0"
+            line4 = "Rng:"+ "%dft" % ((round((target.dist*6076)/100)) * 100)
+            # line4 = "Rng:"+ "%dft" % (int(target.dist*6076))
 
             smartdisplay.draw_text(smartdisplay.RIGHT_MID_UP, self.myfont, " " , (255, 255, 0))
             smartdisplay.draw_text(smartdisplay.RIGHT_MID_UP, self.myfont, line3 , (255, 255, 0))
             smartdisplay.draw_text(smartdisplay.RIGHT_MID_UP, self.myfont, line2 , (255, 255, 0))
             smartdisplay.draw_text(smartdisplay.RIGHT_MID_UP, self.myfont, line1 , (255, 255, 0))
             smartdisplay.draw_text(smartdisplay.RIGHT_MID_UP, self.myfont, "Nearest Target:" , (255, 255, 0))
+            smartdisplay.draw_text(smartdisplay.RIGHT_MID_DOWN, self.fontIndicatorSmaller, line4 , (255, 255, 0))
 
 
         # update entire display..

@@ -32,7 +32,7 @@ class gcross(Module):
 
         # fonts
         self.font = pygame.font.SysFont(
-            None, int(self.height / 20)
+            None, int(self.height / 20)   
         )
         self.surface = pygame.Surface((self.width, self.height))
 
@@ -60,8 +60,8 @@ class gcross(Module):
         #  below for Gun Dir Test --------------------------------------
         #  working Posn pipper_posn = (int(smartdisplay.x_center), int(smartdisplay.y_center))
         #  pipper_posn = (int(smartdisplay.x_center), int((smartdisplay.y_center + self.y_offset) - (aircraft.vsi / 4)))  # Adjust pipper poaition for Waterline/Boresight and Vertical FPV No FltPath_V
-        #  pipper_posn = (int(smartdisplay.x_center - aircraft.flightPathMarker_x), int((smartdisplay.y_center + self.y_offset) - (aircraft.vsi / 4)))  # Adjust pipper poaition for Waterline/Boresight and Vertical FPV   + self.x_offset
-        pipper_posn = (int(smartdisplay.x_center), int((smartdisplay.y_center + self.y_offset) - (aircraft.vsi / 4)))  # Adjust pipper poaition for Waterline/Boresight and Vertical FPV   + self.x_offset
+        pipper_posn = (int(smartdisplay.x_center - aircraft.fpv_x), int((smartdisplay.y_center + self.y_offset) - (aircraft.vsi / 2)))  # Adjust pipper poaition for Waterline/Boresight and Vertical FPV   + self.x_offset
+        #  pipper_posn = (-1 * (aircraft_fpv_x), int((smartdisplay.y_center + self.y_offset) - (aircraft.vsi / 4)))  # Adjust pipper poaition for Waterline/Boresight and Vertical FPV   + self.x_offset
         color = self.GColor_color   
         screen = self.pygamescreen
 
@@ -304,9 +304,7 @@ class gcross(Module):
                 self.pygamescreen,
                 (255, 255, 255),      #  Bullet line color,
                 False,
-                [[smartdisplay.x_center + 0, smartdisplay.y_center - 95], [smartdisplay.x_center + 0, smartdisplay.y_center - 60],
-                [smartdisplay.x_center + 0, smartdisplay.y_center], [smartdisplay.x_center + 0, smartdisplay.y_center + 60], 
-                [smartdisplay.x_center + 0, smartdisplay.y_center + 120], [smartdisplay.x_center + 0, smartdisplay.y_center + 180]],
+                [[smartdisplay.x_center + 0, smartdisplay.y_center - 120], [smartdisplay.x_center - (5 * aircraft.fpv_x), smartdisplay.y_center + 180]],
                 2,
             )
 

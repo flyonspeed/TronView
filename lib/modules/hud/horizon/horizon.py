@@ -298,14 +298,17 @@ class Horizon(Module):
         # flight path indicator  Default Caged Mode
         if self.caged_mode == 1:
             fpv_x = 0.0
+            aircraft.fpv_x = fpv_x
         else:
             fpv_x = ((((aircraft.mag_head - aircraft.gndtrack) + 180) % 360) - 180) * 1.5  - (
                 aircraft.turn_rate * 5
             )
+            aircraft.fpv_x = fpv_x
             self.readings.append(fpv_x)
             fpv_x = mean(self.readings)  # Moving average to smooth a bit
             if len(self.readings) == self.max_samples:
                 self.readings.pop(0)
+            aircraft.fpv_x = fpv_x
         gfpv_x = ((((aircraft.mag_head - aircraft.gndtrack) + 180) % 360) - 180) * 1.5  - (
             aircraft.turn_rate * 5
         )

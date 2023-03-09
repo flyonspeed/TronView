@@ -152,7 +152,7 @@ class F18_HUD(Screen):
         smartdisplay.draw_text(smartdisplay.LEFT_MID_DOWN, self.fontIndicatorSmaller, "%0.1f%s" % (aircraft.get_oat(),aircraft.get_temp_description()), (255, 255, 0))
 
         # Vertical G
-        smartdisplay.draw_text(smartdisplay.LEFT_MID_DOWN, self.fontIndicatorSmaller, "G %0.1f" % (aircraft.vert_G), (255, 255, 0))
+        smartdisplay.draw_text(smartdisplay.LEFT_MID_DOWN, self.fontIndicatorSmaller, "G %0.1f" % (aircraft.vert_G), (255, 255, 0))  #  aircraft.vert_G
 
         # draw wind direction
         self.wind.draw(aircraft,smartdisplay,(15,smartdisplay.y_end - 110))

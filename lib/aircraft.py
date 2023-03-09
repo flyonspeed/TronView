@@ -46,7 +46,8 @@ class Aircraft(object):
         self.wind_dir = None
         self.norm_wind_dir = None #corrected for aircraft heading for wind direction pointer
         self.mag_decl = None #magnetic declination
-
+        self.fpv_x = None   #  Horizontal Flt Path true vector
+        self.gfpv_x = None  # magnetic Horizontal Flt Path
         self.gps = GPSData()
         self.engine = EngineData()
         self.nav = NavData()

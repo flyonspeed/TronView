@@ -259,7 +259,8 @@ class GPSData(object):
         self.GPSWAAS = None # GPS waas.  0 = no, 1 = yes.
         self.msg_count = 0
         self.msg_last = None
-
+        self.msg_bad = 0
+        
     def get_status_string(self):
         if(self.GPSStatus==None): 
             return "NA"

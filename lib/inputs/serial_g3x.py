@@ -3,7 +3,7 @@
 # Serial input source
 # Garmin G3X
 # 01/30/2019 Brian Chesteen, credit to Christopher Jones for developing template for input modules.
-
+# 06/18/2023 C.Jones fix for live serial data input.
 
 from ._input import Input
 from lib import hud_utils
@@ -19,7 +19,7 @@ import time
 class serial_g3x(Input):
     def __init__(self):
         self.name = "g3x"
-        self.version = 1.0
+        self.version = 1.1
         self.inputtype = "serial"
 
         # Setup moving averages to smooth a bit
@@ -144,9 +144,9 @@ class serial_g3x(Input):
                         self.ser.seek(0)
                     return aircraft
 
-            SentID = self.ser.read(1)
+            SentID = int(self.ser.read(1)) # get message id
 
-            if SentID == "1":  # atittude/air data message
+            if SentID == 1:  # atittude/air data message
                 msg = self.ser.read(57)
                 aircraft.msg_last = msg
                 if len(msg) == 57:
@@ -206,7 +206,7 @@ class serial_g3x(Input):
                 else:
                     aircraft.msg_bad += 1
 
-            elif int(SentID) == 7:  # GPS AGL data message
+            elif SentID == 7:  # GPS AGL data message
                 msg = self.ser.read(16)
                 if(isinstance(msg,str)): msg = msg.encode() # if read from file then convert to bytes
                 aircraft.msg_last = msg
@@ -218,17 +218,20 @@ class serial_g3x(Input):
                     if int(SentVer) == 1 and CRLF[0] == self.EOL:
                         aircraft.agl = int(HeightAGL) * 100
                         aircraft.msg_count += 1
-                    if self.output_logFile != None:
-                        #Input.addToLog(self,self.output_logFile,bytes([61,ord(SentID)]))
-                        Input.addToLog(self,self.output_logFile,msg)
+                        if self.output_logFile != None:
+                            #Input.addToLog(self,self.output_logFile,bytes([61,ord(SentID)]))
+                            Input.addToLog(self,self.output_logFile,msg)
 
                     else:
                         aircraft.msg_bad += 1
+                        aircraft.debug1 = "bad GPS AGL data - unkown ver"
 
                 else:
                     aircraft.msg_bad += 1
+                    aircraft.debug1 = "bad GPS AGL data - wrong length"
 
             else:
+                aircraft.debug2 = SentID
                 aircraft.msg_unknown += 1  # else unknown message.
                 if self.isPlaybackMode:
                     time.sleep(0.01)

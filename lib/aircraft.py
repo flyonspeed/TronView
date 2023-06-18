@@ -55,6 +55,9 @@ class Aircraft(object):
         self.internal = InteralData()
         self.inputs = [InputDetails(),InputDetails()]
         self.alerts = []
+        self.debug1 = ""
+        self.debug2 = ""
+        self.debug3 = ""
 
         self.msg_count = 0
         self.msg_bad = 0

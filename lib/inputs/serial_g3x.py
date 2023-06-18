@@ -61,7 +61,7 @@ class serial_g3x(Input):
         #    self.EOL = 10
         #else:
         #    self.EOL = 13
-
+        self.EOL = 13
 
     # close this input source
     def closeInput(self, aircraft):
@@ -232,8 +232,8 @@ class serial_g3x(Input):
                 aircraft.msg_unknown += 1  # else unknown message.
                 if self.isPlaybackMode:
                     time.sleep(0.01)
-                # else:
-                #    self.ser.flushInput()  # flush the serial after every message else we see delays
+                else:
+                    self.ser.flushInput()  # flush the serial after every message else we see delays
                 return aircraft
 
         except serial.serialutil.SerialException as e:

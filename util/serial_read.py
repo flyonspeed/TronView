@@ -370,12 +370,13 @@ def readG3XMessage():
 
 
 def showArgs():
-    print("EFIS 2 Hud Serial monitor tool. Version: %s" % (version))
+    print("TronView Serial monitor tool. Version: %s" % (version))
     print("read_serial.py <options>")
     print(" -m (MGL iEFIS)")
     print(" -s (Dynon Skyview)")
     print(" -g (Garmin G3X)")
     print(" -l (list available serial ports on RaspberryPi/unix)")
+    print(" -i (select input serial port. Default: /dev/ttyS0 )")
     sys.exit()
 
 
@@ -449,6 +450,7 @@ try:
 
 except:
     print("Unable to open serial port: "+port)
+    print("Try passing in port to command line with -i <port>"+port)
     print("Here is a list of ports found:")
     list_serial_ports(True)
     sys.exit()

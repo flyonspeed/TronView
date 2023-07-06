@@ -55,6 +55,7 @@ class Aircraft(object):
         self.internal = InteralData()
         self.inputs = [InputDetails(),InputDetails()]
         self.alerts = []
+        self.analog = AnalogData()
 
         self.msg_count = 0
         self.msg_bad = 0
@@ -198,6 +199,15 @@ class Aircraft(object):
             return "%d %s" % (v,d)
         else:
             return "+%d %s" % (v,d)
+
+#############################################
+## Class: Analog Input Data 
+class AnalogData(object):
+    def __init__(self):
+        self.Name = None
+        self.Num = 0
+        self.Data = [0,0,0,0,0,0,0,0]
+
 
 #############################################
 ## Class: AlertData

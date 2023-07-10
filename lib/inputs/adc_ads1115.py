@@ -71,6 +71,16 @@ class adc_ads1115(Input):
 
         aircraft.analog.Data = self.values
 
+
+        # TODO: have config file define what this analog input is for.
+
+        # if analog input is for nav needles.. .then.
+        # limit the output voltages to be within +/- 0.25V
+        # format value to +/- 4095 for needle left/right up/down.
+        aircraft.nav.GSDev = round (16380 * (max(min(aircraft.analog.Data[1], 0.25), -0.25)))
+        aircraft.nav.ILSDev = round (16380 * (max(min(aircraft.analog.Data[3], 0.25), -0.25)))
+
+
         #aircraft.analog = self.values[0]
         #aircraft.nav.GSDev = self.values[1]
 

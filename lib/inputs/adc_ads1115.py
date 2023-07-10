@@ -44,8 +44,9 @@ class adc_ads1115(Input):
         #  -   8 = +/-0.512V
         #  -  16 = +/-0.256V
         # See table 3 in the ADS1015/ADS1115 datasheet for more info on gain.
-        self.GAIN = 8 
+        self.GAIN = 2/3 
         aircraft.analog.Name = "ads1115"
+        self.Amplify = 6.144/32767
 
 
 
@@ -61,11 +62,11 @@ class adc_ads1115(Input):
         if self.skipReadInput == True: return aircraft
 
 
-        self.values = [0]*4
         for i in range(4):
-            time.sleep(0.15)
+            time.sleep(0.025)
+            self.values[i] = 0;
             # Read the specified ADC channel using the previously set gain value.
-            self.values[i] = self.adc.read_adc(i, gain=self.GAIN)
+            self.values[i] = self.adc.read_adc_difference(i, gain=self.GAIN) * self.Amplify
 
 
         aircraft.analog.Data = self.values

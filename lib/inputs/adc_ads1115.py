@@ -62,11 +62,16 @@ class adc_ads1115(Input):
         if self.skipReadInput == True: return aircraft
 
 
-        for i in range(4):
-            time.sleep(0.025)
-            self.values[i] = 0;
-            # Read the specified ADC channel using the previously set gain value.
-            self.values[i] = self.adc.read_adc_difference(i, gain=self.GAIN) * self.Amplify
+        # for i in range(4):
+        #     time.sleep(0.025)
+        #     self.values[i] = 0;
+        #     # Read the specified ADC channel using the previously set gain value.
+        #     self.values[i] = self.adc.read_adc_difference(i, gain=self.GAIN) * self.Amplify
+
+        time.sleep(0.025)
+        self.values[1] = self.adc.read_adc_difference(1, gain=self.GAIN) * self.Amplify
+        time.sleep(0.025)
+        self.values[3] = self.adc.read_adc_difference(3, gain=self.GAIN) * self.Amplify
 
 
         aircraft.analog.Data = self.values

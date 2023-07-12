@@ -46,6 +46,10 @@ class cdi(Module):
         self.xLDMaxDotsFromCenter = width/2
 
         self.cdi_color = (255, 255, 255)  # start with white.
+        # pull water line offset from HUD config area.
+        self.y_offset = hud_utils.readConfigInt("HUD", "Horizon_Offset", 0)  #  Horizon/Waterline Pixel Offset from HUD Center Neg Numb moves Up, Default=0
+
+
 
     # called every redraw for the mod
     def draw(self, aircraft, smartdisplay, pos):
@@ -57,18 +61,20 @@ class cdi(Module):
         
 #  NAV Test Graphics for MGL
          # Is Glide Slope Active
+
+        self.new_y_center = smartdisplay.y_center + self.y_offset
          
         if aircraft.nav.HSISource == 1:
                 pygame.draw.line(
                 self.pygamescreen,
                 self.cdi_color,
-                (smartdisplay.x_center - (aircraft.nav.ILSDev / 60), smartdisplay.y_center - 67), (smartdisplay.x_center - (aircraft.nav.ILSDev / 60), smartdisplay.y_center - 8),
+                (smartdisplay.x_center - (aircraft.nav.ILSDev / 60), self.new_y_center - 67), (smartdisplay.x_center - (aircraft.nav.ILSDev / 60), self.new_y_center - 8),
                 4,
             )
                 pygame.draw.line(
                 self.pygamescreen,
                 self.cdi_color,        
-                (smartdisplay.x_center - (aircraft.nav.ILSDev / 60), smartdisplay.y_center + 8), (smartdisplay.x_center - (aircraft.nav.ILSDev / 60), smartdisplay.y_center + 67),
+                (smartdisplay.x_center - (aircraft.nav.ILSDev / 60), self.new_y_center + 8), (smartdisplay.x_center - (aircraft.nav.ILSDev / 60), self.new_y_center + 67),
                 4,
             )
                      
@@ -76,19 +82,32 @@ class cdi(Module):
                 pygame.draw.line(
                 self.pygamescreen,
                 self.cdi_color,
-                (smartdisplay.x_center-70,(aircraft.nav.GSDev / 60) + smartdisplay.y_center),(smartdisplay.x_center-8, (aircraft.nav.GSDev / 60) + smartdisplay.y_center),
+                (smartdisplay.x_center-70,(aircraft.nav.GSDev / 60) + self.new_y_center),(smartdisplay.x_center-8, (aircraft.nav.GSDev / 60) + self.new_y_center),
                 4,                              
               
             ) 
                 pygame.draw.line(
                 self.pygamescreen,
                 self.cdi_color,
-                (smartdisplay.x_center+8,(aircraft.nav.GSDev / 60) + smartdisplay.y_center),(smartdisplay.x_center+70, (aircraft.nav.GSDev / 60) + smartdisplay.y_center),
+                (smartdisplay.x_center+8,(aircraft.nav.GSDev / 60) + self.new_y_center),(smartdisplay.x_center+70, (aircraft.nav.GSDev / 60) + self.new_y_center),
                 4,                              
             )
             # Localizer 
             # End Test Graphics        
 
+
+    # cycle through NAV sources
+    def cycleNavSource(self):
+        if aircraft.nav.HSISource == 0 and if aircraft.nav.VNAVSource == 0:
+            aircraft.nav.HSISource = 1
+            aircraft.nav.SourceDesc = "Localizer"
+        else if aircraft.nav.HSISource == 1 and if aircraft.nav.VNAVSource == 0:
+            aircraft.nav.VNAVSource = 1
+            aircraft.nav.SourceDesc = "ILS"
+        else:
+            aircraft.nav.HSISource = 0
+            aircraft.nav.VNAVSource == 0
+            aircraft.nav.SourceDesc = ""
 
 
     # called before screen draw.  To clear the screen to your favorite color.

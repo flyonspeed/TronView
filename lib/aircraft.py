@@ -53,7 +53,7 @@ class Aircraft(object):
         self.traffic = TrafficData()
         self.fuel = FuelData()
         self.internal = InteralData()
-        self.inputs = [InputDetails(),InputDetails()]
+        self.inputs = [InputDetails(),InputDetails(),InputDetails()]
         self.alerts = []
         self.analog = AnalogData()
 
@@ -293,6 +293,7 @@ class NavData(object):
         self.NavStatus = ""
         self.HSISource = 0
         self.VNAVSource = 0
+        self.SourceDesc = ""
         self.AP = 0
         self.HSINeedle = 0
         self.HSIRoseHeading = 0

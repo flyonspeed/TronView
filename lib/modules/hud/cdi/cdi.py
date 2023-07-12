@@ -90,6 +90,19 @@ class cdi(Module):
             # End Test Graphics        
 
 
+    # cycle through NAV sources
+    def cycleNavSource(self):
+        if aircraft.nav.HSISource == 0 and if aircraft.nav.VNAVSource == 0:
+            aircraft.nav.HSISource = 1
+            aircraft.nav.SourceDesc = "Localizer"
+        else if aircraft.nav.HSISource == 1 and if aircraft.nav.VNAVSource == 0:
+            aircraft.nav.VNAVSource = 1
+            aircraft.nav.SourceDesc = "ILS"
+        else:
+            aircraft.nav.HSISource = 0
+            aircraft.nav.VNAVSource == 0
+            aircraft.nav.SourceDesc = ""
+
 
     # called before screen draw.  To clear the screen to your favorite color.
     def clear(self):

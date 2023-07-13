@@ -58,10 +58,10 @@ class serial_g3x(Input):
 
         # check for system platform??
         #if sys.platform.startswith('win'):
-        #    self.EOL = 10
+        self.EOL = 10
         #else:
         #    self.EOL = 13
-        self.EOL = 13
+        #self.EOL = 13
 
     # close this input source
     def closeInput(self, aircraft):
@@ -202,9 +202,11 @@ class serial_g3x(Input):
 
                     else:
                         aircraft.msg_bad += 1
+                        aircraft.debug2 = "bad air data - unkown ver"
 
                 else:
                     aircraft.msg_bad += 1
+                    aircraft.debug2 = "bad air data - wrong len"
 
             elif SentID == 7:  # GPS AGL data message
                 msg = self.ser.read(16)

@@ -56,6 +56,9 @@ class Aircraft(object):
         self.inputs = [InputDetails(),InputDetails(),InputDetails()]
         self.alerts = []
         self.analog = AnalogData()
+        self.debug1 = ""
+        self.debug2 = ""
+        self.debug3 = ""
 
         self.msg_count = 0
         self.msg_bad = 0
@@ -269,7 +272,8 @@ class GPSData(object):
         self.GPSWAAS = None # GPS waas.  0 = no, 1 = yes.
         self.msg_count = 0
         self.msg_last = None
-
+        self.msg_bad = 0
+        
     def get_status_string(self):
         if(self.GPSStatus==None): 
             return "NA"

@@ -47,7 +47,7 @@ class adc_ads1115(Input):
         self.GAIN = 2/3 
         aircraft.analog.Name = "ads1115"
         self.Amplify = 6.144/32767
-
+        self.values = [0,0,0,0,0,0,0,0]
 
 
 
@@ -61,7 +61,6 @@ class adc_ads1115(Input):
         if self.shouldExit == True: aircraft.errorFoundNeedToExit = True
         if aircraft.errorFoundNeedToExit: return aircraft
         if self.skipReadInput == True: return aircraft
-        self.values = []
 
         try:
 

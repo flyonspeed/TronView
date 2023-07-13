@@ -221,9 +221,9 @@ class F18_HUD(Screen):
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_KP9 or event.key == pygame.K_9:
                 self.horizon.cyclecaged_mode()
-            else if event.key == pygame.K_8 or event.key == pygame.K_KP8:
+            elif event.key == pygame.K_8 or event.key == pygame.K_KP8:
                 self.gcross.cycleGunSight()
-            else if event.key == pygame.K_0 or event.key == pygame.K_KP0
+            elif event.key == pygame.K_0 or event.key == pygame.K_KP0:
                 self.cdi.cycleNavSource()
 
 

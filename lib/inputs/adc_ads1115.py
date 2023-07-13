@@ -50,6 +50,7 @@ class adc_ads1115(Input):
 
 
 
+
     def closeInput(self,aircraft):
         print("ads1115 close")
 
@@ -60,6 +61,7 @@ class adc_ads1115(Input):
         if self.shouldExit == True: aircraft.errorFoundNeedToExit = True
         if aircraft.errorFoundNeedToExit: return aircraft
         if self.skipReadInput == True: return aircraft
+        self.values = []
 
         try:
 
@@ -70,9 +72,9 @@ class adc_ads1115(Input):
             #     self.values[i] = self.adc.read_adc_difference(i, gain=self.GAIN) * self.Amplify
 
             time.sleep(0.025)
-            self.values[1] = self.adc.read_adc_difference(1, gain=self.GAIN) * self.Amplify
+            self.values[0] = self.adc.read_adc_difference(1, gain=self.GAIN) * self.Amplify
             time.sleep(0.025)
-            self.values[3] = self.adc.read_adc_difference(3, gain=self.GAIN) * self.Amplify
+            self.values[1] = self.adc.read_adc_difference(3, gain=self.GAIN) * self.Amplify
 
 
             aircraft.analog.Data = self.values
@@ -83,8 +85,8 @@ class adc_ads1115(Input):
             # if analog input is for nav needles.. .then.
             # limit the output voltages to be within +/- 0.25V
             # format value to +/- 4095 for needle left/right up/down.
-            aircraft.nav.GSDev = round (16380 * (max(min(aircraft.analog.Data[1], 0.25), -0.25)))
-            aircraft.nav.ILSDev = round (16380 * (max(min(aircraft.analog.Data[3], 0.25), -0.25)))
+            aircraft.nav.GSDev = round (16380 * (max(min(aircraft.analog.Data[0], 0.25), -0.25)))
+            aircraft.nav.ILSDev = round (16380 * (max(min(aircraft.analog.Data[1], 0.25), -0.25)))
 
 
             #aircraft.analog = self.values[0]

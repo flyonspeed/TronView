@@ -224,7 +224,7 @@ class F18_HUD(Screen):
             elif event.key == pygame.K_8 or event.key == pygame.K_KP8:
                 self.gcross.cycleGunSight()
             elif event.key == pygame.K_0 or event.key == pygame.K_KP0:
-                self.cdi.cycleNavSource()
+                self.cdi.cycleNavSource(aircraft)
 
 
 

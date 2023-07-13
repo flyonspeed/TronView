@@ -97,16 +97,16 @@ class cdi(Module):
 
 
     # cycle through NAV sources
-    def cycleNavSource(self):
-        if aircraft.nav.HSISource == 0 and if aircraft.nav.VNAVSource == 0:
+    def cycleNavSource(self,aircraft):
+        if aircraft.nav.HSISource == 0 and aircraft.nav.VNAVSource == 0:
             aircraft.nav.HSISource = 1
             aircraft.nav.SourceDesc = "Localizer"
-        else if aircraft.nav.HSISource == 1 and if aircraft.nav.VNAVSource == 0:
+        elif aircraft.nav.HSISource == 1 and aircraft.nav.VNAVSource == 0:
             aircraft.nav.VNAVSource = 1
             aircraft.nav.SourceDesc = "ILS"
         else:
             aircraft.nav.HSISource = 0
-            aircraft.nav.VNAVSource == 0
+            aircraft.nav.VNAVSource = 0
             aircraft.nav.SourceDesc = ""
 
 

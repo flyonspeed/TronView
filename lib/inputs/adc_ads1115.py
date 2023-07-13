@@ -61,43 +61,46 @@ class adc_ads1115(Input):
         if aircraft.errorFoundNeedToExit: return aircraft
         if self.skipReadInput == True: return aircraft
 
+        try:
 
-        # for i in range(4):
-        #     time.sleep(0.025)
-        #     self.values[i] = 0;
-        #     # Read the specified ADC channel using the previously set gain value.
-        #     self.values[i] = self.adc.read_adc_difference(i, gain=self.GAIN) * self.Amplify
+            # for i in range(4):
+            #     time.sleep(0.025)
+            #     self.values[i] = 0;
+            #     # Read the specified ADC channel using the previously set gain value.
+            #     self.values[i] = self.adc.read_adc_difference(i, gain=self.GAIN) * self.Amplify
 
-        time.sleep(0.025)
-        self.values[1] = self.adc.read_adc_difference(1, gain=self.GAIN) * self.Amplify
-        time.sleep(0.025)
-        self.values[3] = self.adc.read_adc_difference(3, gain=self.GAIN) * self.Amplify
-
-
-        aircraft.analog.Data = self.values
+            time.sleep(0.025)
+            self.values[1] = self.adc.read_adc_difference(1, gain=self.GAIN) * self.Amplify
+            time.sleep(0.025)
+            self.values[3] = self.adc.read_adc_difference(3, gain=self.GAIN) * self.Amplify
 
 
-        # TODO: have config file define what this analog input is for.
-
-        # if analog input is for nav needles.. .then.
-        # limit the output voltages to be within +/- 0.25V
-        # format value to +/- 4095 for needle left/right up/down.
-        aircraft.nav.GSDev = round (16380 * (max(min(aircraft.analog.Data[1], 0.25), -0.25)))
-        aircraft.nav.ILSDev = round (16380 * (max(min(aircraft.analog.Data[3], 0.25), -0.25)))
+            aircraft.analog.Data = self.values
 
 
-        #aircraft.analog = self.values[0]
-        #aircraft.nav.GSDev = self.values[1]
+            # TODO: have config file define what this analog input is for.
 
-        #aircraft.nav.GLSHoriz = GLSHoriz
-        #aircraft.nav.GLSVert = GLSVert
-
-        #aircraft.nav.msg_count += 1
-        #if(self.textMode_showRaw==True): aircraft.nav.msg_last = binascii.hexlify(Message) # save last message.
-        #else: aircraft.nav.msg_last = None
+            # if analog input is for nav needles.. .then.
+            # limit the output voltages to be within +/- 0.25V
+            # format value to +/- 4095 for needle left/right up/down.
+            aircraft.nav.GSDev = round (16380 * (max(min(aircraft.analog.Data[1], 0.25), -0.25)))
+            aircraft.nav.ILSDev = round (16380 * (max(min(aircraft.analog.Data[3], 0.25), -0.25)))
 
 
+            #aircraft.analog = self.values[0]
+            #aircraft.nav.GSDev = self.values[1]
 
+            #aircraft.nav.GLSHoriz = GLSHoriz
+            #aircraft.nav.GLSVert = GLSVert
+
+            #aircraft.nav.msg_count += 1
+            #if(self.textMode_showRaw==True): aircraft.nav.msg_last = binascii.hexlify(Message) # save last message.
+            #else: aircraft.nav.msg_last = None
+
+        except Exception as e:
+            aircraft.errorFoundNeedToExit = True
+            print(e)
+            print(traceback.format_exc())
         return aircraft
 
 

@@ -9,6 +9,7 @@ from . import _utils
 import struct
 import time
 import Adafruit_ADS1x15
+import statistics
 
 class adc_ads1115(Input):
     def __init__(self):
@@ -16,6 +17,10 @@ class adc_ads1115(Input):
         self.version = 1.0
         self.inputtype = "adc"
         self.values = []
+        self.ApplySmoothing = 1
+        self.SmoothingAVGMaxCount = 10
+        self.smoothingA = []
+        self.smoothingB = []
 
     def initInput(self,num,aircraft):
         Input.initInput( self,num, aircraft )  # call parent init Input.
@@ -75,9 +80,19 @@ class adc_ads1115(Input):
             time.sleep(0.025)
             self.values[1] = self.adc.read_adc_difference(3, gain=self.GAIN) * self.Amplify
 
+            # apply smoothing avg of adc values?
+            if(self.ApplySmoothing):
+                self.smoothingA.append(self.values[0])
+                if(len(self.smoothingA)>self.SmoothingAVGMaxCount) self.smoothingA.L.remove(0)
+                aircraft.analog.Data[0] = statistics.mean(self.smoothingA)
 
-            aircraft.analog.Data = self.values
 
+                self.smoothingB.append(self.values[1])
+                if(len(self.smoothingB)>self.SmoothingAVGMaxCount) self.smoothingB.L.remove(0)
+                aircraft.analog.Data[1] = statistics.mean(self.smoothingB)
+            else:
+                #else don't apply smoothing.
+                aircraft.analog.Data = self.values
 
             # TODO: have config file define what this analog input is for.
 

@@ -83,12 +83,12 @@ class adc_ads1115(Input):
             # apply smoothing avg of adc values?
             if(self.ApplySmoothing):
                 self.smoothingA.append(self.values[0])
-                if(len(self.smoothingA)>self.SmoothingAVGMaxCount) self.smoothingA.L.remove(0)
+                if(len(self.smoothingA)>self.SmoothingAVGMaxCount): self.smoothingA.pop(0)
                 aircraft.analog.Data[0] = statistics.mean(self.smoothingA)
 
 
                 self.smoothingB.append(self.values[1])
-                if(len(self.smoothingB)>self.SmoothingAVGMaxCount) self.smoothingB.L.remove(0)
+                if(len(self.smoothingB)>self.SmoothingAVGMaxCount): self.smoothingB.pop(0)
                 aircraft.analog.Data[1] = statistics.mean(self.smoothingB)
             else:
                 #else don't apply smoothing.

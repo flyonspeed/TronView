@@ -219,14 +219,12 @@ class F18_HUD(Screen):
                 self.trafficScope.processEvent(event,aircraft,smartdisplay)
 
         elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_KP9:
+            if event.key == pygame.K_KP9 or event.key == pygame.K_9:
                 self.horizon.cyclecaged_mode()
-            if event.key == pygame.K_9:
-                self.horizon.cyclecaged_mode()
-            if event.key == pygame.K_8:
+            elif event.key == pygame.K_8 or event.key == pygame.K_KP8:
                 self.gcross.cycleGunSight()
-            if event.key == pygame.K_KP8:
-                self.gcross.cycleGunSight()
+            elif event.key == pygame.K_0 or event.key == pygame.K_KP0:
+                self.cdi.cycleNavSource(aircraft)
 
 
 

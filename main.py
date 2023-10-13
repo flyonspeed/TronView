@@ -43,7 +43,7 @@ class myThreadEfisInputReader(threading.Thread):
         threading.Thread.__init__(self)
 
     def run(self):
-        #global CurrentInput, CurrentInput2, aircraft
+        #global CurrentInput, CurrentInput2,CurrentInput3, aircraft
         internalLoopCounter = 1
         while shared.aircraft.errorFoundNeedToExit == False:
             if(shared.CurrentInput.isPaused==True):
@@ -59,6 +59,9 @@ class myThreadEfisInputReader(threading.Thread):
                         time1Secs =  (shared.CurrentInput.time_stamp_min * 60) + shared.CurrentInput.time_stamp_sec
                         time2Secs =  (shared.CurrentInput2.time_stamp_min * 60) + shared.CurrentInput2.time_stamp_sec
                         shared.aircraft.inputs[0].time_diff_secs = abs(time2Secs - time1Secs)
+                if(shared.CurrentInput3 != None): # if there is a 3rd input then read message from that too.
+                    shared.aircraft = shared.CurrentInput3.readMessage(shared.aircraft)
+                    shared.aircraft.inputs[2].time_stamp = shared.CurrentInput3.time_stamp_string
                 internalLoopCounter = internalLoopCounter - 1
                 if internalLoopCounter < 0:
                     internalLoopCounter = 100
@@ -132,13 +135,14 @@ def initAircraft():
 ScreenNameToLoad = hud_utils.readConfig("Main", "screen", "Default")  # default screen to load
 DataInputToLoad = hud_utils.readConfig("DataInput", "inputsource", "none")  # input method
 DataInputToLoad2 = hud_utils.readConfig("DataInput2", "inputsource", "none")  # optional 2nd input
+DataInputToLoad3 = hud_utils.readConfig("DataInput3", "inputsource", "none")  # optional 3rd input
 
 # check args passed in.
 if __name__ == "__main__":
     #print 'ARGV      :', sys.argv[1:]
     try:
         opts, args = getopt.getopt(
-            sys.argv[1:], "hs:i:tec:lr",['in1=','in2=','playfile1=','playfile2=','screen=','listusblogs','listexamplelogs','listlogs']
+            sys.argv[1:], "hs:i:tec:lr",['in1=','in2=',"in3=",'playfile1=','playfile2=','screen=','listusblogs','listexamplelogs','listlogs']
         )
     except getopt.GetoptError:
         print("unknown command line args given..")
@@ -164,12 +168,17 @@ if __name__ == "__main__":
             DataInputToLoad = arg
         if opt in ("", "--in2"):
             DataInputToLoad2 = arg
+        if opt in ("", "--in3"):
+            DataInputToLoad3 = arg
         if opt in ("", "--playfile1"):
             shared.aircraft.inputs[0].PlayFile = arg
             print("Input1 playing log file: "+arg)
         if opt in ("", "--playfile2"):
             shared.aircraft.inputs[1].PlayFile = arg
             print("Input2 playing log file: "+arg)
+        if opt in ("", "--playfile3"):
+            shared.aircraft.inputs[2].PlayFile = arg
+            print("Input3 playing log file: "+arg)
         if opt in ("-h", "--help"):
             hud_utils.showArgs()
         if opt in ("-i"):
@@ -213,6 +222,14 @@ if __name__ == "__main__":
                 hud_utils.findInput() # show available inputs
                 sys.exit()
             shared.CurrentInput2 = loadInput(1,DataInputToLoad2)
+    if DataInputToLoad3 != "none":
+        if(DataInputToLoad3==DataInputToLoad): print("Skipping 3rd Input source : same as input 1")
+        else:
+            if hud_utils.findInput(DataInputToLoad3) == False:
+                print(("Input source 3 not found: %s"%(DataInputToLoad2)))
+                hud_utils.findInput() # show available inputs
+                sys.exit()
+            shared.CurrentInput3 = loadInput(2,DataInputToLoad3)
     if(shared.aircraft.errorFoundNeedToExit==True): sys.exit()
     # check and load screen module. (if not starting in text mode)
     initAircraft()
@@ -234,5 +251,7 @@ if __name__ == "__main__":
         else:
             graphic_mode.main_graphical()  # start main graphical loop
     shared.CurrentInput.closeInput(shared.aircraft) # close the input source
+    if DataInputToLoad2 != "none": shared.CurrentInput2.closeInput(shared.aircraft)
+    if DataInputToLoad3 != "none": shared.CurrentInput3.closeInput(shared.aircraft)
     sys.exit()
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

@@ -22,6 +22,7 @@ aircraft = aircraft.Aircraft()
 ## Inputs can be from Serial, Files, wifi, etc...
 CurrentInput = None
 CurrentInput2 = None
+CurrentInput3 = None
 
 ####################################
 ## SmartDisplay Obect

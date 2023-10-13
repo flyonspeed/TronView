@@ -53,8 +53,9 @@ class Aircraft(object):
         self.traffic = TrafficData()
         self.fuel = FuelData()
         self.internal = InteralData()
-        self.inputs = [InputDetails(),InputDetails()]
+        self.inputs = [InputDetails(),InputDetails(),InputDetails()]
         self.alerts = []
+        self.analog = AnalogData()
         self.debug1 = ""
         self.debug2 = ""
         self.debug3 = ""
@@ -203,6 +204,15 @@ class Aircraft(object):
             return "+%d %s" % (v,d)
 
 #############################################
+## Class: Analog Input Data 
+class AnalogData(object):
+    def __init__(self):
+        self.Name = None
+        self.Num = 0
+        self.Data = [0,0,0,0,0,0,0,0]
+
+
+#############################################
 ## Class: AlertData
 class AlertData(object):
     def __init__(self):
@@ -287,6 +297,7 @@ class NavData(object):
         self.NavStatus = ""
         self.HSISource = 0
         self.VNAVSource = 0
+        self.SourceDesc = ""
         self.AP = 0
         self.HSINeedle = 0
         self.HSIRoseHeading = 0

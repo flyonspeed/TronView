@@ -36,7 +36,8 @@ def initDisplay(debug):
         else:
             # Go full screen with no frame.
             size = pygame.display.Info().current_w, pygame.display.Info().current_h
-            screen = pygame.display.set_mode((0,0), pygame.NOFRAME)
+            print(("fullscreen size: %s"%str(size)))
+            screen = pygame.display.set_mode((0,0), pygame.FULLSCREEN)
     else:
         drivers = ["directfb", "fbcon", "svgalib"]
         found = False

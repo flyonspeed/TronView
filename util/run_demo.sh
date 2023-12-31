@@ -1,7 +1,6 @@
 #!/bin/bash
 
-pwd=${PWD}
-path="${pwd//util/}"
+path="/home/${USER}/TronView"
 
 cd $path 
 sudo pkill -f 'python3'

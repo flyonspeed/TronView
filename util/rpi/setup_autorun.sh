@@ -6,7 +6,7 @@ echo "Using startup script: $runpathscript"
 
 # bookworm...
 if grep -q bookworm "/etc/os-release"; then
-
+	echo "Running on Debian GNU/Linux 12 (bookworm)"
 	#uses wayland window manager..
 
 	if grep -q tronview ~/.config/wayfire.ini; then
@@ -15,18 +15,19 @@ if grep -q bookworm "/etc/os-release"; then
 	fi
 
 	#check if [autostart] is already in the ini file.
-	if grep -q [autostart] ~/.config/wayfire.ini; then
+	if ! grep -q "[autostart]" ~/.config/wayfire.ini; then
 		# doesn't exist.. so add it.
 		echo "[autostart]" >> ~/.config/wayfire.ini
 	fi
 	
 	# add the tronview startup script.
-	sed -i "/\[autostart\]/a tronview\=${runpathscript}" ~/.config/wayfire.ini
+	sed -i "/\[autostart\]/a tronview\=lxterminal -e ${runpathscript}" ~/.config/wayfire.ini
 	
 	echo "Added startup script to ~/.config/wayfire.ini"
 
 else
 	# else older version that is user x11 instead of wayland
+	echo "Running on older version of Raspberry Pi OS."
 
 	sudo echo "@lxterminal -e $runpathscript" >> /etc/xdg/lxsession/LXDE-pi/autostart 
 fi

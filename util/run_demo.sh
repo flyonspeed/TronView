@@ -1,6 +1,9 @@
 #!/bin/bash
 
-cd /home/pi/efis_to_hud
+pwd=${PWD}
+path="${pwd//util/}"
+
+cd $path 
 sudo pkill -f 'python3'
 #sudo python3 main.py -i serial_d100 -e
 

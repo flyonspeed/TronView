@@ -1,22 +1,35 @@
 #!/bin/bash
 
-echo "Setup Pi for running HUD software? (y or n)"
-read -p " " yn;
-if [ "$yn" != "y" ]; then
-	echo "Ok. Not doing anything. Exiting..."
-	exit;
-fi
+echo "Installing tools and setup for running TronView..."
+#echo "Setup Pi for running HUD software? (y or n)"
+#read -p " " yn;
+#if [ "$yn" != "y" ]; then
+#	echo "Ok. Not doing anything. Exiting..."
+#	exit;
+#fi
+
+# make flight log dir.
+echo "Creating /flightlog folder to save flight logs."
+sudo mkdir /flightlog
+sudo chmod 777 /flightlog
 
 # bookworm?
 if grep -q bookworm "/etc/os-release"; then
 	echo "Running on Debian GNU/Linux 12 (bookworm)"
 
-	echo "Enabling serial port"
-	sudo bash -c 'echo " " >> /boot/config.txt'
-	sudo bash -c 'echo "enable_uart=1" >> /boot/config.txt'
+	if ! grep -q "enable_uart=1" "/boot/config.txt"; then
+		echo "Enabling Raspberry pi serial port"
+		sudo bash -c 'echo " " >> /boot/config.txt'
+		sudo bash -c 'echo "enable_uart=1" >> /boot/config.txt'
+		echo "This requires restart to use serial port."
+	else
+		echo "Serial port already enabled"
+	fi
 
-	echo "disable splash image"
-	sudo bash -c 'echo "disable_splash=1" >> /boot/config.txt'
+	if ! grep -q "enable_uart=1" "/boot/config.txt"; then
+		echo "Disable boot up splash image"
+		sudo bash -c 'echo "disable_splash=1" >> /boot/config.txt'
+	fi
 
 	echo "installing/updating python3"
 	sudo apt-get -y install python3-full python-serial python-pygame python-pyaudio
@@ -27,7 +40,6 @@ if grep -q bookworm "/etc/os-release"; then
 
 	sudo apt install libsdl2-ttf-2.0-0
 
-	echo "Please reboot your pi now.  Type reboot"
 fi
 
 # bullseye?

@@ -74,30 +74,13 @@ Stratux or any stratux compatiable device (wifi)
 
 Generic serial logger (Used for recording any serial data)
 
+We are using the rapberry pi 4B and 5 for taking serial data from a EFIS (MGL,Dynon,G3x) and displaying a graphical Display out the hdmi output on the pi.  This is plugged into a Display or HUD device like the Hudly Classic.  Any sort of HDMI screen could be hooked to the Pi for displaying this flight data.
 
-We are using the rapberry pi 4B for taking serial data from a EFIS (MGL,Dynon,G3x) and displaying a graphical Display out the hdmi output on the pi.  This is plugged into a Display or HUD device like the Hudly Classic.  Any sort of HDMI screen could be hooked to the Pi for displaying this flight data.
+# Steps to get the software running on raspberry pi
 
-Code is written in Python 3.7 and the Pygame 2.0 module for handling the graphics.
+1) got https://www.raspberrypi.com/software/ to download the Raspberry Pi Imager.  This will create a bootable sd card you can insert into the pi. Download, install and run.  Following the directions.  You will need to get your pi onto the internet because you need to download the TronView source to your pi next.
 
-You can run this code in either raspbian full or lite.
-
-Raspbian full install contains the xwindow desktop system.  The lite version does not.
-This supports both versions.
-
-Get raspbian-stretch-lite SD image for pi. Latest can be gotten here.
-https://downloads.raspberrypi.org/raspbian_lite_latest
-
-Following install guide if you need help.  https://www.raspberrypi.org/documentation/installation/installing-images/README.md
-
-Setup your serial input using the GPIO pins on pi zero.  This page will help you. https://www.instructables.com/id/Read-and-write-from-serial-port-with-Raspberry-Pi/
-
-## Steps to get the software running on raspberry pi
-
-1) WIFI and autologin. You’ll want to get the pi on your wifi network so it can download the latest source.  Here are some instructions online that might help.  https://www.raspberrypi.org/documentation/configuration/wireless/wireless-cli.md
-
-To setup auto login. (so you don't have to login to pi every time it boots up)
-
-Enter the command `sudo raspi-config` Scroll down to Boot Options and select Console Autologin. Then exit the configuration menu and reboot.
+Now you need to plug the card into the pi and boot it up.  Plug a video screen, keyboard, and mouse.  Once the pi boots up click on the Terminal window.
 
 2) Install git command.   This will let you get the latest source from github directly onto the pi.
 
@@ -107,15 +90,13 @@ Enter the command `sudo raspi-config` Scroll down to Boot Options and select Con
 
 `git clone https://github.com/flyonspeed/TronView.git`
 
-this will ask for username/email password from github.
-
 when done this will create a TronView dir
 
 4) run the setup.sh script to finish install.  This will setup serial port (if not allready setup), and install python libraries needed.
 
 go into the TronView by typing
 
-`cd TronView/util`
+`cd TronView/util/rpi`
 
 then to run the script type
 
@@ -132,7 +113,7 @@ run the following.  First make sure you are in the efis_hud dir.
 
 Then run the python script and use the example data for dynon d100.
 
-`sudo python main.py -i serial_d100 -e`
+`sudo python main.py -i serial_d100 -s F18_HUD -e`
 
 You should see a basic hud on the screen.  And it slowy moving around.  
 If not then your video setup maybe be F'd up.  
@@ -195,7 +176,7 @@ Run the command with no arguments and it will show you which input modules and s
 
 `sudo python3 main.py`
 
-## Examples command line arguments
+## Example command line arguments
 
 To set Input1 to garmin g3x and Input2 to stratux wifi and run default example data run the following.
 
@@ -204,18 +185,23 @@ To set Input1 to garmin g3x and Input2 to stratux wifi and run default example d
 
 To run Input1 to MGL and Input2 as stratux.  then supply custom example log files...  Note that these custom log files are in the example data dir.  This will also check the DataRecorder path dir that you set in the config file. 
 
-`python3 main.py --in1 serial_mgl --playfile1 mgl_1.dat --in2 stratux_wifi --playfile2 startux_1.dat`
+`sudo python3 main.py --in1 serial_mgl --playfile1 mgl_1.dat --in2 stratux_wifi --playfile2 startux_1.dat`
 
 
 Lauch app in text mode playing dynon D100 example data. Press 'Q' to exit Text Mode.
 
-`python3 main.py --in1 serial_d100 -t -e`
+`sudo python3 main.py --in1 serial_d100 -t -e`
 
 ## More help on raspberry pi.
+
+Setup your serial input using the GPIO pins on pi zero.  This page will help you. https://www.instructables.com/id/Read-and-write-from-serial-port-with-Raspberry-Pi/
+
 
 Here are more instructions on setting up for raspberry pi.
 
 https://github.com/flyonspeed/TronView/blob/master/docs/rpi_setup.md
+
+
 
 ## DefaultScreen
 

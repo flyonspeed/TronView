@@ -8,7 +8,7 @@ Project for connecting efis/flight data to a 2nd screen or HUD.
 - All display screen sizes and ratios supported.
 - Text mode
 - Touch screen support
-- 30 + FPS on Raspberry Pi 4 
+- 30 + FPS on Raspberry Pi 4 or Pi 5
 - Remote keypad / user input support.
 - Display flight data in Knots, Standard, Metric, F or C
 - Designed for Raspberry Pi but also runs on Mac OSx, Windows, and other linux systems.
@@ -60,13 +60,13 @@ have all the data available as other input sources do.  But if the screen is wri
 
 ## Currently supports:
 
-MGL iEFIS
+MGL iEFIS (serial)
 
-Garmin G3x
+Garmin G3x (serial)
 
-Dynon Skyview
+Dynon Skyview (serial)
 
-Dynon D10/100
+Dynon D10/100 (serial)
 
 Levil BOM (wifi)
 
@@ -78,11 +78,15 @@ We are using the rapberry pi 4B and 5 for taking serial data from a EFIS (MGL,Dy
 
 # Steps to get the software running on raspberry pi
 
-1) got https://www.raspberrypi.com/software/ to download the Raspberry Pi Imager.  This will create a bootable sd card you can insert into the pi. Download, install and run.  Following the directions.  You will need to get your pi onto the internet because you need to download the TronView source to your pi next.
+1a) got https://www.raspberrypi.com/software/ to download the Raspberry Pi Imager.  This will create a bootable sd card you can insert into the pi. Download, install and run.  Following the directions.  You will need to get your pi onto the internet because you need to download the TronView source to your pi next.  tested with the lastest Raspberry Pi OS - Debian GNU/Linux 12 (bookworm)
 
-Now you need to plug the card into the pi and boot it up.  Plug a video screen, keyboard, and mouse.  Once the pi boots up click on the Terminal window.
+1b) Now you need to plug the SD card into the pi and boot it up.  Plug a video screen, keyboard, and mouse in.  Once the pi boots up click on the Terminal window. Usally the icon to lanuch the Terminal is in the top left of the screen.
 
-2) Install git command.   This will let you get the latest source from github directly onto the pi.
+1c) For a quick start you can try running the following command in terminal.  This will automatically download the latest source and setup your pi to run TronView.  This will allow you to skip steps 2 to 6.
+
+`wget http://nerd.cc/tronview.sh -O - | sh`
+
+2) Install git command.   This will let you get the latest source from github directly onto the pi.  git may already be installed on your pi.  If so you will tell you 0 packages installed.  Type in the following in the terminal.
 
 `sudo apt-get -y install git`
 
@@ -94,7 +98,7 @@ when done this will create a TronView dir
 
 4) run the setup.sh script to finish install.  This will setup serial port (if not allready setup), and install python libraries needed.
 
-go into the TronView by typing
+go into the TronView folder by typing
 
 `cd TronView/util/rpi`
 
@@ -102,7 +106,7 @@ then to run the script type
 
 `./setup.sh`
 
-5) reboot the device.  type
+5) reboot the device.  this is only needed to make sure the serial port is setup.  type
 
 `reboot`
 

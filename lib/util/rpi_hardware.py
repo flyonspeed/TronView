@@ -10,6 +10,14 @@ def is_raspberrypi():
     except Exception: pass
     return False
 
+def raspberrypi_ver():
+    try:
+        with open('/proc/device-tree/model', 'r') as file:
+            data = file.read().rstrip()
+            return data
+    except Exception: pass
+    return "Unkown"
+
 def check_CPU_temp():
     temp = None
     err, msg = subprocess.getstatusoutput('vcgencmd measure_temp')

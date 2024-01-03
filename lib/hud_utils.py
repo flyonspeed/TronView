@@ -41,6 +41,21 @@ def readConfigBool(section, name, defaultValue=False):
     # else return default value.
     return defaultValue
 
+#############################################
+## Function: readConfigXY
+def readConfigXY(section, name, defaultValue=False):
+    theValue = readConfig(section,name,defaultValue=defaultValue)
+    if type(theValue) is tuple:  # possible that it returned a default type of tuple.. if so just return it.
+        return theValue
+    if len(theValue)>0:
+        xy = theValue.split(",")
+        try:
+            size = int(xy[0]),int(xy[1])
+            return size
+        except:
+            raise Exception("Config error: ",sys.exc_info()[0]," . [",section,"] ",name," is not a valid x,y")
+    return defaultValue
+
 # https://stackoverflow.com/questions/699866/python-int-to-binary#699891
 def get_bin(x, n=8):
     """

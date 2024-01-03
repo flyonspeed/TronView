@@ -183,7 +183,9 @@ if __name__ == "__main__":
     isRunningOnPi = rpi_hardware.is_raspberrypi()
     if isRunningOnPi == True: 
         print("Running on RaspberryPi")
-        shared.aircraft.internal.Hardware = "RaspberryPi"
+        piVersionStr = rpi_hardware.raspberrypi_ver()
+        print(piVersionStr)
+        shared.aircraft.internal.Hardware = piVersionStr
         shared.aircraft.internal.OS = rpi_hardware.get_full_os_name()
         shared.aircraft.internal.OSVer = rpi_hardware.get_kernel_release()
     isRunningOnMac = mac_hardware.is_macosx()

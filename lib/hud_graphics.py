@@ -12,20 +12,16 @@ def initDisplay(debug):
     disp_no = os.getenv("DISPLAY")
     print(("sys.platform:%s"%(sys.platform)))
     print(("platform.machine:%s"%(platform.machine())))
-    inWindow = hud_utils.readConfig("Main", "window", "false")  # default screen to load
+    defaultScreenSize = pygame.display.Info().current_w, pygame.display.Info().current_h
+    print(("reported screen size: %s"%str(defaultScreenSize)))
+    inWindow = hud_utils.readConfig("Main", "window", "false")  # window resolution
+    size = hud_utils.readConfigXY("Main", "resolution", defaultScreenSize)  # screen resoltion
     showFullScreen = True
 
     if inWindow != "false":
         # if they want a windowed version..
-        size = 640, 480 # default to 640,480 for window size.
+        size = inWindow
         showFullScreen = False
-        if len(inWindow)>0:
-            print(("Window size from config: %s"%(inWindow)))
-            winsize = inWindow.split(",")
-            try:
-                size = int(winsize[0]),int(winsize[1])
-            except:
-                raise Exception("Config error: ",sys.exc_info()[0]," . window size is not valid in config")
 
     if disp_no:
         # assume we are in xdisplay. in xwindows on linux/rpi
@@ -35,8 +31,8 @@ def initDisplay(debug):
             pygame.display.set_caption('efis')
         else:
             # Go full screen with no frame.
-            size = pygame.display.Info().current_w, pygame.display.Info().current_h
-            print(("fullscreen size: %s"%str(size)))
+            #size = pygame.display.Info().current_w, pygame.display.Info().current_h
+            print(("fullscreen xwin size: %s"%str(size)))
             screen = pygame.display.set_mode((0,0), pygame.FULLSCREEN)
     else:
         drivers = ["directfb", "fbcon", "svgalib"]
@@ -58,11 +54,13 @@ def initDisplay(debug):
 
         # check if we want to show fullscreen or window.
         if showFullScreen == False:
+            print(("screen size (resizeable): %s"%str(size)))
             screen = pygame.display.set_mode(size, pygame.RESIZABLE)
             pygame.display.set_caption('efis')
         else:
             # else go full screen.
-            size = pygame.display.Info().current_w, pygame.display.Info().current_h
+            #size = pygame.display.Info().current_w, pygame.display.Info().current_h
+            print(("fullscreen size: %s"%str(size)))
             screen = pygame.display.set_mode(size, pygame.FULLSCREEN)
 
     showMouse = hud_utils.readConfig("Main", "ShowMouse", "false")  # default screen to load

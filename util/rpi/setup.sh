@@ -13,20 +13,39 @@ echo "Creating /flightlog folder to save flight logs."
 sudo mkdir /flightlog
 sudo chmod 777 /flightlog
 
+# print out pi model.
+print_head "- Pi Model -"
+cat /proc/device-tree/model && echo
+
 # bookworm?
 if grep -q bookworm "/etc/os-release"; then
 	echo "Running on Debian GNU/Linux 12 (bookworm)"
 
-	if ! grep -q "enable_uart=1" "/boot/config.txt"; then
-		echo "Enabling Raspberry pi serial port"
-		sudo bash -c 'echo " " >> /boot/config.txt'
-		sudo bash -c 'echo "enable_uart=1" >> /boot/config.txt'
-		echo "This requires restart to use serial port."
+	# check if pi 5
+	if grep -q "Raspberry Pi 5" "/proc/device-tree/model"; then
+		# running on pi 5.  Set serial port.
+		if ! grep -q "dtparam=uart0=on" "/boot/config.txt"; then
+			echo "Enabling Raspberry pi 5 serial port"
+			sudo bash -c 'echo " " >> /boot/config.txt'
+			sudo bash -c 'echo "dtparam=uart0=on" >> /boot/config.txt'
+			echo "This requires restart to use serial port."
+		else
+			echo "Serial port already enabled (pi 5)"
+		fi
 	else
-		echo "Serial port already enabled"
+		# running pi 4 or below.. set serial port.
+		if ! grep -q "enable_uart=1" "/boot/config.txt"; then
+			echo "Enabling Raspberry pi 4 serial port"
+			sudo bash -c 'echo " " >> /boot/config.txt'
+			sudo bash -c 'echo "enable_uart=1" >> /boot/config.txt'
+			echo "This requires restart to use serial port."
+		else
+			echo "Serial port already enabled (pi 4)"
+		fi
 	fi
 
-	if ! grep -q "enable_uart=1" "/boot/config.txt"; then
+	# boot splash screen?
+	if ! grep -q "disable_splash=1" "/boot/config.txt"; then
 		echo "Disable boot up splash image"
 		sudo bash -c 'echo "disable_splash=1" >> /boot/config.txt'
 	fi

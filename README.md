@@ -1,5 +1,5 @@
 # TronView
-Project for connecting efis/flight data to a 2nd screen or HUD.
+Project for connecting & recording EFIS/flight data to a HUD or a 2nd screen for realtime display or post flight playback.
 
 ## Features Include:
 - Build custom efis or hud screens
@@ -8,11 +8,11 @@ Project for connecting efis/flight data to a 2nd screen or HUD.
 - All display screen sizes and ratios supported.
 - Text mode
 - Touch screen support
-- 30 + FPS on Raspberry Pi 4 or Pi 5
+- 30 + FPS screen updates using Raspberry Pi 5 (~ 15FPS on Pi 4)
 - Remote keypad / user input support.
 - Display flight data in Knots, Standard, Metric, F or C
 - Designed for Raspberry Pi but also runs on Mac OSx, Windows, and other linux systems.
-- Show NAV needles for approaches. (If NAV data is available)
+- Show NAV (Vert/Lateral) needles for Nav & approaches. (If NAV data is available or the Analog --> Digital Chip is added) for data input
 - Use multiple data input sources
 
 
@@ -25,12 +25,10 @@ Comes with a built F-18 HUD screen which features the following.
 - Waterline
 - Glideslobe (If data is available)
 - Bank angle
-- Traffic Target Radar (Key 3 cycles with ranges)
-- A-A Gun Cross Funnel for A-A Gunnery demonstration  Use Keypad Key Num 8 to cycle from Off to 25ft Tgt Wingspan/to 30ft wingspan to 35ft wingspan to Off, 
-wingSpan ranges stert at 250ft at wide part of big U (& the Yellow + graphic), then extend to 500ft at first Yellow circle pipper, then to 750 ft, then 
-to 1,000 ft at next pipper, the 1500ft, and last at 2,000ft.  for better description of this function check these links;  http://falcon4.wikidot.com/avionics:hud  & Video at https://www.youtube.com/watch?v=oOa9eWgFllE
-- Shows RPM and next Way Point Distance read out to right of HUD below the Altitude.
-- Amoung other commn things like Airspeed / altitude / VSI ...
+- Traffic Target Radar (ADSB) (Key 3 cycles with ranges)
+- For experienced and pre-briefed cooperating pilots there are 4 A-A Gun Director (DogFight) Modes (based off the F-16 HUD) for Simulated BFM Gunnery. By pressing Key Num 8 (Using a panel mounted numeric Keypad) you can cycle through 3 (unranged target) Gun Funnel modes and 1 Ranged Gun Director mode.  For the 3 unranged target modes the gun funnel provides an estimated gun lead ranges for aircraft with a 25ft, 30 or 35ft target wingspan.  The ranged target mode (selected with a 4th button 8 cycle) provides a simulated Radar Lock-On function using realtime nearest ADSB target ranging to provide a Gun Reticle and a range ring starting at 9k feet (9:00 position then decreasing counter clockwise to 6:00 = 6k feet & 3:00 = 3k feet ect. A 5th button 8 press cycles DogFight mode back to off.  The Gun Funnel mode supports simulated A-A gunnery lead for targets sterting at 250ft at the wide part of big U (& the Yellow + cross graphic), then extends to 500ft at the first Yellow circle pipper, then to 750 ft, then 1k ft, then 1.5k ft, and last at 2k ft.  When logged into your aircraft wifi ADSB Traffic source the graphics can display nearby traffic, and when the A-A Gun Cross function can cycle to a  for better description of this function check these links;  http://falcon4.wikidot.com/avionics:hud  & Video at https://www.youtube.com/watch?v=oOa9eWgFllE.  Digital readouts (right side of HUD) for DogFight modes include nearest Target N-Number, Velocity, Delta ALtitude, and Range.  Gun Funnel modes will show selected Target Wingspan. 
+- Depending on Type of EFIS data available the digital data cal also show RPM, distance to next waypoint, angle of attack, realitive wind, and other data.
+- Also included are the basic common things like Airspeed / altitude / VSI ...
 
 
 ## Use as backup display screen on dash
@@ -62,7 +60,7 @@ have all the data available as other input sources do.  But if the screen is wri
 
 MGL iEFIS (serial)
 
-Garmin G3x (serial)
+Garmin G3x (serial) (for non-compatiable G3x ADSB WIFI aircraft recommend using the uAvionix-ping USB-Dual-Band ADS-B Traffic Receiver) 
 
 Dynon Skyview (serial)
 
@@ -70,13 +68,13 @@ Dynon D10/100 (serial)
 
 Levil BOM (wifi)
 
-Stratux or any stratux compatiable device (wifi)
+Stratux or any stratux compatiable device Including uAvionix (wifi)
 
 Generic serial logger (Used for recording any serial data)
 
-We are using the rapberry pi 4B and 5 for taking serial data from a EFIS (MGL,Dynon,G3x) and displaying a graphical Display out the hdmi output on the pi.  This is plugged into a Display or HUD device like the Hudly Classic.  Any sort of HDMI screen could be hooked to the Pi for displaying this flight data.
+Due to the significantly improved graphics processing performance we are now using the rapberry pi 5 for taking serial/wifi/sensor data from your aircraft systems (MGL,Dynon,G3x, etc) and processing for graphical display (via hdmi output) on a HUD or other screen and recorrding for later replay.  The HDMI Display can be a HUD like the Epic Optix Eagle II or the older (and hard to find) Hudly Classic. Additionally any tupe of HDMI screens can also be hooked to the Pi for displaying this flight data.
 
-# Steps to get the software running on raspberry pi
+# Steps to get the software running on raspberry pi 5 (legacy SD software HUD image image is also available for raspberry pi 4)
 
 1a) got https://www.raspberrypi.com/software/ to download the Raspberry Pi Imager.  This will create a bootable sd card you can insert into the pi. Download, install and run.  Following the directions.  You will need to get your pi onto the internet because you need to download the TronView source to your pi next.  tested with the lastest Raspberry Pi OS - Debian GNU/Linux 12 (bookworm)
 

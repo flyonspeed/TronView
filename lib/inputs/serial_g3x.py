@@ -4,6 +4,7 @@
 # Garmin G3X
 # 01/30/2019 Brian Chesteen, credit to Christopher Jones for developing template for input modules.
 # 06/18/2023 C.Jones fix for live serial data input.
+# 07/28/2024 A.O. grab DA and TAS from G3X Sentence ID 2 versus calculating from SID 1
 
 from ._input import Input
 from lib import hud_utils
@@ -173,15 +174,11 @@ class serial_g3x(Input):
                         aircraft.mag_head = int(Heading)
                         aircraft.baro = (int(AltSet) + 2750.0) / 100.0
                         aircraft.baro_diff = aircraft.baro - 29.9213
-                        aircraft.DA = None  # TODO
                         aircraft.alt = int(
                             int(PressAlt) + (aircraft.baro_diff / 0.00108)
                         )  # 0.00108 of inches of mercury change per foot.
                         aircraft.BALT = aircraft.alt
                         aircraft.vsi = int(VertSpeed) * 10 # vertical speed in fpm
-                        aircraft.tas = _utils.ias2tas(
-                            int(Airspeed)*0.1, int(OAT), aircraft.PALT
-                        ) * 1.15078 # convert back to mph
                         aircraft.turn_rate = int(RateofTurn) * 0.1
                         aircraft.vert_G = int(VertAcc) * 0.1
                         aircraft.slip_skid = int(LatAcc) * 0.01
@@ -205,7 +202,31 @@ class serial_g3x(Input):
 
                 else:
                     aircraft.msg_bad += 1
+            elif SentID == 2:
+                msg = self.ser.read(40)
+                aircraft.msg_last = msg
+                if len(msg) == 40:
+                    if(isinstance(msg,str)): msg = msg.encode() # if read from file then convert to bytes
+                    SentVer, UTCHour, UTCMin, UTCSec, UTCSecFrac, TAS, DAlt, HeadingSel, AltSel, AirspeedSel, VSSel, Checksum, CRLF = struct.unpack(
+                        "c2s2s2s2s4s6s3s6s4s4s2s2s", msg
+                    )
+                    if int(SentVer) == 1 and CRLF[0] == self.EOL:
+                        aircraft.DA = int(DAlt)
+                        aircraft.tas = int(TAS) * 1.15078 # convert back to mph
+                        aircraft.msg_count += 1
+                        if (self.isPlaybackMode):  # if playback mode then add a delay.  Else reading a file is way to fast.
+                            time.sleep(0.08)
 
+                        if self.output_logFile != None:
+                            #Input.addToLog(self,self.output_logFile,bytes([61,ord(SentID)]))
+                            Input.addToLog(self,self.output_logFile,msg)
+
+
+                    else:
+                        aircraft.msg_bad += 1
+
+                else:
+                    aircraft.msg_bad += 1
             elif SentID == 7:  # GPS AGL data message
                 msg = self.ser.read(16)
                 if(isinstance(msg,str)): msg = msg.encode() # if read from file then convert to bytes

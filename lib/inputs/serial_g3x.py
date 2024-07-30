@@ -203,9 +203,9 @@ class serial_g3x(Input):
                 else:
                     aircraft.msg_bad += 1
             elif SentID == 2:
-                msg = self.ser.read(40)
+                msg = self.ser.read(39)
                 aircraft.msg_last = msg
-                if len(msg) == 40:
+                if len(msg) == 39:
                     if(isinstance(msg,str)): msg = msg.encode() # if read from file then convert to bytes
                     SentVer, UTCHour, UTCMin, UTCSec, UTCSecFrac, TAS, DAlt, HeadingSel, AltSel, AirspeedSel, VSSel, Checksum, CRLF = struct.unpack(
                         "c2s2s2s2s4s6s3s6s4s4s2s2s", msg

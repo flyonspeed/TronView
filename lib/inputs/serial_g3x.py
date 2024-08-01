@@ -212,7 +212,11 @@ class serial_g3x(Input):
                     )
                     if int(SentVer) == 1 and CRLF[0] == self.EOL:
                         aircraft.DA = int(DAlt)
-                        aircraft.tas = int(TAS) * 1.15078 # convert back to mph
+                        aircraft.tas = int(TAS) * 0.115078 # convert knots to mph * 0.1
+                        aircraft.nav.HeadBug = int(HeadingSel)
+                        aircraft.nav.AltBug = int(AltSel)
+                        aircraft.nav.ASIBug = int(AirspeedSel) * 0.115078 # convert knots to mph * 0.1
+                        aircraft.nav.VSIBug = int(VSSel) * 10 # multiply up to hundreds of feet
                         aircraft.msg_count += 1
                         if (self.isPlaybackMode):  # if playback mode then add a delay.  Else reading a file is way to fast.
                             time.sleep(0.08)

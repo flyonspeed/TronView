@@ -201,7 +201,7 @@ def getDataRecorderDir(exitOnFail=False):
             os.mkdir(fullpath) # make sure the dir exists..
     except Exception as e: 
         print(e)
-        print("Error DataRecorder dir: "+dirname)
+        print("Error DataRecorder dir: "+fullpath)
         shared.aircraft.errorFoundNeedToExit = True
         if(exitOnFail==True): sys.exit()
         return False

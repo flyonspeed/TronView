@@ -306,6 +306,8 @@ class NavData(object):
 
         self.HeadBug = 0
         self.AltBug = 0
+        self.ASIBug = 0
+        self.VSBug = 0
 
         self.WPDist = 0
         self.WPTrack = 0

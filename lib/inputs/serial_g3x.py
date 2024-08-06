@@ -5,6 +5,7 @@
 # 01/30/2019 Brian Chesteen, credit to Christopher Jones for developing template for input modules.
 # 06/18/2023 C.Jones fix for live serial data input.
 # 07/28/2024 A.O. grab DA and TAS from G3X Sentence ID 2 versus calculating from SID 1
+# 08/06/2024 A.O. Fix SentID parsing, GPS AGL Parsing, LatLongHemi Parsing
 
 from ._input import Input
 from lib import hud_utils
@@ -89,7 +90,6 @@ class serial_g3x(Input):
                         msg = self.ser.read(56)
                         if(isinstance(msg,str)): msg = msg.encode() # if read from file then convert to bytes
                         aircraft.msg_last = msg
-                        print(msg)
                         if len(msg) == 56:
                             UTCYear, UTCMonth, UTCDay, UTCHour, UTCMin, UTCSec, LatHemi, LatDeg, LatMin, LonHemi, LonDeg, LonMin, PosStat, HPE, GPSAlt, EWVelDir, EWVelmag, NSVelDir, NSVelmag, VVelDir, VVelmag, CRLF = struct.unpack(
                                 "2s2s2s2s2s2sc2s5sc3s5sc3s6sc4sc4sc4s2s", msg
@@ -121,7 +121,7 @@ class serial_g3x(Input):
                                     aircraft.gps.LonDeg,
                                     aircraft.gps.LonMin,
                                 )
-                                aircraft.gndspeed = _utils.gndspeed(EWVelmag, NSVelmag) * 1.15078 # convert back to mph
+                                # aircraft.gndspeed = _utils.gndspeed(EWVelmag, NSVelmag) * 1.15078 # convert back to mph
                                 aircraft.gndtrack = _utils.gndtrack(
                                     EWVelDir, EWVelmag, NSVelDir, NSVelmag
                                 )
@@ -243,6 +243,7 @@ class serial_g3x(Input):
                     )
                     if int(SentVer) == 1 and CRLF[0] == self.EOL:
                         aircraft.agl = int(HeightAGL) * 100
+                        aircraft.gndspeed = int(GroundSpeed) * 0.115078 # convert knots to mph * 0.1
                         aircraft.msg_count += 1
                         if self.output_logFile != None:
                             #Input.addToLog(self,self.output_logFile,bytes([61,ord(SentID)]))

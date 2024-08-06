@@ -202,12 +202,8 @@ class serial_g3x(Input):
 
                 else:
                     aircraft.msg_bad += 1
-<<<<<<< Updated upstream
-            elif SentID == 2:
-=======
                     aircraft.debug2 = "bad air data - wrong len"
             elif SentID == "2":
->>>>>>> Stashed changes
                 msg = self.ser.read(40)
                 aircraft.msg_last = msg
                 if len(msg) == 40:

@@ -20,7 +20,7 @@ import time
 class serial_g3x(Input):
     def __init__(self):
         self.name = "g3x"
-        self.version = 1.1
+        self.version = 1.2
         self.inputtype = "serial"
 
         # Setup moving averages to smooth a bit
@@ -89,6 +89,7 @@ class serial_g3x(Input):
                         msg = self.ser.read(56)
                         if(isinstance(msg,str)): msg = msg.encode() # if read from file then convert to bytes
                         aircraft.msg_last = msg
+                        print(msg)
                         if len(msg) == 56:
                             UTCYear, UTCMonth, UTCDay, UTCHour, UTCMin, UTCSec, LatHemi, LatDeg, LatMin, LonHemi, LonDeg, LonMin, PosStat, HPE, GPSAlt, EWVelDir, EWVelmag, NSVelDir, NSVelmag, VVelDir, VVelmag, CRLF = struct.unpack(
                                 "2s2s2s2s2s2sc2s5sc3s5sc3s6sc4sc4sc4s2s", msg
@@ -99,18 +100,18 @@ class serial_g3x(Input):
                                 self.time_stamp_string = aircraft.sys_time_string
                                 self.time_stamp_min = int(UTCMin)
                                 self.time_stamp_sec = int(UTCSec)
-                                aircraft.gps.LatHemi = LatHemi  # North or South
+                                aircraft.gps.LatHemi = LatHemi.decode('utf-8')  # North or South
                                 aircraft.gps.LatDeg = int(LatDeg)
                                 aircraft.gps.LatMin = int(LatMin) * 0.001  # x.xxx
-                                aircraft.gps.LonHemi = LonHemi  # East or West
+                                aircraft.gps.LonHemi = LonHemi.decode('utf-8')  # East or West
                                 aircraft.gps.LonDeg = int(LonDeg)
                                 aircraft.gps.LonMin = int(LonMin) * 0.001  # x.xxx
                                 aircraft.gps.GPSAlt = int(GPSAlt) * 3.28084
-                                aircraft.gps.EWVelDir = EWVelDir  # E or W
+                                aircraft.gps.EWVelDir = EWVelDir.decode('utf-8')  # E or W
                                 aircraft.gps.EWVelmag = int(EWVelmag) * 0.1
-                                aircraft.gps.NSVelDir = NSVelDir  # N or S
+                                aircraft.gps.NSVelDir = NSVelDir.decode('utf-8')  # N or S
                                 aircraft.gps.NSVelmag = int(NSVelmag) * 0.1
-                                aircraft.gps.VVelDir = VVelDir  # U or D
+                                aircraft.gps.VVelDir = VVelDir.decode('utf-8')  # U or D
                                 aircraft.gps.VVelmag = int(VVelmag) * 0.1
                                 aircraft.mag_decl = _utils.geomag(
                                     aircraft.gps.LatHemi,
@@ -145,9 +146,8 @@ class serial_g3x(Input):
                         self.ser.seek(0)
                     return aircraft
 
-            SentID = int(self.ser.read(1)) # get message id
-
-            if SentID == 1:  # atittude/air data message
+            SentID = str(self.ser.read(1).decode('utf-8')) # get message id
+            if SentID == "1":  # atittude/air data message
                 msg = self.ser.read(57)
                 aircraft.msg_last = msg
                 if len(msg) == 57:
@@ -202,7 +202,12 @@ class serial_g3x(Input):
 
                 else:
                     aircraft.msg_bad += 1
+<<<<<<< Updated upstream
             elif SentID == 2:
+=======
+                    aircraft.debug2 = "bad air data - wrong len"
+            elif SentID == "2":
+>>>>>>> Stashed changes
                 msg = self.ser.read(40)
                 aircraft.msg_last = msg
                 if len(msg) == 40:
@@ -215,8 +220,8 @@ class serial_g3x(Input):
                         aircraft.tas = int(TAS) * 0.115078 # convert knots to mph * 0.1
                         aircraft.nav.HeadBug = int(HeadingSel)
                         aircraft.nav.AltBug = int(AltSel)
-                        aircraft.nav.ASIBug = int(AirspeedSel) * 0.115078 # convert knots to mph * 0.1
-                        aircraft.nav.VSIBug = int(VSSel) * 10 # multiply up to hundreds of feet
+                        # aircraft.nav.ASIBug = int(AirspeedSel) * 0.115078 # convert knots to mph * 0.1
+                        # aircraft.nav.VSIBug = int(VSSel) * 10 # multiply up to hundreds of feet
                         aircraft.msg_count += 1
                         if (self.isPlaybackMode):  # if playback mode then add a delay.  Else reading a file is way to fast.
                             time.sleep(0.08)
@@ -231,14 +236,14 @@ class serial_g3x(Input):
 
                 else:
                     aircraft.msg_bad += 1
-            elif SentID == 7:  # GPS AGL data message
-                msg = self.ser.read(16)
+            elif SentID == "7":  # GPS AGL data message
+                msg = self.ser.read(20)
                 if(isinstance(msg,str)): msg = msg.encode() # if read from file then convert to bytes
                 aircraft.msg_last = msg
-                if len(msg) == 16:
-                    msg = (msg[:16]) if len(msg) > 16 else msg
-                    SentVer, UTCHour, UTCMin, UTCSec, UTCSecFrac, HeightAGL, Checksum, CRLF = struct.unpack(
-                        "c2s2s2s2s3s2s2s", msg
+                if len(msg) == 20:
+                    msg = (msg[:20]) if len(msg) > 20 else msg
+                    SentVer, UTCHour, UTCMin, UTCSec, UTCSecFrac, HeightAGL, GroundSpeed, Checksum, CRLF = struct.unpack(
+                        "c2s2s2s2s3s4s2s2s", msg
                     )
                     if int(SentVer) == 1 and CRLF[0] == self.EOL:
                         aircraft.agl = int(HeightAGL) * 100

@@ -12,6 +12,7 @@ case $yn in
 		sudo pip3 install pygame_menu
 		sudo pip3 install geographiclib
 		sudo apt install libsdl2-ttf-2.0-0
+		sudo pip3 install Adafruit_ADS1x15
 		echo "Please reboot your pi now.  Type reboot"
 		;;
 	[Nn]* )echo "Ok. Nothing done."; exit;;

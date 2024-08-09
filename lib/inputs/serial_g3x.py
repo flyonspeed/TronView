@@ -35,12 +35,14 @@ class serial_g3x(Input):
         Input.initInput(self,num, aircraft)  # call parent init Input.
         if(aircraft.inputs[self.inputNum].PlayFile!=None):
             # play a log file?
+            self.EOL = 10 # if log file then change the EOL
             if aircraft.inputs[self.inputNum].PlayFile==True:
                 defaultTo = "garmin_g3x_data1.txt"
                 aircraft.inputs[self.inputNum].PlayFile = hud_utils.readConfig(self.name, "playback_file", defaultTo)
             self.ser,self.input_logFileName = Input.openLogFile(self,aircraft.inputs[self.inputNum].PlayFile,"r")
             self.isPlaybackMode = True
         else:
+            self.EOL = 13
             self.efis_data_format = hud_utils.readConfig("DataInput", "format", "none")
             self.efis_data_port = hud_utils.readConfig(
                 "DataInput", "port", "/dev/ttyS0"
@@ -60,10 +62,10 @@ class serial_g3x(Input):
 
         # check for system platform??
         #if sys.platform.startswith('win'):
-        #    self.EOL = 10
+        #self.EOL = 10
         #else:
         #    self.EOL = 13
-        self.EOL = 13
+        #self.EOL = 13
 
     # close this input source
     def closeInput(self, aircraft):
@@ -199,10 +201,12 @@ class serial_g3x(Input):
 
                     else:
                         aircraft.msg_bad += 1
+                        aircraft.debug2 = "bad air data - unkown ver"
 
                 else:
                     aircraft.msg_bad += 1
                     aircraft.debug2 = "bad air data - wrong len"
+
             elif SentID == "2":
                 msg = self.ser.read(40)
                 aircraft.msg_last = msg
@@ -225,7 +229,6 @@ class serial_g3x(Input):
                         if self.output_logFile != None:
                             #Input.addToLog(self,self.output_logFile,bytes([61,ord(SentID)]))
                             Input.addToLog(self,self.output_logFile,msg)
-
 
                     else:
                         aircraft.msg_bad += 1

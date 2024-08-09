@@ -76,9 +76,9 @@ class adc_ads1115(Input):
             #     self.values[i] = self.adc.read_adc_difference(i, gain=self.GAIN) * self.Amplify
 
             time.sleep(0.025)
-            self.values[0] = self.adc.read_adc_difference(1, gain=self.GAIN) * self.Amplify
+            self.values[1] = self.adc.read_adc_difference(0, gain=self.GAIN) * self.Amplify
             time.sleep(0.025)
-            self.values[1] = self.adc.read_adc_difference(3, gain=self.GAIN) * self.Amplify
+            self.values[0] = self.adc.read_adc_difference(3, gain=self.GAIN) * self.Amplify
 
             # apply smoothing avg of adc values?
             if(self.ApplySmoothing):

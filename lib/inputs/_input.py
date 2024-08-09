@@ -163,6 +163,10 @@ class Input:
             hud_text.print_header("Traffic Data")
             hud_text.print_object(aircraft.traffic,showHowManyListItems=showHowManyListItems)
 
+        if self.textMode_whatToShow==0 or self.textMode_whatToShow==3:
+            hud_text.print_header("Analog")
+            hud_text.print_object(aircraft.analog,showHowManyListItems=showHowManyListItems)
+
         if self.textMode_whatToShow==0 or self.textMode_whatToShow==4:
             hud_text.print_header("GPS Data")
             hud_text.print_object(aircraft.gps)

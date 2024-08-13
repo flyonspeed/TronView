@@ -147,8 +147,9 @@ class serial_g3x(Input):
                     if (self.isPlaybackMode ):  # if no bytes read and in playback mode.  then reset the file pointer to the start of the file.
                         self.ser.seek(0)
                     return aircraft
-
-            SentID = str(self.ser.read(1).decode('utf-8')) # get message id
+                
+            SentID = self.ser.read(1) # get message id
+            if(not isinstance(SentID,str)): SentID = SentID.decode('utf-8')
             if SentID == "1":  # atittude/air data message
                 msg = self.ser.read(57)
                 aircraft.msg_last = msg
@@ -195,7 +196,7 @@ class serial_g3x(Input):
                             time.sleep(0.08)
 
                         if self.output_logFile != None:
-                            #Input.addToLog(self,self.output_logFile,bytes([61,ord(SentID)]))
+                            Input.addToLog(self,self.output_logFile,bytes([61,ord(SentID)]))
                             Input.addToLog(self,self.output_logFile,msg)
 
 
@@ -218,8 +219,11 @@ class serial_g3x(Input):
                     if int(SentVer) == 1 and CRLF[0] == self.EOL:
                         aircraft.DA = int(DAlt)
                         aircraft.tas = int(TAS) * 0.115078 # convert knots to mph * 0.1
-                        aircraft.nav.HeadBug = int(HeadingSel)
-                        aircraft.nav.AltBug = int(AltSel)
+                        try:
+                            aircraft.nav.HeadBug = int(HeadingSel)
+                            aircraft.nav.AltBug = int(AltSel)
+                        except ValueError:
+                            aircraft.msg_bad += 1
                         # aircraft.nav.ASIBug = int(AirspeedSel) * 0.115078 # convert knots to mph * 0.1
                         # aircraft.nav.VSIBug = int(VSSel) * 10 # multiply up to hundreds of feet
                         aircraft.msg_count += 1
@@ -227,7 +231,7 @@ class serial_g3x(Input):
                             time.sleep(0.08)
 
                         if self.output_logFile != None:
-                            #Input.addToLog(self,self.output_logFile,bytes([61,ord(SentID)]))
+                            Input.addToLog(self,self.output_logFile,bytes([61,ord(SentID)]))
                             Input.addToLog(self,self.output_logFile,msg)
 
                     else:
@@ -249,7 +253,7 @@ class serial_g3x(Input):
                         aircraft.gndspeed = int(GroundSpeed) * 0.115078 # convert knots to mph * 0.1
                         aircraft.msg_count += 1
                         if self.output_logFile != None:
-                            #Input.addToLog(self,self.output_logFile,bytes([61,ord(SentID)]))
+                            Input.addToLog(self,self.output_logFile,bytes([61,ord(SentID)]))
                             Input.addToLog(self,self.output_logFile,msg)
 
                     else:

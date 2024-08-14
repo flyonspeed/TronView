@@ -25,19 +25,9 @@ class adc_ads1115(Input):
     def initInput(self,num,aircraft):
         Input.initInput( self,num, aircraft )  # call parent init Input.
         if(aircraft.inputs[self.inputNum].PlayFile!=None):
-            # Get playback file.
-            #if aircraft.inputs[self.inputNum].PlayFile==True:
-            #    defaultTo = "ads1115_Flight1.bin"
-            #    aircraft.inputs[self.inputNum].PlayFile = hud_utils.readConfig(self.name, "playback_file", defaultTo)
-            #self.ser,self.input_logFileName = Input.openLogFile(self,aircraft.inputs[self.inputNum].PlayFile,"rb")
             self.isPlaybackMode = True
         else:
             self.isPlaybackMode = False
-            #self.efis_data_format = hud_utils.readConfig("DataInput", "format", "none")
-            #self.efis_data_port = hud_utils.readConfig("DataInput", "port", "/dev/ttyS0")
-            #self.efis_data_baudrate = hud_utils.readConfigInt(
-            #    "DataInput", "baudrate", 115200
-            #)
 
         # setup comm i2c to chipset.
         self.adc = Adafruit_ADS1x15.ADS1115()
@@ -68,13 +58,6 @@ class adc_ads1115(Input):
         if self.skipReadInput == True: return aircraft
 
         try:
-
-            # for i in range(4):
-            #     time.sleep(0.025)
-            #     self.values[i] = 0;
-            #     # Read the specified ADC channel using the previously set gain value.
-            #     self.values[i] = self.adc.read_adc_difference(i, gain=self.GAIN) * self.Amplify
-
             time.sleep(0.025)
             self.values[1] = self.adc.read_adc_difference(0, gain=self.GAIN) * self.Amplify
             time.sleep(0.025)
@@ -101,17 +84,6 @@ class adc_ads1115(Input):
             # format value to +/- 4095 for needle left/right up/down.
             aircraft.nav.GSDev = round (16380 * (max(min(aircraft.analog.Data[0], 0.25), -0.25)))
             aircraft.nav.ILSDev = round (16380 * (max(min(aircraft.analog.Data[1], 0.25), -0.25)))
-
-
-            #aircraft.analog = self.values[0]
-            #aircraft.nav.GSDev = self.values[1]
-
-            #aircraft.nav.GLSHoriz = GLSHoriz
-            #aircraft.nav.GLSVert = GLSVert
-
-            #aircraft.nav.msg_count += 1
-            #if(self.textMode_showRaw==True): aircraft.nav.msg_last = binascii.hexlify(Message) # save last message.
-            #else: aircraft.nav.msg_last = None
 
         except Exception as e:
             aircraft.errorFoundNeedToExit = True

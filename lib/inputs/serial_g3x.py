@@ -207,7 +207,6 @@ class serial_g3x(Input):
                 else:
                     aircraft.msg_bad += 1
                     aircraft.debug2 = "bad air data - wrong len"
-
             elif SentID == "2":
                 msg = self.ser.read(40)
                 aircraft.msg_last = msg
@@ -236,7 +235,6 @@ class serial_g3x(Input):
 
                     else:
                         aircraft.msg_bad += 1
-
                 else:
                     aircraft.msg_bad += 1
             elif SentID == "7":  # GPS AGL data message

@@ -32,10 +32,10 @@ case $yn in
 		# install required packages
 		echo "Installing required python packages"
 		sudo apt-get -y install python3 python-serial python-pygame python-pyaudio
-		sudo pip3 install pygame_menu
-		sudo pip3 install geographiclib
-		sudo apt install libsdl2-ttf-2.0-0
-		sudo pip3 install Adafruit_ADS1x15
+		sudo pip3 install pygame_menu --break-system-packages
+		sudo pip3 install geographiclib --break-system-packages
+		sudo apt install libsdl2-ttf-2.0-0 
+		sudo pip3 install Adafruit_ADS1x15 --break-system-packages
 		echo "Please reboot your pi now.  Type sudo reboot"
 		;;
 	[Nn]* )echo "Ok. Nothing done."; exit;;

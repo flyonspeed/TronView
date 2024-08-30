@@ -28,14 +28,36 @@ case $yn in
 			sudo raspi-config nonint do_i2c 0
 		fi
 
+		# check rpi os is Debian GNU/Linux 12 (bookworm).. check by running cat /etc/os-release
+		if [ $(cat /etc/os-release | grep "Debian GNU/Linux 12" | wc -l) -eq 1 ]; then
+			echo "OS is Debian GNU/Linux 12 (bookworm)"		
 
-		# install required packages
-		echo "Installing required python packages"
-		sudo apt-get -y install python3 python-serial python-pygame python-pyaudio
-		sudo pip3 install pygame_menu --break-system-packages
-		sudo pip3 install geographiclib --break-system-packages
-		sudo apt install libsdl2-ttf-2.0-0 
-		sudo pip3 install Adafruit_ADS1x15 --break-system-packages
+			# install required packages
+			echo "Installing required python3 packages"
+			sudo apt-get -y install python3 python3-serial python3-pygame python3-pyaudio
+			sudo pip3 install pygame_menu --break-system-packages
+			sudo pip3 install geographiclib --break-system-packages
+			sudo apt install libsdl2-ttf-2.0-0 
+			sudo pip3 install Adafruit_ADS1x15 --break-system-packages
+
+
+		else
+			# get os pretty name
+			os_pretty_name=$(cat /etc/os-release | grep PRETTY_NAME | cut -d'=' -f2 | sed 's/"//g')
+			echo "OS is $os_pretty_name.  "
+
+			# install required packages
+			echo "Installing required pytho3 packages"
+			sudo apt-get -y install python3 python-serial python-pygame python-pyaudio
+			sudo pip3 install pygame_menu --break-system-packages
+			sudo pip3 install geographiclib --break-system-packages
+			sudo apt install libsdl2-ttf-2.0-0 
+			sudo pip3 install Adafruit_ADS1x15 --break-system-packages
+
+		fi
+
+
+
 		echo "Please reboot your pi now.  Type sudo reboot"
 		;;
 	[Nn]* )echo "Ok. Nothing done."; exit;;

@@ -1,11 +1,19 @@
 #!/bin/bash
 
+printf "Raspberry Pi Setup script Version 0.1 \n\n"
 read -p "Setup Pi for running HUD software? (y or n)" yn;
 case $yn in
 	[Yy]* )
+		# update apt-get quietly
+		echo "Updating apt-get"
+		sudo apt-get -qq update
+
+		os_pretty_name=$(cat /etc/os-release | grep PRETTY_NAME | cut -d'=' -f2 | sed 's/"//g')
+		printf "OS is $os_pretty_name \n\n"
+
 		# check serial port is already enabled
 		if grep -q "enable_uart=1" /boot/config.txt; then
-			echo "Serial port already enabled"
+			echo "Built in Serial port already enabled"
 		else
 			echo "Enabling serial port (ttyS0 is the built in serial port on the GPIO pins)"
 			sudo bash -c 'echo " " >> /boot/config.txt'
@@ -14,7 +22,7 @@ case $yn in
 
 		# check splash image is already disabled
 		if grep -q "disable_splash=1" /boot/config.txt; then
-			echo "Splash image already disabled"
+			echo "Splash image already disabled."
 		else
 			echo "disabling splash image (anoying boot up logo)"
 			sudo bash -c 'echo "disable_splash=1" >> /boot/config.txt'
@@ -22,7 +30,7 @@ case $yn in
 
 		# check if i2c is already enabled by running sudo raspi-config nonint get_i2c
 		if [ $(sudo raspi-config nonint get_i2c) -eq 0 ]; then
-			echo "i2c already enabled"
+			echo "i2c already enabled (used for ADS1115 analog to digital converter)"
 		else
 			echo "Enabling i2c for use of ADS1115 (analog to digital converter)"
 			sudo raspi-config nonint do_i2c 0
@@ -43,7 +51,6 @@ case $yn in
 
 		else
 			# get os pretty name
-			os_pretty_name=$(cat /etc/os-release | grep PRETTY_NAME | cut -d'=' -f2 | sed 's/"//g')
 			echo "OS is $os_pretty_name.  "
 
 			# install required packages
@@ -55,8 +62,6 @@ case $yn in
 			sudo pip3 install Adafruit_ADS1x15 --break-system-packages
 
 		fi
-
-
 
 		echo "Please reboot your pi now.  Type sudo reboot"
 		;;

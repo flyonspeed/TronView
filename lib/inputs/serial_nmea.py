@@ -107,6 +107,9 @@ class serial_nmea(Input):
                 msg = self.ser.readline()
                 checksum = None
                 aircraft.msg_last = msg
+                if self.output_logFile != None:
+                    Input.addToLog(self,self.output_logFile,bytes([64]))
+                    Input.addToLog(self,self.output_logFile,msg)
                 msg = msg.rstrip(b'\r\n')
                 try:
                     msg = msg.decode('utf-8')
@@ -120,14 +123,15 @@ class serial_nmea(Input):
                     msg = msg[0]
                     # print(msg)
                     if(self.calcChecksum(msg,checksum)):
-                        pass
+                        aircraft.msg_count += 1
                     else:
-                        aircraft.nav.msg_bad += 1
+                        aircraft.gps.msg_bad += 1
                         return aircraft
                     msg = msg.split(",")
                     # print(msg)
                 except:
                    msg = msg.split(",")
+                   aircraft.msg_count += 1
                 sentence = msg[0] # break out sentence ID from the list so we can perform a switch action on it
                 match sentence:
                     case "GPRMC": # Recommended Minimum Navigation Info Sentence C
@@ -143,6 +147,23 @@ class serial_nmea(Input):
                         magvar = msg[10] # Magnetic variation x.x degrees
                         magvardir = msg[11] # magnetic variation E or W
                         mode = msg[12] # FAA Mode, explained at top of file
+                        aircraft.sys_time_string = "%d:%d:%d"%(int(utctime[0:1]),int(utctime[2:3]),int(utctime[4:5]))
+                        self.time_stamp_string = aircraft.sys_time_string
+                        self.time_stamp_min = int(utctime[2:3])
+                        self.time_stamp_sec = int(utctime[4:5])
+                        aircraft.gps.LatHemi = lathemi
+                        aircraft.gps.LatDeg = int(lat[0:1])
+                        aircraft.gps.LatMin = float(lat[2:8])
+                        aircraft.gps.LonHemi = lonhemi
+                        aircraft.gps.LonDeg = int(lon[0:2])
+                        aircraft.gps.LonMin = int(lon[3:9])
+                        aircraft.gps.GndSpeed = float(gs)
+                        aircraft.groundspeed = float(gs)
+                        if(magvardir == "E"):
+                            magvar = (magvar - (magvar * 2))
+                        aircraft.gndtrack = (truetrack + magvar)
+                        aircraft.gps.GPSTrack = aircraft.gndtrack
+                        aircraft.gps.Source = "NMEA"
                     case "GPRMB": # Recommended Minimum Navigation Info Sentence B - Note: Destination waypoint is NOT related to the actual flight plan - it is the waypoint currently being navigated to
                         status = msg[1] # A = Active, V = Invalid
                         xtkerror = msg[2] # Crosstrack error NM x.x
@@ -158,6 +179,11 @@ class serial_nmea(Input):
                         wptclosure = msg[12] # Closure rate to destination waypoint xxx.x
                         wptarrival = msg[13] # Arrival alarm for destination waypoint A = arriving, V = not arriving
                         mode = msg[14] # FAA Mode, explained at top of file
+                        if(not aircraft.mag_decl == None):
+                            aircraft.nav.WPTrack = float(destbrg) + aircraft.mag_decl
+                        if(not aircraft.nav.Source == "NMEA GPBWC"):
+                            aircraft.nav.WPName = destwpt
+                            aircraft.nav.WPDist = float(distwpt)
                     case "GPGGA": # GPS Pos and Altitude
                         utctime = msg[1] # hhmmss
                         lat = msg[2] # Latitude in format ddmm.mmmm
@@ -173,6 +199,24 @@ class serial_nmea(Input):
                         geosepunit = msg[12] # unit of measure for geoidal separation X
                         diffage = msg[13] # Age of differential (WAAS) GPS data in seconds x.x
                         diffstation = msg[14] # Station ID of differential reference station (WAAS Station)
+                        aircraft.sys_time_string = "%d:%d:%d"%(int(utctime[0:1]),int(utctime[2:3]),int(utctime[4:5]))
+                        self.time_stamp_string = aircraft.sys_time_string
+                        self.time_stamp_min = int(utctime[2:3])
+                        self.time_stamp_sec = int(utctime[4:5])
+                        aircraft.gps.LatHemi = lathemi
+                        aircraft.gps.LatDeg = int(lat[0:1])
+                        aircraft.gps.LatMin = float(lat[2:8])
+                        aircraft.gps.LonHemi = lonhemi
+                        aircraft.gps.LonDeg = int(lon[0:2])
+                        aircraft.gps.LonMin = int(lon[3:9])
+                        aircraft.gps.SatsTracked = int(satnum)
+                        aircraft.gps.GPSAlt = int(round(float(gpsalt)))
+                        if(quality == "1"):
+                            aircraft.gps.GPSStatus = 2
+                            aircraft.gps.GPSWAAS = 0
+                        if(quality == "2"):
+                            aircraft.gps.GPSStatus = 3
+                            aircraft.gps.GPSWAAS = 1
                     case "GPGLL": # GPS Lat/Long
                         lat = msg[1] # Latitude in format ddmm.mmmm
                         lathemi = msg[2] # Latitude hemisphere in N/S
@@ -181,6 +225,20 @@ class serial_nmea(Input):
                         utctime = msg[5] # hhmmss
                         status = msg[6] # A = Active, V = Invalid
                         mode = msg[7] # FAA Mode, explained at top of file
+                        aircraft.sys_time_string = "%d:%d:%d"%(int(utctime[0:1]),int(utctime[2:3]),int(utctime[4:5]))
+                        self.time_stamp_string = aircraft.sys_time_string
+                        self.time_stamp_min = int(utctime[2:3])
+                        self.time_stamp_sec = int(utctime[4:5])
+                        aircraft.gps.LatHemi = lathemi
+                        aircraft.gps.LatDeg = int(lat[0:1])
+                        aircraft.gps.LatMin = float(lat[2:8])
+                        aircraft.gps.LonHemi = lonhemi
+                        aircraft.gps.LonDeg = int(lon[0:2])
+                        aircraft.gps.LonMin = int(lon[3:9])
+                        if(mode == "D"):
+                            aircraft.gps.GPSWAAS = 1
+                        else:
+                            aircraft.gps.GPSWAAS = 0
                     case "GPBOD": # Bearing waypoint to waypoint
                         brgtrue = msg[1] # Bearing to waypoint in degrees True xx.x
                         brgmag = msg[3] # bearing to waypoint in degrees Magnetic xx.x
@@ -197,11 +255,27 @@ class serial_nmea(Input):
                         distwpt = msg[10] # Distance to next waypoint in nautical miles xx.x
                         nextwpt = msg[12] # Next waypoint ID XXXX
                         mode = msg[13] # FAA Mode, explained at top of file
+                        aircraft.sys_time_string = "%d:%d:%d"%(int(utctime[0:1]),int(utctime[2:3]),int(utctime[4:5]))
+                        self.time_stamp_string = aircraft.sys_time_string
+                        self.time_stamp_min = int(utctime[2:3])
+                        self.time_stamp_sec = int(utctime[4:5])
+                        aircraft.gps.LatHemi = lathemi
+                        aircraft.gps.LatDeg = int(lat[0:1])
+                        aircraft.gps.LatMin = float(lat[2:8])
+                        aircraft.gps.LonHemi = lonhemi
+                        aircraft.gps.LonDeg = int(lon[0:2])
+                        aircraft.gps.LonMin = int(lon[3:9])
+                        aircraft.nav.WPName = nextwpt
+                        aircraft.nav.WPDist = float(distwpt)
+                        aircraft.nav.WPTrack = float(brgmag)
                     case "GPVTG": # GPS Track made good and ground speed, Intentionally omitted KM/H Ground speed
                         coursetrue = msg[1] # GPS Course over ground degrees true xxx.x
                         coursemag = msg[3] # GPS Course over ground degrees magnetic xxx.x
                         gs = msg[5] # GPS Groundspeed, knots xxx.x
                         mode = msg[9] # FAA Mode, explained at top of file
+                        aircraft.groundspeed = float(gs)
+                        aircraft.gps.GndSpeed = float(gs)
+                        aircraft.gps.GndTrack = float(coursemag)
                     case "GPXTE": # GPS Cross-track error, measured
                         status1 = msg[1] # GPS Status, A = Valid, V = Invalid
                         xtkerror = msg[3] # Cross track distance NM xx.x

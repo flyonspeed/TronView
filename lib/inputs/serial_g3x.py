@@ -271,8 +271,7 @@ class serial_g3x(Input):
                     self.ser.flushInput()  # flush the serial after every message else we see delays
                 return aircraft
 
-        except serial.serialutil.SerialException as e:
-            print(e)
+        except:
             print("G3X serial exception")
             aircraft.errorFoundNeedToExit = True
 

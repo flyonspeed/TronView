@@ -97,7 +97,7 @@ class serial_g3x(Input):
                                 "2s2s2s2s2s2sc2s5sc3s5sc3s6sc4sc4sc4s2s", msg
                             )
                             if CRLF[0] == self.EOL:
-                                if(not aircraft.gps.Source == "G3X" or not aircraft.gps.Source == None):
+                                if(not aircraft.gps.Source == "G3X" and not aircraft.gps.Source == None):
                                     return aircraft
                                 aircraft.msg_count += 1
                                 aircraft.sys_time_string = "%d:%d:%d"%(int(UTCHour),int(UTCMin),int(UTCSec))

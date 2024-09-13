@@ -11,7 +11,7 @@ from lib import smartdisplay
 import pygame
 
 
-class ArtificalHorz(Module):
+class artificalhorz(Module):
     # called only when object is first created.
     def __init__(self):
         Module.__init__(self)

@@ -14,7 +14,7 @@ import pygame
 import math
 
 
-class Heading(Module):
+class heading(Module):
     # called only when object is first created.
     def __init__(self):
         Module.__init__(self)
@@ -31,7 +31,8 @@ class Heading(Module):
         self.myfont1 = pygame.font.SysFont("Comic Sans MS", 30, bold=True)  # hsi font
         self.MainColor = (0, 255, 0)  # main color 
 
-    def setup(self, hsi_size, gnd_trk_tick_size, rose_color, label_color):
+    # setup must have defaults for all parameters
+    def setup(self, label_color= (255, 255, 0)):
 
         self.myfont = pygame.font.SysFont("Arial", 20, bold=True)
         self.myfont1 = pygame.font.SysFont("Arial", 30, bold=True)
@@ -130,8 +131,17 @@ class Heading(Module):
     def roint(self,num):
         return int(round(num))
 
+
     # called every redraw for the mod
-    def draw(self, aircraft, smartdisplay):
+    def draw(self, aircraft, smartdisplay, pos=(None, None)):
+
+
+        if pos[0] is None:
+            x = 0
+            y = 0 
+        else:
+            x = pos[0]
+            y = pos[1]         
 
         hdg_hdg = aircraft.mag_head
         gnd_trk = self.roint(aircraft.gndtrack)
@@ -146,8 +156,8 @@ class Heading(Module):
             p = q * 12
             t = p - (((-gnd_trk) % 360) * 12) % 4320
 
-            self.hdg.fill(pygame.SRCALPHA)
-            self.trk.fill(pygame.SRCALPHA)
+            self.hdg = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
+            self.trk = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
             for hdg_ticks in range(44):
                 x0 = self.roint(hdg_ticks * 120)
                 y0 = self.roint(30)
@@ -356,21 +366,18 @@ class Heading(Module):
                         (x2 - self.R35_rect.center[0], y2 - self.R35_rect.center[1] - 12),
                     )
 
-            # draw the ^ pointer
-            pygame.draw.line(self.hdg, (0, 255, 0), [self.hdg_rect.center[0]-10, 80], [self.hdg_rect.center[0], 60], 3)
-            pygame.draw.line(self.hdg, (0, 255, 0), [self.hdg_rect.center[0], 60], [self.hdg_rect.center[0]+10, 80], 3)
-
-            # Mag heading
-            # Draw Mask
-            #self.hdg.blit(self.mask, (147, 6))
+            pygame.draw.line(self.hdg, (0, 255, 0), [self.width//2 - 10, 80], [self.width//2, 60], 3)
+            pygame.draw.line(self.hdg, (0, 255, 0), [self.width//2, 60], [self.width//2 + 10, 80], 3)
 
             self.old_hdg_hdg = hdg_hdg
             self.old_gnd_trk = gnd_trk
+        
+        drawPos = (smartdisplay.x_center - self.width//2 + self.x_offset, smartdisplay.y_start)
 
-        #self.pygamescreen.blit(self.hdg1, (smartdisplay.x_start, smartdisplay.y_start))
-        self.pygamescreen.blit(self.hdg, (smartdisplay.x_center - self.hdg_rect.center[0] + self.x_offset, smartdisplay.y_start))
-        #self.pygamescreen.blit(self.trk, (smartdisplay.x_center - 270, smartdisplay.y_start))
-
+        if x != 0:
+            drawPos = (x, y)
+            
+        self.pygamescreen.blit(self.hdg, drawPos)
 
     # called before screen draw.  To clear the screen to your favorite color.
     def clear(self):

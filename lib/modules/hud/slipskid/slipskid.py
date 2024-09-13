@@ -15,7 +15,7 @@ import pygame
 import math
 
 
-class SlipSkid(Module):
+class slipskid(Module):
     # called only when object is first created.
     def __init__(self):
         Module.__init__(self)

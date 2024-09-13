@@ -14,7 +14,7 @@ import pygame
 import math
 
 
-class Horizon(Module):
+class horizon(Module):
     # called only when object is first created.
     def __init__(self):
         Module.__init__(self)
@@ -408,7 +408,11 @@ class Horizon(Module):
 
 
     # called every redraw for the mod
-    def draw(self, aircraft, smartdisplay):
+    def draw(self, aircraft, smartdisplay, pos=(None, None)):
+        if pos[0] != None:
+            self.x_offset = pos[0]
+        if pos[1] != None:
+            self.y_offset = pos[1]
 
         self.surface.fill((0, 0, 0))  # clear surface
 
@@ -464,7 +468,7 @@ class Horizon(Module):
         self.caged_mode = self.caged_mode + 1
         if (self.caged_mode > 1):
 	        self.caged_mode = 0
-
+            
     # called before screen draw.  To clear the screen to your favorite color.
     def clear(self):
         #self.ahrs_bg.fill((0, 0, 0))  # clear screen

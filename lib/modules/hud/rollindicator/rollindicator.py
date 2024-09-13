@@ -12,7 +12,7 @@ import pygame
 import math
 
 
-class RollIndicator(Module):
+class rollindicator(Module):
     # called only when object is first created.
     def __init__(self):
         Module.__init__(self)
@@ -105,19 +105,34 @@ class RollIndicator(Module):
 
 
     # called every redraw for the mod
-    def draw(self, aircraft, smartdisplay):
-        # draw roll indicator
-        smartdisplay.pygamescreen.blit(
-            self.roll_tick, (smartdisplay.width / 2 - 180 + self.x_offset, smartdisplay.y_center - 180)
-        )
+    def draw(self, aircraft, smartdisplay, pos=(None, None)):
 
+        x_pos = 0
+        y_pos = 0
+
+        # Calculate center positions
+        x_center = self.width // 2
+        y_center = self.height // 2
+
+        # Determine draw position
+        if pos[0] is not None and pos[1] is not None:
+            draw_pos = (pos[0], pos[1])
+            x_center = pos[0]
+            y_center = pos[1]
+        else:
+            draw_pos = (x_center - 180, y_center - 180)
+
+        # Draw roll ticks
+        smartdisplay.pygamescreen.blit(self.roll_tick, draw_pos)
+
+        # Draw roll point
         roll_point_rotated = pygame.transform.rotate(self.roll_point, aircraft.roll)
         roll_point_rect = roll_point_rotated.get_rect()
         smartdisplay.pygamescreen.blit(
             roll_point_rotated,
             (
-                smartdisplay.x_center - roll_point_rect.center[0] + self.x_offset,
-                smartdisplay.y_center - roll_point_rect.center[1],
+                x_center - roll_point_rect.center[0],
+                y_center - roll_point_rect.center[1],
             ),
         )
 

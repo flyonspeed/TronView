@@ -14,7 +14,7 @@ import pygame
 import math
 
 
-class Wind(Module):
+class wind(Module):
     # called only when object is first created.
     def __init__(self):
         Module.__init__(self)

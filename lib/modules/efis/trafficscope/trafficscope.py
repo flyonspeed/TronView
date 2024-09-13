@@ -14,7 +14,7 @@ import pygame
 import math
 #from osgeo import osr
 
-class TrafficScope(Module):
+class trafficscope(Module):
     # called only when object is first created.
     def __init__(self):
         Module.__init__(self)

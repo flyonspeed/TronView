@@ -14,7 +14,7 @@ import math
 import pygame_menu
 from typing import Tuple, Any
 
-class Menu(Module):
+class menu(Module):
     # called only when object is first created.
     def __init__(self):
         Module.__init__(self)

@@ -34,5 +34,11 @@ class Module:
     def clear(self):
         print("Clear screen")
 
+    def resize(self, width, height):
+        self.width = width
+        self.height = height
+        self.widthCenter = width / 2
+        self.heightCenter = height / 2
+
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

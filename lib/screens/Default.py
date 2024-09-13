@@ -50,22 +50,22 @@ class Default(Screen):
             "monospace", 300
         )  # big font used for AOA.
 
-        self.ah = artificalhorz.ArtificalHorz()
+        self.ah = artificalhorz.artificalhorz()
         self.ah.initMod(self.pygamescreen, self.width, self.height)
 
-        self.hud_horizon = horizon.Horizon()
+        self.hud_horizon = horizon.horizon()
         self.hud_horizon.initMod(self.pygamescreen, self.width, self.height)
 
-        self.aoa = aoa.AOA()
+        self.aoa = aoa.aoa()
         self.aoa.initMod(self.pygamescreen, 120, self.height - 10)  # make a big AOA!
 
-        self.slipskid = slipskid.SlipSkid()
+        self.slipskid = slipskid.slipskid()
         self.slipskid.initMod(self.pygamescreen, 250, 50)
 
-        self.menu = menu.Menu()
+        self.menu = menu.menu()
         self.menu.initMod(self.pygamescreen, 400, 300, "Options")
 
-        self.trafficScope = trafficscope.TrafficScope()
+        self.trafficScope = trafficscope.trafficscope()
         self.trafficScope.initMod(self.pygamescreen, 400, 400)
 
     # called every redraw for the screen

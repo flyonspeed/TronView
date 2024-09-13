@@ -14,7 +14,7 @@ import pygame
 import math
 
 
-class HSI(Module):
+class hsi(Module):
     # called only when object is first created.
     def __init__(self):
         Module.__init__(self)
@@ -31,7 +31,13 @@ class HSI(Module):
         self.myfont1 = pygame.font.SysFont("Comic Sans MS", 30, bold=True)  # hsi font
         self.MainColor = (0, 255, 0)  # main color 
 
-    def setup(self, hsi_size, gnd_trk_tick_size, rose_color, label_color):
+    # setup must have default values for all parameters
+    def setup(self, hsi_size = -1 , gnd_trk_tick_size = -1, rose_color = (70,130,40), label_color = (255, 255, 0)):
+
+        if(hsi_size == -1):
+            hsi_size = self.width
+        if(gnd_trk_tick_size == -1):
+            gnd_trk_tick_size = self.width / 10
 
         # HSI Setup
         self.hsi_size = hsi_size
@@ -49,10 +55,10 @@ class HSI(Module):
         for little_tick in range(72):
             cos = math.cos(math.radians(360.0 / 72 * little_tick))
             sin = math.sin(math.radians(360.0 / 72 * little_tick))
-            x0 = roint(self.hsi_size / 2 + self.hsi_size / 13 * cos * 4)
-            y0 = roint(self.hsi_size / 2 + self.hsi_size / 13 * sin * 4)
-            x1 = roint(self.hsi_size / 2 + self.hsi_size / 3 * cos)
-            y1 = roint(self.hsi_size / 2 + self.hsi_size / 3 * sin)
+            x0 = self.roint(self.hsi_size / 2 + self.hsi_size / 13 * cos * 4)
+            y0 = self.roint(self.hsi_size / 2 + self.hsi_size / 13 * sin * 4)
+            x1 = self.roint(self.hsi_size / 2 + self.hsi_size / 3 * cos)
+            y1 = self.roint(self.hsi_size / 2 + self.hsi_size / 3 * sin)
             pygame.draw.line(self.rose, self.color, [x0, y0], [x1, y1], 4)
 
         # Setup Compass Rose
@@ -60,10 +66,10 @@ class HSI(Module):
         for big_tick in range(36):
             cos = math.cos(math.radians(360.0 / 36 * big_tick))
             sin = math.sin(math.radians(360.0 / 36 * big_tick))
-            x0 = roint(self.hsi_size / 2 + self.hsi_size / 15 * cos * 4)
-            y0 = roint(self.hsi_size / 2 + self.hsi_size / 15 * sin * 4)
-            x1 = roint(self.hsi_size / 2 + self.hsi_size / 2.8 * cos)
-            y1 = roint(self.hsi_size / 2 + self.hsi_size / 2.8 * sin)
+            x0 = self.roint(self.hsi_size / 2 + self.hsi_size / 15 * cos * 4)
+            y0 = self.roint(self.hsi_size / 2 + self.hsi_size / 15 * sin * 4)
+            x1 = self.roint(self.hsi_size / 2 + self.hsi_size / 2.8 * cos)
+            y1 = self.roint(self.hsi_size / 2 + self.hsi_size / 2.8 * sin)
             pygame.draw.line(self.rose, self.color, [x0, y0], [x1, y1], 4)
 
         # Setup Labels
@@ -118,8 +124,8 @@ class HSI(Module):
         for label in range(360):
             cos = math.cos(math.radians(label))
             sin = math.sin(math.radians(label))
-            y = roint(self.hsi_size / 2 + self.hsi_size / 2.5 * cos)
-            x = roint(self.hsi_size / 2 + self.hsi_size / 2.5 * sin)
+            y = self.roint(self.hsi_size / 2 + self.hsi_size / 2.5 * cos)
+            x = self.roint(self.hsi_size / 2 + self.hsi_size / 2.5 * sin)
 
             if label == hsi_hdg:
                 self.labels.blit(
@@ -246,7 +252,7 @@ class HSI(Module):
         turn_rate = aircraft.turn_rate
 
         hsi_hdg = (hsi_hdg + 90) % 360
-        gnd_trk = roint(hsi_hdg - gnd_trk - 90) % 360
+        gnd_trk = self.roint(hsi_hdg - gnd_trk - 90) % 360
 
         # Draw Compass Rose Tick Marks
         tick_rotated = pygame.transform.rotate(self.rose, hsi_hdg)
@@ -257,17 +263,14 @@ class HSI(Module):
         )
 
         # Draw Labels
-        global old_hsi_hdg
-        if (
-            old_hsi_hdg != hsi_hdg
-        ):  # Don't waste time recalculating/redrawing until the variable changes
-            labeler(self, hsi_hdg)
+        #if self.old_hsi_hdg != None and self.old_hsi_hdg != hsi_hdg :  # Don't waste time recalculating/redrawing until the variable changes
+        #    labeler(self, hsi_hdg)
         label_rect = self.labels.get_rect()
         self.pygamescreen.blit(
             self.labels,
             (smartdisplay.x_center - label_rect.center[0], smartdisplay.y_center - label_rect.center[1]),
         )
-        self.old_hsi_hdg = hsi_hdg  # save the last heading.
+        #self.old_hsi_hdg = hsi_hdg  # save the last heading.
 
         # Draw Ticks
         self.gnd_trk_tick(smartdisplay,gnd_trk)

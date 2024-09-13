@@ -31,12 +31,12 @@ echo "Install other python packages via pip3?  (y or n)"
 read -p " " yn;
 case $yn in
 	[Yy]* )echo "Installing pygame via pip3"
-		pip3 install pygame
+		python3 -m pip install pygame
 		echo "Installing python serial via pip3"
-		pip3 install serial
-		pip3 install pygame_menu
-		pip3 install MacTmp
-		pip3 install geographiclib 
+		python3 -m pip install serial
+		python3 -m pip install pygame_menu
+		python3 -m pip install MacTmp
+		python3 -m pip install geographiclib 
 		;;
 	[Nn]* )echo "..."; 
 esac

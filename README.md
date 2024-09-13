@@ -127,11 +127,11 @@ this will ask for username/email password from github.
 
 when done this will create a TronView dir
 
-4) run the setup.sh script to finish install.  This will setup serial port (if not allready setup), and install python libraries needed.
+4) run the util/rpi/setup.sh script to finish install.  This will enable built in serial port, enable i2c , and install python libraries needed.  
 
 go into the TronView by typing
 
-`cd TronView/util`
+`cd TronView/util/rpi`
 
 then to run the script type
 

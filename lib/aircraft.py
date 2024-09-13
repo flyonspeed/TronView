@@ -66,6 +66,7 @@ class Aircraft(object):
         self.msg_last = ""
         self.errorFoundNeedToExit = False
         self.textMode = False
+        self.editMode = False
         self.show_FPS = False #show screen refresh rate in frames per second for performance tuning
         self.fps = 0
 

@@ -31,6 +31,7 @@ from lib.util import rpi_hardware
 from lib.util import mac_hardware
 from lib.common.text import text_mode
 from lib.common.graphic import graphic_mode
+from lib.common.graphic import edit_mode
 from lib.common import shared # global shared objects stored here.
 
 
@@ -246,10 +247,18 @@ if __name__ == "__main__":
     thread1.start()
     # start main loop.
     while not shared.aircraft.errorFoundNeedToExit:
-        if shared.aircraft.textMode == True:
+        if shared.aircraft.editMode == True:
+            edit_mode.main_edit_loop()
+        elif shared.aircraft.textMode == True:
             text_mode.main_text_mode()  # start main text loop
         else:
             graphic_mode.main_graphical()  # start main graphical loop
+    
+    # check if pygame is still running.
+    if pygame.display.get_init() == True:
+        pygame.quit()
+        pygame.display.quit()
+
     shared.CurrentInput.closeInput(shared.aircraft) # close the input source
     if DataInputToLoad2 != "none": shared.CurrentInput2.closeInput(shared.aircraft)
     if DataInputToLoad3 != "none": shared.CurrentInput3.closeInput(shared.aircraft)

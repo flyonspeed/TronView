@@ -15,7 +15,7 @@ from lib.modules.efis.artificalhorz import artificalhorz
 from lib.modules.hud.horizon import horizon
 from lib.modules.hud.aoa import aoa
 from lib.modules.hud.slipskid import slipskid
-from lib.modules.gui.menu import menu
+from lib.modules.gui.menu import _menu
 from lib.modules.efis.trafficscope import trafficscope
 
 class Default(Screen):
@@ -62,7 +62,7 @@ class Default(Screen):
         self.slipskid = slipskid.slipskid()
         self.slipskid.initMod(self.pygamescreen, 250, 50)
 
-        self.menu = menu.menu()
+        self.menu = _menu.menu()
         self.menu.initMod(self.pygamescreen, 400, 300, "Options")
 
         self.trafficScope = trafficscope.trafficscope()

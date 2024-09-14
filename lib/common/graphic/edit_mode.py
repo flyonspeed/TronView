@@ -75,156 +75,158 @@ def main_edit_loop():
     # Main edit draw loop
     while not shared.aircraft.errorFoundNeedToExit and not exit_edit_mode:
         clock.tick(maxframerate)
+        pygamescreen.fill((0, 0, 0)) # clear screen
+
         event_list = pygame.event.get() # get all events
-        for event in event_list:  # check for event like keyboard input.
-            if event.type == pygame.QUIT:
-                shared.aircraft.errorFoundNeedToExit = True
-            # KEY MAPPINGS
-            if event.type == pygame.KEYDOWN:
-                mods = pygame.key.get_mods()
-                if event.key == pygame.K_3 or event.key == pygame.K_KP3:
-                    # do nothing
-                    pass
-                elif event.key == pygame.K_q or event.key == pygame.K_ESCAPE:
-                    shared.aircraft.errorFoundNeedToExit = True
-                elif event.key == pygame.K_e:
-                    shared.aircraft.editMode = False  # exit edit mode
-                    exit_edit_mode = True
-                # look for delete key
-                elif event.key == pygame.K_BACKSPACE or event.key == pygame.K_DELETE:
-                    print("Delete key pressed")
-                    # delete the selected module by going through the list of modules and removing the selected one.
-                    for module in shared.CurrentScreen.Modules:
-                        if module.selected:
-                            shared.CurrentScreen.Modules.remove(module)
-                            break
-
-                elif event.key == pygame.K_a:
-                    # add a new module
-                    mx, my = pygame.mouse.get_pos()
-                    shared.CurrentScreen.Modules.append(
-                        TVModule(
-                            pygamescreen,
-                            "New",
-                            "New",
-                            "new",
-                            mx,
-                            my,
-                            100,
-                            100,
-                        )
-                    )
-
-            # check for Mouse events
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                mx, my = pygame.mouse.get_pos()
-                print("Mouse Click %d x %d" % (mx, my))
-                for module in shared.CurrentScreen.Modules: # unselect all modules (if any)
-                    module.selected = False
-
-                # Check if the mouse click is inside any module (check from the top down)
-                for module in shared.CurrentScreen.Modules [::-1]:
-                    if module.x <= mx <= module.x + module.width and module.y <= my <= module.y + module.height:
-
-                        #################
-                        # RESIZE MODULE
-                        if mx >= module.x + module.width - 10 and my >= module.y + module.height - 10:
-                            # Click is in the bottom right corner, start resizing
-                            selected_module = module
-                            module.selected = True
-                            resizing = True
-                            offset_x = mx - module.x
-                            offset_y = my - module.y
-                            dropdown = None
-                        ##################
-                        # DROPDOWN MENU (select module)
-                        elif module.y <= my <= module.y + 20:  # Assuming the title area is 20 pixels high
-                            # Click is on the title, toggle dropdown menu
-                            selected_module = module
-                            module.selected = True
-                            dropdown = DropDown([COLOR_INACTIVE, COLOR_ACTIVE],
-                                    [COLOR_LIST_INACTIVE, COLOR_LIST_ACTIVE], 
-                                    module.x, module.y, 140, 30, 
-                                    pygame.font.SysFont(None, 25), 
-                                    "Select Module", listModules)
-                            dropdown.visible = True
-                        ##################
-                        # MOVE MODULE
-                        else:
-                            dropdown = None
-                            # Click is inside the module, start moving
-                            selected_module = module
-                            dragging = True
-                            offset_x = mx - module.x
-                            offset_y = my - module.y
-                            module.selected = True
-                        break
-
-            # Mouse up
-            elif event.type == pygame.MOUSEBUTTONUP:
-                dragging = False
-                resizing = False
-                print("Mouse Up")
-                # selected_module = None
-                # for module in shared.CurrentScreen.Modules:
-                #     module.selected = False
-
-            # Mouse move.. resize or move the module??
-            elif event.type == pygame.MOUSEMOTION:
-                if dragging and selected_module: # moving the module
-                    mx, my = pygame.mouse.get_pos()
-                    selected_module.x = mx - offset_x
-                    selected_module.y = my - offset_y
-                    # clear screen using pygame
-                    pygamescreen.fill((0, 0, 0))
-                elif resizing and selected_module: # resizing the module
-                    mx, my = pygame.mouse.get_pos()
-                    temp_width = mx - selected_module.x
-                    temp_height = my - selected_module.y
-                    if temp_width < 40: temp_width = 40  # limit minimum size
-                    if temp_height < 40: temp_height = 40
-                    selected_module.width = temp_width
-                    selected_module.height = temp_height
-                    selected_module.resize(selected_module.width, selected_module.height)
-                    # clear screen using pygame
-                    pygamescreen.fill((0, 0, 0))
-
-        if dropdown:
+        if dropdown and dropdown.visible:
+            #dropdown.draw(pygamescreen)
             selection = dropdown.update(event_list)
             if selection >= 0:
                 print("Selected module: %s" % listModules[selection])
                 selected_module.title = listModules[selection]
-                newModules, titles  = find_module(listModules[selection]) # find the module by name
+                newModules, titles  = find_module(listModules[selection])
                 selected_module.setModule(newModules[0])
-                dropdown.toggle()
-                dropdown = None
-            else:
-                print("No selection "+str(selection))
+        else:
+            for event in event_list:  # check for event like keyboard input.
+                if event.type == pygame.QUIT:
+                    shared.aircraft.errorFoundNeedToExit = True
+                # KEY MAPPINGS
+                if event.type == pygame.KEYDOWN:
+                    mods = pygame.key.get_mods()
+                    if event.key == pygame.K_3 or event.key == pygame.K_KP3:
+                        # do nothing
+                        pass
+                    elif event.key == pygame.K_q or event.key == pygame.K_ESCAPE:
+                        shared.aircraft.errorFoundNeedToExit = True
+                    elif event.key == pygame.K_e:
+                        shared.aircraft.editMode = False  # exit edit mode
+                        exit_edit_mode = True
+                    # look for delete key
+                    elif event.key == pygame.K_BACKSPACE or event.key == pygame.K_DELETE:
+                        print("Delete key pressed")
+                        # delete the selected module by going through the list of modules and removing the selected one.
+                        for module in shared.CurrentScreen.Modules:
+                            if module.selected:
+                                shared.CurrentScreen.Modules.remove(module)
+                                break
 
-        pygamescreen.fill((0, 0, 0)) # clear screen
+                    elif event.key == pygame.K_a:
+                        # add a new module
+                        mx, my = pygame.mouse.get_pos()
+                        shared.CurrentScreen.Modules.append(
+                            TVModule(
+                                pygamescreen,
+                                "New",
+                                "New",
+                                "new",
+                                mx,
+                                my,
+                                100,
+                                100,
+                            )
+                        )
+
+                # check for Mouse events
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    mx, my = pygame.mouse.get_pos()
+                    print("Mouse Click %d x %d" % (mx, my))
+                    for module in shared.CurrentScreen.Modules: # unselect all modules (if any)
+                        module.selected = False
+
+                    # Check if the mouse click is inside any module (check from the top down)
+                    for module in shared.CurrentScreen.Modules [::-1]:
+                        if module.x <= mx <= module.x + module.width and module.y <= my <= module.y + module.height:
+
+                            #################
+                            # RESIZE MODULE
+                            if mx >= module.x + module.width - 10 and my >= module.y + module.height - 10:
+                                # Click is in the bottom right corner, start resizing
+                                selected_module = module
+                                module.selected = True
+                                resizing = True
+                                offset_x = mx - module.x
+                                offset_y = my - module.y
+                                dropdown = None
+                            ##################
+                            # DROPDOWN MENU (select module)
+                            elif module.y <= my <= module.y + 20:  # Assuming the title area is 20 pixels high
+                                # Click is on the title, toggle dropdown menu
+                                selected_module = module
+                                module.selected = True
+                                dropdown = DropDown([COLOR_INACTIVE, COLOR_ACTIVE],
+                                        [COLOR_LIST_INACTIVE, COLOR_LIST_ACTIVE], 
+                                        module.x, module.y, 140, 30, 
+                                        pygame.font.SysFont(None, 25), 
+                                        "Select Module", listModules)
+                                dropdown.visible = True
+                                dropdown.draw_menu = True
+                            ##################
+                            # MOVE MODULE
+                            else:
+                                dropdown = None
+                                # Click is inside the module, start moving
+                                selected_module = module
+                                dragging = True
+                                offset_x = mx - module.x
+                                offset_y = my - module.y
+                                module.selected = True
+                            break
+
+                # Mouse up
+                elif event.type == pygame.MOUSEBUTTONUP:
+                    dragging = False
+                    resizing = False
+                    print("Mouse Up")
+                    # selected_module = None
+                    # for module in shared.CurrentScreen.Modules:
+                    #     module.selected = False
+
+                # Mouse move.. resize or move the module??
+                elif event.type == pygame.MOUSEMOTION:
+                    if dragging and selected_module: # moving the module
+                        mx, my = pygame.mouse.get_pos()
+                        selected_module.x = mx - offset_x
+                        selected_module.y = my - offset_y
+                        # clear screen using pygame
+                        pygamescreen.fill((0, 0, 0))
+                    elif resizing and selected_module: # resizing the module
+                        mx, my = pygame.mouse.get_pos()
+                        temp_width = mx - selected_module.x
+                        temp_height = my - selected_module.y
+                        if temp_width < 40: temp_width = 40  # limit minimum size
+                        if temp_height < 40: temp_height = 40
+                        selected_module.width = temp_width
+                        selected_module.height = temp_height
+                        selected_module.resize(selected_module.width, selected_module.height)
+                        # clear screen using pygame
+                        pygamescreen.fill((0, 0, 0))
+
+            # if selection >= 0:
+            #     print("Selected module: %s" % listModules[selection])
+            #     selected_module.title = listModules[selection]
+            #     newModules, titles  = find_module(listModules[selection]) # find the module by name
+            #     selected_module.setModule(newModules[0])
+            #     dropdown.toggle()
+            #     dropdown = None
+            # else:
+            #     print("No selection "+str(selection))
+
         # draw the modules
         for module in shared.CurrentScreen.Modules:
-            color = (255, 0, 0)
-            if module.selected:  # if the module is selected, change the color
-                color = (0, 255, 0)
-
             module.draw(shared.aircraft, shared.smartdisplay) # draw the module
 
-            # draw the module box
-            pygame.draw.rect(pygamescreen, color, (module.x, module.y, module.width, module.height), 1)
-            # draw the module title
-            text = debug_font.render(module.title, True, (255, 255, 255))
-            pygamescreen.blit(text, (module.x + 5, module.y + 5))
-            # draw a little resize handle in the bottom right corner
-            pygame.draw.rect(pygamescreen, color, (module.x + module.width - 10, module.y + module.height - 10, 10, 10), 1)
+            if module.selected:  # if the module is selected, change the color
+                color = (0, 255, 0)
+                # draw the module box
+                pygame.draw.rect(pygamescreen, color, (module.x, module.y, module.width, module.height), 1)
+                # draw the module title
+                text = debug_font.render(module.title, True, (255, 255, 255))
+                pygamescreen.blit(text, (module.x + 5, module.y + 5))
+                # draw a little resize handle in the bottom right corner
+                pygame.draw.rect(pygamescreen, color, (module.x + module.width - 10, module.y + module.height - 10, 10, 10), 1)
 
-            # Draw the dropdown menu if visible
+            # Last... Draw the dropdown menu if visible over the top of everything.
             if dropdown and dropdown.visible and selected_module == module:
-                #print("Drawing dropdown")
-                if dropdown.value is not None:
-                    module.title = dropdown.value  # Update the module title
-                else:
-                    module.title = "none"
                 dropdown.draw(pygamescreen)
 
         
@@ -256,9 +258,9 @@ def find_module(byName = None):
                 class_ = getattr(mod, ClassToload)
                 newModuleClass = class_()
                 if byName is not None:
-                    print("Looking for "+byName+" .. Checking module: %s (%s)" % (newModuleClass.name, path))
+                    #print("Looking for "+byName+" .. Checking module: %s (%s)" % (newModuleClass.name, path))
                     if newModuleClass.name == byName:
-                        print("Found module: %s (%s)" % (newModuleClass.name, path))
+                        #print("Found module: %s (%s)" % (newModuleClass.name, path))
                         modules.append(newModuleClass)
                         moduleNames.append(newModuleClass.name)
                         return modules, moduleNames
@@ -267,8 +269,8 @@ def find_module(byName = None):
                     modules.append(newModuleClass)
                     moduleNames.append(newModuleClass.name)
 
-    print("Found %d modules" % len(modules))
-    print(modules)
+    #print("Found %d modules" % len(modules))
+    #print(modules)
     return modules, moduleNames
     
 
@@ -300,14 +302,21 @@ class TVModule(object):
         self.module.width = width
         self.module.height = height
         self.module.initMod(self.pygamescreen, width, height)
+        if hasattr(self.module, "setup"):
+            self.module.setup()
+        if hasattr(self.module, "resize"):
+            self.module.resize(width, height)
+            print("Module "+self.module.name+" has resize")
     
     def setModule(self, module):
         self.module = module
+        self.title = module.name
         # check if module has a setup function
         self.module.initMod(self.pygamescreen, self.width, self.height)
 
         if hasattr(self.module, "setup"):
             self.module.setup()
+            print("Module "+self.module.name+" has setup function")
 
 COLOR_INACTIVE = (30, 30, 30)
 COLOR_ACTIVE = (100, 200, 255)
@@ -332,8 +341,8 @@ class DropDown():
 
     # draw the drop down.
     def draw(self, surf):
-        if not self.visible:
-            return
+        #if not self.visible:
+        #    return
         pygame.draw.rect(surf, self.color_menu[self.menu_active], self.rect, 0)
         msg = self.font.render(self.main, 1, (0, 0, 0))
         surf.blit(msg, msg.get_rect(center = self.rect.center))
@@ -357,6 +366,7 @@ class DropDown():
             rect.y += (i+1) * self.rect.height
             if rect.collidepoint(mpos):
                 self.active_option = i
+                #if self.menu_active:
                 self.value = self.options[i]
                 break
 
@@ -367,18 +377,24 @@ class DropDown():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if self.menu_active:
                     self.draw_menu = not self.draw_menu
+                    self.visible = not self.visible
                     print("Menu active")
                 elif self.draw_menu and self.active_option >= 0:
                     self.draw_menu = False
                     return self.active_option
-                else:
-                    print("No selection")
-            else:
-                print("No button down.")
+                
+                self.visible = False
+                self.draw_menu = False
+
+            #     else:
+            #         #print("No selection")
+            # else:
+            #     #print("No button down.")
         
         return -1
 
     def toggle(self):
+        self.draw_menu = not self.draw_menu
         self.visible = not self.visible
     
 

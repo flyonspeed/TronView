@@ -32,7 +32,7 @@ class F18_HUD(Screen):
         self.caged_mode = 1 # default on
         self.MainColor = (0, 255, 0)  # main color of hud graphics
 
-    # called once for setuping up the screen
+    # called once for setting up the screen
     def initDisplay(self, pygamescreen, width, height):
         Screen.initDisplay(
             self, pygamescreen, width, height

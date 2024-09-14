@@ -14,6 +14,8 @@ class Module:
         self.width = 640
         self.height = 480
         self.pygamescreen = 0
+        self.x = 0
+        self.y = 0
 
     def initMod(self, pygamescreen, width, height):
         self.pygamescreen = pygamescreen

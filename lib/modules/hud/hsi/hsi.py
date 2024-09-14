@@ -33,7 +33,7 @@ class hsi(Module):
 
     # setup must have default values for all parameters
     def setup(self, hsi_size = -1 , gnd_trk_tick_size = -1, rose_color = (70,130,40), label_color = (255, 255, 0)):
-
+        print("HSI setup() %d %d %s %s" % (hsi_size, gnd_trk_tick_size, rose_color, label_color))
         if(hsi_size == -1):
             hsi_size = self.width
         if(gnd_trk_tick_size == -1):
@@ -177,7 +177,7 @@ class hsi(Module):
                 )
 
     def gnd_trk_tick(self, smartdisplay, gnd_trk):
-        # Draw Ground Track Tick
+        #Draw Ground Track Tick
         gnd_trk_tick_rotated = pygame.transform.rotate(self.ticks, gnd_trk)
         gnd_trk__rect = gnd_trk_tick_rotated.get_rect()
         self.pygamescreen.blit(
@@ -187,65 +187,79 @@ class hsi(Module):
                 smartdisplay.y_center - gnd_trk__rect.center[1],
             ),
         )
+        pass
 
 
-    def turn_rate_disp(self, smartdisplay,turn_rate):
+    def turn_rate_disp(self, smartdisplay,turn_rate, pos=(None, None)):
+        if pos[0] is not None:
+            draw_x = pos[0] + self.width / 2
+        else:
+            draw_x = smartdisplay.x_center
+        if pos[1] is not None:
+            draw_y = pos[1] + self.height / 2
+        else:
+            draw_y = smartdisplay.y_center
         if abs(turn_rate) > 0.2:
             pygame.draw.line(
                 self.pygamescreen,
                 (255, 0, 255),
-                (smartdisplay.x_center, smartdisplay.y_center - 158),
-                (smartdisplay.x_center + (turn_rate * 10), smartdisplay.y_center - 158),
+                (draw_x, draw_y - 158),
+                (draw_x + (turn_rate * 10), draw_y - 158),
                 10,
             )
         pygame.draw.line(
             self.pygamescreen,
             (255, 255, 255),
-            (smartdisplay.x_center + 31, smartdisplay.y_center - 153),
-            (smartdisplay.x_center + 31, smartdisplay.y_center - 163),
+            (draw_x + 31, draw_y - 153),
+            (draw_x + 31, draw_y - 163),
             3,
         )
         pygame.draw.line(
             self.pygamescreen,
             (255, 255, 255),
-            (smartdisplay.x_center - 31, smartdisplay.y_center - 153),
-            (smartdisplay.x_center - 31, smartdisplay.y_center - 163),
+            (draw_x - 31, draw_y - 153),
+            (draw_x - 31, draw_y - 163),
             3,
         )
         pygame.draw.line(
             self.pygamescreen,
             (0, 0, 0),
-            (smartdisplay.x_center + 33, smartdisplay.y_center - 153),
-            (smartdisplay.x_center + 33, smartdisplay.y_center - 163),
+            (draw_x + 33, draw_y - 153),
+            (draw_x + 33, draw_y - 163),
             1,
         )
         pygame.draw.line(
             self.pygamescreen,
             (0, 0, 0),
-            (smartdisplay.x_center + 29, smartdisplay.y_center - 153),
-            (smartdisplay.x_center + 29, smartdisplay.y_center - 163),
+            (draw_x + 29, draw_y - 153),
+            (draw_x + 29, draw_y - 163),
             1,
         )
         pygame.draw.line(
             self.pygamescreen,
             (0, 0, 0),
-            (smartdisplay.x_center - 33, smartdisplay.y_center - 153),
-            (smartdisplay.x_center - 33, smartdisplay.y_center - 163),
+            (draw_x - 33, draw_y - 153),
+            (draw_x - 33, draw_y - 163),
             1,
         )
         pygame.draw.line(
             self.pygamescreen,
             (0, 0, 0),
-            (smartdisplay.x_center - 29, smartdisplay.y_center - 153),
-            (smartdisplay.x_center - 29, smartdisplay.y_center - 163),
+            (draw_x - 29, draw_y - 153),
+            (draw_x - 29, draw_y - 163),
             1,
         )
 
 
     # called every redraw for the mod
-    def draw(self, aircraft, smartdisplay, pos):
+    def draw(self, aircraft, smartdisplay, pos=(None, None)):
 
-        x,y = pos
+        x_pos = smartdisplay.x_center
+        y_pos = smartdisplay.y_center
+        if pos[0] is not None:
+            x_pos = pos[0] + self.width / 2  # center the hsi in the middle of this module
+        if pos[1] is not None:
+            y_pos = pos[1] + self.height / 2
 
         hsi_hdg = aircraft.mag_head
         gnd_trk = aircraft.gndtrack
@@ -259,24 +273,24 @@ class hsi(Module):
         tick_rect = tick_rotated.get_rect()
         self.pygamescreen.blit(
             tick_rotated,
-            (smartdisplay.x_center - tick_rect.center[0], smartdisplay.y_center - tick_rect.center[1]),
+            (x_pos - tick_rect.center[0], y_pos - tick_rect.center[1]),
         )
 
         # Draw Labels
         #if self.old_hsi_hdg != None and self.old_hsi_hdg != hsi_hdg :  # Don't waste time recalculating/redrawing until the variable changes
-        #    labeler(self, hsi_hdg)
+        self.labeler(hsi_hdg)
         label_rect = self.labels.get_rect()
         self.pygamescreen.blit(
             self.labels,
-            (smartdisplay.x_center - label_rect.center[0], smartdisplay.y_center - label_rect.center[1]),
+            (x_pos - label_rect.center[0], y_pos - label_rect.center[1]),
         )
         #self.old_hsi_hdg = hsi_hdg  # save the last heading.
 
         # Draw Ticks
-        self.gnd_trk_tick(smartdisplay,gnd_trk)
+        #self.gnd_trk_tick(smartdisplay,gnd_trk)
 
         # Draw Turn Rate
-        self.turn_rate_disp(smartdisplay,urn_rate)
+        self.turn_rate_disp(smartdisplay,turn_rate, pos)
 
 
     # called before screen draw.  To clear the screen to your favorite color.

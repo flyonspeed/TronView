@@ -21,7 +21,7 @@ class menu(Module):
         self.name = "Menu"  # set name
 
     # called once for setup
-    def initMod(self, pygamescreen, width, height,title):
+    def initMod(self, pygamescreen, width, height,title=""):
         Module.initMod(
             self, pygamescreen, width, height
         )  # call parent init screen.
@@ -43,7 +43,7 @@ class menu(Module):
         self.menu.disable()
 
     # called every redraw for the mod
-    def draw(self, aircraft, smartdisplay):
+    def draw(self, aircraft, smartdisplay,pos):
 
         print("draw menu")
 

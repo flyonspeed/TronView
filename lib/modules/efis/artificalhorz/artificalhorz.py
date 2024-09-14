@@ -16,8 +16,8 @@ class artificalhorz(Module):
     def __init__(self):
         Module.__init__(self)
         self.name = "ArtificalHorz"  # set name
-        #self.imagefilename = "lib/modules/efis/artificalhorz/attitude-indicator-1280.png"
-        self.imagefilename = "lib/modules/efis/artificalhorz/horiz.bmp"
+        self.imagefilename = "lib/modules/efis/artificalhorz/attitude-indicator-1280.png"
+        #self.imagefilename = "lib/modules/efis/artificalhorz/horiz_square.bmp"
 
     # called once for setup
     def initMod(self, pygamescreen, width, height):
@@ -36,9 +36,20 @@ class artificalhorz(Module):
         self.background = pygame.transform.scale(self.background, (2000, 2000))
 
     # called every redraw for the mod
-    def draw(self, aircraft, smartdisplay):
+    def draw(self, aircraft, smartdisplay,pos=(None,None)):
+        if pos[0] is None:
+            x = smartdisplay.x_center
+        else:
+            x = pos[0] + self.width / 2
+        if pos[1] is None:
+            y = smartdisplay.y_center
+        else:
+            y = pos[1] + self.height / 2
+
+        self.background_scaled = pygame.transform.scale(self.background, (self.width, self.height))
+        
         self.background_rotated = pygame.transform.rotate(
-            self.background, aircraft.roll
+            self.background_scaled, aircraft.roll
         )
     
         px_per_deg_y = smartdisplay.height / 60
@@ -48,14 +59,14 @@ class artificalhorz(Module):
         self.pygamescreen.blit(
             self.background_rotated,
             (
-                (smartdisplay.x_center) - rect.center[0],
-                (smartdisplay.y_center) - rect.center[1] - pitch_offset,
+                (x) - rect.center[0],
+                (y) - rect.center[1],
             ),
         )
 
         smartdisplay.draw_circle(
                  (255,255,255),
-                 (smartdisplay.x_center,smartdisplay.y_center),
+                 (x,y),
                  15,
                  1,
              )

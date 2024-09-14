@@ -38,9 +38,16 @@ class slipskid(Module):
         self.yCenterForBall = int(self.height /2)
 
     # called every redraw for the mod
-    def draw(self, aircraft, smartdisplay, pos):
+    def draw(self, aircraft, smartdisplay, pos=(None,None)):
 
-        x,y = pos
+        if pos[0] is None:
+            x = smartdisplay.x_center
+        else:
+            x = pos[0] + self.width / 2
+        if pos[1] is None:
+            y = smartdisplay.y_center
+        else:
+            y = pos[1] 
 
         # Slip/Skid Indicator
         if aircraft.slip_skid != None:
@@ -68,34 +75,6 @@ class slipskid(Module):
             (x - self.xLineFromCenter + self.x_offset, y + self.yLineHeight),
             3,
         )
-        # pygame.draw.line(
-        #     self.pygamescreen,
-        #     (0, 0, 0),
-        #     (x + 61, y + 179),
-        #     (x + 61, y + 201),
-        #     1,
-        # )
-        # pygame.draw.line(
-        #     self.pygamescreen,
-        #     (0, 0, 0),
-        #     (x + 65, y + 179),
-        #     (x + 65, y + 201),
-        #     1,
-        # )
-        # pygame.draw.line(
-        #     self.pygamescreen,
-        #     (0, 0, 0),
-        #     (x + 39, y + 179),
-        #     (x + 39, y + 201),
-        #     1,
-        # )
-        # pygame.draw.line(
-        #     self.pygamescreen,
-        #     (0, 0, 0),
-        #     (x + 35, y + 179),
-        #     (x + 35, y + 201),
-        #     1,
-        # )
 
     # called before screen draw.  To clear the screen to your favorite color.
     def clear(self):

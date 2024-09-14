@@ -14,11 +14,11 @@ import pygame
 import math
 
 
-class horizon(Module):
+class horizon_v2(Module):
     # called only when object is first created.
     def __init__(self):
         Module.__init__(self)
-        self.name = "HUD Horizon"  # set name
+        self.name = "HUD Horizon V2"  # set name
 
     # called once for setup
     def initMod(self, pygamescreen, width, height):
@@ -32,7 +32,7 @@ class horizon(Module):
         self.font = pygame.font.SysFont(None, 30)
         self.font_target = pygame.font.SysFont(None, target_font_size)
 
-        self.surface = pygame.Surface((self.width * 2, self.height * 2))
+        self.surface = pygame.Surface((self.width, self.height))
         self.ahrs_bg_width = self.surface.get_width()
         self.ahrs_bg_height = self.surface.get_height()
         self.ahrs_bg_center = (self.ahrs_bg_width / 2 + 160, self.ahrs_bg_height / 2)
@@ -153,13 +153,18 @@ class horizon(Module):
         line_mode,
         font,
         pxy_div,
+        pos
     ):
+        # x_offset, y_offset = pos
+        # center_x = x_offset + width // 2
+        # center_y = y_offset + height // 2
 
+        # Draw lines centered on the screen
         for l in range(-60, 61, ahrs_line_deg):
             line_coords = self.generateHudReferenceLineArray(
                 width,
                 height,
-                ahrs_center,
+                ahrs_center,  # Use the new center point
                 pxy_div,
                 pitch=aircraft.pitch,
                 roll=aircraft.roll,
@@ -167,14 +172,14 @@ class horizon(Module):
                 line_mode=line_mode,
             )
 
+            # No need to adjust coordinates here, as we've centered them in generateHudReferenceLineArray
+
             if abs(l) > 45:
                 if l % 5 == 0 and l % 10 != 0:
                     continue
 
-            # draw below or above the horz
+            # Draw lines (already centered)
             if l < 0:
-                # draw below.
-                z=1+1
                 self.draw_dashed_line(
                     self.surface,
                     color,
@@ -183,7 +188,6 @@ class horizon(Module):
                     width=line_thickness,
                     dash_length=5,
                 )
-                # draw winglets facing up
                 pygame.draw.lines(self.surface,
                     color,
                     False,
@@ -199,7 +203,6 @@ class horizon(Module):
                     line_thickness
                 )
             else:
-                #draw above horiz.
                 pygame.draw.lines(
                     self.surface,
                     color,
@@ -211,7 +214,7 @@ class horizon(Module):
                     line_thickness
                 )
 
-            # draw degree text
+            # Draw degree text (already centered)
             if l != 0 and l % 5 == 0:
                 text = font.render(str(l), False, color)
                 text_width, text_height = text.get_size()
@@ -220,78 +223,81 @@ class horizon(Module):
                 self.surface.blit(text, (left, top))
 
 
-    def draw_center(self,smartdisplay):
+    def draw_center(self,smartdisplay, x_offset, y_offset):
+        center_x = x_offset + self.width // 2
+        center_y = y_offset + self.height // 2
+
         if self.center_circle_mode == 1:
             pygame.draw.circle(
-                smartdisplay.pygamescreen,
+                self.surface,
                 self.MainColor,
-                (smartdisplay.x_center + self.x_offset, smartdisplay.y_center + self.y_offset),
+                (center_x, center_y),
                 3,
                 1,
             )
         elif self.center_circle_mode == 2:
             pygame.draw.circle(
-                smartdisplay.pygamescreen,
+                self.surface,
                 self.MainColor,
-                (smartdisplay.x_center + self.x_offset, smartdisplay.y_center + self.y_offset),
+                (center_x, center_y),
                 15,
                 1,
             )
         # draw center + Gun Cross
         elif self.center_circle_mode == 3:
             pygame.draw.circle(
-                smartdisplay.pygamescreen,
+                self.surface,
                 self.MainColor,
-                (smartdisplay.x_center + self.x_offset, smartdisplay.y_center + self.y_offset),
+                (center_x, center_y),
                 50,
                 1,
             )
         # draw water line center.
         elif self.center_circle_mode == 5:
             pygame.draw.line(
-                smartdisplay.pygamescreen,
+                self.surface,
                 self.MainColor,
-                [smartdisplay.x_center - 10 + self.x_offset, smartdisplay.y_center + self.y_offset + 20],
-                [smartdisplay.x_center + self.x_offset , smartdisplay.y_center + self.y_offset],
+                [center_x - 10, center_y + 20],
+                [center_x, center_y],
+                3,
+            )
+            pygame.draw.line(
+                self.surface,
+                self.MainColor,
+                [center_x - 10, center_y + 20],
+                [center_x - 20, center_y],
+                3,
+            )
+            pygame.draw.line(
+                self.surface,
+                self.MainColor,
+                [center_x - 35, center_y],
+                [center_x - 20, center_y],
+                3,
+            )
+            pygame.draw.line(
+                self.surface,
+                self.MainColor,
+                [center_x + 10, center_y + 20],
+                [center_x, center_y],
                 3,
             )
             pygame.draw.line(
                 smartdisplay.pygamescreen,
                 self.MainColor,
-                [smartdisplay.x_center - 10 + self.x_offset, smartdisplay.y_center + self.y_offset + 20],
-                [smartdisplay.x_center - 20 + self.x_offset, smartdisplay.y_center + self.y_offset],
+                [center_x + 10, center_y + 20],
+                [center_x + 20, center_y],
                 3,
             )
             pygame.draw.line(
                 smartdisplay.pygamescreen,
                 self.MainColor,
-                [smartdisplay.x_center - 35 + self.x_offset, smartdisplay.y_center + self.y_offset],
-                [smartdisplay.x_center - 20 + self.x_offset, smartdisplay.y_center + self.y_offset],
-                3,
-            )
-            pygame.draw.line(
-                smartdisplay.pygamescreen,
-                self.MainColor,
-                [smartdisplay.x_center + 10 + self.x_offset, smartdisplay.y_center + self.y_offset + 20],
-                [smartdisplay.x_center  + self.x_offset, smartdisplay.y_center + self.y_offset],
-                3,
-            )
-            pygame.draw.line(
-                smartdisplay.pygamescreen,
-                self.MainColor,
-                [smartdisplay.x_center + 10 + self.x_offset, smartdisplay.y_center + self.y_offset + 20],
-                [smartdisplay.x_center + 20 + self.x_offset, smartdisplay.y_center + self.y_offset],
-                3,
-            )
-            pygame.draw.line(
-                smartdisplay.pygamescreen,
-                self.MainColor,
-                [smartdisplay.x_center + 35 + self.x_offset, smartdisplay.y_center + self.y_offset],
-                [smartdisplay.x_center + 20 + self.x_offset, smartdisplay.y_center + self.y_offset],
+                [center_x + 35, center_y],
+                [center_x + 20, center_y],
                 3,
             )
 
-    def draw_flight_path(self,aircraft,smartdisplay):
+    def draw_flight_path(self,aircraft,smartdisplay, x_offset, y_offset):
         def mean(nums):
             return int(sum(nums)) / max(len(nums), 1)
 
@@ -313,93 +319,97 @@ class horizon(Module):
         gfpv_x = mean(self.readings1)  # Moving average to smooth a bit
         if len(self.readings1) == self.max_samples1:
             self.readings1.pop(0)
+
+        center_x = self.width // 2
+        center_y = self.height // 2
+
         self.draw_circle(
-            smartdisplay.pygamescreen,
+            self.surface,
             (255, 0, 255),  # changed from Magenta 255, 0, 255
             (
-                (smartdisplay.width / 2 + self.x_offset) - (int(fpv_x) * 5),
-                (smartdisplay.y_center + self.y_offset) - (aircraft.vsi / 2),
+                center_x - (int(fpv_x) * 5),
+                center_y - (aircraft.vsi / 2),
             ),
             15,
             4,
         )
         
         pygame.draw.line(
-            smartdisplay.pygamescreen,
+            self.surface,
             (255, 0, 255),
             [
-                (smartdisplay.width / 2 + self.x_offset) - (int(fpv_x) * 5) - 15,
-                (smartdisplay.y_center + self.y_offset) - (aircraft.vsi / 2),
+                center_x - (int(fpv_x) * 5) - 15,
+                center_y - (aircraft.vsi / 2),
             ],
             [
-                (smartdisplay.width / 2 + self.x_offset) - (int(fpv_x) * 5) - 30,
-                (smartdisplay.y_center + self.y_offset) - (aircraft.vsi / 2),
+                center_x - (int(fpv_x) * 5) - 30,
+                center_y - (aircraft.vsi / 2),
             ],
             2,
         )
         pygame.draw.line(
-            smartdisplay.pygamescreen,
+            self.surface,
             (255, 0, 255),
             [
-                (smartdisplay.width / 2 + self.x_offset) - (int(fpv_x) * 5) + 15,
-                (smartdisplay.y_center + self.y_offset) - (aircraft.vsi / 2),
+                center_x - (int(fpv_x) * 5) + 15,
+                center_y - (aircraft.vsi / 2),
             ],
             [
-                (smartdisplay.width / 2 + self.x_offset) - (int(fpv_x) * 5) + 30,
-                (smartdisplay.y_center + self.y_offset) - (aircraft.vsi / 2),
+                center_x - (int(fpv_x) * 5) + 30,
+                center_y - (aircraft.vsi / 2),
             ],
             2,
         )
         pygame.draw.line(
-            smartdisplay.pygamescreen,
+            self.surface,
             (255, 0, 255),
             [
-                (smartdisplay.width / 2 + self.x_offset) - (int(fpv_x) * 5),
-                (smartdisplay.y_center + self.y_offset) - (aircraft.vsi / 2) - 15,
+                center_x - (int(fpv_x) * 5),
+                center_y - (aircraft.vsi / 2) - 15,
             ],
             [
-                (smartdisplay.width / 2 + self.x_offset) - (int(fpv_x) * 5),
-                (smartdisplay.y_center + self.y_offset) - (aircraft.vsi / 2) - 30,
+                center_x - (int(fpv_x) * 5),
+                center_y - (aircraft.vsi / 2) - 30,
             ],
             2,
         )
         if self.caged_mode == 1:
             pygame.draw.line(
-                smartdisplay.pygamescreen,
+                self.surface,
                 (255, 0, 255),
                 [
-                    (smartdisplay.width / 2 + self.x_offset) - (int(gfpv_x) * 5) - 15,
-                    (smartdisplay.y_center + self.y_offset) - (aircraft.vsi / 2),
+                    center_x - (int(gfpv_x) * 5) - 15,
+                    center_y - (aircraft.vsi / 2),
                 ],
                 [
-                    (smartdisplay.width / 2 + self.x_offset) - (int(gfpv_x) * 5) - 30,
-                    (smartdisplay.y_center + self.y_offset) - (aircraft.vsi / 2),
+                    center_x - (int(gfpv_x) * 5) - 30,
+                    center_y - (aircraft.vsi / 2),
                 ],
                 2,
             )
             pygame.draw.line(
-                smartdisplay.pygamescreen,
+                self.surface,
                 (255, 0, 255),
                 [
-                    (smartdisplay.width / 2 + self.x_offset) - (int(gfpv_x) * 5) + 15,
-                    (smartdisplay.y_center + self.y_offset) - (aircraft.vsi / 2),
+                    center_x - (int(gfpv_x) * 5) + 15,
+                    center_y - (aircraft.vsi / 2),
                 ],
                 [
-                    (smartdisplay.width / 2 + self.x_offset) - (int(gfpv_x) * 5) + 30,
-                    (smartdisplay.y_center + self.y_offset) - (aircraft.vsi / 2),
+                    center_x - (int(gfpv_x) * 5) + 30,
+                    center_y - (aircraft.vsi / 2),
                 ],
                 2,
             )
             pygame.draw.line(
-                smartdisplay.pygamescreen,
+                self.surface,
                 (255, 0, 255),
                 [
-                    (smartdisplay.width / 2 + self.x_offset) - (int(gfpv_x) * 5),
-                    (smartdisplay.y_center + self.y_offset) - (aircraft.vsi / 2) - 15,
+                    center_x - (int(gfpv_x) * 5),
+                    center_y - (aircraft.vsi / 2) - 15,
                 ],
                 [
-                    (smartdisplay.width / 2 + self.x_offset) - (int(gfpv_x) * 5),
-                    (smartdisplay.y_center + self.y_offset) - (aircraft.vsi / 2) - 30,
+                    center_x - (int(gfpv_x) * 5),
+                    center_y - (aircraft.vsi / 2) - 30,
                 ],
                 2,
             )
@@ -408,18 +418,17 @@ class horizon(Module):
 
 
     # called every redraw for the mod
-    def draw(self, aircraft, smartdisplay, pos=(None, None)):
-        if pos[0] != None:
-            self.x_offset = pos[0]
-        if pos[1] != None:
-            self.y_offset = pos[1]
-
-        self.surface.fill((0, 0, 0))  # clear surface
-
+    def draw(self, aircraft, smartdisplay, pos=(0, 0)):
+        x, y = pos
+        
+        # Clear the surface before drawing
+        self.surface.fill((0, 0, 0))
+        
+        # Draw horizon lines starting at the specified position
         self.draw_horz_lines(
-            smartdisplay.width,
-            smartdisplay.height,
-            (smartdisplay.x_center + self.x_offset,smartdisplay.y_center + self.y_offset),
+            self.width,
+            self.height,
+            ((self.width // 2), self.height // 2),  # Use the center of the drawing area
             self.ahrs_line_deg,
             aircraft,
             self.MainColor,
@@ -427,34 +436,34 @@ class horizon(Module):
             self.line_mode,
             self.font,
             self.pxy_div,
+            (x, y)
         )
 
-
-        # go through targets if there are any.
-        if(aircraft.mag_head != None and self.showTrafficMiles > 0):
+        # Traffic rendering (adjust for new position)
+        if aircraft.mag_head is not None and self.showTrafficMiles > 0:
             for t in aircraft.traffic.targets:
-                if t.dist != None and t.dist < self.showTrafficMiles:
+                if t.dist is not None and t.dist < self.showTrafficMiles:
                     result = aircraft.mag_head - t.brng
-                    if(result   > - self.fov_x_each_side  and  result < self.fov_x_each_side):
-                        # bam! target is in view!?!
+                    if -self.fov_x_each_side < result < self.fov_x_each_side:
                         center_deg = result + self.fov_x_each_side
-                        x_offset = self.width - (center_deg / self.x_degree_per_pixel) # convert bearing to target to pixel location on screen.
+                        x_offset = self.width - (center_deg / self.x_degree_per_pixel)
 
-                        # render target distance and alt
-                        txtTargetDist = self.font_target.render("%.2fmi %dft"%(t.dist,t.alt), False, (0,0,0),(255,200,130))
+                        txtTargetDist = self.font_target.render(f"{t.dist:.2f}mi {t.alt}ft", False, (0,0,0), (255,200,130))
                         text_widthD, text_heightD = txtTargetDist.get_size()
-                        self.surface.blit(txtTargetDist, (x_offset-int(text_widthD/2), smartdisplay.y_end-text_heightD))
-                        # render target callsign.
-                        textTargetCall = self.font_target.render(str(t.callsign), False, (0,0,0),(255,200,130))
+                        self.surface.blit(txtTargetDist, (x + x_offset - int(text_widthD/2), y + self.height - text_heightD))
+
+                        textTargetCall = self.font_target.render(str(t.callsign), False, (0,0,0), (255,200,130))
                         text_widthC, text_heightC = textTargetCall.get_size()
-                        self.surface.blit(textTargetCall, (x_offset-int(text_widthC/2), smartdisplay.y_end-text_heightC-text_heightD))
+                        self.surface.blit(textTargetCall, (x + x_offset - int(text_widthC/2), y + self.height - text_heightC - text_heightD))
 
 
-        self.pygamescreen.blit(self.surface, ( -(0), -(0)))
+        # Draw center and flight path on the main screen (already adjusted for position)
+        self.draw_center(smartdisplay, x, y)
+        self.draw_flight_path(aircraft, smartdisplay, x, y)
 
-        self.draw_center(smartdisplay)
-        self.draw_flight_path(aircraft,smartdisplay)
 
+        # Blit the entire surface to the screen at the specified position
+        smartdisplay.pygamescreen.blit(self.surface, pos)
 
 
     # update a setting
@@ -466,10 +475,9 @@ class horizon(Module):
     # cycle through the modes.
     def cyclecaged_mode(self):
         self.caged_mode = self.caged_mode + 1
-        if (self.caged_mode > 1):
+        if self.caged_mode > 1:
             self.caged_mode = 0
 
-    # called before screen draw.  To clear the screen to your favorite color.
     def clear(self):
         #self.ahrs_bg.fill((0, 0, 0))  # clear screen
         print("clear")

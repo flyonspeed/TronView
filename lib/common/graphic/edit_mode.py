@@ -47,25 +47,14 @@ def main_edit_loop():
     pygamescreen.fill((0, 0, 0))
     pygame.display.update()
 
-    # if shared.CurrentScreen.Modules exists.. if it doesn't create it as array
-    if not hasattr(shared.CurrentScreen, "Modules"):
-        shared.CurrentScreen.Modules = []
+    # if shared.CurrentScreen.ScreenObjects exists.. if it doesn't create it as array
+    if not hasattr(shared.CurrentScreen, "ScreenObjects"):
+        shared.CurrentScreen.ScreenObjects = []
         # create _class in Modules that has name,id, x,y, width, height, and color.
-        shared.CurrentScreen.Modules.append(
-            TVModule(
-                pygamescreen,
-                "Heading",
-                "Heading",
-                "heading",
-                10,
-                10,
-                400,
-                100,
-            )
+        shared.CurrentScreen.ScreenObjects.append(
+            TronViewScreenObject(pygamescreen, 'module', f"A_{len(shared.CurrentScreen.ScreenObjects)}")
         )
 
-    if not hasattr(shared.CurrentScreen, "ModuleGroups"):
-        shared.CurrentScreen.ModuleGroups = []
 
     selected_module = None
     dragging = False # are we dragging a module?
@@ -74,7 +63,7 @@ def main_edit_loop():
     resizing = False  # are we resizing a module?
     dropdown = None # dropdown menu for module selection (if any)
     modulesFound, listModules = find_module()
-    showAllBoxes = False
+    showAllBoundryBoxes = False
 
     selected_modules = []
     current_group = None
@@ -109,33 +98,39 @@ def main_edit_loop():
                     elif event.key == pygame.K_e:
                         shared.aircraft.editMode = False  # exit edit mode
                         exit_edit_mode = True
-                    # look for cntl b
+                    # g will create a new group if there is multiple modules selected
+                    elif event.key == pygame.K_g:
+                        if len(selected_modules) > 1:
+                            print("Creating group with %d modules. Modules: %s" % (len(selected_modules), [module.title for module in selected_modules]))
+                            current_group = TronViewScreenObject(pygamescreen, 'group', f"Group_{len(shared.CurrentScreen.ScreenObjects)}")
+                            for module in selected_modules:
+                                module.selected = False
+                                current_group.addModule(module)
+                                shared.CurrentScreen.ScreenObjects.remove(module) # remove from screen objects
+                            shared.CurrentScreen.ScreenObjects.append(current_group) # add to screen objects
+                        else:
+                            print("You must select multiple modules to create a group.")
+                    # look for cntl b to show all boxes
                     elif event.key == pygame.K_b:
-                        showAllBoxes = not showAllBoxes
-                        print("showAllBoxes: ", showAllBoxes)
+                        showAllBoundryBoxes = not showAllBoundryBoxes
+                        print("showAllBoxes: ", showAllBoundryBoxes)
+                        for module in shared.CurrentScreen.ScreenObjects:
+                            module.setShowBounds(showAllBoundryBoxes)
+
                     # look for delete key
                     elif event.key == pygame.K_BACKSPACE or event.key == pygame.K_DELETE:
                         print("Delete key pressed")
                         # delete the selected module by going through the list of modules and removing the selected one.
-                        for module in shared.CurrentScreen.Modules:
+                        for module in shared.CurrentScreen.ScreenObjects:
                             if module.selected:
-                                shared.CurrentScreen.Modules.remove(module)
+                                shared.CurrentScreen.ScreenObjects.remove(module)
                                 break
 
                     elif event.key == pygame.K_a:
                         # add a new module
                         mx, my = pygame.mouse.get_pos()
-                        shared.CurrentScreen.Modules.append(
-                            TVModule(
-                                pygamescreen,
-                                "New",
-                                "New",
-                                "new",
-                                mx,
-                                my,
-                                100,
-                                100,
-                            )
+                        shared.CurrentScreen.ScreenObjects.append(
+                            TronViewScreenObject(pygamescreen, 'module', f"A_{len(shared.CurrentScreen.ScreenObjects)}", module=None, x=mx, y=my)
                         )
 
                 # check for Mouse events
@@ -149,11 +144,11 @@ def main_edit_loop():
                     if not shift_held:
                         selected_modules.clear()
                         # deselect all modules
-                        for module in shared.CurrentScreen.Modules:
+                        for module in shared.CurrentScreen.ScreenObjects:
                             module.selected = False
 
-                    # Check if the mouse click is inside any module (check from the top down)
-                    for module in shared.CurrentScreen.Modules[::-1]:
+                    # Check if the mouse click is inside any screenObject (check from the top down)
+                    for module in shared.CurrentScreen.ScreenObjects[::-1]:
                         if module.x <= mx <= module.x + module.width and module.y <= my <= module.y + module.height:
                             if shift_held:
                                 if module not in selected_modules:
@@ -199,50 +194,42 @@ def main_edit_loop():
                                 module.selected = True
                             break
 
-                    # Create a group if multiple modules are selected
-                    if len(selected_modules) > 1 and not current_group:
-                        current_group = ModuleGroup()
-                        for module in selected_modules:
-                            current_group.addModule(module)
-                        print(f"Created group: {current_group.name}")
-
                 # Mouse up
                 elif event.type == pygame.MOUSEBUTTONUP:
                     if event.button == 3:  # Right mouse button
                         for module in selected_modules:
-                            if module.groupId:
-                                group = next((g for g in shared.CurrentScreen.ModuleGroups if g.id == module.groupId), None)
-                                if group:
-                                    group.removeModule(module)
-                                    if not group.modules:
-                                        shared.CurrentScreen.ModuleGroups.remove(group)
-                                    print(f"Removed module from group: {group.name}")
+                            if module.parent_group:
+                                module.parent_group.removeModule(module)
+                                if not module.parent_group.modules:
+                                    shared.CurrentScreen.ScreenObjects.remove(module.parent_group)
+                                    print(f"Removed module from group: {module.parent_group.title}")
                         current_group = None
 
                     dragging = False
                     resizing = False
                     print("Mouse Up")
                     # selected_module = None
-                    # for module in shared.CurrentScreen.Modules:
+                    # for module in shared.CurrentScreen.ScreenObjects:
                     #     module.selected = False
 
                 # Mouse move.. resize or move the module??
                 elif event.type == pygame.MOUSEMOTION:
                     if dragging and len(selected_modules) == 1:  # if dragging a single module
                         mx, my = pygame.mouse.get_pos()
-                        selected_modules[0].x = mx - offset_x
-                        selected_modules[0].y = my - offset_y
-                        # if the module is in a group, update the group offset
-                        if selected_modules[0].groupId:
-                            print("Module is in a group: %s" % selected_modules[0].groupId)
-                            # go through all modules in the group and update their x and y
-                            for module in shared.CurrentScreen.Modules:
-                                if module.groupId == selected_modules[0].groupId:
-                                    # first get position of where it is from the current mouse position
-                                    temp_x = module.x - selected_modules[0].x
-                                    temp_y = module.y - selected_modules[0].y
-                                    module.x = mx - temp_x
-                                    module.y = my - temp_y
+                        selected_modules[0].move(mx - offset_x, my - offset_y)
+                        
+                        # selected_modules[0].x = mx - offset_x
+                        # selected_modules[0].y = my - offset_y
+                        # # if the module is in a group, update the group offset
+                        # if selected_modules[0].parent_group:
+                        #     print("Module is in a group: %s" % selected_modules[0].parent_group.title)
+                        #     # go through all modules in the group and update their x and y
+                        #     for module in selected_modules[0].parent_group.modules:
+                        #         # first get position of where it is from the current mouse position
+                        #         temp_x = module.x - selected_modules[0].x
+                        #         temp_y = module.y - selected_modules[0].y
+                        #         module.x = mx - temp_x
+                        #         module.y = my - temp_y
                     elif dragging and len(selected_modules) > 1:  # if dragging multiple modules
                         mx, my = pygame.mouse.get_pos()
                         dx, dy = mx - offset_x, my - offset_y
@@ -251,15 +238,18 @@ def main_edit_loop():
                             module.y = my - offset_y
                         #offset_x, offset_y = mx, my
                         pygamescreen.fill((0, 0, 0))
+                    elif dragging and selected_module:  # dragging a single screen object
+                        mx, my = pygame.mouse.get_pos()
+                        selected_module.move(mx, my)
                     elif resizing and selected_module: # resizing the module
                         mx, my = pygame.mouse.get_pos()
                         temp_width = mx - selected_module.x
                         temp_height = my - selected_module.y
                         if temp_width < 40: temp_width = 40  # limit minimum size
                         if temp_height < 40: temp_height = 40
-                        selected_module.width = temp_width
-                        selected_module.height = temp_height
-                        selected_module.resize(selected_module.width, selected_module.height)
+                        #selected_module.width = temp_width
+                        #selected_module.height = temp_height
+                        selected_module.resize(temp_width, temp_height)
                         # clear screen using pygame
                         pygamescreen.fill((0, 0, 0))
 
@@ -274,41 +264,41 @@ def main_edit_loop():
             #     print("No selection "+str(selection))
 
         # draw the modules
-        for module in shared.CurrentScreen.Modules:
-            module.draw(shared.aircraft, shared.smartdisplay) # draw the module
-            groupId = ""
-            if module.groupId:
-                groupId = module.groupId
+        for sObject in shared.CurrentScreen.ScreenObjects:
+            sObject.draw(shared.aircraft, shared.smartdisplay) # draw the module
+            # groupId = ""
+            # if module.parent_group:
+            #     groupId = module.parent_group.title
 
-            if module.selected or (module.groupId and any(m.selected for m in selected_modules if m.groupId == module.groupId)):
-                color = (0, 255, 0)
-                # draw the module box
-                pygame.draw.rect(pygamescreen, color, (module.x, module.y, module.width, module.height), 1)
-                # draw the module title
-                text = debug_font.render(module.title + " " + groupId, True, (255, 255, 255))
-                pygamescreen.blit(text, (module.x + 5, module.y + 5))
-                # draw a little resize handle in the bottom right corner
-                pygame.draw.rect(pygamescreen, color, (module.x + module.width - 10, module.y + module.height - 10, 10, 10), 1)
-            else:
-                if showAllBoxes:
-                    pygame.draw.rect(pygamescreen, (100, 100, 100), (module.x, module.y, module.width, module.height), 1)
-                    text = debug_font.render(module.title + " " + groupId, True, (255, 255, 255))
-                    pygamescreen.blit(text, (module.x + 5, module.y + 5))
-                    pygame.draw.rect(pygamescreen, color, (module.x + module.width - 10, module.y + module.height - 10, 10, 10), 1)
+            # if module.selected or (module.parent_group and any(m.selected for m in selected_modules if m.parent_group == module.parent_group)):
+            #     color = (0, 255, 0)
+            #     # draw the module box
+            #     pygame.draw.rect(pygamescreen, color, (module.x, module.y, module.width, module.height), 1)
+            #     # draw the module title
+            #     text = debug_font.render(module.title + " " + groupId, True, (255, 255, 255))
+            #     pygamescreen.blit(text, (module.x + 5, module.y + 5))
+            #     # draw a little resize handle in the bottom right corner
+            #     pygame.draw.rect(pygamescreen, color, (module.x + module.width - 10, module.y + module.height - 10, 10, 10), 1)
+            # else:
+            #     if showAllBoxes:
+            #         pygame.draw.rect(pygamescreen, (100, 100, 100), (module.x, module.y, module.width, module.height), 1)
+            #         text = debug_font.render(module.title + " " + groupId, True, (255, 255, 255))
+            #         pygamescreen.blit(text, (module.x + 5, module.y + 5))
+            #         pygame.draw.rect(pygamescreen, color, (module.x + module.width - 10, module.y + module.height - 10, 10, 10), 1)
 
 
             # Last... Draw the dropdown menu if visible over the top of everything.
             if dropdown and dropdown.visible and selected_module == module:
                 dropdown.draw(pygamescreen)
 
-        # Draw group outlines
-        for group in shared.CurrentScreen.ModuleGroups:
-            if any(module.selected for module in group.modules):
-                min_x = min(module.x for module in group.modules)
-                min_y = min(module.y for module in group.modules)
-                max_x = max(module.x + module.width for module in group.modules)
-                max_y = max(module.y + module.height for module in group.modules)
-                pygame.draw.rect(pygamescreen, (255, 150, 0), (min_x-5, min_y-5, max_x-min_x+10, max_y-min_y+10), 2)
+        # # Draw group outlines
+        # for sObject in shared.CurrentScreen.ScreenObjects:
+        #     if sObject.type == 'group' and any(module.selected for module in sObject.modules):
+        #         min_x = min(module.x for module in sObject.modules)
+        #         min_y = min(module.y for module in sObject.modules)
+        #         max_x = max(module.x + module.width for module in sObject.modules)
+        #         max_y = max(module.y + module.height for module in sObject.modules)
+        #         pygame.draw.rect(pygamescreen, (255, 150, 0), (min_x-5, min_y-5, max_x-min_x+10, max_y-min_y+10), 2)
 
         #now make pygame update display.
         pygame.display.update()
@@ -357,79 +347,157 @@ def find_module(byName = None):
 
 
 ##############################################
-# TronViewModule
-class TVModule(object):
-    def __init__(self, pgscreen, type, title, module, x, y, width, height):
+# TronViewScreenObject
+class TronViewScreenObject:
+    def __init__(self, pgscreen, type, title, module=None, x=0, y=0, width=100, height=100, id=None):
         self.pygamescreen = pgscreen
         self.type = type
         self.title = title
-        self.module = module
         self.x = x
         self.y = y
         self.width = width
         self.height = height
         self.selected = False
-        self.trafficScope = trafficscope.trafficscope()
-        self.trafficScope.initMod(self.pygamescreen, width, height)
-        self.module = self.trafficScope
-        self.groupId = None
+        self.id = id or 'M_' + ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(5))
+        self.showBounds = False
+        
+        if type == 'group':
+            self.modules = []
+            self.module = None
+        else:
+            self.module = module
+            if module:
+                self.module.initMod(self.pygamescreen, width, height)
+        
+        self.parent_group = None
     
+    def isClickInside(self, mx, my):
+        return self.x <= mx <= self.x + self.width and self.y <= my <= self.y + self.height
+
+    def setShowBounds(self, show):
+        self.showBounds = show
+        if self.type == 'group':
+            for module in self.modules:
+                module.showBounds = self.showBounds
+
     def draw(self, aircraft, smartdisplay):
-        self.module.draw(aircraft, smartdisplay,(self.x,self.y))
+        if self.module is None and self.type == 'module':
+            # draw a rect for the module with a x through it.
+            pygame.draw.rect(self.pygamescreen, (255, 0, 0), (self.x, self.y, self.width, self.height), 1)
+            text = pygame.font.SysFont("monospace", 25, bold=False).render("X", True, (255, 255, 255))
+            self.pygamescreen.blit(text, (self.x + self.width/2 - 5, self.y + self.height/2 - 5))
+            return
+        
+        if self.type == 'group':
+            if len(self.modules) == 0:
+                # draw a rect for the group with a gray background
+                pygame.draw.rect(self.pygamescreen, (100, 100, 100), (self.x, self.y, self.width, self.height), 1)
+                text = pygame.font.SysFont("monospace", 25, bold=False).render("Empty", True, (255, 255, 255))
+                self.pygamescreen.blit(text, (self.x + self.width/2 - 5, self.y + self.height/2 - 5))
+                return
+            #print("Drawing group: %s" % self.title)
+            # Draw group outline
+            if self.showBounds:
+                min_x = min(m.x for m in self.modules)
+                min_y = min(m.y for m in self.modules)
+                max_x = max(m.x + m.width for m in self.modules)
+                max_y = max(m.y + m.height for m in self.modules)
+                pygame.draw.rect(self.pygamescreen, (255, 150, 0), (min_x-5, min_y-5, max_x-min_x+10, max_y-min_y+10), 2)
+                text = pygame.font.SysFont("monospace", 25, bold=False).render(self.title+" mods:"+str(len(self.modules)), True, (255, 255, 255))
+                self.pygamescreen.blit(text, (min_x-5, min_y-5))
+
+            # Draw contained modules
+            for module in self.modules:
+                module.draw(aircraft, smartdisplay)
+        else:
+            self.module.draw(aircraft, smartdisplay, (self.x, self.y))
+        
+        # Draw selection box and title
+        if self.selected:
+            color = (0, 255, 0)
+            pygame.draw.rect(self.pygamescreen, color, (self.x, self.y, self.width, self.height), 1)
+            text = pygame.font.SysFont("monospace", 25, bold=False).render(self.title, True, (255, 255, 255))
+            self.pygamescreen.blit(text, (self.x + 5, self.y + 5))
+            pygame.draw.rect(self.pygamescreen, color, (self.x + self.width - 10, self.y + self.height - 10, 10, 10), 1)
+        
+        if self.showBounds:
+            pygame.draw.rect(self.pygamescreen, (70, 70, 70), (self.x-5, self.y-5, self.width+10, self.height+10), 2)
 
     def resize(self, width, height):
-        self.width = width
-        self.height = height
-        self.module.width = width
-        self.module.height = height
-        self.module.initMod(self.pygamescreen, width, height)
-        if hasattr(self.module, "setup"):
-            self.module.setup()
-        if hasattr(self.module, "resize"):
-            self.module.resize(width, height)
-            print("Module "+self.module.name+" has resize")
+        if self.type != 'group':
+            self.width = width
+            self.height = height
+            if hasattr(self.module, "initMod"):
+                self.module.initMod(self.pygamescreen, width, height)
+            if hasattr(self.module, "setup"):
+                self.module.setup()
+            if hasattr(self.module, "resize"):
+                self.module.resize(width, height)
+        if self.type == 'group':
+            print("Resizing group: %s to %d, %d (old size %d, %d)" % (self.title, width, height, self.width, self.height))
+            # resize all modules in the group by difference
+            dx = width - self.width
+            dy = height - self.height
+            for module in self.modules:
+                module.resize(module.width + dx, module.height + dy)
+            self.generateBounds()
     
+    def move(self, x, y):
+        # figure out the difference in x and y from the current position to the new position
+        if self.type != 'group':
+            self.x = x
+            self.y = y
+        if self.type == 'group':
+            dx = x - self.x
+            dy = y - self.y
+            self.x = x
+            self.y = y
+            #print("Moving screen object: %s to %d, %d from %d,%d, dx:%d dy:%d" % (self.title, x, y, self.x, self.y, dx, dy))
+            for module in self.modules:
+                module.move(module.x + dx, module.y + dy) # move the module
+            self.generateBounds()
+
     def setModule(self, module):
+        if self.type == 'group':
+            raise ValueError("Cannot set module for a group type TVModule")
         self.module = module
         self.title = module.name
-        # check if module has a setup function
         self.module.initMod(self.pygamescreen, self.width, self.height)
-
         if hasattr(self.module, "setup"):
             self.module.setup()
-            print("Module "+self.module.name+" has setup function")
-
-##############################################
-# Module Group
-class ModuleGroup(object):
-    def __init__(self, id=None, name=None):
-        if id == None:
-            # random chars from a-z and 0-9
-            id = 'G_'+''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(5))
-        self.id = id
-        self.modules = []
-        if name == None:
-            name = str(id)
-        self.name = name
-        self.offset_x = 0 
-        self.offset_y = 0
 
     def addModule(self, module):
-        # if this is the first module, set the group offset to the module offset
-        if len(self.modules) == 0:
-            self.offset_x = module.x
-            self.offset_y = module.y
-
-        # check if module is already in the group
+        if self.type != 'group':
+            raise ValueError("Cannot add module to a non-group type TVModule")
         if module not in self.modules:
             self.modules.append(module)
-            module.groupId = self.id
+            module.parent_group = self
+        self.generateBounds()
 
     def removeModule(self, module):
+        if self.type != 'group':
+            raise ValueError("Cannot remove module from a non-group type TVModule")
         self.modules.remove(module)
-        module.groupId = None
+        module.parent_group = None
+        self.generateBounds()
 
-
+    def generateBounds(self):
+        if self.type != 'group':
+            return
+        # generate bounds for the group
+        self.x = min(m.x for m in self.modules)
+        self.y = min(m.y for m in self.modules)
+        # find the module that is the furthest to the right and down
+        modMostRight = None
+        modMostDown = None
+        for module in self.modules:
+            if modMostRight is None or module.x + module.width > modMostRight.x + modMostRight.width:
+                modMostRight = module
+            if modMostDown is None or module.y + module.height > modMostDown.y + modMostDown.height:
+                modMostDown = module
+        self.width = modMostRight.x + modMostRight.width - self.x
+        self.height = modMostDown.y + modMostDown.height - self.y
+        #print("Generated bounds for group: %s x:%d y:%d w:%d h:%d" % (self.title, self.x, self.y, self.width, self.height))
 
 COLOR_INACTIVE = (30, 30, 30)
 COLOR_ACTIVE = (100, 200, 255)

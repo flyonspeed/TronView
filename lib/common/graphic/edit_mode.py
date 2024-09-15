@@ -4,6 +4,8 @@
 #######################################################################################################################################
 # edit mode
 #
+import random
+import string
 from lib.common import shared
 
 import argparse, pygame
@@ -20,7 +22,6 @@ import os
 import inspect
 import importlib
 from lib.modules.efis.trafficscope import trafficscope
-
 
 
 #############################################
@@ -63,6 +64,9 @@ def main_edit_loop():
             )
         )
 
+    if not hasattr(shared.CurrentScreen, "ModuleGroups"):
+        shared.CurrentScreen.ModuleGroups = []
+
     selected_module = None
     dragging = False # are we dragging a module?
     offset_x = 0 # x offset for dragging
@@ -70,6 +74,10 @@ def main_edit_loop():
     resizing = False  # are we resizing a module?
     dropdown = None # dropdown menu for module selection (if any)
     modulesFound, listModules = find_module()
+    showAllBoxes = False
+
+    selected_modules = []
+    current_group = None
 
     ##########################################
     # Main edit draw loop
@@ -101,6 +109,10 @@ def main_edit_loop():
                     elif event.key == pygame.K_e:
                         shared.aircraft.editMode = False  # exit edit mode
                         exit_edit_mode = True
+                    # look for cntl b
+                    elif event.key == pygame.K_b:
+                        showAllBoxes = not showAllBoxes
+                        print("showAllBoxes: ", showAllBoxes)
                     # look for delete key
                     elif event.key == pygame.K_BACKSPACE or event.key == pygame.K_DELETE:
                         print("Delete key pressed")
@@ -130,13 +142,28 @@ def main_edit_loop():
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     mx, my = pygame.mouse.get_pos()
                     print("Mouse Click %d x %d" % (mx, my))
-                    for module in shared.CurrentScreen.Modules: # unselect all modules (if any)
-                        module.selected = False
+                    
+                    # Check if Shift is held down
+                    shift_held = pygame.key.get_mods() & pygame.KMOD_SHIFT
+
+                    if not shift_held:
+                        selected_modules.clear()
+                        # deselect all modules
+                        for module in shared.CurrentScreen.Modules:
+                            module.selected = False
 
                     # Check if the mouse click is inside any module (check from the top down)
-                    for module in shared.CurrentScreen.Modules [::-1]:
+                    for module in shared.CurrentScreen.Modules[::-1]:
                         if module.x <= mx <= module.x + module.width and module.y <= my <= module.y + module.height:
-
+                            if shift_held:
+                                if module not in selected_modules:
+                                    selected_modules.append(module)
+                                    module.selected = True
+                                    print("Selected module: %s (shift) current modules: %d" % (module.title, len(selected_modules)))
+                            else:
+                                selected_modules = [module]
+                                module.selected = True
+                                print("Selected module: %s" % module.title)
                             #################
                             # RESIZE MODULE
                             if mx >= module.x + module.width - 10 and my >= module.y + module.height - 10:
@@ -167,13 +194,31 @@ def main_edit_loop():
                                 # Click is inside the module, start moving
                                 selected_module = module
                                 dragging = True
-                                offset_x = mx - module.x
+                                offset_x = mx - module.x 
                                 offset_y = my - module.y
                                 module.selected = True
                             break
 
+                    # Create a group if multiple modules are selected
+                    if len(selected_modules) > 1 and not current_group:
+                        current_group = ModuleGroup()
+                        for module in selected_modules:
+                            current_group.addModule(module)
+                        print(f"Created group: {current_group.name}")
+
                 # Mouse up
                 elif event.type == pygame.MOUSEBUTTONUP:
+                    if event.button == 3:  # Right mouse button
+                        for module in selected_modules:
+                            if module.groupId:
+                                group = next((g for g in shared.CurrentScreen.ModuleGroups if g.id == module.groupId), None)
+                                if group:
+                                    group.removeModule(module)
+                                    if not group.modules:
+                                        shared.CurrentScreen.ModuleGroups.remove(group)
+                                    print(f"Removed module from group: {group.name}")
+                        current_group = None
+
                     dragging = False
                     resizing = False
                     print("Mouse Up")
@@ -183,11 +228,28 @@ def main_edit_loop():
 
                 # Mouse move.. resize or move the module??
                 elif event.type == pygame.MOUSEMOTION:
-                    if dragging and selected_module: # moving the module
+                    if dragging and len(selected_modules) == 1:  # if dragging a single module
                         mx, my = pygame.mouse.get_pos()
-                        selected_module.x = mx - offset_x
-                        selected_module.y = my - offset_y
-                        # clear screen using pygame
+                        selected_modules[0].x = mx - offset_x
+                        selected_modules[0].y = my - offset_y
+                        # if the module is in a group, update the group offset
+                        if selected_modules[0].groupId:
+                            print("Module is in a group: %s" % selected_modules[0].groupId)
+                            # go through all modules in the group and update their x and y
+                            for module in shared.CurrentScreen.Modules:
+                                if module.groupId == selected_modules[0].groupId:
+                                    # first get position of where it is from the current mouse position
+                                    temp_x = module.x - selected_modules[0].x
+                                    temp_y = module.y - selected_modules[0].y
+                                    module.x = mx - temp_x
+                                    module.y = my - temp_y
+                    elif dragging and len(selected_modules) > 1:  # if dragging multiple modules
+                        mx, my = pygame.mouse.get_pos()
+                        dx, dy = mx - offset_x, my - offset_y
+                        for module in selected_modules:
+                            module.x = mx - offset_x
+                            module.y = my - offset_y
+                        #offset_x, offset_y = mx, my
                         pygamescreen.fill((0, 0, 0))
                     elif resizing and selected_module: # resizing the module
                         mx, my = pygame.mouse.get_pos()
@@ -214,22 +276,40 @@ def main_edit_loop():
         # draw the modules
         for module in shared.CurrentScreen.Modules:
             module.draw(shared.aircraft, shared.smartdisplay) # draw the module
+            groupId = ""
+            if module.groupId:
+                groupId = module.groupId
 
-            if module.selected:  # if the module is selected, change the color
+            if module.selected or (module.groupId and any(m.selected for m in selected_modules if m.groupId == module.groupId)):
                 color = (0, 255, 0)
                 # draw the module box
                 pygame.draw.rect(pygamescreen, color, (module.x, module.y, module.width, module.height), 1)
                 # draw the module title
-                text = debug_font.render(module.title, True, (255, 255, 255))
+                text = debug_font.render(module.title + " " + groupId, True, (255, 255, 255))
                 pygamescreen.blit(text, (module.x + 5, module.y + 5))
                 # draw a little resize handle in the bottom right corner
                 pygame.draw.rect(pygamescreen, color, (module.x + module.width - 10, module.y + module.height - 10, 10, 10), 1)
+            else:
+                if showAllBoxes:
+                    pygame.draw.rect(pygamescreen, (100, 100, 100), (module.x, module.y, module.width, module.height), 1)
+                    text = debug_font.render(module.title + " " + groupId, True, (255, 255, 255))
+                    pygamescreen.blit(text, (module.x + 5, module.y + 5))
+                    pygame.draw.rect(pygamescreen, color, (module.x + module.width - 10, module.y + module.height - 10, 10, 10), 1)
+
 
             # Last... Draw the dropdown menu if visible over the top of everything.
             if dropdown and dropdown.visible and selected_module == module:
                 dropdown.draw(pygamescreen)
 
-        
+        # Draw group outlines
+        for group in shared.CurrentScreen.ModuleGroups:
+            if any(module.selected for module in group.modules):
+                min_x = min(module.x for module in group.modules)
+                min_y = min(module.y for module in group.modules)
+                max_x = max(module.x + module.width for module in group.modules)
+                max_y = max(module.y + module.height for module in group.modules)
+                pygame.draw.rect(pygamescreen, (255, 150, 0), (min_x-5, min_y-5, max_x-min_x+10, max_y-min_y+10), 2)
+
         #now make pygame update display.
         pygame.display.update()
 
@@ -292,6 +372,7 @@ class TVModule(object):
         self.trafficScope = trafficscope.trafficscope()
         self.trafficScope.initMod(self.pygamescreen, width, height)
         self.module = self.trafficScope
+        self.groupId = None
     
     def draw(self, aircraft, smartdisplay):
         self.module.draw(aircraft, smartdisplay,(self.x,self.y))
@@ -317,6 +398,38 @@ class TVModule(object):
         if hasattr(self.module, "setup"):
             self.module.setup()
             print("Module "+self.module.name+" has setup function")
+
+##############################################
+# Module Group
+class ModuleGroup(object):
+    def __init__(self, id=None, name=None):
+        if id == None:
+            # random chars from a-z and 0-9
+            id = 'G_'+''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(5))
+        self.id = id
+        self.modules = []
+        if name == None:
+            name = str(id)
+        self.name = name
+        self.offset_x = 0 
+        self.offset_y = 0
+
+    def addModule(self, module):
+        # if this is the first module, set the group offset to the module offset
+        if len(self.modules) == 0:
+            self.offset_x = module.x
+            self.offset_y = module.y
+
+        # check if module is already in the group
+        if module not in self.modules:
+            self.modules.append(module)
+            module.groupId = self.id
+
+    def removeModule(self, module):
+        self.modules.remove(module)
+        module.groupId = None
+
+
 
 COLOR_INACTIVE = (30, 30, 30)
 COLOR_ACTIVE = (100, 200, 255)

@@ -34,8 +34,6 @@ from lib.common.graphic import graphic_mode
 from lib.common.graphic import edit_mode
 from lib.common import shared # global shared objects stored here.
 
-
-
 #############################################
 ## Class: myThreadEfisInputReader
 ## Read input data on seperate thread.
@@ -140,55 +138,65 @@ DataInputToLoad3 = hud_utils.readConfig("DataInput3", "inputsource", "none")  # 
 
 # check args passed in.
 if __name__ == "__main__":
-    #print 'ARGV      :', sys.argv[1:]
-    try:
-        opts, args = getopt.getopt(
-            sys.argv[1:], "hs:i:tec:lr",['in1=','in2=',"in3=",'playfile1=','playfile2=','screen=','listusblogs','listexamplelogs','listlogs']
-        )
-    except getopt.GetoptError:
-        print("unknown command line args given..")
-        hud_utils.showArgs()
-    for opt, arg in opts:
-        #print("opt: %s  arg: %s"%(opt,arg))
-        if opt == '-t':
-            shared.aircraft.textMode = True
-        if opt == '-e':
-            shared.aircraft.inputs[0].PlayFile = True
-        if opt == '-c':  #custom example file name.
-            shared.aircraft.inputs[0].PlayFile = arg
-        if opt in ("","--listlogs"):
-            hud_utils.listLogDataFiles()
-            sys.exit()
-        if opt in ("","--listexamplelogs"):
-            hud_utils.listExampleLogs()
-            sys.exit()
-        if opt in ("","--listusblogs"):
-            hud_utils.listUSBLogDataFiles()
-            sys.exit()
-        if opt in ("", "--in1"):
-            DataInputToLoad = arg
-        if opt in ("", "--in2"):
-            DataInputToLoad2 = arg
-        if opt in ("", "--in3"):
-            DataInputToLoad3 = arg
-        if opt in ("", "--playfile1"):
-            shared.aircraft.inputs[0].PlayFile = arg
-            print("Input1 playing log file: "+arg)
-        if opt in ("", "--playfile2"):
-            shared.aircraft.inputs[1].PlayFile = arg
-            print("Input2 playing log file: "+arg)
-        if opt in ("", "--playfile3"):
-            shared.aircraft.inputs[2].PlayFile = arg
-            print("Input3 playing log file: "+arg)
-        if opt in ("-h", "--help"):
-            hud_utils.showArgs()
-        if opt in ("-i"):
-            DataInputToLoad = arg
-        if opt in ("-s", "--screen"):
-            ScreenNameToLoad = arg
-        if opt == "-l":
-            rpi_hardware.list_serial_ports(True)
-            sys.exit()
+    parser = argparse.ArgumentParser(description="TronView")
+    parser.add_argument('-t', action='store_true', help='Text mode')
+    parser.add_argument('-e', action='store_true', help='Playback mode')
+    parser.add_argument('-c', type=str, help='Custom example file name')
+    parser.add_argument('--listlogs', action='store_true', help='List log data files')
+    parser.add_argument('--listexamplelogs', action='store_true', help='List example log files')
+    parser.add_argument('--listusblogs', action='store_true', help='List USB log data files')
+    parser.add_argument('--in1', type=str, help='Input source 1')
+    parser.add_argument('--in2', type=str, help='Input source 2')
+    parser.add_argument('--in3', type=str, help='Input source 3')
+    parser.add_argument('--playfile1', type=str, help='Playback file for input 1')
+    parser.add_argument('--playfile2', type=str, help='Playback file for input 2')
+    parser.add_argument('--playfile3', type=str, help='Playback file for input 3')
+    parser.add_argument('-i', type=str, help='Input source')
+    parser.add_argument('-s', '--screen', type=str, help='Screen to load')
+    parser.add_argument('-l', action='store_true', help='List serial ports')
+    parser.add_argument('--load-screen', type=str, help='Load screen from JSON file')
+    args = parser.parse_args()
+
+    if args.t:
+        shared.aircraft.textMode = True
+    if args.e:
+        shared.aircraft.inputs[0].PlayFile = True
+    if args.c:
+        shared.aircraft.inputs[0].PlayFile = args.c
+    if args.listlogs:
+        hud_utils.listLogDataFiles()
+        sys.exit()
+    if args.listexamplelogs:
+        hud_utils.listExampleLogs()
+        sys.exit()
+    if args.listusblogs:
+        hud_utils.listUSBLogDataFiles()
+        sys.exit()
+    if args.in1:
+        DataInputToLoad = args.in1
+    if args.in2:
+        DataInputToLoad2 = args.in2
+    if args.in3:
+        DataInputToLoad3 = args.in3
+    if args.playfile1:
+        shared.aircraft.inputs[0].PlayFile = args.playfile1
+        print("Input1 playing log file: "+args.playfile1)
+    if args.playfile2:
+        shared.aircraft.inputs[1].PlayFile = args.playfile2
+        print("Input2 playing log file: "+args.playfile2)
+    if args.playfile3:
+        shared.aircraft.inputs[2].PlayFile = args.playfile3
+        print("Input3 playing log file: "+args.playfile3)
+    if args.i:
+        DataInputToLoad = args.i
+    if args.screen:
+        ScreenNameToLoad = args.screen
+    if args.l:
+        rpi_hardware.list_serial_ports(True)
+        sys.exit()
+    if args.load_screen:
+        edit_mode.load_screen_from_json(args.load_screen)
+
     hud_utils.getDataRecorderDir(exitOnFail=True)
     isRunningOnPi = rpi_hardware.is_raspberrypi()
     if isRunningOnPi == True: 
@@ -263,4 +271,5 @@ if __name__ == "__main__":
     if DataInputToLoad2 != "none": shared.CurrentInput2.closeInput(shared.aircraft)
     if DataInputToLoad3 != "none": shared.CurrentInput3.closeInput(shared.aircraft)
     sys.exit()
+
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

@@ -66,7 +66,6 @@ def main_edit_loop():
     showAllBoundryBoxes = False
 
     selected_modules = []
-    current_group = None
 
     ##########################################
     # Main edit draw loop
@@ -95,10 +94,21 @@ def main_edit_loop():
                         pass
                     elif event.key == pygame.K_q or event.key == pygame.K_ESCAPE:
                         shared.aircraft.errorFoundNeedToExit = True
+
+                    # Exit Edit Mode
                     elif event.key == pygame.K_e:
                         shared.aircraft.editMode = False  # exit edit mode
                         exit_edit_mode = True
-                    # g will create a new group if there is multiple modules selected
+
+                    # UNGROUP
+                    elif event.key == pygame.K_g and (pygame.key.get_mods() & pygame.KMOD_CTRL):
+                        if selected_module.type == 'group':
+                            print("Ungrouping modules: %s" % [module.title for module in selected_module.modules])
+                            shared.CurrentScreen.ScreenObjects.remove(selected_module)
+                            for module in selected_module.modules:
+                                shared.CurrentScreen.ScreenObjects.append(module)
+                                module.selected = False
+                    # CREATE GROUP
                     elif event.key == pygame.K_g:
                         if len(selected_modules) > 1:
                             print("Creating group with %d modules. Modules: %s" % (len(selected_modules), [module.title for module in selected_modules]))
@@ -107,9 +117,10 @@ def main_edit_loop():
                                 module.selected = False
                                 current_group.addModule(module)
                                 shared.CurrentScreen.ScreenObjects.remove(module) # remove from screen objects
+                            current_group.selected = True # set the new group to selected
                             shared.CurrentScreen.ScreenObjects.append(current_group) # add to screen objects
                         else:
-                            print("You must select multiple modules to create a group.")
+                            print("You must select multiple modules to create a group.")                            
                     # look for cntl b to show all boxes
                     elif event.key == pygame.K_b:
                         showAllBoundryBoxes = not showAllBoundryBoxes
@@ -125,9 +136,9 @@ def main_edit_loop():
                             if module.selected:
                                 shared.CurrentScreen.ScreenObjects.remove(module)
                                 break
-
+                    # ADD
                     elif event.key == pygame.K_a:
-                        # add a new module
+                        # add a new Screen object
                         mx, my = pygame.mouse.get_pos()
                         shared.CurrentScreen.ScreenObjects.append(
                             TronViewScreenObject(pygamescreen, 'module', f"A_{len(shared.CurrentScreen.ScreenObjects)}", module=None, x=mx, y=my)
@@ -196,15 +207,6 @@ def main_edit_loop():
 
                 # Mouse up
                 elif event.type == pygame.MOUSEBUTTONUP:
-                    if event.button == 3:  # Right mouse button
-                        for module in selected_modules:
-                            if module.parent_group:
-                                module.parent_group.removeModule(module)
-                                if not module.parent_group.modules:
-                                    shared.CurrentScreen.ScreenObjects.remove(module.parent_group)
-                                    print(f"Removed module from group: {module.parent_group.title}")
-                        current_group = None
-
                     dragging = False
                     resizing = False
                     print("Mouse Up")
@@ -382,10 +384,15 @@ class TronViewScreenObject:
 
     def draw(self, aircraft, smartdisplay):
         if self.module is None and self.type == 'module':
+            boxColor = (140, 0, 0)
+            if self.selected:
+                boxColor = (255, 255, 0)
             # draw a rect for the module with a x through it.
-            pygame.draw.rect(self.pygamescreen, (255, 0, 0), (self.x, self.y, self.width, self.height), 1)
+            pygame.draw.rect(self.pygamescreen, boxColor, (self.x, self.y, self.width, self.height), 1)
             text = pygame.font.SysFont("monospace", 25, bold=False).render("X", True, (255, 255, 255))
             self.pygamescreen.blit(text, (self.x + self.width/2 - 5, self.y + self.height/2 - 5))
+            # draw a little resize handle in the bottom right corner
+            pygame.draw.rect(self.pygamescreen, boxColor, (self.x + self.width - 10, self.y + self.height - 10, 10, 10), 1)
             return
         
         if self.type == 'group':
@@ -416,11 +423,10 @@ class TronViewScreenObject:
         if self.selected:
             color = (0, 255, 0)
             pygame.draw.rect(self.pygamescreen, color, (self.x, self.y, self.width, self.height), 1)
-            text = pygame.font.SysFont("monospace", 25, bold=False).render(self.title, True, (255, 255, 255))
+            text = pygame.font.SysFont("monospace", 21, bold=False).render(self.title, True, (255, 255, 255))
             self.pygamescreen.blit(text, (self.x + 5, self.y + 5))
             pygame.draw.rect(self.pygamescreen, color, (self.x + self.width - 10, self.y + self.height - 10, 10, 10), 1)
-        
-        if self.showBounds:
+        elif self.showBounds:
             pygame.draw.rect(self.pygamescreen, (70, 70, 70), (self.x-5, self.y-5, self.width+10, self.height+10), 2)
 
     def resize(self, width, height):

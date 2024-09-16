@@ -22,6 +22,8 @@ import os
 import inspect
 import importlib
 from lib.modules.efis.trafficscope import trafficscope
+import json
+from datetime import datetime
 
 
 #############################################
@@ -39,9 +41,6 @@ def main_edit_loop():
     pygame.mouse.set_visible(True)
     print("Entering Edit Mode")
 
-    # list of modules
-    #listModules = ["Heading", "Roll", "Horizon", "AOA", "SlipSkid", "Wind", "TrafficScope", "CDI", "GCross", "Calibration", "Test"]
-
     # clear screen using pygame
     pygamescreen = pygame.display.set_mode((shared.smartdisplay.x_end, shared.smartdisplay.y_end))
     pygamescreen.fill((0, 0, 0))
@@ -50,11 +49,9 @@ def main_edit_loop():
     # if shared.CurrentScreen.ScreenObjects exists.. if it doesn't create it as array
     if not hasattr(shared.CurrentScreen, "ScreenObjects"):
         shared.CurrentScreen.ScreenObjects = []
-        # create _class in Modules that has name,id, x,y, width, height, and color.
         shared.CurrentScreen.ScreenObjects.append(
             TronViewScreenObject(pygamescreen, 'module', f"A_{len(shared.CurrentScreen.ScreenObjects)}")
         )
-
 
     selected_screen_object = None
     dragging = False # are we dragging a screen object?
@@ -103,9 +100,9 @@ def main_edit_loop():
                     # UNGROUP
                     elif event.key == pygame.K_g and (pygame.key.get_mods() & pygame.KMOD_CTRL):
                         if selected_screen_object.type == 'group':
-                            print("Ungrouping modules: %s" % [module.title for module in selected_screen_object.modules])
+                            print("Ungrouping modules: %s" % [module.title for module in selected_screen_object.childScreenObjects])
                             shared.CurrentScreen.ScreenObjects.remove(selected_screen_object)
-                            for sObject in selected_screen_object.modules:
+                            for sObject in selected_screen_object.childScreenObjects:
                                 shared.CurrentScreen.ScreenObjects.append(sObject)
                                 sObject.selected = False
                     # CREATE GROUP
@@ -115,7 +112,7 @@ def main_edit_loop():
                             current_group = TronViewScreenObject(pygamescreen, 'group', f"Group_{len(shared.CurrentScreen.ScreenObjects)}")
                             for sObject in selected_screen_objects:
                                 sObject.selected = False
-                                current_group.addModule(sObject)
+                                current_group.addChildScreenObject(sObject)
                                 shared.CurrentScreen.ScreenObjects.remove(sObject) # remove from screen objects
                             current_group.selected = True # set the new group to selected
                             shared.CurrentScreen.ScreenObjects.append(current_group) # add to screen objects
@@ -162,6 +159,15 @@ def main_edit_loop():
                                 shared.CurrentScreen.ScreenObjects.insert(0, sObject)
                                 break
 
+                    # SAVE SCREEN TO JSON
+                    elif event.key == pygame.K_s:
+                        save_screen_to_json()
+
+                    # LOAD SCREEN FROM JSON
+                    elif event.key == pygame.K_l:
+                        filename = input("Enter the filename to load: ")
+                        load_screen_from_json(filename)
+
                 # check for Mouse events
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     mx, my = pygame.mouse.get_pos()
@@ -206,7 +212,7 @@ def main_edit_loop():
                                     print("Selected module: %s" % sObject.title)
                             #################
                             # RESIZE MODULE
-                            if mx >= sObject.x + sObject.width - 10 and my >= sObject.y + sObject.height - 10:
+                            if mx >= sObject.x + sObject.width - 10 and my >= sObject.y + sObject.height - 10 and mx <= sObject.x + sObject.width and my <= sObject.y + sObject.height:
                                 # Click is in the bottom right corner, start resizing
                                 selected_screen_object = sObject
                                 sObject.selected = True
@@ -346,22 +352,20 @@ class TronViewScreenObject:
         self.mouse_offset_y = 0
         
         if type == 'group':
-            self.modules = []
+            self.childScreenObjects = []
             self.module = None
         else:
             self.module = module
             if module:
                 self.module.initMod(self.pygamescreen, width, height)
-        
-        self.parent_group = None
-    
+            
     def isClickInside(self, mx, my):
         return self.x <= mx <= self.x + self.width and self.y <= my <= self.y + self.height
 
     def setShowBounds(self, show):
         self.showBounds = show
         if self.type == 'group':
-            for module in self.modules:
+            for module in self.childScreenObjects:
                 module.showBounds = self.showBounds
 
     def draw(self, aircraft, smartdisplay):
@@ -378,7 +382,7 @@ class TronViewScreenObject:
             return
         
         if self.type == 'group':
-            if len(self.modules) == 0:
+            if len(self.childScreenObjects) == 0:
                 # draw a rect for the group with a gray background
                 pygame.draw.rect(self.pygamescreen, (100, 100, 100), (self.x, self.y, self.width, self.height), 1)
                 text = pygame.font.SysFont("monospace", 25, bold=False).render("Empty", True, (255, 255, 255))
@@ -387,16 +391,16 @@ class TronViewScreenObject:
             #print("Drawing group: %s" % self.title)
             # Draw group outline
             if self.showBounds:
-                min_x = min(m.x for m in self.modules)
-                min_y = min(m.y for m in self.modules)
-                max_x = max(m.x + m.width for m in self.modules)
-                max_y = max(m.y + m.height for m in self.modules)
+                min_x = min(m.x for m in self.childScreenObjects)
+                min_y = min(m.y for m in self.childScreenObjects)
+                max_x = max(m.x + m.width for m in self.childScreenObjects)
+                max_y = max(m.y + m.height for m in self.childScreenObjects)
                 pygame.draw.rect(self.pygamescreen, (255, 150, 0), (min_x-5, min_y-5, max_x-min_x+10, max_y-min_y+10), 2)
-                text = pygame.font.SysFont("monospace", 25, bold=False).render(self.title+" mods:"+str(len(self.modules)), True, (255, 255, 255))
+                text = pygame.font.SysFont("monospace", 25, bold=False).render(self.title+" mods:"+str(len(self.childScreenObjects)), True, (255, 255, 255))
                 self.pygamescreen.blit(text, (min_x-5, min_y-5))
 
             # Draw contained modules
-            for module in self.modules:
+            for module in self.childScreenObjects:
                 module.draw(aircraft, smartdisplay)
         else:
             self.module.draw(aircraft, smartdisplay, (self.x, self.y))
@@ -426,7 +430,7 @@ class TronViewScreenObject:
             # resize all modules in the group by difference
             dx = width - self.width
             dy = height - self.height
-            for module in self.modules:
+            for module in self.childScreenObjects:
                 module.resize(module.width + dx, module.height + dy)
             self.generateBounds()
     
@@ -441,8 +445,8 @@ class TronViewScreenObject:
             self.x = x
             self.y = y
             #print("Moving screen object: %s to %d, %d from %d,%d, dx:%d dy:%d" % (self.title, x, y, self.x, self.y, dx, dy))
-            for module in self.modules:
-                module.move(module.x + dx, module.y + dy) # move the module
+            for childSObj in self.childScreenObjects:
+                childSObj.move(childSObj.x + dx, childSObj.y + dy) # move the module
             self.generateBounds()
 
     def setModule(self, module):
@@ -455,38 +459,80 @@ class TronViewScreenObject:
         if hasattr(self.module, "setup"):
             self.module.setup()
 
-    def addModule(self, module):
+    def addChildScreenObject(self, sObject):
         if self.type != 'group':
-            raise ValueError("Cannot add module to a non-group type TVModule")
-        if module not in self.modules:
-            self.modules.append(module)
-            module.parent_group = self
+            raise ValueError("Cannot add screen object to a non-group type screenObject")
+        if sObject not in self.childScreenObjects:
+            self.childScreenObjects.append(sObject)
         self.generateBounds()
 
-    def removeModule(self, module):
+    def removeChildScreenObject(self, sObject):
         if self.type != 'group':
-            raise ValueError("Cannot remove module from a non-group type TVModule")
-        self.modules.remove(module)
-        module.parent_group = None
+            raise ValueError("Cannot remove screen object from a non-group type")
+        self.childScreenObjects.remove(sObject)
         self.generateBounds()
 
     def generateBounds(self):
         if self.type != 'group':
             return
         # generate bounds for the group
-        self.x = min(m.x for m in self.modules)
-        self.y = min(m.y for m in self.modules)
+        self.x = min(m.x for m in self.childScreenObjects)
+        self.y = min(m.y for m in self.childScreenObjects)
         # find the module that is the furthest to the right and down
         modMostRight = None
         modMostDown = None
-        for module in self.modules:
-            if modMostRight is None or module.x + module.width > modMostRight.x + modMostRight.width:
-                modMostRight = module
-            if modMostDown is None or module.y + module.height > modMostDown.y + modMostDown.height:
-                modMostDown = module
+        for childSObj in self.childScreenObjects:
+            if modMostRight is None or childSObj.x + childSObj.width > modMostRight.x + modMostRight.width:
+                modMostRight = childSObj
+            if modMostDown is None or childSObj.y + childSObj.height > modMostDown.y + modMostDown.height:
+                modMostDown = childSObj
         self.width = modMostRight.x + modMostRight.width - self.x
         self.height = modMostDown.y + modMostDown.height - self.y
         #print("Generated bounds for group: %s x:%d y:%d w:%d h:%d" % (self.title, self.x, self.y, self.width, self.height))
+
+    def to_dict(self):
+        # save everything about this object to json. modules, 
+        data = {
+            "type": self.type,
+            "title": self.title,
+            "x": self.x,
+            "y": self.y,
+            "width": self.width,
+            "height": self.height,
+        }
+        if self.module:
+            data["module"] = {
+                "name": self.module.name,
+            }
+        if self.type == 'group' and self.childScreenObjects:
+            data["screenObjects"] = []
+            for childSObj in self.childScreenObjects:
+                data["screenObjects"].append(childSObj.to_dict())
+        if self.id:
+            data["id"] = self.id
+
+        return data
+    def from_dict(self, data):
+        self.type = data['type']
+        self.title = data['title']
+        self.x = data['x']
+        self.y = data['y']
+        self.width = data['width']
+        self.height = data['height']
+        if self.type == 'group' and data['screenObjects']:
+            self.childScreenObjects = []
+            for childSObj in data['screenObjects']:
+                new_childSObj = TronViewScreenObject(
+                    self.pygamescreen,
+                    childSObj['type'],
+                    childSObj['title'],
+                    x=childSObj['x'],
+                    y=childSObj['y'],
+                    width=childSObj['width'],
+                    height=childSObj['height']
+                )
+                self.addChildScreenObject(new_childSObj)
+
 
 COLOR_INACTIVE = (30, 30, 30)
 COLOR_ACTIVE = (100, 200, 255)
@@ -568,5 +614,46 @@ class DropDown():
         self.visible = not self.visible
     
 
+def save_screen_to_json():
+    data = {
+        "ver": {"version": "1.0"},  # You can update this version as needed
+        "screen": {
+            "title": "No Name",
+            "width": shared.smartdisplay.x_end,
+            "height": shared.smartdisplay.y_end
+        },
+        "screenObjects": [obj.to_dict() for obj in shared.CurrentScreen.ScreenObjects]
+    }
+    
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"screen_save_{timestamp}.json"
+    
+    with open(filename, "w") as f:
+        json.dump(data, f, indent=2)
+    
+    print(f"Screen saved to {filename}")
+
+def load_screen_from_json(filename):
+    try:
+        with open(filename, 'r') as f:
+            data = json.load(f)
+        
+        # Clear existing screen objects
+        shared.CurrentScreen.ScreenObjects.clear()
+        
+        # Set screen properties
+        shared.CurrentScreen.title = data['screen']['title']
+        shared.smartdisplay.x_end = data['screen']['width']
+        shared.smartdisplay.y_end = data['screen']['height']
+        
+        # Load screen objects using the from_dict method
+        for obj_data in data['screenObjects']:
+            new_obj = TronViewScreenObject(shared.CurrentScreen.pygamescreen, obj_data['type'], obj_data['title'])
+            new_obj.from_dict(obj_data)
+            shared.CurrentScreen.ScreenObjects.append(new_obj)
+        
+        print(f"Screen loaded from {filename}")
+    except Exception as e:
+        print(f"Error loading screen from {filename}: {str(e)}")
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

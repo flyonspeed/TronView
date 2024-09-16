@@ -1,0 +1,19 @@
+Example below of an etc/rc.local file configured for power on autoboot to g3x live and by using the "q" (quite) key as a demo file for g3x and MGL recorded data
+
+rc.local edit commandsfrom command line
+1)  cd /etc  
+2) sudo nano rc.local
+3) use keyboard arrows to move within the file
+4) you can edit using the keypoard, copy & paste with the mouse, 
+5) the exit 0 line MUST BE at the end of the file
+6) to save use ctrl-o (OH), 
+7) to exit editor use ctr-x 
+
+# fi
+ /home/pi/start_pygame.sh &  # this sets up Raspi pi 5 for cmd line graphics
+ /bin/sleep 2; cd /home/pi/TronView/ && sudo python3 main.py  #autostart default to config file for g3x live
+ /bin/sleep 2; cd /home/pi/efis_to_hud/ && sudo python3 main.py --in1 serial_g3x --playfile1 garmin_g3x_data1.txt # g3x recorded demo file
+ /bin/sleep 2; cd /home/pi/TronView/ && sudo python3 main.py --in1 serial_mgl --playfile1 mgl_11_RV8Landing.dat # mgl recorded demo file
+ /bin/sleep 2; cd /home/pi/TronView/ && sudo python3 main.py --in1 serial_mgl --playfile1 mgl_8.dat --in2 stratux_wifi --playfile2 stratux_8.dat   # double mgl recorded demo files serial and wifi (ADSB) data files
+
+exit 0

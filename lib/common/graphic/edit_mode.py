@@ -56,16 +56,16 @@ def main_edit_loop():
         )
 
 
-    selected_module = None
-    dragging = False # are we dragging a module?
+    selected_screen_object = None
+    dragging = False # are we dragging a screen object?
     offset_x = 0 # x offset for dragging
     offset_y = 0 # y offset for dragging
-    resizing = False  # are we resizing a module?
+    resizing = False  # are we resizing?
     dropdown = None # dropdown menu for module selection (if any)
     modulesFound, listModules = find_module()
     showAllBoundryBoxes = False
 
-    selected_modules = []
+    selected_screen_objects = []
 
     ##########################################
     # Main edit draw loop
@@ -79,9 +79,9 @@ def main_edit_loop():
             selection = dropdown.update(event_list)
             if selection >= 0:
                 print("Selected module: %s" % listModules[selection])
-                selected_module.title = listModules[selection]
+                selected_screen_object.title = listModules[selection]
                 newModules, titles  = find_module(listModules[selection])
-                selected_module.setModule(newModules[0])
+                selected_screen_object.setModule(newModules[0])
         else:
             for event in event_list:  # check for event like keyboard input.
                 if event.type == pygame.QUIT:
@@ -102,47 +102,65 @@ def main_edit_loop():
 
                     # UNGROUP
                     elif event.key == pygame.K_g and (pygame.key.get_mods() & pygame.KMOD_CTRL):
-                        if selected_module.type == 'group':
-                            print("Ungrouping modules: %s" % [module.title for module in selected_module.modules])
-                            shared.CurrentScreen.ScreenObjects.remove(selected_module)
-                            for module in selected_module.modules:
-                                shared.CurrentScreen.ScreenObjects.append(module)
-                                module.selected = False
+                        if selected_screen_object.type == 'group':
+                            print("Ungrouping modules: %s" % [module.title for module in selected_screen_object.modules])
+                            shared.CurrentScreen.ScreenObjects.remove(selected_screen_object)
+                            for sObject in selected_screen_object.modules:
+                                shared.CurrentScreen.ScreenObjects.append(sObject)
+                                sObject.selected = False
                     # CREATE GROUP
                     elif event.key == pygame.K_g:
-                        if len(selected_modules) > 1:
-                            print("Creating group with %d modules. Modules: %s" % (len(selected_modules), [module.title for module in selected_modules]))
+                        if len(selected_screen_objects) > 1:
+                            print("Creating group with %d modules. Modules: %s" % (len(selected_screen_objects), [module.title for module in selected_screen_objects]))
                             current_group = TronViewScreenObject(pygamescreen, 'group', f"Group_{len(shared.CurrentScreen.ScreenObjects)}")
-                            for module in selected_modules:
-                                module.selected = False
-                                current_group.addModule(module)
-                                shared.CurrentScreen.ScreenObjects.remove(module) # remove from screen objects
+                            for sObject in selected_screen_objects:
+                                sObject.selected = False
+                                current_group.addModule(sObject)
+                                shared.CurrentScreen.ScreenObjects.remove(sObject) # remove from screen objects
                             current_group.selected = True # set the new group to selected
                             shared.CurrentScreen.ScreenObjects.append(current_group) # add to screen objects
+                            selected_screen_objects.clear()
                         else:
                             print("You must select multiple modules to create a group.")                            
-                    # look for cntl b to show all boxes
+                    # SHOW BOUNDRY BOXES
                     elif event.key == pygame.K_b:
                         showAllBoundryBoxes = not showAllBoundryBoxes
                         print("showAllBoxes: ", showAllBoundryBoxes)
-                        for module in shared.CurrentScreen.ScreenObjects:
-                            module.setShowBounds(showAllBoundryBoxes)
+                        for sObject in shared.CurrentScreen.ScreenObjects:
+                            sObject.setShowBounds(showAllBoundryBoxes)
 
-                    # look for delete key
+                    # DELETE SCREEN OBJECT
                     elif event.key == pygame.K_BACKSPACE or event.key == pygame.K_DELETE:
                         print("Delete key pressed")
                         # delete the selected module by going through the list of modules and removing the selected one.
-                        for module in shared.CurrentScreen.ScreenObjects:
-                            if module.selected:
-                                shared.CurrentScreen.ScreenObjects.remove(module)
+                        for sObject in shared.CurrentScreen.ScreenObjects:
+                            if sObject.selected:
+                                shared.CurrentScreen.ScreenObjects.remove(sObject)
                                 break
-                    # ADD
+                    # ADD SCREEN OBJECT
                     elif event.key == pygame.K_a:
                         # add a new Screen object
                         mx, my = pygame.mouse.get_pos()
                         shared.CurrentScreen.ScreenObjects.append(
                             TronViewScreenObject(pygamescreen, 'module', f"A_{len(shared.CurrentScreen.ScreenObjects)}", module=None, x=mx, y=my)
                         )
+                    # MOVE SCREEN OBJECT UP IN DRAW ORDER (page up)
+                    elif event.key == pygame.K_PAGEUP:
+                        for sObject in shared.CurrentScreen.ScreenObjects:
+                            if sObject.selected:
+                                # move it to the bottom of the list
+                                shared.CurrentScreen.ScreenObjects.remove(sObject)
+                                shared.CurrentScreen.ScreenObjects.append(sObject)
+
+                                break
+                    # MOVE SCREEN OBJECT DOWN IN DRAW ORDER (page down)
+                    elif event.key == pygame.K_PAGEDOWN:
+                        for sObject in shared.CurrentScreen.ScreenObjects:
+                            if sObject.selected:
+                                # move it to the top of the list
+                                shared.CurrentScreen.ScreenObjects.remove(sObject)
+                                shared.CurrentScreen.ScreenObjects.insert(0, sObject)
+                                break
 
                 # check for Mouse events
                 if event.type == pygame.MOUSEBUTTONDOWN:
@@ -152,43 +170,59 @@ def main_edit_loop():
                     # Check if Shift is held down
                     shift_held = pygame.key.get_mods() & pygame.KMOD_SHIFT
 
-                    if not shift_held:
-                        selected_modules.clear()
-                        # deselect all modules
-                        for module in shared.CurrentScreen.ScreenObjects:
-                            module.selected = False
+                    atLeastOneSelectedObjectIsClicked = False
+                    if not shift_held: # if shift is not held, we are clicking on a single object
+                        # are we clicking on a selected object?
+                        for sObject in shared.CurrentScreen.ScreenObjects:
+                            if sObject.selected:
+                                if sObject.x <= mx <= sObject.x + sObject.width and sObject.y <= my <= sObject.y + sObject.height:
+                                    atLeastOneSelectedObjectIsClicked = True
+                        if atLeastOneSelectedObjectIsClicked == False :
+                            selected_screen_objects.clear()
+                            # deselect all modules
+                            for sObject in shared.CurrentScreen.ScreenObjects:
+                                sObject.selected = False
 
                     # Check if the mouse click is inside any screenObject (check from the top down)
-                    for module in shared.CurrentScreen.ScreenObjects[::-1]:
-                        if module.x <= mx <= module.x + module.width and module.y <= my <= module.y + module.height:
+                    for sObject in shared.CurrentScreen.ScreenObjects[::-1]:
+                        if sObject.x <= mx <= sObject.x + sObject.width and sObject.y <= my <= sObject.y + sObject.height:
                             if shift_held:
-                                if module not in selected_modules:
-                                    selected_modules.append(module)
-                                    module.selected = True
-                                    print("Selected module: %s (shift) current modules: %d" % (module.title, len(selected_modules)))
+                                if sObject not in selected_screen_objects:
+                                    selected_screen_objects.append(sObject)
+                                    sObject.selected = True
+                                    print("Selected module: %s (shift) current modules: %d" % (sObject.title, len(selected_screen_objects)))
+                                # update the mouse offset for all selected modules
+                                for sObject in selected_screen_objects:
+                                    sObject.mouse_offset_x = mx - sObject.x
+                                    sObject.mouse_offset_y = my - sObject.y
                             else:
-                                selected_modules = [module]
-                                module.selected = True
-                                print("Selected module: %s" % module.title)
+                                if len(selected_screen_objects) > 1 and atLeastOneSelectedObjectIsClicked:
+                                    for sObject in selected_screen_objects:
+                                        sObject.mouse_offset_x = mx - sObject.x
+                                        sObject.mouse_offset_y = my - sObject.y
+                                else:
+                                    selected_screen_objects = [sObject]
+                                    sObject.selected = True
+                                    print("Selected module: %s" % sObject.title)
                             #################
                             # RESIZE MODULE
-                            if mx >= module.x + module.width - 10 and my >= module.y + module.height - 10:
+                            if mx >= sObject.x + sObject.width - 10 and my >= sObject.y + sObject.height - 10:
                                 # Click is in the bottom right corner, start resizing
-                                selected_module = module
-                                module.selected = True
+                                selected_screen_object = sObject
+                                sObject.selected = True
                                 resizing = True
-                                offset_x = mx - module.x
-                                offset_y = my - module.y
+                                offset_x = mx - sObject.x
+                                offset_y = my - sObject.y
                                 dropdown = None
                             ##################
                             # DROPDOWN MENU (select module)
-                            elif module.y <= my <= module.y + 20:  # Assuming the title area is 20 pixels high
+                            elif sObject.y <= my <= sObject.y + 20:  # Assuming the title area is 20 pixels high
                                 # Click is on the title, toggle dropdown menu
-                                selected_module = module
-                                module.selected = True
+                                selected_screen_object = sObject
+                                sObject.selected = True
                                 dropdown = DropDown([COLOR_INACTIVE, COLOR_ACTIVE],
                                         [COLOR_LIST_INACTIVE, COLOR_LIST_ACTIVE], 
-                                        module.x, module.y, 140, 30, 
+                                        sObject.x, sObject.y, 140, 30, 
                                         pygame.font.SysFont(None, 25), 
                                         "Select Module", listModules)
                                 dropdown.visible = True
@@ -198,11 +232,11 @@ def main_edit_loop():
                             else:
                                 dropdown = None
                                 # Click is inside the module, start moving
-                                selected_module = module
+                                selected_screen_object = sObject
                                 dragging = True
-                                offset_x = mx - module.x 
-                                offset_y = my - module.y
-                                module.selected = True
+                                offset_x = mx - sObject.x 
+                                offset_y = my - sObject.y
+                                sObject.selected = True
                             break
 
                 # Mouse up
@@ -210,97 +244,43 @@ def main_edit_loop():
                     dragging = False
                     resizing = False
                     print("Mouse Up")
-                    # selected_module = None
-                    # for module in shared.CurrentScreen.ScreenObjects:
-                    #     module.selected = False
 
                 # Mouse move.. resize or move the module??
                 elif event.type == pygame.MOUSEMOTION:
-                    if dragging and len(selected_modules) == 1:  # if dragging a single module
+                    if dragging and len(selected_screen_objects) == 1:  # if dragging a single screen object
                         mx, my = pygame.mouse.get_pos()
-                        selected_modules[0].move(mx - offset_x, my - offset_y)
-                        
-                        # selected_modules[0].x = mx - offset_x
-                        # selected_modules[0].y = my - offset_y
-                        # # if the module is in a group, update the group offset
-                        # if selected_modules[0].parent_group:
-                        #     print("Module is in a group: %s" % selected_modules[0].parent_group.title)
-                        #     # go through all modules in the group and update their x and y
-                        #     for module in selected_modules[0].parent_group.modules:
-                        #         # first get position of where it is from the current mouse position
-                        #         temp_x = module.x - selected_modules[0].x
-                        #         temp_y = module.y - selected_modules[0].y
-                        #         module.x = mx - temp_x
-                        #         module.y = my - temp_y
-                    elif dragging and len(selected_modules) > 1:  # if dragging multiple modules
+                        selected_screen_objects[0].move(mx - offset_x, my - offset_y)
+                    
+                    elif dragging and len(selected_screen_objects) > 1:  # if dragging multiple screen objects
                         mx, my = pygame.mouse.get_pos()
-                        dx, dy = mx - offset_x, my - offset_y
-                        for module in selected_modules:
-                            module.x = mx - offset_x
-                            module.y = my - offset_y
-                        #offset_x, offset_y = mx, my
+                        # move all children of the selected screen objects
+                        for sObject in selected_screen_objects:
+                            # get the difference in x and y from the current position to the new position
+                            diffX = mx - sObject.mouse_offset_x
+                            diffY = my - sObject.mouse_offset_y
+                            #print("Moving %s by %d, %d " % (sObject.title, diffX, diffY))
+                            sObject.move(diffX, diffY)
+
                         pygamescreen.fill((0, 0, 0))
-                    elif dragging and selected_module:  # dragging a single screen object
+                    elif dragging and selected_screen_object:  # dragging a single screen object
                         mx, my = pygame.mouse.get_pos()
-                        selected_module.move(mx, my)
-                    elif resizing and selected_module: # resizing the module
+                        selected_screen_object.move(mx, my)
+                    elif resizing and selected_screen_object: # resizing
                         mx, my = pygame.mouse.get_pos()
-                        temp_width = mx - selected_module.x
-                        temp_height = my - selected_module.y
+                        temp_width = mx - selected_screen_object.x
+                        temp_height = my - selected_screen_object.y
                         if temp_width < 40: temp_width = 40  # limit minimum size
                         if temp_height < 40: temp_height = 40
-                        #selected_module.width = temp_width
-                        #selected_module.height = temp_height
-                        selected_module.resize(temp_width, temp_height)
-                        # clear screen using pygame
+                        selected_screen_object.resize(temp_width, temp_height)
                         pygamescreen.fill((0, 0, 0))
-
-            # if selection >= 0:
-            #     print("Selected module: %s" % listModules[selection])
-            #     selected_module.title = listModules[selection]
-            #     newModules, titles  = find_module(listModules[selection]) # find the module by name
-            #     selected_module.setModule(newModules[0])
-            #     dropdown.toggle()
-            #     dropdown = None
-            # else:
-            #     print("No selection "+str(selection))
 
         # draw the modules
         for sObject in shared.CurrentScreen.ScreenObjects:
-            sObject.draw(shared.aircraft, shared.smartdisplay) # draw the module
-            # groupId = ""
-            # if module.parent_group:
-            #     groupId = module.parent_group.title
-
-            # if module.selected or (module.parent_group and any(m.selected for m in selected_modules if m.parent_group == module.parent_group)):
-            #     color = (0, 255, 0)
-            #     # draw the module box
-            #     pygame.draw.rect(pygamescreen, color, (module.x, module.y, module.width, module.height), 1)
-            #     # draw the module title
-            #     text = debug_font.render(module.title + " " + groupId, True, (255, 255, 255))
-            #     pygamescreen.blit(text, (module.x + 5, module.y + 5))
-            #     # draw a little resize handle in the bottom right corner
-            #     pygame.draw.rect(pygamescreen, color, (module.x + module.width - 10, module.y + module.height - 10, 10, 10), 1)
-            # else:
-            #     if showAllBoxes:
-            #         pygame.draw.rect(pygamescreen, (100, 100, 100), (module.x, module.y, module.width, module.height), 1)
-            #         text = debug_font.render(module.title + " " + groupId, True, (255, 255, 255))
-            #         pygamescreen.blit(text, (module.x + 5, module.y + 5))
-            #         pygame.draw.rect(pygamescreen, color, (module.x + module.width - 10, module.y + module.height - 10, 10, 10), 1)
-
+            sObject.draw(shared.aircraft, shared.smartdisplay) # draw
 
             # Last... Draw the dropdown menu if visible over the top of everything.
-            if dropdown and dropdown.visible and selected_module == module:
+            if dropdown and dropdown.visible and selected_screen_object == sObject:
                 dropdown.draw(pygamescreen)
-
-        # # Draw group outlines
-        # for sObject in shared.CurrentScreen.ScreenObjects:
-        #     if sObject.type == 'group' and any(module.selected for module in sObject.modules):
-        #         min_x = min(module.x for module in sObject.modules)
-        #         min_y = min(module.y for module in sObject.modules)
-        #         max_x = max(module.x + module.width for module in sObject.modules)
-        #         max_y = max(module.y + module.height for module in sObject.modules)
-        #         pygame.draw.rect(pygamescreen, (255, 150, 0), (min_x-5, min_y-5, max_x-min_x+10, max_y-min_y+10), 2)
 
         #now make pygame update display.
         pygame.display.update()
@@ -362,6 +342,8 @@ class TronViewScreenObject:
         self.selected = False
         self.id = id or 'M_' + ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(5))
         self.showBounds = False
+        self.mouse_offset_x = 0
+        self.mouse_offset_y = 0
         
         if type == 'group':
             self.modules = []
@@ -465,7 +447,8 @@ class TronViewScreenObject:
 
     def setModule(self, module):
         if self.type == 'group':
-            raise ValueError("Cannot set module for a group type TVModule")
+            print("Cannot set module for a group type ScreenObject")
+            return
         self.module = module
         self.title = module.name
         self.module.initMod(self.pygamescreen, self.width, self.height)

@@ -33,7 +33,7 @@ class stratux_wifi(Input):
             # if in playback mode then load example data file.
             # get file to read from config.  else default to..
             if aircraft.inputs[self.inputNum].PlayFile==True:
-                defaultTo = "stratux_data1.bin"
+                defaultTo = "stratux_9.dat"
                 aircraft.inputs[self.inputNum].PlayFile = hud_utils.readConfig(self.name, "playback_file", defaultTo)
             self.ser,self.input_logFileName = Input.openLogFile(self,aircraft.inputs[self.inputNum].PlayFile,"rb")
             self.isPlaybackMode = True

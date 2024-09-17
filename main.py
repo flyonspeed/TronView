@@ -268,8 +268,8 @@ if __name__ == "__main__":
         pygame.display.quit()
 
     shared.CurrentInput.closeInput(shared.aircraft) # close the input source
-    if DataInputToLoad2 != "none": shared.CurrentInput2.closeInput(shared.aircraft)
-    if DataInputToLoad3 != "none": shared.CurrentInput3.closeInput(shared.aircraft)
+    if DataInputToLoad2 != "none" and shared.CurrentInput2 != None: shared.CurrentInput2.closeInput(shared.aircraft)
+    if DataInputToLoad3 != "none" and shared.CurrentInput3 != None: shared.CurrentInput3.closeInput(shared.aircraft)
     sys.exit()
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

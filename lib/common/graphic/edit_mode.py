@@ -417,6 +417,8 @@ class TronViewScreenObject:
 
     def resize(self, width, height):
         if self.type != 'group':
+            if width < 40: width = 40
+            if height < 40: height = 40
             self.width = width
             self.height = height
             if hasattr(self.module, "initMod"):

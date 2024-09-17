@@ -41,6 +41,9 @@ class Module:
         self.height = height
         self.widthCenter = width / 2
         self.heightCenter = height / 2
-
+    
+    # return a dict of objects that are used to configure the module.
+    def get_module_options(self):
+        return {}
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

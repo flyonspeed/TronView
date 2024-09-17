@@ -224,6 +224,35 @@ class trafficscope(Module):
         #self.ahrs_bg.fill((0, 0, 0))  # clear screen
         #print("clear")
         pass
+    
+    # return a dict of objects that are used to configure the module.
+    def get_module_options(self):
+        return {
+            "show_callsign": {
+                "type": "bool",
+                "default": False,
+                "label": "Show Callsign",
+                "description": "Show the callsign of the targets on the scope."
+            },
+            "show_details": {
+                "type": "bool",
+                "default": False,
+                "label": "Show Details",
+                "description": "Show the details of the targets on the scope."
+            },
+            "target_show_lat_lon": {
+                "type": "bool",
+                "default": False,
+                "label": "Show Lat/Lon",
+                "description": "Show the latitude and longitude of the targets on the scope."
+            },
+            "scope_scale": {
+                "type": "int",
+                "default": 10,
+                "label": "Scope Scale",
+                "description": "Set the scale of the scope in miles."
+            }
+        }
 
     # handle events
     def processEvent(self,event,aircraft,smartdisplay):

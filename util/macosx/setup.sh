@@ -37,6 +37,7 @@ case $yn in
 		python3 -m pip install pygame_menu --break-system-packages
 		python3 -m pip install MacTmp --break-system-packages
 		python3 -m pip install geographiclib --break-system-packages
+		python3 -m pip install numpy --break-system-packages
 		;;
 	[Nn]* )echo "..."; 
 esac

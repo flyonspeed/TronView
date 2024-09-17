@@ -47,6 +47,7 @@ case $yn in
 			sudo pip3 install geographiclib --break-system-packages
 			sudo apt install libsdl2-ttf-2.0-0 
 			sudo pip3 install Adafruit_ADS1x15 --break-system-packages
+			sudo pip3 install numpy --break-system-packages
 
 
 		else
@@ -60,6 +61,7 @@ case $yn in
 			sudo pip3 install geographiclib --break-system-packages
 			sudo apt install libsdl2-ttf-2.0-0 
 			sudo pip3 install Adafruit_ADS1x15 --break-system-packages
+			sudo pip3 install numpy --break-system-packages
 
 		fi
 

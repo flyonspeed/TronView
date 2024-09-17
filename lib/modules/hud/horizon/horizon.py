@@ -3,6 +3,7 @@
 #################################################
 # Module: Hud Horizon
 # Topher 2021.
+# TRON Aug 2024, updated FPM turn rate accuracy
 # Adapted from F18 HUD Screen code by Brian Chesteen.
 
 from lib.modules._module import Module
@@ -298,15 +299,15 @@ class horizon(Module):
         # flight path indicator  Default Caged Mode
         if self.caged_mode == 1:
             fpv_x = 0.0
-        else:
-            fpv_x = ((((aircraft.mag_head - aircraft.gndtrack) + 180) % 360) - 180) * 1.5  - (
+        else:  #  changed the  "- (aircraft.turn_rate * 5" to a "+ (aircraft.turn_rate * 5" 
+            fpv_x = ((((aircraft.mag_head - aircraft.gndtrack) + 180) % 360) - 180) * 1.5  + (
                 aircraft.turn_rate * 5
             )
             self.readings.append(fpv_x)
             fpv_x = mean(self.readings)  # Moving average to smooth a bit
             if len(self.readings) == self.max_samples:
                 self.readings.pop(0)
-        gfpv_x = ((((aircraft.mag_head - aircraft.gndtrack) + 180) % 360) - 180) * 1.5  - (
+        gfpv_x = ((((aircraft.mag_head - aircraft.gndtrack) + 180) % 360) - 180) * 1.5  + (
             aircraft.turn_rate * 5
         )
         self.readings1.append(gfpv_x)
@@ -330,7 +331,7 @@ class horizon(Module):
             [
                 (smartdisplay.width / 2 + self.x_offset) - (int(fpv_x) * 5) - 15,
                 (smartdisplay.y_center + self.y_offset) - (aircraft.vsi / 2),
-            ],
+            ], 
             [
                 (smartdisplay.width / 2 + self.x_offset) - (int(fpv_x) * 5) - 30,
                 (smartdisplay.y_center + self.y_offset) - (aircraft.vsi / 2),

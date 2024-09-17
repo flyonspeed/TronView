@@ -151,13 +151,13 @@ class F18_HUD(Screen):
         smartdisplay.draw_text(smartdisplay.LEFT_MID_DOWN, self.fontIndicatorSmaller, "G %0.1f" % (aircraft.vert_G), (255, 255, 0))
 
         # draw wind direction
-        self.wind.draw(aircraft,smartdisplay,(15,smartdisplay.y_end - 110))
+        self.wind.draw(aircraft,smartdisplay,(30,smartdisplay.y_end - 210))
 
         # draw Slip Skid
         self.slipskid.draw(aircraft,smartdisplay,(smartdisplay.x_center,smartdisplay.y_end-35))
 
         # draw AOA indicator
-        self.aoa.draw(aircraft,smartdisplay,(smartdisplay.x_start + 140 ,smartdisplay.y_end - 140))
+        self.aoa.draw(aircraft,smartdisplay,(smartdisplay.x_start + 75 ,smartdisplay.y_end - 400))
       
         # draw roll indicator
         self.roll_indicator.draw(aircraft,smartdisplay)

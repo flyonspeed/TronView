@@ -18,7 +18,7 @@ class serial_flyonspeed2efisdata(Input):
         self.inputtype = "serial"
 
     def initInput(self,num,aircraft):
-        Input.initInput( self,num,s aircraft )  # call parent init Input.
+        Input.initInput( self,num, aircraft )  # call parent init Input.
         
         if(aircraft.inputs[self.inputNum].PlayFile!=None):
             if aircraft.inputs[self.inputNum].PlayFile==True:

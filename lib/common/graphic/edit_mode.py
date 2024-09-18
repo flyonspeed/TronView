@@ -173,6 +173,19 @@ def main_edit_loop():
                     mx, my = pygame.mouse.get_pos()
                     print("Mouse Click %d x %d" % (mx, my))
                     
+                    # Handle EditPalette clicks for selected objects
+                    for sObject in shared.CurrentScreen.ScreenObjects:
+                        if sObject.selected:
+                            action = sObject.edit_palette.handle_click((mx, my))
+                            if action == "delete":
+                                shared.CurrentScreen.ScreenObjects.remove(sObject)
+                                break
+                            elif action == "move_up":
+                                index = shared.CurrentScreen.ScreenObjects.index(sObject)
+                                if index > 0:
+                                    shared.CurrentScreen.ScreenObjects[index], shared.CurrentScreen.ScreenObjects[index-1] = shared.CurrentScreen.ScreenObjects[index-1], shared.CurrentScreen.ScreenObjects[index]
+                                break
+
                     # Check if Shift is held down
                     shift_held = pygame.key.get_mods() & pygame.KMOD_SHIFT
 
@@ -359,6 +372,8 @@ class TronViewScreenObject:
             if module:
                 self.module.initMod(self.pygamescreen, width, height)
             
+        self.edit_palette = EditPalette(self)
+
     def isClickInside(self, mx, my):
         return self.x <= mx <= self.x + self.width and self.y <= my <= self.y + self.height
 
@@ -412,6 +427,7 @@ class TronViewScreenObject:
             text = pygame.font.SysFont("monospace", 21, bold=False).render(self.title, True, (255, 255, 255))
             self.pygamescreen.blit(text, (self.x + 5, self.y + 5))
             pygame.draw.rect(self.pygamescreen, color, (self.x + self.width - 10, self.y + self.height - 10, 10, 10), 1)
+            self.edit_palette.draw(self.pygamescreen)
         elif self.showBounds:
             pygame.draw.rect(self.pygamescreen, (70, 70, 70), (self.x-5, self.y-5, self.width+10, self.height+10), 2)
 
@@ -535,6 +551,91 @@ class TronViewScreenObject:
                 )
                 self.addChildScreenObject(new_childSObj)
 
+    def center(self):
+        screen_width, screen_height = pygame.display.get_surface().get_size()
+        self.x = (screen_width - self.width) // 2
+        self.y = (screen_height - self.height) // 2
+
+    def align_left(self):
+        self.x = 0
+
+class EditPaletteButton:
+    def __init__(self, text=None, icon=None, toggle=False):
+        self.text = text
+        self.icon = icon
+        self.toggle = toggle
+        self.state = False
+        self.rect = pygame.Rect(0, 0, 30, 30)  # Default size
+
+    def draw(self, surface, x, y):
+        self.rect.topleft = (x, y)
+        color = (0, 0, 255) if self.state else (50, 50, 50)
+        pygame.draw.rect(surface, color, self.rect)
+        if self.text:
+            font = pygame.font.Font(None, 20)
+            text_surf = font.render(self.text, True, (255, 255, 255))
+            text_rect = text_surf.get_rect(center=self.rect.center)
+            surface.blit(text_surf, text_rect)
+        elif self.icon:
+            # Draw icon (placeholder)
+            pygame.draw.rect(surface, (255, 255, 255), self.rect.inflate(-10, -10))
+
+class EditPalette:
+    def __init__(self, screen_object):
+        self.screen_object = screen_object
+        self.buttons = [
+            EditPaletteButton(text=screen_object.title),
+            EditPaletteButton(icon="center"),
+            EditPaletteButton(icon="left"),
+            EditPaletteButton(icon="delete"),
+            EditPaletteButton(icon="move_up")
+        ]
+        self.width = len(self.buttons) * 35
+        self.height = 35
+        self.position = "top"  # Default to top
+
+    def draw(self, surface):
+        x, y = self.get_position()
+        for i, button in enumerate(self.buttons):
+            button.draw(surface, x + i * 35, y)
+
+    def get_position(self):
+        screen_width, screen_height = pygame.display.get_surface().get_size()
+        
+        # Always try to position at the top first
+        x = self.screen_object.x
+        y = self.screen_object.y - self.height - 5
+
+        # Adjust if off-screen to the right
+        if x + self.width > screen_width:
+            x = screen_width - self.width
+
+        # Adjust if off-screen to the left
+        if x < 0:
+            x = 0
+
+        # If there's not enough space at the top, move to the bottom
+        if y < 0:
+            y = self.screen_object.y + self.screen_object.height + 5
+            
+            # If it's still off-screen at the bottom, keep it at the top
+            if y + self.height > screen_height:
+                y = 0
+
+        return x, y
+
+    def handle_click(self, pos):
+        for i, button in enumerate(self.buttons):
+            if button.rect.collidepoint(pos):
+                if i == 1:  # Center
+                    self.screen_object.center()
+                elif i == 2:  # Align left
+                    self.screen_object.align_left()
+                elif i == 3:  # Delete
+                    return "delete"
+                elif i == 4:  # Move up
+                    return "move_up"
+                break
 
 COLOR_INACTIVE = (30, 30, 30)
 COLOR_ACTIVE = (100, 200, 255)

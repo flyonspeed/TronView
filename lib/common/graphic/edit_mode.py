@@ -71,18 +71,19 @@ def main_edit_loop():
         pygamescreen.fill((0, 0, 0)) # clear screen
 
         event_list = pygame.event.get() # get all events
-        if dropdown and dropdown.visible:
-            #dropdown.draw(pygamescreen)
-            selection = dropdown.update(event_list)
-            if selection >= 0:
-                print("Selected module: %s" % listModules[selection])
-                selected_screen_object.title = listModules[selection]
-                newModules, titles  = find_module(listModules[selection])
-                selected_screen_object.setModule(newModules[0])
-        else:
-            for event in event_list:  # check for event like keyboard input.
-                if event.type == pygame.QUIT:
-                    shared.aircraft.errorFoundNeedToExit = True
+        
+        action_performed = False  # Flag to check if an action was performed
+
+        for event in event_list:
+            if dropdown and dropdown.visible:
+                #dropdown.draw(pygamescreen)
+                selection = dropdown.update(event_list)
+                if selection >= 0:
+                    print("Selected module: %s" % listModules[selection])
+                    selected_screen_object.title = listModules[selection]
+                    newModules, titles  = find_module(listModules[selection])
+                    selected_screen_object.setModule(newModules[0])
+            else:
                 # KEY MAPPINGS
                 if event.type == pygame.KEYDOWN:
                     mods = pygame.key.get_mods()
@@ -172,19 +173,33 @@ def main_edit_loop():
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     mx, my = pygame.mouse.get_pos()
                     print("Mouse Click %d x %d" % (mx, my))
-                    
-                    # Handle EditPalette clicks for selected objects
+                    # Handle EditToolBar clicks for selected objects
                     for sObject in shared.CurrentScreen.ScreenObjects:
                         if sObject.selected:
-                            action = sObject.edit_palette.handle_click((mx, my))
-                            if action == "delete":
-                                shared.CurrentScreen.ScreenObjects.remove(sObject)
+                            action = sObject.edit_toolbar.handle_click((mx, my))
+                            if action:
+                                if action == "delete":
+                                    shared.CurrentScreen.ScreenObjects.remove(sObject)
+                                elif action == "move_up":
+                                    index = shared.CurrentScreen.ScreenObjects.index(sObject)
+                                    if index < len(shared.CurrentScreen.ScreenObjects) - 1:
+                                        shared.CurrentScreen.ScreenObjects[index], shared.CurrentScreen.ScreenObjects[index+1] = shared.CurrentScreen.ScreenObjects[index+1], shared.CurrentScreen.ScreenObjects[index]
+                                elif action == "move_down":
+                                    index = shared.CurrentScreen.ScreenObjects.index(sObject)
+                                    if index > 0:
+                                        shared.CurrentScreen.ScreenObjects[index], shared.CurrentScreen.ScreenObjects[index-1] = shared.CurrentScreen.ScreenObjects[index-1], shared.CurrentScreen.ScreenObjects[index]
+                                elif action == "center":
+                                    sObject.center()
+                                elif action == "align_left":
+                                    sObject.align_left()
+                                elif action == "align_right":
+                                    sObject.align_right()
+                                
+                                action_performed = True
                                 break
-                            elif action == "move_up":
-                                index = shared.CurrentScreen.ScreenObjects.index(sObject)
-                                if index > 0:
-                                    shared.CurrentScreen.ScreenObjects[index], shared.CurrentScreen.ScreenObjects[index-1] = shared.CurrentScreen.ScreenObjects[index-1], shared.CurrentScreen.ScreenObjects[index]
-                                break
+
+                    if action_performed:
+                        break  # Exit the event loop and jump to draw
 
                     # Check if Shift is held down
                     shift_held = pygame.key.get_mods() & pygame.KMOD_SHIFT
@@ -293,6 +308,9 @@ def main_edit_loop():
                         selected_screen_object.resize(temp_width, temp_height)
                         pygamescreen.fill((0, 0, 0))
 
+        if action_performed:
+            continue  # Skip the rest of the loop and start over (which will trigger the draw)
+
         # draw the modules
         for sObject in shared.CurrentScreen.ScreenObjects:
             sObject.draw(shared.aircraft, shared.smartdisplay) # draw
@@ -368,11 +386,13 @@ class TronViewScreenObject:
             self.childScreenObjects = []
             self.module = None
         else:
-            self.module = module
-            if module:
-                self.module.initMod(self.pygamescreen, width, height)
-            
-        self.edit_palette = EditPalette(self)
+            # create a module object
+            if module is not None:
+                self.setModule(module)
+            else:
+                self.module = None
+
+        self.edit_toolbar = EditToolBar(self)
 
     def isClickInside(self, mx, my):
         return self.x <= mx <= self.x + self.width and self.y <= my <= self.y + self.height
@@ -390,8 +410,8 @@ class TronViewScreenObject:
                 boxColor = (255, 255, 0)
             # draw a rect for the module with a x through it.
             pygame.draw.rect(self.pygamescreen, boxColor, (self.x, self.y, self.width, self.height), 1)
-            text = pygame.font.SysFont("monospace", 25, bold=False).render("X", True, (255, 255, 255))
-            self.pygamescreen.blit(text, (self.x + self.width/2 - 5, self.y + self.height/2 - 5))
+            #text = pygame.font.SysFont("monospace", 25, bold=False).render("X", True, (255, 255, 255))
+            #self.pygamescreen.blit(text, (self.x + self.width/2 - 5, self.y + self.height/2 - 5))
             # draw a little resize handle in the bottom right corner
             pygame.draw.rect(self.pygamescreen, boxColor, (self.x + self.width - 10, self.y + self.height - 10, 10, 10), 1)
             return
@@ -400,8 +420,8 @@ class TronViewScreenObject:
             if len(self.childScreenObjects) == 0:
                 # draw a rect for the group with a gray background
                 pygame.draw.rect(self.pygamescreen, (100, 100, 100), (self.x, self.y, self.width, self.height), 1)
-                text = pygame.font.SysFont("monospace", 25, bold=False).render("Empty", True, (255, 255, 255))
-                self.pygamescreen.blit(text, (self.x + self.width/2 - 5, self.y + self.height/2 - 5))
+                #text = pygame.font.SysFont("monospace", 25, bold=False).render("Empty", True, (255, 255, 255))
+                #self.pygamescreen.blit(text, (self.x + self.width/2 - 5, self.y + self.height/2 - 5))
                 return
             #print("Drawing group: %s" % self.title)
             # Draw group outline
@@ -411,8 +431,8 @@ class TronViewScreenObject:
                 max_x = max(m.x + m.width for m in self.childScreenObjects)
                 max_y = max(m.y + m.height for m in self.childScreenObjects)
                 pygame.draw.rect(self.pygamescreen, (255, 150, 0), (min_x-5, min_y-5, max_x-min_x+10, max_y-min_y+10), 2)
-                text = pygame.font.SysFont("monospace", 25, bold=False).render(self.title+" mods:"+str(len(self.childScreenObjects)), True, (255, 255, 255))
-                self.pygamescreen.blit(text, (min_x-5, min_y-5))
+                #text = pygame.font.SysFont("monospace", 25, bold=False).render(self.title+" mods:"+str(len(self.childScreenObjects)), True, (255, 255, 255))
+                #self.pygamescreen.blit(text, (min_x-5, min_y-5))
 
             # Draw contained modules
             for module in self.childScreenObjects:
@@ -424,10 +444,10 @@ class TronViewScreenObject:
         if self.selected:
             color = (0, 255, 0)
             pygame.draw.rect(self.pygamescreen, color, (self.x, self.y, self.width, self.height), 1)
-            text = pygame.font.SysFont("monospace", 21, bold=False).render(self.title, True, (255, 255, 255))
-            self.pygamescreen.blit(text, (self.x + 5, self.y + 5))
+            #text = pygame.font.SysFont("monospace", 21, bold=False).render(self.title, True, (255, 255, 255))
+            #self.pygamescreen.blit(text, (self.x + 5, self.y + 5))
             pygame.draw.rect(self.pygamescreen, color, (self.x + self.width - 10, self.y + self.height - 10, 10, 10), 1)
-            self.edit_palette.draw(self.pygamescreen)
+            self.edit_toolbar.draw(self.pygamescreen)
         elif self.showBounds:
             pygame.draw.rect(self.pygamescreen, (70, 70, 70), (self.x-5, self.y-5, self.width+10, self.height+10), 2)
 
@@ -476,6 +496,7 @@ class TronViewScreenObject:
         self.module.initMod(self.pygamescreen, self.width, self.height)
         if hasattr(self.module, "setup"):
             self.module.setup()
+        self.edit_toolbar = EditToolBar(self)
 
     def addChildScreenObject(self, sObject):
         if self.type != 'group':
@@ -490,7 +511,7 @@ class TronViewScreenObject:
         self.childScreenObjects.remove(sObject)
         self.generateBounds()
 
-    def generateBounds(self):
+    def generateBounds(self): # generate bounds for the group (the smallest rectangle that contains all the child modules)
         if self.type != 'group':
             return
         # generate bounds for the group
@@ -558,46 +579,69 @@ class TronViewScreenObject:
 
     def align_left(self):
         self.x = 0
+    def align_right(self):
+        screen_width, screen_height = pygame.display.get_surface().get_size()
+        self.x = screen_width - self.width
 
-class EditPaletteButton:
-    def __init__(self, text=None, icon=None, toggle=False):
+class EditToolBarButton:
+    def __init__(self, text=None, icon=None, toggle=False, id=None):
         self.text = text
         self.icon = icon
         self.toggle = toggle
         self.state = False
-        self.rect = pygame.Rect(0, 0, 30, 30)  # Default size
+        self.font = pygame.font.Font(None, 25)  # Changed to 30pt
+        self.width = self.calculate_width()
+        self.height = 40  # Increased height to accommodate larger text
+        self.rect = pygame.Rect(0, 0, self.width, self.height)
+        self.id = id
+
+    def calculate_width(self):
+        if self.text:
+            text_surface = self.font.render(self.text, True, (255, 255, 255))
+            return max(text_surface.get_width() + 20, 40)  # Increased padding and minimum width
+        return 40  # Default width for icon buttons
+
+    def set_text(self, text):
+        self.text = text
+        self.width = self.calculate_width()
 
     def draw(self, surface, x, y):
         self.rect.topleft = (x, y)
         color = (0, 0, 255) if self.state else (50, 50, 50)
         pygame.draw.rect(surface, color, self.rect)
         if self.text:
-            font = pygame.font.Font(None, 20)
-            text_surf = font.render(self.text, True, (255, 255, 255))
+            text_surf = self.font.render(self.text, True, (255, 255, 255))
             text_rect = text_surf.get_rect(center=self.rect.center)
+            # draw a light gray rect around the inside of the button
+            pygame.draw.rect(surface, (150, 150, 150), self.rect.inflate(-10, -10), 1)
             surface.blit(text_surf, text_rect)
         elif self.icon:
             # Draw icon (placeholder)
             pygame.draw.rect(surface, (255, 255, 255), self.rect.inflate(-10, -10))
 
-class EditPalette:
+
+
+class EditToolBar:
     def __init__(self, screen_object):
         self.screen_object = screen_object
         self.buttons = [
-            EditPaletteButton(text=screen_object.title),
-            EditPaletteButton(icon="center"),
-            EditPaletteButton(icon="left"),
-            EditPaletteButton(icon="delete"),
-            EditPaletteButton(icon="move_up")
+            EditToolBarButton(text=screen_object.title, id="title"),
+            EditToolBarButton(text="|", id="center"),
+            EditToolBarButton(text="<", id="align_left"),
+            EditToolBarButton(text=">", id="align_right"),
+            EditToolBarButton(text="x", id="delete"),
+            EditToolBarButton(text="+", id="move_up"),
+            EditToolBarButton(text="-", id="move_down")
         ]
-        self.width = len(self.buttons) * 35
-        self.height = 35
+        self.width = sum(button.width for button in self.buttons)
+        self.height = 40  # Increased to match button height
         self.position = "top"  # Default to top
 
     def draw(self, surface):
         x, y = self.get_position()
-        for i, button in enumerate(self.buttons):
-            button.draw(surface, x + i * 35, y)
+        for button in self.buttons:
+            button.draw(surface, x, y)
+            x += button.width
 
     def get_position(self):
         screen_width, screen_height = pygame.display.get_surface().get_size()
@@ -625,17 +669,17 @@ class EditPalette:
         return x, y
 
     def handle_click(self, pos):
-        for i, button in enumerate(self.buttons):
+        # get the id of the button that was clicked
+        button_id = None
+        for button in self.buttons:
             if button.rect.collidepoint(pos):
-                if i == 1:  # Center
-                    self.screen_object.center()
-                elif i == 2:  # Align left
-                    self.screen_object.align_left()
-                elif i == 3:  # Delete
-                    return "delete"
-                elif i == 4:  # Move up
-                    return "move_up"
+                button_id = button.id
                 break
+        if button_id:
+            print("Button clicked: %s" % button_id)
+            return button_id        
+        return None
+
 
 COLOR_INACTIVE = (30, 30, 30)
 COLOR_ACTIVE = (100, 200, 255)

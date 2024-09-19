@@ -46,13 +46,6 @@ class horizon_v2(Module):
         self.caged_mode = 1 # default on
         self.center_circle_mode = hud_utils.readConfigInt("HUD", "center_circle", 4)
 
-        self.fov_x = hud_utils.readConfigInt("HUD", "fov_x", 13.942)
-        self.fov_x_each_side = self.fov_x / 2
-        self.x_degree_per_pixel = self.fov_x / self.width
-        print("HUD x degree_per_pixel: %f"%(self.x_degree_per_pixel))
-
-        # traffic range
-        self.showTrafficMiles = hud_utils.readConfigInt("HUD", "show_traffic_within_miles", 5)
 
         # sampling for flight path.
         self.readings = []  # Setup moving averages to smooth a bit
@@ -439,28 +432,9 @@ class horizon_v2(Module):
             (x, y)
         )
 
-        # Traffic rendering (adjust for new position)
-        if aircraft.mag_head is not None and self.showTrafficMiles > 0:
-            for t in aircraft.traffic.targets:
-                if t.dist is not None and t.dist < self.showTrafficMiles:
-                    result = aircraft.mag_head - t.brng
-                    if -self.fov_x_each_side < result < self.fov_x_each_side:
-                        center_deg = result + self.fov_x_each_side
-                        x_offset = self.width - (center_deg / self.x_degree_per_pixel)
-
-                        txtTargetDist = self.font_target.render(f"{t.dist:.2f}mi {t.alt}ft", False, (0,0,0), (255,200,130))
-                        text_widthD, text_heightD = txtTargetDist.get_size()
-                        self.surface.blit(txtTargetDist, (x + x_offset - int(text_widthD/2), y + self.height - text_heightD))
-
-                        textTargetCall = self.font_target.render(str(t.callsign), False, (0,0,0), (255,200,130))
-                        text_widthC, text_heightC = textTargetCall.get_size()
-                        self.surface.blit(textTargetCall, (x + x_offset - int(text_widthC/2), y + self.height - text_heightC - text_heightD))
-
-
         # Draw center and flight path on the main screen (already adjusted for position)
         self.draw_center(smartdisplay, x, y)
         self.draw_flight_path(aircraft, smartdisplay, x, y)
-
 
         # Blit the entire surface to the screen at the specified position
         smartdisplay.pygamescreen.blit(self.surface, pos)

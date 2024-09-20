@@ -253,7 +253,7 @@ class serial_g3x(Input):
                         if self.output_logFile != None:
                             Input.addToLog(self,self.output_logFile,bytes([61,ord(SentID)]))
                             Input.addToLog(self,self.output_logFile,msg)
-
+                        return aircraft
                     else:
                         aircraft.msg_bad += 1
                         aircraft.debug1 = "bad GPS AGL data - unkown ver"

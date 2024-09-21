@@ -24,6 +24,10 @@ import importlib
 from lib.modules.efis.trafficscope import trafficscope
 import json
 from datetime import datetime
+import pygame_gui
+from pygame_gui.elements import UIButton, UILabel, UITextEntryLine, UIDropDownMenu
+from pygame_gui.elements.ui_window import UIWindow
+from pygame_gui.elements import UITextBox
 
 
 #############################################
@@ -64,19 +68,44 @@ def main_edit_loop():
 
     selected_screen_objects = []
 
-    ##########################################
+    pygame_gui_manager = pygame_gui.UIManager((shared.smartdisplay.x_end, shared.smartdisplay.y_end))
+    edit_options_bar = None
+
+    show_fps = False
+    fps_font = pygame.font.SysFont("monospace", 30)
+
+    show_ruler = False
+    ruler_color = (100, 100, 100)  # Light gray for non-selected objects
+    selected_ruler_color = (0, 255, 0)  # Green for selected objects
+
+    help_window = None
+
+    ############################################################################################
+    ############################################################################################
     # Main edit draw loop
     while not shared.aircraft.errorFoundNeedToExit and not exit_edit_mode:
         clock.tick(maxframerate)
         pygamescreen.fill((0, 0, 0)) # clear screen
-
         event_list = pygame.event.get() # get all events
-        
         action_performed = False  # Flag to check if an action was performed
+        time_delta = clock.tick(maxframerate) / 1000.0
 
         for event in event_list:
+            pygame_gui_manager.process_events(event)
+            if event.type == pygame_gui.UI_BUTTON_PRESSED:
+                print("gui Button pressed: %s" % event.ui_element.text)
+                if edit_options_bar:
+                    edit_options_bar.handle_click(event)
+                action_performed = True
+                continue
+            if event.type == pygame_gui.UI_HORIZONTAL_SLIDER_MOVED:
+                print("gui Slider moved: %s" % event.ui_element.option_name)
+                if edit_options_bar:
+                    edit_options_bar.handle_slider_move(event)
+                action_performed = True
+                continue
+
             if dropdown and dropdown.visible:
-                #dropdown.draw(pygamescreen)
                 selection = dropdown.update(event_list)
                 if selection >= 0:
                     print("Selected module: %s" % listModules[selection])
@@ -169,6 +198,37 @@ def main_edit_loop():
                         filename = input("Enter the filename to load: ")
                         load_screen_from_json(filename)
 
+                    # Toggle FPS display when 'F' is pressed
+                    elif event.key == pygame.K_f:
+                        show_fps = not show_fps
+
+                    # Toggle ruler when 'R' is pressed
+                    elif event.key == pygame.K_r:
+                        show_ruler = not show_ruler
+
+                    # Move selected screen object with arrow keys
+                    elif event.key in [pygame.K_UP, pygame.K_DOWN, pygame.K_LEFT, pygame.K_RIGHT]:
+                        move_distance = 10 if pygame.key.get_mods() & pygame.KMOD_CTRL else 1
+                        for sObject in shared.CurrentScreen.ScreenObjects:
+                            if sObject.selected:
+                                if event.key == pygame.K_UP:
+                                    sObject.move(sObject.x, sObject.y - move_distance)
+                                elif event.key == pygame.K_DOWN:
+                                    sObject.move(sObject.x, sObject.y + move_distance)
+                                elif event.key == pygame.K_LEFT:
+                                    sObject.move(sObject.x - move_distance, sObject.y)
+                                elif event.key == pygame.K_RIGHT:
+                                    sObject.move(sObject.x + move_distance, sObject.y)
+
+                    # Show help dialog when '?' is pressed
+                    elif event.key == pygame.K_QUESTION or event.key == pygame.K_SLASH:
+                        print("Help key pressed")
+                        if help_window is None:
+                            help_window = show_help_dialog(pygame_gui_manager)
+                        else:
+                            help_window.kill()
+                            help_window = None
+
                 # check for Mouse events
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     mx, my = pygame.mouse.get_pos()
@@ -194,7 +254,8 @@ def main_edit_loop():
                                     sObject.align_left()
                                 elif action == "align_right":
                                     sObject.align_right()
-                                
+                                elif action == "edit_options":
+                                    sObject.showOptions = not sObject.showOptions
                                 action_performed = True
                                 break
 
@@ -311,20 +372,46 @@ def main_edit_loop():
         if action_performed:
             continue  # Skip the rest of the loop and start over (which will trigger the draw)
 
-        # draw the modules
+        # Draw the modules
         for sObject in shared.CurrentScreen.ScreenObjects:
-            sObject.draw(shared.aircraft, shared.smartdisplay) # draw
+            sObject.draw(shared.aircraft, shared.smartdisplay)
+
+            if sObject.selected and sObject.showOptions:
+                if edit_options_bar is None or edit_options_bar.screen_object != sObject:
+                    edit_options_bar = EditOptionsBar(sObject, pygame_gui_manager, shared.smartdisplay)
+                edit_options_bar.update(time_delta)
+                edit_options_bar.draw(pygamescreen)
+            elif edit_options_bar and edit_options_bar.screen_object == sObject:
+                edit_options_bar.remove_ui()
+                edit_options_bar = None
 
             # Last... Draw the dropdown menu if visible over the top of everything.
             if dropdown and dropdown.visible and selected_screen_object == sObject:
                 dropdown.draw(pygamescreen)
 
+        pygame_gui_manager.update(time_delta)
+
+        # Draw FPS if enabled
+        if show_fps:
+            fps = clock.get_fps()
+            fps_text = fps_font.render(f"FPS: {fps:.2f}", True, (255, 255, 255))
+            fps_rect = fps_text.get_rect(topright=(shared.smartdisplay.x_end - 10, 10))
+            pygamescreen.blit(fps_text, fps_rect)
+
+        # Draw ruler if enabled
+        if show_ruler:
+            draw_ruler(pygamescreen, shared.CurrentScreen.ScreenObjects, ruler_color, selected_ruler_color)
+
+        pygame_gui_manager.draw_ui(pygamescreen)
         #now make pygame update display.
         pygame.display.update()
+        clock.tick(maxframerate)
 
 
 
-##############################################
+
+############################################################################################
+############################################################################################
 # Find available modules
 def find_module(byName = None):
     # find all modules in the lib/modules folder recursively. look for all .py files.
@@ -361,11 +448,10 @@ def find_module(byName = None):
     #print("Found %d modules" % len(modules))
     #print(modules)
     return modules, moduleNames
-    
 
 
-
-##############################################
+############################################################################################
+############################################################################################
 # TronViewScreenObject
 class TronViewScreenObject:
     def __init__(self, pgscreen, type, title, module=None, x=0, y=0, width=100, height=100, id=None):
@@ -381,6 +467,7 @@ class TronViewScreenObject:
         self.showBounds = False
         self.mouse_offset_x = 0
         self.mouse_offset_y = 0
+        self.showOptions = False
         
         if type == 'group':
             self.childScreenObjects = []
@@ -583,12 +670,173 @@ class TronViewScreenObject:
         screen_width, screen_height = pygame.display.get_surface().get_size()
         self.x = screen_width - self.width
 
+############################################################################################
+############################################################################################
+# Show the options for a module. These are controls that are built based off the get_module_options() method in the module.
+class EditOptionsBar:
+    def __init__(self, screen_object, pygame_gui_manager, smartdisplay):
+        #print("Init EditOptionsBar: %s" % screen_object.title)
+        self.screen_object = screen_object
+        self.pygame_gui_manager = pygame_gui_manager
+        self.visible = True
+        self.ui_elements = []
+        self.x = 0
+        self.y = 0
+        self.width = 200
+        self.height = 1000
+        
+        # Calculate the required height
+        self.calculate_dimensions()
+        
+        self.surface = pygame.Surface((200, self.height))
+        self.surface.set_alpha(200)  # Semi-transparent
+        self.surface.fill((30, 30, 30))  # Dark gray background
+        self.ui_manager = pygame_gui.UIManager((smartdisplay.width, smartdisplay.height)) 
+        
+        # Create a container that will act as the new "root" for UI elements
+        self.container = pygame_gui.elements.UIPanel(
+            relative_rect=pygame.Rect(0, 0, 200, self.height),
+            #starting_layer_height=0,
+            manager=self.ui_manager,
+            container=None
+        )
+
+        self.build_ui()
+
+    def calculate_dimensions(self):
+        options = self.screen_object.module.get_module_options()
+        self.height = 10  # Initial padding
+        for option, details in options.items():
+            self.height += 25  # Label height
+            self.height += 30  # Option input height
+            self.height += 5   # Padding between options
+
+        self.height = max(self.height, self.screen_object.height)  # Ensure it's at least as tall as the screen object
+
+    def show(self):
+        self.visible = True
+        for element in self.ui_elements:
+            element.show()
+
+    def hide(self):
+        self.visible = False
+        for element in self.ui_elements:
+            element.hide()
+
+    def handle_event(self, event):
+        if self.visible:
+            # Adjust the event position to be relative to the container
+            if event.type in (pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP, pygame.MOUSEMOTION):
+                event_dict = event.dict
+                event_dict['pos'] = (event_dict['pos'][0] - self.container.rect.x,
+                                     event_dict['pos'][1] - self.container.rect.y)
+                event = pygame.event.Event(event.type, event_dict)
+            
+            self.ui_manager.process_events(event)
+
+    def draw(self, screen):
+        if self.visible:
+            # Calculate the position where the options bar should be drawn
+            if self.screen_object.x + self.screen_object.width + self.surface.get_width() > pygame.display.get_surface().get_width(): 
+                x = self.screen_object.x - self.surface.get_width()
+            else:
+                x = self.screen_object.x + self.screen_object.width
+            y = self.screen_object.y
+
+            # Ensure the options bar doesn't go off the bottom of the screen
+            screen_height = pygame.display.get_surface().get_height()
+            if y + self.height > screen_height:
+                y = max(0, screen_height - self.height)
+
+            # Update the position of the container
+            self.container.set_position((x, y))
+
+            # Draw the UI elements
+            self.ui_manager.draw_ui(screen)
+            self.x = x
+            self.y = y
+
+    def build_ui(self):
+        options = self.screen_object.module.get_module_options()
+        print("Building Options UI for %s" % self.screen_object.title)
+        #print(options)
+        y_offset = 10
+        for option, details in options.items():
+            label = pygame_gui.elements.UILabel(
+                relative_rect=pygame.Rect((10, y_offset), (180, 20)),
+                text=details['label'],
+                manager=self.ui_manager,
+                container=self.container  # Add this line
+            )
+            self.ui_elements.append(label)
+            y_offset += 25
+
+            if details['type'] == 'bool':
+                checkbox = pygame_gui.elements.UIButton(
+                    relative_rect=pygame.Rect((10, y_offset), (180, 20)),
+                    text='On' if getattr(self.screen_object.module, option) else 'Off',
+                    manager=self.ui_manager,
+                    container=self.container  # Add this line
+                )
+                checkbox.option_name = option
+                checkbox.callback = lambda btn=checkbox: self.on_checkbox_click(btn.option_name)
+                self.ui_elements.append(checkbox)
+            elif details['type'] == 'int':
+                slider = pygame_gui.elements.UIHorizontalSlider(
+                    relative_rect=pygame.Rect((10, y_offset), (180, 20)),
+                    start_value=getattr(self.screen_object.module, option),
+                    value_range=(details['min'], details['max']),
+                    manager=self.ui_manager,
+                    container=self.container  # Add this line
+                )
+                slider.option_name = option
+                self.ui_elements.append(slider)
+            elif details['type'] in ['float', 'text']:
+                text_entry = pygame_gui.elements.UITextEntryLine(
+                    relative_rect=pygame.Rect((10, y_offset), (180, 20)),
+                    manager=self.ui_manager,
+                    container=self.container  # Add this line
+                )
+                text_entry.set_text(str(getattr(self.screen_object.module, option)))
+                text_entry.option_name = option
+                self.ui_elements.append(text_entry)
+
+            y_offset += 30
+
+    def remove_ui(self):
+        for element in self.ui_elements:
+            element.kill()
+        self.ui_elements.clear()
+
+    def update(self, time_delta):
+        if self.visible:
+            #print ("update EditOptionsBar")
+            # tell the ui manager where the surface is
+            self.ui_manager.update(time_delta)
+
+    def on_checkbox_click(self, option):
+        current_value = getattr(self.screen_object.module, option)
+        new_value = not current_value
+        setattr(self.screen_object.module, option, new_value)
+        print("Checkbox clicked: %s, new value: %s" % (option, new_value))
+        
+        # Update the button text
+        for element in self.ui_elements:
+            if isinstance(element, pygame_gui.elements.UIButton) and element.option_name == option:
+                element.set_text('On' if new_value else 'Off')
+                break
+        
+        # If the module has an update_option method, call it
+        if hasattr(self.screen_object.module, 'update_option'):
+            self.screen_object.module.update_option(option, new_value)
+
+############################################################################################
+############################################################################################
 class EditToolBarButton:
-    def __init__(self, text=None, icon=None, toggle=False, id=None):
+    def __init__(self, text=None, icon=None, id=None, state=False):
         self.text = text
         self.icon = icon
-        self.toggle = toggle
-        self.state = False
+        self.state = state  # is this button turned on or off? (color changed)
         self.font = pygame.font.Font(None, 25)  # Changed to 30pt
         self.width = self.calculate_width()
         self.height = 40  # Increased height to accommodate larger text
@@ -619,8 +867,8 @@ class EditToolBarButton:
             # Draw icon (placeholder)
             pygame.draw.rect(surface, (255, 255, 255), self.rect.inflate(-10, -10))
 
-
-
+############################################################################################
+############################################################################################
 class EditToolBar:
     def __init__(self, screen_object):
         self.screen_object = screen_object
@@ -629,9 +877,10 @@ class EditToolBar:
             EditToolBarButton(text="|", id="center"),
             EditToolBarButton(text="<", id="align_left"),
             EditToolBarButton(text=">", id="align_right"),
-            EditToolBarButton(text="x", id="delete"),
+            #EditToolBarButton(text="x", id="delete"),
             EditToolBarButton(text="+", id="move_up"),
-            EditToolBarButton(text="-", id="move_down")
+            EditToolBarButton(text="-", id="move_down"),
+            EditToolBarButton(text="O", id="edit_options", state=screen_object.showOptions)
         ]
         self.width = sum(button.width for button in self.buttons)
         self.height = 40  # Increased to match button height
@@ -639,6 +888,7 @@ class EditToolBar:
 
     def draw(self, surface):
         x, y = self.get_position()
+        self.buttons[6].state = self.screen_object.showOptions # set the state of the edit options button
         for button in self.buttons:
             button.draw(surface, x, y)
             x += button.width
@@ -686,7 +936,8 @@ COLOR_ACTIVE = (100, 200, 255)
 COLOR_LIST_INACTIVE = (100, 100, 100)
 COLOR_LIST_ACTIVE = (100, 150, 100) # green
 
-#############################################
+############################################################################################
+############################################################################################
 # DropDown class
 class DropDown():
     def __init__(self, color_menu, color_option, x, y, w, h, font, main, options):
@@ -802,5 +1053,108 @@ def load_screen_from_json(filename):
         print(f"Screen loaded from {filename}")
     except Exception as e:
         print(f"Error loading screen from {filename}: {str(e)}")
+
+def draw_ruler(screen, screen_objects, ruler_color, selected_ruler_color):
+    screen_width, screen_height = screen.get_size()
+    screen_center = (screen_width // 2, screen_height // 2)
+
+    # Draw center lines of the screen
+    draw_dashed_line(screen, ruler_color, (screen_center[0], 0), (screen_center[0], screen_height))
+    draw_dashed_line(screen, ruler_color, (0, screen_center[1]), (screen_width, screen_center[1]))
+
+    for obj in screen_objects:
+        color = selected_ruler_color if obj.selected else ruler_color
+        
+        # Calculate object center
+        obj_center = (obj.x + obj.width // 2, obj.y + obj.height // 2)
+        
+        # Draw small plus at the center of the object
+        plus_size = 10
+        pygame.draw.line(screen, color, (obj_center[0] - plus_size, obj_center[1]), (obj_center[0] + plus_size, obj_center[1]))
+        pygame.draw.line(screen, color, (obj_center[0], obj_center[1] - plus_size), (obj_center[0], obj_center[1] + plus_size))
+
+        # Draw lines extending from edges
+        # Left edge
+        draw_dashed_line(screen, color, (obj.x, obj_center[1]), (0, obj_center[1]))
+        # Right edge
+        draw_dashed_line(screen, color, (obj.x + obj.width, obj_center[1]), (screen_width, obj_center[1]))
+        # Top edge
+        draw_dashed_line(screen, color, (obj_center[0], obj.y), (obj_center[0], 0))
+        # Bottom edge
+        draw_dashed_line(screen, color, (obj_center[0], obj.y + obj.height), (obj_center[0], screen_height))
+
+        # Draw dashed lines from corners
+        # Top-left corner
+        draw_dashed_line(screen, color, (obj.x, obj.y), (0, obj.y))
+        draw_dashed_line(screen, color, (obj.x, obj.y), (obj.x, 0))
+
+        # Top-right corner
+        draw_dashed_line(screen, color, (obj.x + obj.width, obj.y), (screen_width, obj.y))
+        draw_dashed_line(screen, color, (obj.x + obj.width, obj.y), (obj.x + obj.width, 0))
+
+        # Bottom-left corner
+        draw_dashed_line(screen, color, (obj.x, obj.y + obj.height), (0, obj.y + obj.height))
+        draw_dashed_line(screen, color, (obj.x, obj.y + obj.height), (obj.x, screen_height))
+
+        # Bottom-right corner
+        draw_dashed_line(screen, color, (obj.x + obj.width, obj.y + obj.height), (screen_width, obj.y + obj.height))
+        draw_dashed_line(screen, color, (obj.x + obj.width, obj.y + obj.height), (obj.x + obj.width, screen_height))
+
+def draw_dashed_line(surface, color, start_pos, end_pos, dash_length=10):
+    x1, y1 = start_pos
+    x2, y2 = end_pos
+    dx = x2 - x1
+    dy = y2 - y1
+    distance = max(abs(dx), abs(dy))
+    if distance == 0:
+        return
+    dx = dx / distance
+    dy = dy / distance
+
+    for i in range(0, int(distance), dash_length * 2):
+        start = (int(x1 + i * dx), int(y1 + i * dy))
+        end = (int(x1 + (i + dash_length) * dx), int(y1 + (i + dash_length) * dy))
+        pygame.draw.line(surface, color, start, end, 1)
+
+def show_help_dialog(pygame_gui_manager):
+    help_text = """
+    Key Commands:
+    ? - Show this help dialog
+    E - Exit Edit Mode
+    Q or ESC - Quit
+    A - Add new screen object
+    G - Group selected objects
+    Ctrl+G - Ungroup selected group
+    B - Toggle boundary boxes
+    DELETE or BACKSPACE - Delete selected object
+    S - Save screen to JSON
+    L - Load screen from JSON
+    F - Toggle FPS display
+    R - Toggle ruler
+    Arrow keys - Move selected object(s)
+    Ctrl + Arrow keys - Move selected object(s) by 10 pixels
+    PAGE UP - Move object up in draw order
+    PAGE DOWN - Move object down in draw order
+    """
+
+    window_width = 400
+    window_height = 500
+    screen_width, screen_height = pygame.display.get_surface().get_size()
+    x = (screen_width - window_width) // 2
+    y = (screen_height - window_height) // 2
+
+    help_window = UIWindow(pygame.Rect(x, y, window_width, window_height),
+                           pygame_gui_manager,
+                           window_display_title="Help",
+                           object_id="#help_window")
+
+    UITextBox(help_text,
+              pygame.Rect(10, 10, window_width - 20, window_height - 40),
+              pygame_gui_manager,
+              container=help_window,
+              object_id="#help_textbox")
+
+    print("Help window created")  # Add this line for debugging
+    return help_window
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

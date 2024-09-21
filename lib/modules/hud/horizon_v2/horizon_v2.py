@@ -415,7 +415,7 @@ class horizon_v2(Module):
         x, y = pos
         
         # Clear the surface before drawing
-        self.surface.fill((0, 0, 0))
+        self.surface.fill((0, 0, 0, 0 ))
         
         # Draw horizon lines starting at the specified position
         self.draw_horz_lines(
@@ -459,6 +459,31 @@ class horizon_v2(Module):
     # handle key events
     def processEvent(self, event):
         print("processEvent")
+
+    # return a dict of objects that are used to configure the module.
+    def get_module_options(self):
+        # each item in the dict represents a configuration option.  These are variable in this class that are exposed to the user to edit.
+        return {
+            "line_mode": {
+                "type": "bool",
+                "default": False,
+                "label": "Line Mode",
+                "description": ""
+            },
+            "line_thickness": {
+                "type": "int",
+                "default": 2,
+                "min": 1,
+                "max": 4,
+                "label": "Line Thickness",
+                "description": ""
+            },
+            "line_color": {
+                "type": "color",
+                "default": (255, 255, 255),
+                "label": "Line Color", 
+            }
+        }
 
 
 #############################################

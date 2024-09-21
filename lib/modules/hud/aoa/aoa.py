@@ -344,5 +344,24 @@ class aoa(Module):
     def processEvent(self, event):
         print("processEvent")
 
+    # return a dict of objects that are used to configure the module.
+    def get_module_options(self):
+
+        # each item in the dict represents a configuration option.  These are variable in this class that are exposed to the user to edit.
+        
+        return {
+            "showLDMax": {
+                "type": "bool",
+                "default": False,
+                "label": "Show LD/Max",
+                "description": "LD/Max is Carson's Number"
+            },
+            "aoa_color": {
+                "type": "color",
+                "default": (255, 255, 255),
+                "label": "AOA Color",
+                "description": "The color of the AOA indicator."
+            }
+        }
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

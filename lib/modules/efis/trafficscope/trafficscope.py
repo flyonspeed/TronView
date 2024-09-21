@@ -227,6 +227,9 @@ class trafficscope(Module):
     
     # return a dict of objects that are used to configure the module.
     def get_module_options(self):
+
+        # each item in the dict represents a configuration option.  These are variable in this class that are exposed to the user to edit.
+        
         return {
             "show_callsign": {
                 "type": "bool",
@@ -249,9 +252,11 @@ class trafficscope(Module):
             "scope_scale": {
                 "type": "int",
                 "default": 10,
+                "min": 1,
+                "max": 25,
                 "label": "Scope Scale",
                 "description": "Set the scale of the scope in miles."
-            }
+            },
         }
 
     # handle events

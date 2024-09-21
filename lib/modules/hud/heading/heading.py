@@ -388,5 +388,10 @@ class heading(Module):
     def processEvent(self, event):
         print("processEvent")
 
+    # return a dict of objects that are used to configure the module.
+    def get_module_options(self):
+        # each item in the dict represents a configuration option.  These are variable in this class that are exposed to the user to edit.
+        return {
+        }
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

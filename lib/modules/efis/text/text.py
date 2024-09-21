@@ -67,7 +67,7 @@ class text(Module):
                 "type": "text",
                 "default": "",
                 "label": "Text",
-                "description": "Show Text"
+                "description": "Text to display"
             },
         }
 

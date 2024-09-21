@@ -48,6 +48,7 @@ case $yn in
 			sudo apt install libsdl2-ttf-2.0-0 
 			sudo pip3 install Adafruit_ADS1x15 --break-system-packages
 			sudo pip3 install numpy --break-system-packages
+			sudo pip3 install pygame_gui --break-system-packages 
 
 
 		else
@@ -62,7 +63,7 @@ case $yn in
 			sudo apt install libsdl2-ttf-2.0-0 
 			sudo pip3 install Adafruit_ADS1x15 --break-system-packages
 			sudo pip3 install numpy --break-system-packages
-
+			sudo pip3 install pygame_gui --break-system-packages
 		fi
 
 		echo "Please reboot your pi now.  Type sudo reboot"

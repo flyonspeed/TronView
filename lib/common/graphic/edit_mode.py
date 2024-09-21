@@ -95,13 +95,13 @@ def main_edit_loop():
             if event.type == pygame_gui.UI_BUTTON_PRESSED:
                 print("gui Button pressed: %s" % event.ui_element.text)
                 if edit_options_bar:
-                    edit_options_bar.handle_click(event)
+                    edit_options_bar.handle_event(event)
                 action_performed = True
                 continue
             if event.type == pygame_gui.UI_HORIZONTAL_SLIDER_MOVED:
                 print("gui Slider moved: %s" % event.ui_element.option_name)
                 if edit_options_bar:
-                    edit_options_bar.handle_slider_move(event)
+                    edit_options_bar.handle_event(event)
                 action_performed = True
                 continue
 
@@ -219,6 +219,10 @@ def main_edit_loop():
                                     sObject.move(sObject.x - move_distance, sObject.y)
                                 elif event.key == pygame.K_RIGHT:
                                     sObject.move(sObject.x + move_distance, sObject.y)
+                                
+                                # Update EditOptionsBar position if it exists
+                                if edit_options_bar and edit_options_bar.screen_object == sObject:
+                                    edit_options_bar.update_position()
 
                     # Show help dialog when '?' is pressed
                     elif event.key == pygame.K_QUESTION or event.key == pygame.K_SLASH:
@@ -345,6 +349,9 @@ def main_edit_loop():
                     if dragging and len(selected_screen_objects) == 1:  # if dragging a single screen object
                         mx, my = pygame.mouse.get_pos()
                         selected_screen_objects[0].move(mx - offset_x, my - offset_y)
+                        # Update EditOptionsBar position if it exists
+                        if edit_options_bar and edit_options_bar.screen_object == selected_screen_objects[0]:
+                            edit_options_bar.update_position()
                     
                     elif dragging and len(selected_screen_objects) > 1:  # if dragging multiple screen objects
                         mx, my = pygame.mouse.get_pos()
@@ -355,11 +362,17 @@ def main_edit_loop():
                             diffY = my - sObject.mouse_offset_y
                             #print("Moving %s by %d, %d " % (sObject.title, diffX, diffY))
                             sObject.move(diffX, diffY)
+                            # Update EditOptionsBar position if it exists
+                            if edit_options_bar and edit_options_bar.screen_object == sObject:
+                                edit_options_bar.update_position()
 
                         pygamescreen.fill((0, 0, 0))
                     elif dragging and selected_screen_object:  # dragging a single screen object
                         mx, my = pygame.mouse.get_pos()
                         selected_screen_object.move(mx, my)
+                        # Update EditOptionsBar position if it exists
+                        if edit_options_bar and edit_options_bar.screen_object == selected_screen_object:
+                            edit_options_bar.update_position()
                     elif resizing and selected_screen_object: # resizing
                         mx, my = pygame.mouse.get_pos()
                         temp_width = mx - selected_screen_object.x
@@ -378,10 +391,11 @@ def main_edit_loop():
 
             if sObject.selected and sObject.showOptions:
                 if edit_options_bar is None or edit_options_bar.screen_object != sObject:
+                    if edit_options_bar:
+                        edit_options_bar.remove_ui()
                     edit_options_bar = EditOptionsBar(sObject, pygame_gui_manager, shared.smartdisplay)
                 edit_options_bar.update(time_delta)
-                edit_options_bar.draw(pygamescreen)
-            elif edit_options_bar and edit_options_bar.screen_object == sObject:
+            elif edit_options_bar and edit_options_bar.screen_object == sObject and not sObject.showOptions:
                 edit_options_bar.remove_ui()
                 edit_options_bar = None
 
@@ -675,127 +689,73 @@ class TronViewScreenObject:
 # Show the options for a module. These are controls that are built based off the get_module_options() method in the module.
 class EditOptionsBar:
     def __init__(self, screen_object, pygame_gui_manager, smartdisplay):
-        #print("Init EditOptionsBar: %s" % screen_object.title)
         self.screen_object = screen_object
         self.pygame_gui_manager = pygame_gui_manager
         self.visible = True
         self.ui_elements = []
-        self.x = 0
-        self.y = 0
-        self.width = 200
-        self.height = 1000
         
-        # Calculate the required height
-        self.calculate_dimensions()
+        window_width = 200
+        window_height = self.calculate_height()
         
-        self.surface = pygame.Surface((200, self.height))
-        self.surface.set_alpha(200)  # Semi-transparent
-        self.surface.fill((30, 30, 30))  # Dark gray background
-        self.ui_manager = pygame_gui.UIManager((smartdisplay.width, smartdisplay.height)) 
+        # Position the window to the right of the screen object
+        x = min(screen_object.x + screen_object.width, smartdisplay.x_end - window_width)
+        y = screen_object.y
         
-        # Create a container that will act as the new "root" for UI elements
-        self.container = pygame_gui.elements.UIPanel(
-            relative_rect=pygame.Rect(0, 0, 200, self.height),
-            #starting_layer_height=0,
-            manager=self.ui_manager,
-            container=None
+        self.window = UIWindow(
+            pygame.Rect(x, y, window_width, window_height),
+            self.pygame_gui_manager,
+            window_display_title=f"Options: {screen_object.title}",
+            object_id="#options_window"
         )
-
+        
         self.build_ui()
+        self.update_position()
 
-    def calculate_dimensions(self):
+    def calculate_height(self):
         options = self.screen_object.module.get_module_options()
-        self.height = 10  # Initial padding
+        height = 10  # Initial padding
         for option, details in options.items():
-            self.height += 25  # Label height
-            self.height += 30  # Option input height
-            self.height += 5   # Padding between options
-
-        self.height = max(self.height, self.screen_object.height)  # Ensure it's at least as tall as the screen object
-
-    def show(self):
-        self.visible = True
-        for element in self.ui_elements:
-            element.show()
-
-    def hide(self):
-        self.visible = False
-        for element in self.ui_elements:
-            element.hide()
-
-    def handle_event(self, event):
-        if self.visible:
-            # Adjust the event position to be relative to the container
-            if event.type in (pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP, pygame.MOUSEMOTION):
-                event_dict = event.dict
-                event_dict['pos'] = (event_dict['pos'][0] - self.container.rect.x,
-                                     event_dict['pos'][1] - self.container.rect.y)
-                event = pygame.event.Event(event.type, event_dict)
-            
-            self.ui_manager.process_events(event)
-
-    def draw(self, screen):
-        if self.visible:
-            # Calculate the position where the options bar should be drawn
-            if self.screen_object.x + self.screen_object.width + self.surface.get_width() > pygame.display.get_surface().get_width(): 
-                x = self.screen_object.x - self.surface.get_width()
-            else:
-                x = self.screen_object.x + self.screen_object.width
-            y = self.screen_object.y
-
-            # Ensure the options bar doesn't go off the bottom of the screen
-            screen_height = pygame.display.get_surface().get_height()
-            if y + self.height > screen_height:
-                y = max(0, screen_height - self.height)
-
-            # Update the position of the container
-            self.container.set_position((x, y))
-
-            # Draw the UI elements
-            self.ui_manager.draw_ui(screen)
-            self.x = x
-            self.y = y
+            height += 25  # Label height
+            height += 30  # Option input height
+            height += 5   # Padding between options
+        return min(height, 500)  # Limit max height to 500 pixels
 
     def build_ui(self):
         options = self.screen_object.module.get_module_options()
-        print("Building Options UI for %s" % self.screen_object.title)
-        #print(options)
         y_offset = 10
         for option, details in options.items():
-            label = pygame_gui.elements.UILabel(
-                relative_rect=pygame.Rect((10, y_offset), (180, 20)),
+            label = UILabel(
+                relative_rect=pygame.Rect(10, y_offset, 180, 20),
                 text=details['label'],
-                manager=self.ui_manager,
-                container=self.container  # Add this line
+                manager=self.pygame_gui_manager,
+                container=self.window
             )
-            self.ui_elements.append(label)
             y_offset += 25
 
             if details['type'] == 'bool':
-                checkbox = pygame_gui.elements.UIButton(
-                    relative_rect=pygame.Rect((10, y_offset), (180, 20)),
+                checkbox = UIButton(
+                    relative_rect=pygame.Rect(10, y_offset, 180, 20),
                     text='On' if getattr(self.screen_object.module, option) else 'Off',
-                    manager=self.ui_manager,
-                    container=self.container  # Add this line
+                    manager=self.pygame_gui_manager,
+                    container=self.window
                 )
                 checkbox.option_name = option
-                checkbox.callback = lambda btn=checkbox: self.on_checkbox_click(btn.option_name)
                 self.ui_elements.append(checkbox)
             elif details['type'] == 'int':
                 slider = pygame_gui.elements.UIHorizontalSlider(
-                    relative_rect=pygame.Rect((10, y_offset), (180, 20)),
+                    relative_rect=pygame.Rect(10, y_offset, 180, 20),
                     start_value=getattr(self.screen_object.module, option),
                     value_range=(details['min'], details['max']),
-                    manager=self.ui_manager,
-                    container=self.container  # Add this line
+                    manager=self.pygame_gui_manager,
+                    container=self.window
                 )
                 slider.option_name = option
                 self.ui_elements.append(slider)
             elif details['type'] in ['float', 'text']:
-                text_entry = pygame_gui.elements.UITextEntryLine(
-                    relative_rect=pygame.Rect((10, y_offset), (180, 20)),
-                    manager=self.ui_manager,
-                    container=self.container  # Add this line
+                text_entry = UITextEntryLine(
+                    relative_rect=pygame.Rect(10, y_offset, 180, 20),
+                    manager=self.pygame_gui_manager,
+                    container=self.window
                 )
                 text_entry.set_text(str(getattr(self.screen_object.module, option)))
                 text_entry.option_name = option
@@ -803,32 +763,75 @@ class EditOptionsBar:
 
             y_offset += 30
 
-    def remove_ui(self):
-        for element in self.ui_elements:
-            element.kill()
-        self.ui_elements.clear()
-
-    def update(self, time_delta):
-        if self.visible:
-            #print ("update EditOptionsBar")
-            # tell the ui manager where the surface is
-            self.ui_manager.update(time_delta)
+    def handle_event(self, event):
+        if event.type == pygame_gui.UI_BUTTON_PRESSED:
+            for element in self.ui_elements:
+                if isinstance(element, UIButton) and event.ui_element == element:
+                    self.on_checkbox_click(element.option_name)
+        elif event.type == pygame_gui.UI_HORIZONTAL_SLIDER_MOVED:
+            for element in self.ui_elements:
+                if isinstance(element, pygame_gui.elements.UIHorizontalSlider) and event.ui_element == element:
+                    self.on_slider_moved(element.option_name, event.value)
+        elif event.type == pygame_gui.UI_TEXT_ENTRY_FINISHED:
+            for element in self.ui_elements:
+                if isinstance(element, UITextEntryLine) and event.ui_element == element:
+                    self.on_text_entered(element.option_name, event.text)
 
     def on_checkbox_click(self, option):
         current_value = getattr(self.screen_object.module, option)
         new_value = not current_value
         setattr(self.screen_object.module, option, new_value)
-        print("Checkbox clicked: %s, new value: %s" % (option, new_value))
-        
-        # Update the button text
         for element in self.ui_elements:
-            if isinstance(element, pygame_gui.elements.UIButton) and element.option_name == option:
+            if isinstance(element, UIButton) and element.option_name == option:
                 element.set_text('On' if new_value else 'Off')
                 break
-        
-        # If the module has an update_option method, call it
         if hasattr(self.screen_object.module, 'update_option'):
             self.screen_object.module.update_option(option, new_value)
+
+    def on_slider_moved(self, option, value):
+        setattr(self.screen_object.module, option, int(value))
+        if hasattr(self.screen_object.module, 'update_option'):
+            self.screen_object.module.update_option(option, int(value))
+
+    def on_text_entered(self, option, text):
+        option_type = self.screen_object.module.get_module_options()[option]['type']
+        if option_type == 'float':
+            value = float(text)
+        elif option_type == 'int':
+            value = int(text)
+        else:
+            value = text
+        setattr(self.screen_object.module, option, value)
+        if hasattr(self.screen_object.module, 'update_option'):
+            self.screen_object.module.update_option(option, value)
+
+    def update_position(self):
+        window_width = self.window.get_abs_rect().width
+        x = min(self.screen_object.x + self.screen_object.width, 
+                shared.smartdisplay.x_end - window_width)
+        y = self.screen_object.y
+        self.window.set_position((x, y))
+
+    def update(self, time_delta):
+        if self.visible:
+            self.update_position()  # Update position before updating the UI
+            self.pygame_gui_manager.update(time_delta)
+
+    def draw(self, screen):
+        if self.visible:
+            self.pygame_gui_manager.draw_ui(screen)
+
+    def show(self):
+        self.visible = True
+        self.window.show()
+
+    def hide(self):
+        self.visible = False
+        self.window.hide()
+
+    def remove_ui(self):
+        self.window.kill()
+        self.ui_elements.clear()
 
 ############################################################################################
 ############################################################################################

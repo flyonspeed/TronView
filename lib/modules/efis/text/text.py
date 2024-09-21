@@ -40,25 +40,35 @@ class text(Module):
         # Remove the self.surface creation and fill
 
     def parse_text(self, aircraft):
-        # text can contain variables in the form of {{variable_name}}
-        # allow %f to format the variable as a float example {{variable_name|%f}}
+        # text can contain variables in the form of {variable_name}
+        # allow %f to format the variable as a float example {variable_name%2f}
 
         # split the text into words
         words = self.text.split()
         result = self.text
         for word in words:
-            if "{{" in word and "}}" in word:
+            if "{" in word and "}" in word:
                 # this is a variable
-                variable_name = word[2:-2]
-                # get the value of the variable from the aircraft object
-                variable_value = getattr(aircraft, variable_name, "N/A")
-                # replace the variable with the value
-                result = result.replace(word, str(variable_value))
-            elif "%" in word:
-                # this is a format specifier
-                format_specifier = word[1:]
-                # get the value of the variable from the aircraft object
-                variable_value = getattr(aircraft, variable_name, "N/A")
+                variable_name = word[1:-1]
+                # check if it has a format specifier
+                if "%" in variable_name:
+                    # split the variable name and the format specifier
+                    variable_name, format_specifier = variable_name.split("%")
+                    # get the value of the variable from the aircraft object
+                    variable_value = getattr(aircraft, variable_name, "N/A")
+                    # apply the format specifier example %0.2f = float with 2 decimal places. %d = integer
+                    try:
+                        # Use f-string formatting for float values
+                        variable_value = f"{variable_value:{format_specifier}}"
+                    except Exception as e:
+                        # get error message
+                        variable_value = str(e)
+                    
+                    # replace the variable with the value
+                    result = result.replace(word, str(variable_value))
+                else:
+                    # get the value of the variable from the aircraft object
+                    variable_value = getattr(aircraft, variable_name, "N/A")
                 # replace the variable with the value
                 result = result.replace(word, str(variable_value))
             else:

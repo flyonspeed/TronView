@@ -240,6 +240,22 @@ def main_edit_loop():
                             help_window.kill()
                             help_window = None
 
+                    # Clone selected screen objects
+                    elif event.key == pygame.K_c:
+                        mx, my = pygame.mouse.get_pos()
+                        cloned_objects = clone_screen_objects(selected_screen_objects, mx, my)
+                        
+                        if cloned_objects:
+                            for cloned_obj in cloned_objects:
+                                shared.CurrentScreen.ScreenObjects.append(cloned_obj)
+                            
+                            # Update selected objects to be the cloned ones
+                            selected_screen_objects = cloned_objects
+                            for obj in shared.CurrentScreen.ScreenObjects:
+                                obj.selected = obj in cloned_objects
+
+                        print(f"Cloned {len(cloned_objects)} objects")
+
                 # check for Mouse events
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     mx, my = pygame.mouse.get_pos()
@@ -1260,6 +1276,7 @@ def show_help_dialog(pygame_gui_manager):
     G - Group selected objects
     Ctrl+G - Ungroup selected group
     B - Toggle boundary boxes
+    C - Clone selected object(s)    
     DELETE or BACKSPACE - Delete selected object
     S - Save screen to JSON
     L - Load screen from JSON
@@ -1290,5 +1307,72 @@ def show_help_dialog(pygame_gui_manager):
 
     print("Help window created")  # Add this line for debugging
     return help_window
+
+def clone_screen_objects(selected_objects, mouse_x, mouse_y):
+    if not selected_objects:
+        return []
+
+    cloned_objects = []
+    reference_obj = selected_objects[0]
+    offset_x = mouse_x - reference_obj.x
+    offset_y = mouse_y - reference_obj.y
+
+    for obj in selected_objects:
+        new_obj = TronViewScreenObject(
+            obj.pygamescreen,
+            obj.type,
+            obj.title + "_clone",
+            module=None,
+            x=obj.x + offset_x,
+            y=obj.y + offset_y,
+            width=obj.width,
+            height=obj.height,
+            id=None
+        )
+        
+        new_obj.showBounds = obj.showBounds
+        new_obj.showOptions = obj.showOptions
+        
+        if obj.type == 'group':
+            new_obj.childScreenObjects = [clone_screen_object(child, offset_x, offset_y) for child in obj.childScreenObjects]
+        else:
+            if obj.module:
+                new_module = type(obj.module)()
+                for attr, value in vars(obj.module).items():
+                    if not callable(value) and not attr.startswith("__"):
+                        setattr(new_module, attr, value)
+                new_obj.setModule(new_module)
+        
+        cloned_objects.append(new_obj)
+    
+    return cloned_objects
+
+def clone_screen_object(obj, offset_x, offset_y):
+    new_obj = TronViewScreenObject(
+        obj.pygamescreen,
+        obj.type,
+        obj.title + "_clone",
+        module=None,
+        x=obj.x + offset_x,
+        y=obj.y + offset_y,
+        width=obj.width,
+        height=obj.height,
+        id=None
+    )
+    
+    new_obj.showBounds = obj.showBounds
+    new_obj.showOptions = obj.showOptions
+    
+    if obj.type == 'group':
+        new_obj.childScreenObjects = [clone_screen_object(child, offset_x, offset_y) for child in obj.childScreenObjects]
+    else:
+        if obj.module:
+            new_module = type(obj.module)()
+            for attr, value in vars(obj.module).items():
+                if not callable(value) and not attr.startswith("__"):
+                    setattr(new_module, attr, value)
+            new_obj.setModule(new_module)
+    
+    return new_obj
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

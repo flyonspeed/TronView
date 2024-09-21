@@ -830,7 +830,8 @@ class EditOptionsBar:
                         else:
                             self.on_checkbox_click(option)
         elif event.type == pygame_gui.UI_COLOUR_PICKER_COLOUR_PICKED:
-            for option, picker in self.color_pickers.items():
+            # Create a copy of the items before iterating
+            for option, picker in list(self.color_pickers.items()):
                 if event.ui_element == picker:
                     self.on_color_picked(option, event.colour)
         elif event.type == pygame_gui.UI_HORIZONTAL_SLIDER_MOVED:
@@ -860,7 +861,7 @@ class EditOptionsBar:
         if 'post_change_function' in options[option]:
             post_change_function = getattr(self.screen_object.module, options[option]['post_change_function'], None)
             if post_change_function:
-                post_change_function(new_value)
+                post_change_function()
 
     def on_slider_moved(self, option, value):
         setattr(self.screen_object.module, option, int(value))
@@ -872,7 +873,7 @@ class EditOptionsBar:
         if 'post_change_function' in options[option]:
             post_change_function = getattr(self.screen_object.module, options[option]['post_change_function'], None)
             if post_change_function:
-                post_change_function(int(value))
+                post_change_function()
         # update the label with the new value by finding it by object_id
         for element in self.ui_elements:
             if isinstance(element, UILabel):
@@ -901,7 +902,7 @@ class EditOptionsBar:
         if 'post_change_function' in options[option]:
             post_change_function = getattr(self.screen_object.module, options[option]['post_change_function'], None)
             if post_change_function:
-                post_change_function(value)
+                post_change_function()
 
     def show_color_picker(self, option):
         current_color = getattr(self.screen_object.module, option)
@@ -931,7 +932,7 @@ class EditOptionsBar:
         if 'post_change_function' in options[option]:
             post_change_function = getattr(self.screen_object.module, options[option]['post_change_function'], None)
             if post_change_function:
-                post_change_function(color)
+                post_change_function()
         
         del self.color_pickers[option]
 

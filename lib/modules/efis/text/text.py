@@ -18,6 +18,12 @@ class text(Module):
     def __init__(self):
         Module.__init__(self)
         self.name = "Text"  # set name
+        self.font_name = "monospace"
+        self.font_size = 12
+        self.font_bold = False
+        self.text = "Hello World"
+        self.text_color = (200,255,255)
+        self.text_bg_color = (0,0,0)
 
     # called once for setup
     def initMod(self, pygamescreen, width, height):
@@ -25,11 +31,10 @@ class text(Module):
             self, pygamescreen, width, height
         )  # call parent init screen.
         print(("Init Mod: %s %dx%d"%(self.name,self.width,self.height)))
-
-        self.font = pygame.font.SysFont("monospace", 12, bold=False)
-        self.text = "Hello World"
-        self.text_color = (200,255,255)
-        self.text_bg_color = (0,0,0)
+        # does the self.font_name variable exist?
+            
+        self.font = pygame.font.SysFont(self.font_name, self.font_size, self.font_bold)
+        # does the self.text variable exist?
         self.surface2 = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
         self.surface2.fill((0,0,0,0))
         # Remove the self.surface creation and fill
@@ -59,15 +64,53 @@ class text(Module):
         #self.ahrs_bg.fill((0, 0, 0))  # clear screen
         #print("clear")
         pass
+
+    def buildFont(self):
+        self.font = pygame.font.SysFont(self.font_name, self.font_size, self.font_bold)
     
     # return a dict of objects that are used to configure the module.
     def get_module_options(self):
         return {
             "text": {
                 "type": "text",
-                "default": "",
+                "default": self.text,
                 "label": "Text",
                 "description": "Text to display"
+            },
+            "font_name": {
+                "type": "string",
+                "default": self.font_name,
+                "label": "Font Name",
+                "description": "Name of the font to use",
+                "post_change_function": "buildFont"
+            },
+            "font_size": {
+                "type": "int",
+                "default": self.font_size,
+                "min": 7,
+                "max": 40,
+                "label": "Font Size",
+                "description": "Size of the font to use",
+                "post_change_function": "buildFont"
+            },
+            "font_bold": {
+                "type": "bool",
+                "default": False,
+                "label": "Font Bold",
+                "description": "Use bold font",
+                "post_change_function": "buildFont"
+            },
+            "text_color": {
+                "type": "color",
+                "default": self.text_color,
+                "label": "Text Color",
+                "description": "Color of the text to use"
+            },  
+            "text_bg_color": {
+                "type": "color",
+                "default": self.text_bg_color,
+                "label": "Text Background Color",
+                "description": "Color of the text background to use"
             },
         }
 

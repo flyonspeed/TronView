@@ -104,10 +104,10 @@ class trafficscope(Module):
         self.surface.blit(labelScale, (self.xCenter-labelScale_rect.width, int(self.height/4)+5 ))
 
 
-    def setScaleInMiles(self,miles):
-        self.scope_scale = (self.width/2) / miles 
-        #self.scope_scale = miles * 16
-        self.scope_scale_miles = miles
+    def setScaleInMiles(self,miles = None ):
+        if miles is not None:
+            self.scope_scale_miles = miles
+        self.scope_scale = (self.width/2) / self.scope_scale_miles 
         self.buildBaseSurface()
 
     # called every redraw for the mod
@@ -143,6 +143,8 @@ class trafficscope(Module):
                     label = self.font_target.render(t.callsign, False, (200,255,255), (0,0,0))
                     label_rect = label.get_rect()
                     self.surface2.blit(label, (xx, yy))
+                else:
+                    label_rect = pygame.Rect(0, 0, 0, 0)
                 # show details?
                 if(self.show_details==True):
                     if(t.speed != None and t.speed > -1 and t.track != None):
@@ -249,13 +251,14 @@ class trafficscope(Module):
                 "label": "Show Lat/Lon",
                 "description": "Show the latitude and longitude of the targets on the scope."
             },
-            "scope_scale": {
+            "scope_scale_miles": {
                 "type": "int",
-                "default": 10,
+                "default": self.scope_scale_miles,
                 "min": 1,
-                "max": 25,
+                "max": 50,
                 "label": "Scope Scale",
-                "description": "Set the scale of the scope in miles."
+                "description": "Set the scale of the scope in miles.",
+                "post_change_function": "setScaleInMiles"
             },
         }
 

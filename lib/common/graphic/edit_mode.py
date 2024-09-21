@@ -81,6 +81,8 @@ def main_edit_loop():
 
     help_window = None
 
+    text_entry_active = False
+
     ############################################################################################
     ############################################################################################
     # Main edit draw loop
@@ -94,17 +96,21 @@ def main_edit_loop():
         for event in event_list:
             pygame_gui_manager.process_events(event)
             if event.type == pygame_gui.UI_BUTTON_PRESSED:
-                print("gui Button pressed: %s" % event.ui_element.text)
+                #print("gui Button pressed: %s" % event.ui_element.text)
                 if edit_options_bar:
                     edit_options_bar.handle_event(event)
                 action_performed = True
                 continue
             if event.type == pygame_gui.UI_HORIZONTAL_SLIDER_MOVED:
-                print("gui Slider moved: %s" % event.ui_element.option_name)
+                #print("gui Slider moved: %s" % event.ui_element.option_name)
                 if edit_options_bar:
                     edit_options_bar.handle_event(event)
                 action_performed = True
                 continue
+
+            if edit_options_bar:
+                edit_options_bar.handle_event(event)
+                text_entry_active = edit_options_bar.text_entry_active
 
             if dropdown and dropdown.visible:
                 selection = dropdown.update(event_list)
@@ -115,7 +121,7 @@ def main_edit_loop():
                     selected_screen_object.setModule(newModules[0])
             else:
                 # KEY MAPPINGS
-                if event.type == pygame.KEYDOWN:
+                if event.type == pygame.KEYDOWN and not text_entry_active:
                     mods = pygame.key.get_mods()
                     if event.key == pygame.K_3 or event.key == pygame.K_KP3:
                         # do nothing
@@ -694,6 +700,7 @@ class EditOptionsBar:
         self.pygame_gui_manager = pygame_gui_manager
         self.visible = True
         self.ui_elements = []
+        self.text_entry_active = False  # Add this line
         
         window_width = 200
         window_height = self.calculate_height()
@@ -701,6 +708,10 @@ class EditOptionsBar:
         # Position the window to the right of the screen object
         x = min(screen_object.x + screen_object.width, smartdisplay.x_end - window_width)
         y = screen_object.y
+        
+        # Ensure the window fits within the screen
+        if y + window_height > smartdisplay.y_end:
+            y = max(0, smartdisplay.y_end - window_height)
         
         self.window = UIWindow(
             pygame.Rect(x, y, window_width, window_height),
@@ -721,20 +732,30 @@ class EditOptionsBar:
             height += 25  # Label height
             height += 30  # Option input height
             height += 5   # Padding between options
+        height += 10  # Additional padding at the bottom
         return min(height, 500)  # Limit max height to 500 pixels
 
     def build_ui(self):
         options = self.screen_object.module.get_module_options()
         y_offset = 10
+        total_height = 10  # Initial padding
+
         for option, details in options.items():
+            # Add height for label
+            total_height += 25
             label = UILabel(
                 relative_rect=pygame.Rect(10, y_offset, 180, 20),
                 text=details['label'],
                 manager=self.pygame_gui_manager,
-                container=self.window
+                container=self.window,
+                object_id="#options_label_" + option
             )
             y_offset += 25
+            label.object_id = "#options_label_" + option
+            self.ui_elements.append(label)
 
+            # Add height for option control
+            total_height += 30
             if details['type'] == 'bool':
                 checkbox = UIButton(
                     relative_rect=pygame.Rect(10, y_offset, 180, 20),
@@ -743,6 +764,7 @@ class EditOptionsBar:
                     container=self.window
                 )
                 checkbox.option_name = option
+                checkbox.object_id = "#options_checkbox_" + option
                 self.ui_elements.append(checkbox)
             elif details['type'] == 'int':
                 slider = pygame_gui.elements.UIHorizontalSlider(
@@ -753,7 +775,10 @@ class EditOptionsBar:
                     container=self.window
                 )
                 slider.option_name = option
+                slider.object_id = "#options_slider_" + option
                 self.ui_elements.append(slider)
+                # show the current value by appending it to the label already created
+                label.set_text(label.text + " " + str(getattr(self.screen_object.module, option)))
             elif details['type'] in ['float', 'text']:
                 text_entry = UITextEntryLine(
                     relative_rect=pygame.Rect(10, y_offset, 180, 20),
@@ -762,6 +787,7 @@ class EditOptionsBar:
                 )
                 text_entry.set_text(str(getattr(self.screen_object.module, option)))
                 text_entry.option_name = option
+                text_entry.object_id = "#options_text_" + option
                 self.ui_elements.append(text_entry)
             elif details['type'] == 'color':
                 current_color = getattr(self.screen_object.module, option)
@@ -771,13 +797,27 @@ class EditOptionsBar:
                     relative_rect=pygame.Rect(10, y_offset, 180, 20),
                     text='',
                     manager=self.pygame_gui_manager,
-                    container=self.window
+                    container=self.window,
                 )
                 color_button.background_colour = current_color
                 color_button.option_name = option
+                color_button.object_id = "#options_color_" + option
                 self.ui_elements.append(color_button)
 
             y_offset += 30
+            total_height += 5  # Padding between options
+
+        # Add final padding
+        total_height += 60
+
+        # Adjust window height to fit all options
+        new_height = min(total_height, 500)  # Limit to 500 pixels
+        current_width = self.window.get_abs_rect().width
+        self.window.set_dimensions((current_width, new_height))
+
+        # Adjust container size for scrolling if necessary
+        if total_height > 500:
+            self.window.set_scrollable_container_height(total_height)
 
     def handle_event(self, event):
         if event.type == pygame_gui.UI_BUTTON_PRESSED:
@@ -797,10 +837,12 @@ class EditOptionsBar:
             for element in self.ui_elements:
                 if isinstance(element, pygame_gui.elements.UIHorizontalSlider) and event.ui_element == element:
                     self.on_slider_moved(element.option_name, event.value)
+        elif event.type == pygame_gui.UI_TEXT_ENTRY_CHANGED:
+            self.text_entry_active = True
         elif event.type == pygame_gui.UI_TEXT_ENTRY_FINISHED:
-            for element in self.ui_elements:
-                if isinstance(element, UITextEntryLine) and event.ui_element == element:
-                    self.on_text_entered(element.option_name, event.text)
+            print("Text entry finished")
+            self.text_entry_active = False
+            self.on_text_entered(event.ui_element.option_name, event.text) # send the option name and the text entered
 
     def on_checkbox_click(self, option):
         current_value = getattr(self.screen_object.module, option)
@@ -812,11 +854,35 @@ class EditOptionsBar:
                 break
         if hasattr(self.screen_object.module, 'update_option'):
             self.screen_object.module.update_option(option, new_value)
+        
+        # Check for post_change_function
+        options = self.screen_object.module.get_module_options()
+        if 'post_change_function' in options[option]:
+            post_change_function = getattr(self.screen_object.module, options[option]['post_change_function'], None)
+            if post_change_function:
+                post_change_function(new_value)
 
     def on_slider_moved(self, option, value):
         setattr(self.screen_object.module, option, int(value))
         if hasattr(self.screen_object.module, 'update_option'):
             self.screen_object.module.update_option(option, int(value))
+        
+        # Check for post_change_function
+        options = self.screen_object.module.get_module_options()
+        if 'post_change_function' in options[option]:
+            post_change_function = getattr(self.screen_object.module, options[option]['post_change_function'], None)
+            if post_change_function:
+                post_change_function(int(value))
+        # update the label with the new value by finding it by object_id
+        for element in self.ui_elements:
+            if isinstance(element, UILabel):
+                # make sure element has object_id
+                #print("element.text: %s" % element.text)
+                if hasattr(element, 'object_id'):
+                    #print("element.object_id: %s" % element.object_id)
+                    if element.object_id == "#options_label_" + option:
+                        element.set_text(options[option]['label'] + ": " + str(int(value)))
+                        break
 
     def on_text_entered(self, option, text):
         option_type = self.screen_object.module.get_module_options()[option]['type']
@@ -829,6 +895,13 @@ class EditOptionsBar:
         setattr(self.screen_object.module, option, value)
         if hasattr(self.screen_object.module, 'update_option'):
             self.screen_object.module.update_option(option, value)
+        
+        # Check for post_change_function
+        options = self.screen_object.module.get_module_options()
+        if 'post_change_function' in options[option]:
+            post_change_function = getattr(self.screen_object.module, options[option]['post_change_function'], None)
+            if post_change_function:
+                post_change_function(value)
 
     def show_color_picker(self, option):
         current_color = getattr(self.screen_object.module, option)
@@ -852,6 +925,14 @@ class EditOptionsBar:
                 break
         if hasattr(self.screen_object.module, 'update_option'):
             self.screen_object.module.update_option(option, color)
+        
+        # Check for post_change_function
+        options = self.screen_object.module.get_module_options()
+        if 'post_change_function' in options[option]:
+            post_change_function = getattr(self.screen_object.module, options[option]['post_change_function'], None)
+            if post_change_function:
+                post_change_function(color)
+        
         del self.color_pickers[option]
 
     def update_position(self):

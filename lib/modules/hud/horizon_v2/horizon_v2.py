@@ -19,6 +19,7 @@ class horizon_v2(Module):
     def __init__(self):
         Module.__init__(self)
         self.name = "HUD Horizon V2"  # set name
+        self.flight_path_color = (255, 0, 255)  # Default color, can be changed via settings
 
     # called once for setup
     def initMod(self, pygamescreen, width, height):
@@ -318,7 +319,7 @@ class horizon_v2(Module):
 
         self.draw_circle(
             self.surface,
-            (255, 0, 255),  # changed from Magenta 255, 0, 255
+            self.flight_path_color,  # Use flight_path_color instead of hardcoded color
             (
                 center_x - (int(fpv_x) * 5),
                 center_y - (aircraft.vsi / 2),
@@ -329,7 +330,7 @@ class horizon_v2(Module):
         
         pygame.draw.line(
             self.surface,
-            (255, 0, 255),
+            self.flight_path_color,  # Use flight_path_color
             [
                 center_x - (int(fpv_x) * 5) - 15,
                 center_y - (aircraft.vsi / 2),
@@ -342,7 +343,7 @@ class horizon_v2(Module):
         )
         pygame.draw.line(
             self.surface,
-            (255, 0, 255),
+            self.flight_path_color,  # Use flight_path_color
             [
                 center_x - (int(fpv_x) * 5) + 15,
                 center_y - (aircraft.vsi / 2),
@@ -355,7 +356,7 @@ class horizon_v2(Module):
         )
         pygame.draw.line(
             self.surface,
-            (255, 0, 255),
+            self.flight_path_color,  # Use flight_path_color
             [
                 center_x - (int(fpv_x) * 5),
                 center_y - (aircraft.vsi / 2) - 15,
@@ -369,7 +370,7 @@ class horizon_v2(Module):
         if self.caged_mode == 1:
             pygame.draw.line(
                 self.surface,
-                (255, 0, 255),
+                self.flight_path_color,  # Use flight_path_color
                 [
                     center_x - (int(gfpv_x) * 5) - 15,
                     center_y - (aircraft.vsi / 2),
@@ -382,7 +383,7 @@ class horizon_v2(Module):
             )
             pygame.draw.line(
                 self.surface,
-                (255, 0, 255),
+                self.flight_path_color,  # Use flight_path_color
                 [
                     center_x - (int(gfpv_x) * 5) + 15,
                     center_y - (aircraft.vsi / 2),
@@ -395,7 +396,7 @@ class horizon_v2(Module):
             )
             pygame.draw.line(
                 self.surface,
-                (255, 0, 255),
+                self.flight_path_color,  # Use flight_path_color
                 [
                     center_x - (int(gfpv_x) * 5),
                     center_y - (aircraft.vsi / 2) - 15,
@@ -478,12 +479,20 @@ class horizon_v2(Module):
                 "label": "Line Thickness",
                 "description": ""
             },
-            "line_color": {
+            "MainColor": {
                 "type": "color",
                 "default": (255, 255, 255),
                 "label": "Line Color", 
+            },
+            "flight_path_color": {
+                "type": "color",
+                "default": (255, 0, 255),
+                "label": "Flight Path Color",
             }
         }
+
+    def update_flight_path_color(self, new_color):
+        self.flight_path_color = new_color
 
 
 #############################################

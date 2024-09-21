@@ -28,6 +28,7 @@ import pygame_gui
 from pygame_gui.elements import UIButton, UILabel, UITextEntryLine, UIDropDownMenu
 from pygame_gui.elements.ui_window import UIWindow
 from pygame_gui.elements import UITextBox
+from pygame_gui.windows import UIColourPickerDialog
 
 
 #############################################
@@ -708,6 +709,8 @@ class EditOptionsBar:
             object_id="#options_window"
         )
         
+        self.color_pickers = {}  # To keep track of open color pickers
+        
         self.build_ui()
         self.update_position()
 
@@ -760,6 +763,19 @@ class EditOptionsBar:
                 text_entry.set_text(str(getattr(self.screen_object.module, option)))
                 text_entry.option_name = option
                 self.ui_elements.append(text_entry)
+            elif details['type'] == 'color':
+                current_color = getattr(self.screen_object.module, option)
+                if isinstance(current_color, tuple):
+                    current_color = pygame.Color(*current_color)
+                color_button = UIButton(
+                    relative_rect=pygame.Rect(10, y_offset, 180, 20),
+                    text='',
+                    manager=self.pygame_gui_manager,
+                    container=self.window
+                )
+                color_button.background_colour = current_color
+                color_button.option_name = option
+                self.ui_elements.append(color_button)
 
             y_offset += 30
 
@@ -767,7 +783,16 @@ class EditOptionsBar:
         if event.type == pygame_gui.UI_BUTTON_PRESSED:
             for element in self.ui_elements:
                 if isinstance(element, UIButton) and event.ui_element == element:
-                    self.on_checkbox_click(element.option_name)
+                    if hasattr(element, 'option_name'):
+                        option = element.option_name
+                        if self.screen_object.module.get_module_options()[option]['type'] == 'color':
+                            self.show_color_picker(option)
+                        else:
+                            self.on_checkbox_click(option)
+        elif event.type == pygame_gui.UI_COLOUR_PICKER_COLOUR_PICKED:
+            for option, picker in self.color_pickers.items():
+                if event.ui_element == picker:
+                    self.on_color_picked(option, event.colour)
         elif event.type == pygame_gui.UI_HORIZONTAL_SLIDER_MOVED:
             for element in self.ui_elements:
                 if isinstance(element, pygame_gui.elements.UIHorizontalSlider) and event.ui_element == element:
@@ -804,6 +829,30 @@ class EditOptionsBar:
         setattr(self.screen_object.module, option, value)
         if hasattr(self.screen_object.module, 'update_option'):
             self.screen_object.module.update_option(option, value)
+
+    def show_color_picker(self, option):
+        current_color = getattr(self.screen_object.module, option)
+        # Convert tuple to pygame Color object if necessary
+        if isinstance(current_color, tuple):
+            current_color = pygame.Color(*current_color)
+        color_picker = UIColourPickerDialog(
+            rect=pygame.Rect(300, 50, 390, 390),
+            manager=self.pygame_gui_manager,
+            initial_colour=current_color,
+            window_title=f"Choose color for {option}"
+        )
+        self.color_pickers[option] = color_picker
+
+    def on_color_picked(self, option, color):
+        setattr(self.screen_object.module, option, color)
+        for element in self.ui_elements:
+            if isinstance(element, UIButton) and getattr(element, 'option_name', None) == option:
+                element.background_colour = color
+                element.rebuild()
+                break
+        if hasattr(self.screen_object.module, 'update_option'):
+            self.screen_object.module.update_option(option, color)
+        del self.color_pickers[option]
 
     def update_position(self):
         window_width = self.window.get_abs_rect().width

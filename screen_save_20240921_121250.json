@@ -1,0 +1,24 @@
+{
+  "ver": {
+    "version": "1.0"
+  },
+  "screen": {
+    "title": "No Name",
+    "width": 1920,
+    "height": 1080
+  },
+  "screenObjects": [
+    {
+      "type": "module",
+      "title": "HUD Horizon V2",
+      "x": 763,
+      "y": 246,
+      "width": 284,
+      "height": 419,
+      "module": {
+        "name": "HUD Horizon V2"
+      },
+      "id": "M_m0jkp"
+    }
+  ]
+}

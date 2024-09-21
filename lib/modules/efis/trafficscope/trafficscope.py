@@ -19,6 +19,13 @@ class trafficscope(Module):
     def __init__(self):
         Module.__init__(self)
         self.name = "Traffic Scope"  # set name
+        self.show_callsign = False
+        self.show_details = False
+        self.scope_scale = 0
+        self.scope_scale_miles = 10
+        self.target_show_lat_lon = hud_utils.readConfigBool("TrafficScope", "target_show_lat_lon", False)
+        self.draw_aircraft_icon = hud_utils.readConfigBool("TrafficScope", "draw_aircraft_icon", True)
+        self.aircraft_icon_scale = hud_utils.readConfigInt("TrafficScope", "aircraft_icon_scale", 10)
 
     # called once for setup
     def initMod(self, pygamescreen, width, height):
@@ -27,11 +34,6 @@ class trafficscope(Module):
         )  # call parent init screen.
         print(("Init Mod: %s %dx%d"%(self.name,self.width,self.height)))
 
-        self.show_callsign = False
-        self.show_details = False
-        self.scope_scale = 0
-        self.scope_scale_miles = 0
-
         self.xCenter = self.width/2
         self.yCenter = self.height/2
 
@@ -39,9 +41,7 @@ class trafficscope(Module):
         self.font = pygame.font.SysFont("monospace", 12, bold=False)
         self.font_target = pygame.font.SysFont("monospace", target_font_size, bold=False)
 
-        self.target_show_lat_lon = hud_utils.readConfigBool("TrafficScope", "target_show_lat_lon", False)
-
-        self.setScaleInMiles(10)
+        self.setScaleInMiles()
 
 
     def buildBaseSurface(self):
@@ -130,14 +130,35 @@ class trafficscope(Module):
                 radianAngle = (brngToUse-90) * math.pi / 180 # convert to radians
                 d = t.dist * self.scope_scale
                 xx = self.xCenter + (d * math.cos(radianAngle))
-                yy = self.yCenter + (d * math.sin(radianAngle))
-                hud_graphics.hud_draw_circle(
-                    self.surface2, 
+                yy = self.yCenter + (d * math.sin(radianAngle)) 
+                if self.draw_aircraft_icon:
+                    # Draw the outline of an target aircraft.
+                    # calculate direction of the target.
+                    if(t.track != None):
+                        direction_of_aircraft = t.track
+                    else:
+                        direction_of_aircraft = brngToUse
+                    if(aircraft.mag_head != None):
+                        direction_of_aircraft = direction_of_aircraft - aircraft.mag_head
+                    elif(aircraft.gps.GndTrack != None):
+                        direction_of_aircraft = direction_of_aircraft - aircraft.gps.GndTrack
+                    if(direction_of_aircraft<0): direction_of_aircraft = 360 - abs(direction_of_aircraft)
+                    direction_of_aircraft = (direction_of_aircraft - 90) * math.pi / 180 # convert to radians and adjust by 90 degrees
+                    #write the direction to the target so we can use it in the details/callsign view.
+                    t.targetDirection = direction_of_aircraft
+
+                    scale = self.aircraft_icon_scale
+
+                    self.drawAircraftIcon(self.surface2, t,xx,yy,scale)
+                else:
+                    # else draw a dot.
+                    hud_graphics.hud_draw_circle(
+                        self.surface2, 
                     ( 0, 255, 129), 
                     (xx, yy), 
-                    4, 
-                    0,
-                )
+                        4, 
+                        0,
+                    )
                 # show callsign?
                 if(self.show_callsign==True):
                     label = self.font_target.render(t.callsign, False, (200,255,255), (0,0,0))
@@ -149,17 +170,17 @@ class trafficscope(Module):
                 if(self.show_details==True):
                     if(t.speed != None and t.speed > -1 and t.track != None):
                         # generate line in direct aircraft is flying..
-
-                        targetBrngToUse = t.track # get brng the target is going.
+                        
+                        t.targetBrngToUse = t.track # get brng the target is going.
                         if(aircraft.mag_head != None):  # change it based on what direction we are going because up is now our heading.. not north.
-                            targetBrngToUse = targetBrngToUse - aircraft.mag_head
+                            t.targetBrngToUse = t.targetBrngToUse - aircraft.mag_head
                         elif(aircraft.gps.GndTrack != None): # else use gps ground track if we have it.
-                            targetBrngToUse = targetBrngToUse - aircraft.gps.GndTrack
-                        if(targetBrngToUse<0): targetBrngToUse = 360 - abs(targetBrngToUse)
+                            t.targetBrngToUse = t.targetBrngToUse - aircraft.gps.GndTrack
+                        if(t.targetBrngToUse<0): t.targetBrngToUse = 360 - abs(t.targetBrngToUse)
 
-                        radianTargetTrack = (targetBrngToUse-90) * math.pi / 180
-                        radianArrowPt = (targetBrngToUse-82) * math.pi / 180
-                        radianArrowPt2 = (targetBrngToUse-98) * math.pi / 180
+                        radianTargetTrack = (t.targetBrngToUse-90) * math.pi / 180
+                        radianArrowPt = (t.targetBrngToUse-82) * math.pi / 180
+                        radianArrowPt2 = (t.targetBrngToUse-98) * math.pi / 180
                         d = t.speed / 3
                         if(d>60): d = 60  # cap at 60 pixels length for arrow.
                         #print("line speed:"+str(d))
@@ -220,6 +241,81 @@ class trafficscope(Module):
         self.pygamescreen.blit(self.surface2, pos)
 
 
+    # draw aircraft icon based on the type of aircraft
+    def drawAircraftIcon(self, surface, target, xx, yy, scale):
+
+        direction_of_aircraft = target.targetDirection
+        # types of aircraft
+        # 0 = unkown
+        # 1 = Light (ICAO) < 15 500 lbs
+        # 2 = Small - 15 500 to 75 000 lbs
+        # 3 = Large - 75 000 to 300 000 lbs
+        # 4 = High Vortex Large (e.g., aircraft 24 such as B757)
+        # 5 = Heavy (ICAO) - > 300 000 lbs
+        # 7 = Rotorcraft
+        # 9 = Glider
+        # 10 = lighter then air
+        # 11 = sky diver
+        # 12 = ultra light
+        # 14 = drone Unmanned aerial vehicle
+        # 15 = space craft and aliens!
+        nose = (xx + scale * math.cos(direction_of_aircraft), 
+            yy + scale * math.sin(direction_of_aircraft))
+        tail = (xx - scale * math.cos(direction_of_aircraft), 
+                yy - scale * math.sin(direction_of_aircraft))
+                
+        # if type is 0 through 5 then draw a simple aircraft icon
+        if(target.type >= 0 and target.type <= 5):
+            # Calculate points for the target aircraft outline
+
+            wing_left = (xx + scale * 0.7 * math.cos(direction_of_aircraft + math.pi/2), 
+                            yy + scale * 0.7 * math.sin(direction_of_aircraft + math.pi/2))
+            wing_right = (xx + scale * 0.7 * math.cos(direction_of_aircraft - math.pi/2), 
+                            yy + scale * 0.7 * math.sin(direction_of_aircraft - math.pi/2))
+            elevator_left = (tail[0] + scale * 0.3 * math.cos(direction_of_aircraft + math.pi/2), 
+                                tail[1] + scale * 0.3 * math.sin(direction_of_aircraft + math.pi/2))
+            elevator_right = (tail[0] + scale * 0.3 * math.cos(direction_of_aircraft - math.pi/2), 
+                                tail[1] + scale * 0.3 * math.sin(direction_of_aircraft - math.pi/2))
+
+            # Draw the aircraft outline
+            pygame.draw.line(surface, (0, 255, 129), nose, tail, 1)
+            pygame.draw.line(surface, (0, 255, 129), wing_left, wing_right, 1)
+            pygame.draw.line(surface, (0, 255, 129), elevator_left, elevator_right, 1)
+        elif(target.type == 7):
+            # draw a helicopter. which will look like a X with a line through it. use nose and tail to draw it.
+            # calculate the angle of the helicopter blades.
+            # calculate the angle of the helicopter blades.
+            blade_angle = math.atan2(tail[1] - nose[1], tail[0] - nose[0])
+            # calculate the length of the blades.
+            blade_length = scale * 0.7
+            # calculate the position of the blades.
+            blade_pos = (nose[0] + blade_length * math.cos(blade_angle), 
+                            nose[1] + blade_length * math.sin(blade_angle))
+            # also draw a light circle around the helicopter.
+            pygame.draw.circle(surface, (0, 255, 129), tail, scale * 0.2, 1)
+            pygame.draw.circle(surface, (0, 255, 129), blade_pos, scale * 0.8, 1)
+
+            # draw the blades.
+            pygame.draw.line(surface, (0, 255, 129), nose, blade_pos, 1)
+            pygame.draw.line(surface, (0, 255, 129), tail, blade_pos, 1)
+            # draw a line through the middle of the helicopter.
+            pygame.draw.line(surface, (0, 255, 129), nose, tail, 1)
+        else:
+            # Draw a smiley face as the default
+            # Main circle (face)
+            pygame.draw.circle(surface, (70,150,255), (xx, yy), scale, 1)
+            
+            # Eyes
+            eye_offset = scale * 0.3
+            eye_size = max(1, int(scale * 0.15))
+            pygame.draw.circle(surface, (70,150,255), (int(xx - eye_offset), int(yy - eye_offset)), eye_size, 0)
+            pygame.draw.circle(surface, (70,150,255), (int(xx + eye_offset), int(yy - eye_offset)), eye_size, 0)
+            
+            # Smile
+            smile_rect = pygame.Rect(xx - scale * 0.5, yy, scale, scale * 0.5)
+            pygame.draw.arc(surface, (70,150,255), smile_rect, math.pi * 0.1, math.pi * 0.9, 1)
+
+
 
     # called before screen draw.  To clear the screen to your favorite color.
     def clear(self):
@@ -259,6 +355,20 @@ class trafficscope(Module):
                 "label": "Scope Scale",
                 "description": "Set the scale of the scope in miles.",
                 "post_change_function": "setScaleInMiles"
+            },
+            "draw_aircraft_icon": {
+                "type": "bool",
+                "default": True,
+                "label": "Draw Aircraft Icon",
+                "description": "Draw a simple aircraft outline instead of a dot for targets."
+            },
+            "aircraft_icon_scale": {
+                "type": "int",
+                "default": 10,
+                "min": 10,
+                "max": 30,
+                "label": "Aircraft Icon Scale",
+                "description": "Set the scale of the aircraft icon."
             },
         }
 

@@ -39,6 +39,33 @@ class text(Module):
         self.surface2.fill((0,0,0,0))
         # Remove the self.surface creation and fill
 
+    def parse_text(self, aircraft):
+        # text can contain variables in the form of {{variable_name}}
+        # allow %f to format the variable as a float example {{variable_name|%f}}
+
+        # split the text into words
+        words = self.text.split()
+        result = self.text
+        for word in words:
+            if "{{" in word and "}}" in word:
+                # this is a variable
+                variable_name = word[2:-2]
+                # get the value of the variable from the aircraft object
+                variable_value = getattr(aircraft, variable_name, "N/A")
+                # replace the variable with the value
+                result = result.replace(word, str(variable_value))
+            elif "%" in word:
+                # this is a format specifier
+                format_specifier = word[1:]
+                # get the value of the variable from the aircraft object
+                variable_value = getattr(aircraft, variable_name, "N/A")
+                # replace the variable with the value
+                result = result.replace(word, str(variable_value))
+            else:
+                # this is a normal word
+                result = result.replace(word, word)
+        return result
+
     # called every redraw for the mod
     def draw(self, aircraft, smartdisplay, pos=(None,None)):
         if pos[0] is None:
@@ -54,7 +81,7 @@ class text(Module):
         self.surface2.fill((0,0,0,0))
 
         # Render the text with a transparent background
-        label = self.font.render(self.text, True, self.text_color)
+        label = self.font.render(self.parse_text(aircraft), True, self.text_color)
         self.surface2.blit(label, (0, 0))
 
         self.pygamescreen.blit(self.surface2, (x,y))
@@ -78,7 +105,7 @@ class text(Module):
                 "description": "Text to display"
             },
             "font_name": {
-                "type": "string",
+                "type": "text",
                 "default": self.font_name,
                 "label": "Font Name",
                 "description": "Name of the font to use",
@@ -87,8 +114,8 @@ class text(Module):
             "font_size": {
                 "type": "int",
                 "default": self.font_size,
-                "min": 7,
-                "max": 40,
+                "min": 10,
+                "max": 70,
                 "label": "Font Size",
                 "description": "Size of the font to use",
                 "post_change_function": "buildFont"

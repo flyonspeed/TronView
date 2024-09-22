@@ -175,9 +175,20 @@ def main_edit_loop():
                     elif event.key == pygame.K_a:
                         # add a new Screen object
                         mx, my = pygame.mouse.get_pos()
+                        newObject = TronViewScreenObject(pygamescreen, 'module', f"A_{len(shared.CurrentScreen.ScreenObjects)}", module=None, x=mx, y=my)
                         shared.CurrentScreen.ScreenObjects.append(
-                            TronViewScreenObject(pygamescreen, 'module', f"A_{len(shared.CurrentScreen.ScreenObjects)}", module=None, x=mx, y=my)
+                            newObject
                         )
+                        newObject.selected = True
+                        selected_screen_object = newObject
+                        dropdown = DropDown([COLOR_INACTIVE, COLOR_ACTIVE],
+                                [COLOR_LIST_INACTIVE, COLOR_LIST_ACTIVE], 
+                            newObject.x, newObject.y, 140, 30, 
+                            pygame.font.SysFont(None, 25), 
+                            "Select Module", listModules)
+                        dropdown.visible = True
+                        dropdown.draw_menu = True
+
                     # MOVE SCREEN OBJECT UP IN DRAW ORDER (page up)
                     elif event.key == pygame.K_PAGEUP:
                         for sObject in shared.CurrentScreen.ScreenObjects:
@@ -260,106 +271,122 @@ def main_edit_loop():
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     mx, my = pygame.mouse.get_pos()
                     print("Mouse Click %d x %d" % (mx, my))
+                    
+                    # Check for GUI interactions first
+                    gui_handled = False
+                    
+                    # Check for EditOptionsBar interactions
+                    if edit_options_bar and edit_options_bar.visible:
+                        if edit_options_bar.window.get_abs_rect().collidepoint(mx, my):
+                            gui_handled = True
+                    
+                    # Check for help window interactions
+                    if help_window and help_window.get_abs_rect().collidepoint(mx, my):
+                        gui_handled = True
+                    
                     # Handle EditToolBar clicks for selected objects
-                    for sObject in shared.CurrentScreen.ScreenObjects:
-                        if sObject.selected:
-                            action = sObject.edit_toolbar.handle_click((mx, my))
-                            if action:
-                                if action == "delete":
-                                    shared.CurrentScreen.ScreenObjects.remove(sObject)
-                                elif action == "move_up":
-                                    index = shared.CurrentScreen.ScreenObjects.index(sObject)
-                                    if index < len(shared.CurrentScreen.ScreenObjects) - 1:
-                                        shared.CurrentScreen.ScreenObjects[index], shared.CurrentScreen.ScreenObjects[index+1] = shared.CurrentScreen.ScreenObjects[index+1], shared.CurrentScreen.ScreenObjects[index]
-                                elif action == "move_down":
-                                    index = shared.CurrentScreen.ScreenObjects.index(sObject)
-                                    if index > 0:
-                                        shared.CurrentScreen.ScreenObjects[index], shared.CurrentScreen.ScreenObjects[index-1] = shared.CurrentScreen.ScreenObjects[index-1], shared.CurrentScreen.ScreenObjects[index]
-                                elif action == "center":
-                                    sObject.center()
-                                elif action == "align_left":
-                                    sObject.align_left()
-                                elif action == "align_right":
-                                    sObject.align_right()
-                                elif action == "edit_options":
-                                    sObject.showOptions = not sObject.showOptions
-                                action_performed = True
-                                break
-
-                    if action_performed:
-                        break  # Exit the event loop and jump to draw
-
-                    # Check if Shift is held down
-                    shift_held = pygame.key.get_mods() & pygame.KMOD_SHIFT
-
-                    atLeastOneSelectedObjectIsClicked = False
-                    if not shift_held: # if shift is not held, we are clicking on a single object
-                        # are we clicking on a selected object?
+                    if not gui_handled:
                         for sObject in shared.CurrentScreen.ScreenObjects:
                             if sObject.selected:
-                                if sObject.x <= mx <= sObject.x + sObject.width and sObject.y <= my <= sObject.y + sObject.height:
-                                    atLeastOneSelectedObjectIsClicked = True
-                        if atLeastOneSelectedObjectIsClicked == False :
-                            selected_screen_objects.clear()
-                            # deselect all modules
-                            for sObject in shared.CurrentScreen.ScreenObjects:
-                                sObject.selected = False
+                                action = sObject.edit_toolbar.handle_click((mx, my))
+                                if action:
+                                    gui_handled = True
+                                    if action == "delete":
+                                        shared.CurrentScreen.ScreenObjects.remove(sObject)
+                                    elif action == "move_up":
+                                        index = shared.CurrentScreen.ScreenObjects.index(sObject)
+                                        if index < len(shared.CurrentScreen.ScreenObjects) - 1:
+                                            shared.CurrentScreen.ScreenObjects[index], shared.CurrentScreen.ScreenObjects[index+1] = shared.CurrentScreen.ScreenObjects[index+1], shared.CurrentScreen.ScreenObjects[index]
+                                    elif action == "move_down":
+                                        index = shared.CurrentScreen.ScreenObjects.index(sObject)
+                                        if index > 0:
+                                            shared.CurrentScreen.ScreenObjects[index], shared.CurrentScreen.ScreenObjects[index-1] = shared.CurrentScreen.ScreenObjects[index-1], shared.CurrentScreen.ScreenObjects[index]
+                                    elif action == "center":
+                                        sObject.center()
+                                    elif action == "align_left":
+                                        sObject.align_left()
+                                    elif action == "align_right":
+                                        sObject.align_right()
+                                    elif action == "edit_options":
+                                        sObject.showOptions = not sObject.showOptions
+                                    break  # Stop checking other objects if action performed
+                    
+                    # If no GUI item was clicked, handle screen object selection
+                    if not gui_handled:
+                        # Check if Shift is held down
+                        shift_held = pygame.key.get_mods() & pygame.KMOD_SHIFT
 
-                    # Check if the mouse click is inside any screenObject (check from the top down)
-                    for sObject in shared.CurrentScreen.ScreenObjects[::-1]:
-                        if sObject.x <= mx <= sObject.x + sObject.width and sObject.y <= my <= sObject.y + sObject.height:
-                            if shift_held:
-                                if sObject not in selected_screen_objects:
-                                    selected_screen_objects.append(sObject)
-                                    sObject.selected = True
-                                    print("Selected module: %s (shift) current modules: %d" % (sObject.title, len(selected_screen_objects)))
-                                # update the mouse offset for all selected modules
-                                for sObject in selected_screen_objects:
-                                    sObject.mouse_offset_x = mx - sObject.x
-                                    sObject.mouse_offset_y = my - sObject.y
-                            else:
-                                if len(selected_screen_objects) > 1 and atLeastOneSelectedObjectIsClicked:
+                        atLeastOneSelectedObjectIsClicked = False
+                        if not shift_held:
+                            # are we clicking on a selected object?
+                            for sObject in shared.CurrentScreen.ScreenObjects:
+                                if sObject.selected:
+                                    if sObject.x <= mx <= sObject.x + sObject.width and sObject.y <= my <= sObject.y + sObject.height:
+                                        atLeastOneSelectedObjectIsClicked = True
+                            if not atLeastOneSelectedObjectIsClicked:
+                                selected_screen_objects.clear()
+                                # deselect all modules (unselect all)
+                                for sObject in shared.CurrentScreen.ScreenObjects:
+                                    sObject.selected = False
+                                if edit_options_bar:
+                                    edit_options_bar.remove_ui() # remove the edit options bar
+                                    edit_options_bar = None # set it to None
+
+                        # Check if the mouse click is inside any screenObject (check from the top down)
+                        for sObject in shared.CurrentScreen.ScreenObjects[::-1]:
+                            if sObject.x <= mx <= sObject.x + sObject.width and sObject.y <= my <= sObject.y + sObject.height:
+                                if shift_held:
+                                    if sObject not in selected_screen_objects:
+                                        selected_screen_objects.append(sObject)
+                                        sObject.selected = True
+                                        print("Selected module: %s (shift) current modules: %d" % (sObject.title, len(selected_screen_objects)))
+                                    # update the mouse offset for all selected modules
                                     for sObject in selected_screen_objects:
                                         sObject.mouse_offset_x = mx - sObject.x
                                         sObject.mouse_offset_y = my - sObject.y
                                 else:
-                                    selected_screen_objects = [sObject]
+                                    if len(selected_screen_objects) > 1 and atLeastOneSelectedObjectIsClicked:
+                                        for sObject in selected_screen_objects:
+                                            sObject.mouse_offset_x = mx - sObject.x
+                                            sObject.mouse_offset_y = my - sObject.y
+                                    else:
+                                        selected_screen_objects = [sObject]
+                                        sObject.selected = True
+                                        print("Selected module: %s" % sObject.title)
+                                #################
+                                # RESIZE MODULE
+                                if mx >= sObject.x + sObject.width - 10 and my >= sObject.y + sObject.height - 10 and mx <= sObject.x + sObject.width and my <= sObject.y + sObject.height:
+                                    # Click is in the bottom right corner, start resizing
+                                    selected_screen_object = sObject
                                     sObject.selected = True
-                                    print("Selected module: %s" % sObject.title)
-                            #################
-                            # RESIZE MODULE
-                            if mx >= sObject.x + sObject.width - 10 and my >= sObject.y + sObject.height - 10 and mx <= sObject.x + sObject.width and my <= sObject.y + sObject.height:
-                                # Click is in the bottom right corner, start resizing
-                                selected_screen_object = sObject
-                                sObject.selected = True
-                                resizing = True
-                                offset_x = mx - sObject.x
-                                offset_y = my - sObject.y
-                                dropdown = None
-                            ##################
-                            # DROPDOWN MENU (select module)
-                            elif sObject.y <= my <= sObject.y + 20:  # Assuming the title area is 20 pixels high
-                                # Click is on the title, toggle dropdown menu
-                                selected_screen_object = sObject
-                                sObject.selected = True
-                                dropdown = DropDown([COLOR_INACTIVE, COLOR_ACTIVE],
-                                        [COLOR_LIST_INACTIVE, COLOR_LIST_ACTIVE], 
+                                    resizing = True
+                                    offset_x = mx - sObject.x
+                                    offset_y = my - sObject.y
+                                    dropdown = None
+                                ##################
+                                # DROPDOWN MENU (select module) top right corner
+                                elif sObject.y <= my <= sObject.y + 20 and (sObject.module is None) and sObject.type == 'module':  # Assuming the title area is 20 pixels high
+                                    # only if module is not a group or has no module
+                                    selected_screen_object = sObject
+                                    sObject.selected = True
+                                    dropdown = DropDown([COLOR_INACTIVE, COLOR_ACTIVE],
+                                            [COLOR_LIST_INACTIVE, COLOR_LIST_ACTIVE], 
                                         sObject.x, sObject.y, 140, 30, 
                                         pygame.font.SysFont(None, 25), 
                                         "Select Module", listModules)
-                                dropdown.visible = True
-                                dropdown.draw_menu = True
-                            ##################
-                            # MOVE MODULE
-                            else:
-                                dropdown = None
-                                # Click is inside the module, start moving
-                                selected_screen_object = sObject
-                                dragging = True
-                                offset_x = mx - sObject.x 
-                                offset_y = my - sObject.y
-                                sObject.selected = True
-                            break
+                                    dropdown.visible = True
+                                    dropdown.draw_menu = True
+                                ##################
+                                # MOVE MODULE
+                                else:
+                                    dropdown = None
+                                    # Click is inside the module, start moving
+                                    selected_screen_object = sObject
+                                    dragging = True
+                                    offset_x = mx - sObject.x 
+                                    offset_y = my - sObject.y
+                                    sObject.selected = True
+                                break
 
                 # Mouse up
                 elif event.type == pygame.MOUSEBUTTONUP:
@@ -568,8 +595,6 @@ class TronViewScreenObject:
         if self.selected:
             color = (0, 255, 0)
             pygame.draw.rect(self.pygamescreen, color, (self.x, self.y, self.width, self.height), 1)
-            #text = pygame.font.SysFont("monospace", 21, bold=False).render(self.title, True, (255, 255, 255))
-            #self.pygamescreen.blit(text, (self.x + 5, self.y + 5))
             pygame.draw.rect(self.pygamescreen, color, (self.x + self.width - 10, self.y + self.height - 10, 10, 10), 1)
             self.edit_toolbar.draw(self.pygamescreen)
         elif self.showBounds:
@@ -615,12 +640,15 @@ class TronViewScreenObject:
         if self.type == 'group':
             print("Cannot set module for a group type ScreenObject")
             return
+        self.type = 'module'
         self.module = module
         self.title = module.name
         self.module.initMod(self.pygamescreen, self.width, self.height)
         if hasattr(self.module, "setup"):
             self.module.setup()
         self.edit_toolbar = EditToolBar(self)
+        self.showOptions = True
+        #disable dropdown menu
 
     def addChildScreenObject(self, sObject):
         if self.type != 'group':
@@ -836,6 +864,20 @@ class EditOptionsBar:
             self.window.set_scrollable_container_height(total_height)
 
     def handle_event(self, event):
+        #print("event: %s" % event)
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            #print("MOUSEBUTTONDOWN")
+            # check if they clicked on a text entry field
+            foundClickedTextEntry = False
+            for element in self.ui_elements:
+                if isinstance(element, UITextEntryLine) and element.rect.collidepoint(event.pos):
+                    print("Text entry field clicked")
+                    self.text_entry_active = True
+                    foundClickedTextEntry = True
+                    break           
+            if foundClickedTextEntry == False:
+                self.text_entry_active = False # else they didn't click on a text entry field
+
         if event.type == pygame_gui.UI_BUTTON_PRESSED:
             for element in self.ui_elements:
                 if isinstance(element, UIButton) and event.ui_element == element:
@@ -859,7 +901,7 @@ class EditOptionsBar:
         elif event.type == pygame_gui.UI_TEXT_ENTRY_FINISHED:
             print("Text entry finished")
             self.text_entry_active = False
-            self.on_text_entered(event.ui_element.option_name, event.text) # send the option name and the text entered
+            self.on_text_submit_change(event.ui_element.option_name, event.text) # send the option name and the text entered
 
     def on_checkbox_click(self, option):
         current_value = getattr(self.screen_object.module, option)
@@ -901,7 +943,7 @@ class EditOptionsBar:
                         element.set_text(options[option]['label'] + ": " + str(int(value)))
                         break
 
-    def on_text_entered(self, option, text):
+    def on_text_submit_change(self, option, text):
         option_type = self.screen_object.module.get_module_options()[option]['type']
         if option_type == 'float':
             value = float(text)
@@ -919,6 +961,11 @@ class EditOptionsBar:
             post_change_function = getattr(self.screen_object.module, options[option]['post_change_function'], None)
             if post_change_function:
                 post_change_function()
+        # unfocus the text entry
+        for element in self.ui_elements:
+            if isinstance(element, UITextEntryLine) and element.option_name == option:
+                element.is_focused = False
+                break
 
     def show_color_picker(self, option):
         current_color = getattr(self.screen_object.module, option)
@@ -1156,6 +1203,7 @@ class DropDown():
             #     #print("No button down.")
         
         return -1
+
 
     def toggle(self):
         self.draw_menu = not self.draw_menu

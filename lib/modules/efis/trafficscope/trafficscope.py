@@ -26,6 +26,7 @@ class trafficscope(Module):
         self.target_show_lat_lon = hud_utils.readConfigBool("TrafficScope", "target_show_lat_lon", False)
         self.draw_aircraft_icon = hud_utils.readConfigBool("TrafficScope", "draw_aircraft_icon", True)
         self.aircraft_icon_scale = hud_utils.readConfigInt("TrafficScope", "aircraft_icon_scale", 10)
+        self.details_offset = hud_utils.readConfigInt("TrafficScope", "details_offset", 5)
 
     # called once for setup
     def initMod(self, pygamescreen, width, height):
@@ -159,18 +160,25 @@ class trafficscope(Module):
                         4, 
                         0,
                     )
+
+                x_text = xx
+                y_text = yy
+                if self.details_offset > 0:
+                    # move the details to the bottom right of the target.
+                    x_text = xx + self.details_offset
+                    y_text = yy + self.details_offset
+
                 # show callsign?
                 if(self.show_callsign==True):
                     label = self.font_target.render(t.callsign, False, (200,255,255), (0,0,0))
                     label_rect = label.get_rect()
-                    self.surface2.blit(label, (xx, yy))
+                    self.surface2.blit(label, (x_text, y_text))
                 else:
                     label_rect = pygame.Rect(0, 0, 0, 0)
                 # show details?
                 if(self.show_details==True):
                     if(t.speed != None and t.speed > -1 and t.track != None):
-                        # generate line in direct aircraft is flying..
-                        
+                        # generate line in direct aircraft is flying..                        
                         t.targetBrngToUse = t.track # get brng the target is going.
                         if(aircraft.mag_head != None):  # change it based on what direction we are going because up is now our heading.. not north.
                             t.targetBrngToUse = t.targetBrngToUse - aircraft.mag_head
@@ -214,27 +222,28 @@ class trafficscope(Module):
                            (arrowX2, arrowY2),
                            1,
                         )
+
                         # show speed info
                         labelSpeed = self.font_target.render(str(t.speed)+"mph", False, (200,255,255), (0,0,0))
                         labelSpeed_rect = labelSpeed.get_rect()
-                        self.surface2.blit(labelSpeed, (xx, yy+label_rect.height))
+                        self.surface2.blit(labelSpeed, (x_text, y_text+label_rect.height))
                         # show altitude diff
                         if(t.altDiff != None):
                             if(t.altDiff>0): prefix = "+"
                             else: prefix = ""
                             labelAlt = self.font_target.render(prefix+'{:,}ft'.format(t.altDiff), False, (200,255,255), (0,0,0))
-                            self.surface2.blit(labelAlt, (xx+labelSpeed_rect.width+10, yy+label_rect.height))
+                            self.surface2.blit(labelAlt, (x_text+labelSpeed_rect.width+10, y_text+label_rect.height))
                         # distance
                         labelDist = self.font_target.render("%.1f mi."%(t.dist), False, (200,255,255), (0,0,0))
-                        self.surface2.blit(labelDist, (xx+label_rect.width+10, yy))
+                        self.surface2.blit(labelDist, (x_text+label_rect.width+10, y_text))
 
                         #show lat lon?
                         if(self.target_show_lat_lon==True):
                             labelLat = self.font_target.render("%f "%(t.lat), False, (200,255,255), (0,0,0))
-                            self.surface2.blit(labelLat, (xx, yy+labelSpeed_rect.height+label_rect.height))
+                            self.surface2.blit(labelLat, (x_text, y_text+labelSpeed_rect.height+label_rect.height))
                             labelLat_rect = labelLat.get_rect()
                             labelLon = self.font_target.render("%f "%(t.lon), False, (200,255,255), (0,0,0))
-                            self.surface2.blit(labelLon, (xx, yy+labelSpeed_rect.height+label_rect.height+labelLat_rect.height))
+                            self.surface2.blit(labelLon, (x_text, y_text+labelSpeed_rect.height+label_rect.height+labelLat_rect.height))
 
 
 
@@ -340,6 +349,14 @@ class trafficscope(Module):
                 "default": False,
                 "label": "Show Details",
                 "description": "Show the details of the targets on the scope."
+            },
+            "details_offset": {
+                "type": "int",
+                "default": self.details_offset,
+                "min": 0,
+                "max": 20,
+                "label": "Details Offset",
+                "description": "Set the offset of the details from the target in pixels."
             },
             "target_show_lat_lon": {
                 "type": "bool",

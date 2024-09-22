@@ -151,6 +151,10 @@ def main_edit_loop():
                             current_group.selected = True # set the new group to selected
                             shared.CurrentScreen.ScreenObjects.append(current_group) # add to screen objects
                             selected_screen_objects.clear()
+                            # hide the edit options bar
+                            if edit_options_bar:
+                                edit_options_bar.remove_ui()
+                                edit_options_bar = None
                         else:
                             print("You must select multiple modules to create a group.")                            
                     # SHOW BOUNDRY BOXES
@@ -773,25 +777,44 @@ class EditOptionsBar:
         self.update_position()
 
     def calculate_height(self):
-        options = self.screen_object.module.get_module_options()
-        height = 10  # Initial padding
-        for option, details in options.items():
-            height += 25  # Label height
-            height += 30  # Option input height
-            height += 5   # Padding between options
-        height += 10  # Additional padding at the bottom
-        return min(height, 500)  # Limit max height to 500 pixels
+        if self.screen_object.type == 'module':
+            if self.screen_object.module is None:
+                return 0
+            options = self.screen_object.module.get_module_options()
+            height = 10  # Initial padding
+            for option, details in options.items():
+                height += 25  # Label height
+                height += 30  # Option input height
+                height += 5   # Padding between options
+            height += 10  # Additional padding at the bottom
+            return min(height, 500)  # Limit max height to 500 pixels
+        if self.screen_object.type == 'group':
+            return 300
+        return 0
 
     def build_ui(self):
-        options = self.screen_object.module.get_module_options()
         y_offset = 10
+        x_offset = 10
+        if self.screen_object.type == 'group':
+            label = UILabel(
+                relative_rect=pygame.Rect(x_offset, y_offset, 180, 20),
+                text="Group Options Not Implemented Yet",
+                manager=self.pygame_gui_manager,
+                container=self.window,
+                object_id="#options_group_"
+            )
+            self.ui_elements.append(label)
+            return
+        
+        # else this is a module
+        options = self.screen_object.module.get_module_options()
         total_height = 10  # Initial padding
 
         for option, details in options.items():
             # Add height for label
             total_height += 25
             label = UILabel(
-                relative_rect=pygame.Rect(10, y_offset, 180, 20),
+                relative_rect=pygame.Rect(x_offset, y_offset, 180, 20),
                 text=details['label'],
                 manager=self.pygame_gui_manager,
                 container=self.window,
@@ -805,7 +828,7 @@ class EditOptionsBar:
             total_height += 30
             if details['type'] == 'bool':
                 checkbox = UIButton(
-                    relative_rect=pygame.Rect(10, y_offset, 180, 20),
+                    relative_rect=pygame.Rect(x_offset, y_offset, 180, 20),
                     text='On' if getattr(self.screen_object.module, option) else 'Off',
                     manager=self.pygame_gui_manager,
                     container=self.window
@@ -815,7 +838,7 @@ class EditOptionsBar:
                 self.ui_elements.append(checkbox)
             elif details['type'] == 'int':
                 slider = pygame_gui.elements.UIHorizontalSlider(
-                    relative_rect=pygame.Rect(10, y_offset, 180, 20),
+                    relative_rect=pygame.Rect(x_offset, y_offset, 180, 20),
                     start_value=getattr(self.screen_object.module, option),
                     value_range=(details['min'], details['max']),
                     manager=self.pygame_gui_manager,
@@ -828,7 +851,7 @@ class EditOptionsBar:
                 label.set_text(label.text + " " + str(getattr(self.screen_object.module, option)))
             elif details['type'] in ['float', 'text']:
                 text_entry = UITextEntryLine(
-                    relative_rect=pygame.Rect(10, y_offset, 180, 20),
+                    relative_rect=pygame.Rect(x_offset, y_offset, 180, 20),
                     manager=self.pygame_gui_manager,
                     container=self.window
                 )
@@ -841,7 +864,7 @@ class EditOptionsBar:
                 if isinstance(current_color, tuple):
                     current_color = pygame.Color(*current_color)
                 color_button = UIButton(
-                    relative_rect=pygame.Rect(10, y_offset, 180, 20),
+                    relative_rect=pygame.Rect(x_offset, y_offset, 180, 20),
                     text='',
                     manager=self.pygame_gui_manager,
                     container=self.window,
@@ -851,7 +874,7 @@ class EditOptionsBar:
                 color_button.object_id = "#options_color_" + option
                 self.ui_elements.append(color_button)
 
-            y_offset += 30
+            y_offset += 30 # move down 30 pixels so we can draw another control
             total_height += 5  # Padding between options
 
         # Add final padding
@@ -1195,6 +1218,7 @@ class DropDown():
                     print("Menu active")
                 elif self.draw_menu and self.active_option >= 0:
                     self.draw_menu = False
+                    self.visible = False
                     return self.active_option
                 
                 self.visible = False

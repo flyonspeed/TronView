@@ -23,7 +23,11 @@ class gcross(Module):
         self.TargetWingSpan = 0 # value to show user of target wing span.
 
     # called once for setup
-    def initMod(self, pygamescreen, width, height):
+    def initMod(self, pygamescreen, width=None, height=None):
+        if width is None:
+            width = 640 # default width
+        if height is None:
+            height = 480 # default height
         Module.initMod(
             self, pygamescreen, width, height
         )  # call parent init screen.

@@ -20,7 +20,11 @@ class artificalhorz(Module):
         #self.imagefilename = "lib/modules/efis/artificalhorz/horiz_square.bmp"
 
     # called once for setup
-    def initMod(self, pygamescreen, width, height):
+    def initMod(self, pygamescreen, width=None, height=None):
+        if width is None:
+            width = 500 # default width
+        if height is None:
+            height = 500 # default height
         Module.initMod(
             self, pygamescreen, width, height
         )  # call parent init screen.

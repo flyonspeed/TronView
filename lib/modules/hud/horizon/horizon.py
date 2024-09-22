@@ -22,7 +22,11 @@ class horizon(Module):
         self.name = "HUD Horizon"  # set name
 
     # called once for setup
-    def initMod(self, pygamescreen, width, height):
+    def initMod(self, pygamescreen, width=None, height=None):
+        if width is None:
+            width = pygamescreen.get_width() # default width
+        if height is None:
+            height = 640 # default height
         Module.initMod(
             self, pygamescreen, width, height
         )  # call parent init screen.

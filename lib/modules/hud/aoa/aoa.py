@@ -33,7 +33,11 @@ class aoa(Module):
         return adjusted_value
 
     # called once for setup
-    def initMod(self, pygamescreen, width, height):
+    def initMod(self, pygamescreen, width=None, height=None):
+        if width is None:
+            width = 80 # default width
+        if height is None:
+            height = 200 # default height
         Module.initMod(
             self, pygamescreen, width, height
         )  # call parent init screen.

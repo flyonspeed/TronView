@@ -54,9 +54,6 @@ def main_edit_loop():
     # if shared.CurrentScreen.ScreenObjects exists.. if it doesn't create it as array
     if not hasattr(shared.CurrentScreen, "ScreenObjects"):
         shared.CurrentScreen.ScreenObjects = []
-        shared.CurrentScreen.ScreenObjects.append(
-            TronViewScreenObject(pygamescreen, 'module', f"A_{len(shared.CurrentScreen.ScreenObjects)}")
-        )
 
     selected_screen_object = None
     dragging = False # are we dragging a screen object?
@@ -173,6 +170,10 @@ def main_edit_loop():
                                 break
                     # ADD SCREEN OBJECT
                     elif event.key == pygame.K_a:
+                        # first unselect all modules
+                        for sObject in shared.CurrentScreen.ScreenObjects:
+                            sObject.selected = False
+                        selected_screen_objects.clear()
                         # add a new Screen object
                         mx, my = pygame.mouse.get_pos()
                         newObject = TronViewScreenObject(pygamescreen, 'module', f"A_{len(shared.CurrentScreen.ScreenObjects)}", module=None, x=mx, y=my)
@@ -392,7 +393,7 @@ def main_edit_loop():
                 elif event.type == pygame.MOUSEBUTTONUP:
                     dragging = False
                     resizing = False
-                    print("Mouse Up")
+                    #print("Mouse Up")
 
                 # Mouse move.. resize or move the module??
                 elif event.type == pygame.MOUSEMOTION:
@@ -643,7 +644,9 @@ class TronViewScreenObject:
         self.type = 'module'
         self.module = module
         self.title = module.name
-        self.module.initMod(self.pygamescreen, self.width, self.height)
+        self.module.initMod(self.pygamescreen) # use default width and height
+        self.width = self.module.width # then get the actual width and height from the module.
+        self.height = self.module.height
         if hasattr(self.module, "setup"):
             self.module.setup()
         self.edit_toolbar = EditToolBar(self)
@@ -1260,7 +1263,11 @@ def draw_ruler(screen, screen_objects, ruler_color, selected_ruler_color):
     draw_dashed_line(screen, ruler_color, (screen_center[0], 0), (screen_center[0], screen_height))
     draw_dashed_line(screen, ruler_color, (0, screen_center[1]), (screen_width, screen_center[1]))
 
+    font = pygame.font.Font(None, 24)  # You can adjust the font size as needed
+
     for obj in screen_objects:
+        if obj.type == 'module' and obj.module == None:  # Skip modules that have no module
+            continue
         color = selected_ruler_color if obj.selected else ruler_color
         
         # Calculate object center
@@ -1297,6 +1304,25 @@ def draw_ruler(screen, screen_objects, ruler_color, selected_ruler_color):
         # Bottom-right corner
         draw_dashed_line(screen, color, (obj.x + obj.width, obj.y + obj.height), (screen_width, obj.y + obj.height))
         draw_dashed_line(screen, color, (obj.x + obj.width, obj.y + obj.height), (obj.x + obj.width, screen_height))
+
+        if obj.selected:
+            # Draw position (x, y) in the top-left corner
+            pos_text = f"({obj.x}, {obj.y})"
+            pos_surface = font.render(pos_text, True, selected_ruler_color)
+            screen.blit(pos_surface, (obj.x + 5, obj.y + 5))
+
+            # Draw width at the bottom
+            width_text = f"W: {obj.width}"
+            width_surface = font.render(width_text, True, selected_ruler_color)
+            width_rect = width_surface.get_rect(center=(obj.x + obj.width // 2, obj.y + obj.height - 15))
+            screen.blit(width_surface, width_rect)
+
+            # Draw height on the right side
+            height_text = f"H: {obj.height}"
+            height_surface = font.render(height_text, True, selected_ruler_color)
+            height_surface = pygame.transform.rotate(height_surface, 90)
+            height_rect = height_surface.get_rect(center=(obj.x + obj.width - 15, obj.y + obj.height // 2))
+            screen.blit(height_surface, height_rect)
 
 def draw_dashed_line(surface, color, start_pos, end_pos, dash_length=10):
     x1, y1 = start_pos

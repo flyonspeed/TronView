@@ -22,7 +22,11 @@ class rollindicator(Module):
         self.x_offset = 0
 
     # called once for setup
-    def initMod(self, pygamescreen, width, height):
+    def initMod(self, pygamescreen, width=None, height=None):
+        if width is None:
+            width = 500 # default width
+        if height is None:
+            height = 500 # default height
         Module.initMod(
             self, pygamescreen, width, height
         )  # call parent init screen.

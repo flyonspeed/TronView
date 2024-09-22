@@ -19,14 +19,18 @@ class text(Module):
         Module.__init__(self)
         self.name = "Text"  # set name
         self.font_name = "monospace"
-        self.font_size = 12
+        self.font_size = 20
         self.font_bold = False
-        self.text = "Hello World"
+        self.text = "text"
         self.text_color = (200,255,255)
         self.text_bg_color = (0,0,0)
 
     # called once for setup
-    def initMod(self, pygamescreen, width, height):
+    def initMod(self, pygamescreen, width=None, height=None):
+        if width is None:
+            width = 200 # default width
+        if height is None:
+            height = 50 # default height
         Module.initMod(
             self, pygamescreen, width, height
         )  # call parent init screen.

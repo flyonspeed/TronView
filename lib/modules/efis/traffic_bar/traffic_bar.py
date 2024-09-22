@@ -20,7 +20,11 @@ class traffic_bar(Module):
         self.name = "Traffic Bar"  # set name
 
     # called once for setup
-    def initMod(self, pygamescreen, width, height):
+    def initMod(self, pygamescreen, width=None, height=None):
+        if width is None:
+            width = pygamescreen.get_width() # default width
+        if height is None:
+            height = 100 # default height
         Module.initMod(
             self, pygamescreen, width, height
         )  # call parent init screen.

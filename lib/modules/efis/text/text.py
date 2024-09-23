@@ -24,6 +24,9 @@ class text(Module):
         self.text = "text"
         self.text_color = (200,255,255)
         self.text_bg_color = (0,0,0)
+        self.box_color = (255,255,255)
+        self.box_weight = 0
+        self.box_radius = 0
 
     # called once for setup
     def initMod(self, pygamescreen, width=None, height=None):
@@ -95,8 +98,15 @@ class text(Module):
         self.surface2.fill((0,0,0,0))
 
         # Render the text with a transparent background
-        label = self.font.render(self.parse_text(aircraft), True, self.text_color)
+        text = self.parse_text(aircraft)
+        label = self.font.render(text, True, self.text_color)
         self.surface2.blit(label, (0, 0))
+
+        if self.box_weight > 0:
+            # calculate the width and height of the text
+            text_width, text_height = self.font.size(text)
+            # draw a box around the text
+            pygame.draw.rect(self.surface2, self.box_color, (0, 0, text_width, text_height), self.box_weight, self.box_radius)
 
         self.pygamescreen.blit(self.surface2, (x,y))
 
@@ -147,12 +157,34 @@ class text(Module):
                 "label": "Text Color",
                 "description": "Color of the text to use"
             },  
-            "text_bg_color": {
+            # "text_bg_color": {
+            #     "type": "color",
+            #     "default": self.text_bg_color,
+            #     "label": "Text Background Color",
+            #     "description": "Color of the text background to use"
+            # },
+            "box_color": {
                 "type": "color",
-                "default": self.text_bg_color,
-                "label": "Text Background Color",
-                "description": "Color of the text background to use"
+                "default": self.box_color,
+                "label": "Box Color",
+                "description": "Color of the box to use"
             },
+            "box_weight": {
+                "type": "int",
+                "default": self.box_weight,
+                "min": 0,
+                "max": 10,
+                "label": "Box Weight",
+                "description": "Weight of the box to use"
+            }, 
+            "box_radius": {
+                "type": "int",
+                "default": self.box_radius,
+                "min": 0,
+                "max": 10,
+                "label": "Box Radius",
+                "description": "Radius of the box to use"
+            }
         }
 
     # handle events

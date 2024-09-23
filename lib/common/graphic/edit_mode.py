@@ -741,12 +741,15 @@ class TronViewScreenObject:
             
             # now load the options
             for option in data['module']['options']:
-                setattr(self.module, option['name'], option['value'])
-                # if the option has a post_change_function, call it. check newModules[0].get_module_options()
-                if 'post_change_function' in newModules[0].get_module_options()[option['name']]:
-                    post_change_function = getattr(self.module, newModules[0].get_module_options()[option['name']]['post_change_function'], None)
-                    if post_change_function:
-                        post_change_function()
+                try:
+                    setattr(self.module, option['name'], option['value'])
+                    # if the option has a post_change_function, call it. check newModules[0].get_module_options()
+                    if 'post_change_function' in newModules[0].get_module_options()[option['name']]:
+                        post_change_function = getattr(self.module, newModules[0].get_module_options()[option['name']]['post_change_function'], None)
+                        if post_change_function:
+                            post_change_function()
+                except Exception as e:
+                    print("Error setting module (%s) option (%s): %s" % (self.module.name, option['name'], e))
 
     def center(self):
         screen_width, screen_height = pygame.display.get_surface().get_size()
@@ -903,8 +906,8 @@ class EditOptionsBar:
         self.window.set_dimensions((current_width, new_height))
 
         # Adjust container size for scrolling if necessary
-        if total_height > 500:
-            self.window.set_scrollable_container_height(total_height)
+        #if total_height > 500:
+        #    self.window.set_scrollable_container_height(total_height)
 
     def handle_event(self, event):
         #print("event: %s" % event)

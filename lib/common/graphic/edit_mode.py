@@ -1310,66 +1310,140 @@ def draw_ruler(screen, screen_objects, ruler_color, selected_ruler_color):
     draw_dashed_line(screen, ruler_color, (screen_center[0], 0), (screen_center[0], screen_height))
     draw_dashed_line(screen, ruler_color, (0, screen_center[1]), (screen_width, screen_center[1]))
 
-    font = pygame.font.Font(None, 24)  # You can adjust the font size as needed
+    font = pygame.font.Font(None, 24)
 
+    selected_objects = [obj for obj in screen_objects if obj.selected]
+    
+    if not selected_objects:
+        return
+
+    threshold = 10  # Proximity threshold for showing rulers
+    align_threshold = 1  # Threshold for considering objects aligned
+
+    for selected_obj in selected_objects:
+        aligned_edges = get_aligned_edges(selected_obj, screen_objects, align_threshold)
+        draw_object_rulers(screen, selected_obj, selected_ruler_color, font, aligned_edges)
+
+        for obj in screen_objects:
+            if obj.type == 'module' and obj.module is None:
+                continue
+            if obj.selected:
+                continue
+
+            if is_close_to_selected(selected_obj, obj, threshold):
+                obj_aligned_edges = get_aligned_edges(obj, [selected_obj], align_threshold)
+                draw_object_rulers(screen, obj, ruler_color, font, obj_aligned_edges)
+
+def get_aligned_edges(selected_obj, screen_objects, threshold):
+    aligned_edges = {
+        'left': False, 'right': False, 'top': False, 'bottom': False,
+        'center_x': False, 'center_y': False
+    }
+    
     for obj in screen_objects:
-        if obj.type == 'module' and obj.module == None:  # Skip modules that have no module
+        if obj == selected_obj or (obj.type == 'module' and obj.module is None):
             continue
-        color = selected_ruler_color if obj.selected else ruler_color
         
-        # Calculate object center
-        obj_center = (obj.x + obj.width // 2, obj.y + obj.height // 2)
+        if abs(selected_obj.x - obj.x) < threshold:
+            aligned_edges['left'] = True
+        if abs((selected_obj.x + selected_obj.width) - (obj.x + obj.width)) < threshold:
+            aligned_edges['right'] = True
+        if abs(selected_obj.y - obj.y) < threshold:
+            aligned_edges['top'] = True
+        if abs((selected_obj.y + selected_obj.height) - (obj.y + obj.height)) < threshold:
+            aligned_edges['bottom'] = True
         
-        # Draw small plus at the center of the object
-        plus_size = 10
-        pygame.draw.line(screen, color, (obj_center[0] - plus_size, obj_center[1]), (obj_center[0] + plus_size, obj_center[1]))
-        pygame.draw.line(screen, color, (obj_center[0], obj_center[1] - plus_size), (obj_center[0], obj_center[1] + plus_size))
+        selected_center_x = selected_obj.x + selected_obj.width // 2
+        selected_center_y = selected_obj.y + selected_obj.height // 2
+        obj_center_x = obj.x + obj.width // 2
+        obj_center_y = obj.y + obj.height // 2
+        
+        if abs(selected_center_x - obj_center_x) < threshold:
+            aligned_edges['center_x'] = True
+        if abs(selected_center_y - obj_center_y) < threshold:
+            aligned_edges['center_y'] = True
+    
+    return aligned_edges
 
-        # Draw lines extending from edges
-        # Left edge
-        draw_dashed_line(screen, color, (obj.x, obj_center[1]), (0, obj_center[1]))
-        # Right edge
-        draw_dashed_line(screen, color, (obj.x + obj.width, obj_center[1]), (screen_width, obj_center[1]))
-        # Top edge
-        draw_dashed_line(screen, color, (obj_center[0], obj.y), (obj_center[0], 0))
-        # Bottom edge
-        draw_dashed_line(screen, color, (obj_center[0], obj.y + obj.height), (obj_center[0], screen_height))
+def draw_object_rulers(screen, obj, color, font, aligned_edges):
+    screen_width, screen_height = screen.get_size()
+    obj_center = (obj.x + obj.width // 2, obj.y + obj.height // 2)
+    
+    magenta = (255, 0, 255)
+    
+    # Draw small plus at the center of the object
+    plus_size = 10
+    pygame.draw.line(screen, color, (obj_center[0] - plus_size, obj_center[1]), (obj_center[0] + plus_size, obj_center[1]))
+    pygame.draw.line(screen, color, (obj_center[0], obj_center[1] - plus_size), (obj_center[0], obj_center[1] + plus_size))
 
-        # Draw dashed lines from corners
-        # Top-left corner
-        draw_dashed_line(screen, color, (obj.x, obj.y), (0, obj.y))
-        draw_dashed_line(screen, color, (obj.x, obj.y), (obj.x, 0))
+    # Draw vertical center line
+    center_x_color = magenta if aligned_edges['center_x'] else color
+    draw_dashed_line(screen, center_x_color, (obj_center[0], 0), (obj_center[0], screen_height))
 
-        # Top-right corner
-        draw_dashed_line(screen, color, (obj.x + obj.width, obj.y), (screen_width, obj.y))
-        draw_dashed_line(screen, color, (obj.x + obj.width, obj.y), (obj.x + obj.width, 0))
+    # Draw horizontal center line
+    center_y_color = magenta if aligned_edges['center_y'] else color
+    draw_dashed_line(screen, center_y_color, (0, obj_center[1]), (screen_width, obj_center[1]))
 
-        # Bottom-left corner
-        draw_dashed_line(screen, color, (obj.x, obj.y + obj.height), (0, obj.y + obj.height))
-        draw_dashed_line(screen, color, (obj.x, obj.y + obj.height), (obj.x, screen_height))
+    # Draw left vertical line
+    left_color = magenta if aligned_edges['left'] else color
+    draw_dashed_line(screen, left_color, (obj.x, 0), (obj.x, screen_height))
 
-        # Bottom-right corner
-        draw_dashed_line(screen, color, (obj.x + obj.width, obj.y + obj.height), (screen_width, obj.y + obj.height))
-        draw_dashed_line(screen, color, (obj.x + obj.width, obj.y + obj.height), (obj.x + obj.width, screen_height))
+    # Draw right vertical line
+    right_color = magenta if aligned_edges['right'] else color
+    draw_dashed_line(screen, right_color, (obj.x + obj.width, 0), (obj.x + obj.width, screen_height))
 
-        if obj.selected:
-            # Draw position (x, y) in the top-left corner
-            pos_text = f"({obj.x}, {obj.y})"
-            pos_surface = font.render(pos_text, True, selected_ruler_color)
-            screen.blit(pos_surface, (obj.x + 5, obj.y + 5))
+    # Draw top horizontal line
+    top_color = magenta if aligned_edges['top'] else color
+    draw_dashed_line(screen, top_color, (0, obj.y), (screen_width, obj.y))
 
-            # Draw width at the bottom
-            width_text = f"W: {obj.width}"
-            width_surface = font.render(width_text, True, selected_ruler_color)
-            width_rect = width_surface.get_rect(center=(obj.x + obj.width // 2, obj.y + obj.height - 15))
-            screen.blit(width_surface, width_rect)
+    # Draw bottom horizontal line
+    bottom_color = magenta if aligned_edges['bottom'] else color
+    draw_dashed_line(screen, bottom_color, (0, obj.y + obj.height), (screen_width, obj.y + obj.height))
 
-            # Draw height on the right side
-            height_text = f"H: {obj.height}"
-            height_surface = font.render(height_text, True, selected_ruler_color)
-            height_surface = pygame.transform.rotate(height_surface, 90)
-            height_rect = height_surface.get_rect(center=(obj.x + obj.width - 15, obj.y + obj.height // 2))
-            screen.blit(height_surface, height_rect)
+    if obj.selected:
+        # Draw position (x, y) in the top-left corner
+        pos_text = f"({obj.x}, {obj.y})"
+        pos_surface = font.render(pos_text, True, color)
+        screen.blit(pos_surface, (obj.x + 5, obj.y + 5))
+
+        # Draw width at the bottom
+        width_text = f"W: {obj.width}"
+        width_surface = font.render(width_text, True, color)
+        width_rect = width_surface.get_rect(center=(obj.x + obj.width // 2, obj.y + obj.height - 15))
+        screen.blit(width_surface, width_rect)
+
+        # Draw height on the right side
+        height_text = f"H: {obj.height}"
+        height_surface = font.render(height_text, True, color)
+        height_surface = pygame.transform.rotate(height_surface, 90)
+        height_rect = height_surface.get_rect(center=(obj.x + obj.width - 15, obj.y + obj.height // 2))
+        screen.blit(height_surface, height_rect)
+
+def is_close_to_selected(selected_obj, obj, threshold):
+    # Check horizontal lines
+    if (abs(selected_obj.y - obj.y) < threshold or
+        abs(selected_obj.y - (obj.y + obj.height)) < threshold or
+        abs((selected_obj.y + selected_obj.height) - obj.y) < threshold or
+        abs((selected_obj.y + selected_obj.height) - (obj.y + obj.height)) < threshold):
+        return True
+
+    # Check vertical lines
+    if (abs(selected_obj.x - obj.x) < threshold or
+        abs(selected_obj.x - (obj.x + obj.width)) < threshold or
+        abs((selected_obj.x + selected_obj.width) - obj.x) < threshold or
+        abs((selected_obj.x + selected_obj.width) - (obj.x + obj.width)) < threshold):
+        return True
+
+    # Check center lines
+    selected_center_x = selected_obj.x + selected_obj.width // 2
+    selected_center_y = selected_obj.y + selected_obj.height // 2
+    obj_center_x = obj.x + obj.width // 2
+    obj_center_y = obj.y + obj.height // 2
+
+    if abs(selected_center_x - obj_center_x) < threshold or abs(selected_center_y - obj_center_y) < threshold:
+        return True
+
+    return False
 
 def draw_dashed_line(surface, color, start_pos, end_pos, dash_length=10):
     x1, y1 = start_pos

@@ -19,7 +19,6 @@ from lib.util.virtualKeyboard import VirtualKeyboard
 from lib.util import drawTimer
 from lib.modules._module import Module
 import os
-import inspect
 import importlib
 from lib.modules.efis.trafficscope import trafficscope
 import json
@@ -61,7 +60,7 @@ def main_edit_loop():
     offset_y = 0 # y offset for dragging
     resizing = False  # are we resizing?
     dropdown = None # dropdown menu for module selection (if any)
-    modulesFound, listModules = find_module()
+    modulesFound, listModules = find_module(debugOutput=True)
     showAllBoundryBoxes = False
 
     selected_screen_objects = []
@@ -171,6 +170,9 @@ def main_edit_loop():
                         for sObject in shared.CurrentScreen.ScreenObjects:
                             if sObject.selected:
                                 shared.CurrentScreen.ScreenObjects.remove(sObject)
+                                if edit_options_bar and edit_options_bar.screen_object == sObject:
+                                    edit_options_bar.remove_ui()
+                                    edit_options_bar = None
                                 break
                     # ADD SCREEN OBJECT
                     elif event.key == pygame.K_a:
@@ -218,8 +220,7 @@ def main_edit_loop():
 
                     # LOAD SCREEN FROM JSON
                     elif event.key == pygame.K_l:
-                        filename = input("Enter the filename to load: ")
-                        load_screen_from_json(filename)
+                        load_screen_from_json("screen.json")
 
                     # Toggle FPS display when 'F' is pressed
                     elif event.key == pygame.K_f:
@@ -482,7 +483,7 @@ def main_edit_loop():
 ############################################################################################
 ############################################################################################
 # Find available modules
-def find_module(byName = None):
+def find_module(byName = None, debugOutput = False):
     # find all modules in the lib/modules folder recursively. look for all .py files.
     # for each file, look for a class that inherits from Module.
     # return a list of all modules found.
@@ -509,8 +510,9 @@ def find_module(byName = None):
                         modules.append(newModuleClass)
                         moduleNames.append(newModuleClass.name)
                         return modules, moduleNames
-                else:  
-                    print("module: %s (%s)" % (newModuleClass.name, path))
+                else: 
+                    if debugOutput:
+                        print("module: %s (%s)" % (newModuleClass.name, path))
                     modules.append(newModuleClass)
                     moduleNames.append(newModuleClass.name)
 
@@ -576,10 +578,7 @@ class TronViewScreenObject:
             if len(self.childScreenObjects) == 0:
                 # draw a rect for the group with a gray background
                 pygame.draw.rect(self.pygamescreen, (100, 100, 100), (self.x, self.y, self.width, self.height), 1)
-                #text = pygame.font.SysFont("monospace", 25, bold=False).render("Empty", True, (255, 255, 255))
-                #self.pygamescreen.blit(text, (self.x + self.width/2 - 5, self.y + self.height/2 - 5))
                 return
-            #print("Drawing group: %s" % self.title)
             # Draw group outline
             if self.showBounds:
                 min_x = min(m.x for m in self.childScreenObjects)
@@ -587,8 +586,6 @@ class TronViewScreenObject:
                 max_x = max(m.x + m.width for m in self.childScreenObjects)
                 max_y = max(m.y + m.height for m in self.childScreenObjects)
                 pygame.draw.rect(self.pygamescreen, (255, 150, 0), (min_x-5, min_y-5, max_x-min_x+10, max_y-min_y+10), 2)
-                #text = pygame.font.SysFont("monospace", 25, bold=False).render(self.title+" mods:"+str(len(self.childScreenObjects)), True, (255, 255, 255))
-                #self.pygamescreen.blit(text, (min_x-5, min_y-5))
 
             # Draw contained modules
             for module in self.childScreenObjects:
@@ -636,26 +633,28 @@ class TronViewScreenObject:
             dy = y - self.y
             self.x = x
             self.y = y
-            #print("Moving screen object: %s to %d, %d from %d,%d, dx:%d dy:%d" % (self.title, x, y, self.x, self.y, dx, dy))
             for childSObj in self.childScreenObjects:
                 childSObj.move(childSObj.x + dx, childSObj.y + dy) # move the module
             self.generateBounds()
 
-    def setModule(self, module):
+    def setModule(self, module, showOptions = True, width = None, height = None):
         if self.type == 'group':
             print("Cannot set module for a group type ScreenObject")
             return
         self.type = 'module'
         self.module = module
         self.title = module.name
-        self.module.initMod(self.pygamescreen) # use default width and height
-        self.width = self.module.width # then get the actual width and height from the module.
+        if width is None or height is None:
+            self.module.initMod(self.pygamescreen) # use default width and height
+        else:
+            self.module.initMod(self.pygamescreen, width, height)
+        self.width = self.module.width # then get the actual width and height from the module. it may have changed.
         self.height = self.module.height
         if hasattr(self.module, "setup"):
             self.module.setup()
         self.edit_toolbar = EditToolBar(self)
-        self.showOptions = True
-        #disable dropdown menu
+        if showOptions:
+            self.showOptions = True
 
     def addChildScreenObject(self, sObject):
         if self.type != 'group':
@@ -701,7 +700,15 @@ class TronViewScreenObject:
         if self.module:
             data["module"] = {
                 "name": self.module.name,
+                "options": []
             }
+            options = self.module.get_module_options()
+            for option, details in options.items():
+                data["module"]["options"].append({
+                    "name": option,
+                    "value": getattr(self.module, option)
+                })
+
         if self.type == 'group' and self.childScreenObjects:
             data["screenObjects"] = []
             for childSObj in self.childScreenObjects:
@@ -724,12 +731,22 @@ class TronViewScreenObject:
                     self.pygamescreen,
                     childSObj['type'],
                     childSObj['title'],
-                    x=childSObj['x'],
-                    y=childSObj['y'],
-                    width=childSObj['width'],
-                    height=childSObj['height']
                 )
+                new_childSObj.from_dict(childSObj)
                 self.addChildScreenObject(new_childSObj)
+        if self.type == 'module':
+            # load the module and options
+            newModules, titles  = find_module(self.title)
+            self.setModule(newModules[0], showOptions = False, width = data['width'], height = data['height'])
+            
+            # now load the options
+            for option in data['module']['options']:
+                setattr(self.module, option['name'], option['value'])
+                # if the option has a post_change_function, call it. check newModules[0].get_module_options()
+                if 'post_change_function' in newModules[0].get_module_options()[option['name']]:
+                    post_change_function = getattr(self.module, newModules[0].get_module_options()[option['name']]['post_change_function'], None)
+                    if post_change_function:
+                        post_change_function()
 
     def center(self):
         screen_width, screen_height = pygame.display.get_surface().get_size()
@@ -1222,13 +1239,7 @@ class DropDown():
                     return self.active_option
                 
                 self.visible = False
-                self.draw_menu = False
-
-            #     else:
-            #         #print("No selection")
-            # else:
-            #     #print("No button down.")
-        
+                self.draw_menu = False        
         return -1
 
 
@@ -1248,8 +1259,13 @@ def save_screen_to_json():
         "screenObjects": [obj.to_dict() for obj in shared.CurrentScreen.ScreenObjects]
     }
     
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"screen_save_{timestamp}.json"
+    filename = "screen.json"
+
+    #timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = shared.DataDir + "screens/" + filename
+    # if it doesn't end with .json then add it.
+    if not filename.endswith(".json"):
+        filename = filename + ".json"
     
     with open(filename, "w") as f:
         json.dump(data, f, indent=2)
@@ -1258,6 +1274,10 @@ def save_screen_to_json():
 
 def load_screen_from_json(filename):
     try:
+        filename = shared.DataDir + "screens/" + filename
+        # if it doesn't end with .json then add it.
+        if not filename.endswith(".json"):
+            filename = filename + ".json"
         with open(filename, 'r') as f:
             data = json.load(f)
         
@@ -1277,6 +1297,9 @@ def load_screen_from_json(filename):
         
         print(f"Screen loaded from {filename}")
     except Exception as e:
+        # get full error
+        import traceback
+        traceback.print_exc()
         print(f"Error loading screen from {filename}: {str(e)}")
 
 def draw_ruler(screen, screen_objects, ruler_color, selected_ruler_color):

@@ -198,6 +198,7 @@ if __name__ == "__main__":
         edit_mode.load_screen_from_json(args.load_screen)
 
     hud_utils.getDataRecorderDir(exitOnFail=True)
+    hud_utils.setupDirs()
     isRunningOnPi = rpi_hardware.is_raspberrypi()
     if isRunningOnPi == True: 
         print("Running on RaspberryPi")

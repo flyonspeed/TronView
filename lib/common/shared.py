@@ -44,5 +44,10 @@ CurrentScreen = None
 DefaultFlightLogDir = "/flightlog/"
 
 
+####################################
+## Default data dir.
+## default location where data is saved. Can be overwritten in config file.
+DataDir = "./data/"
+
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python
 

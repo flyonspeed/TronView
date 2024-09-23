@@ -9,4 +9,5 @@ output_error.log
 .venv/
 __pycache__/
 *.pyc
+data/
 

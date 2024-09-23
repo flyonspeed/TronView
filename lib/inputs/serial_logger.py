@@ -46,7 +46,7 @@ class serial_logger(Input):
             self.textMode_showRaw = true
 
     def closeInput(self,aircraft):
-        if self.isPlaybackMode = True:
+        if self.isPlaybackMode == True:
             aircraft.errorFoundNeedToExit = True
         else:
             self.ser.close()

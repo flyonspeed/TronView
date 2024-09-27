@@ -149,7 +149,7 @@ class serial_g3x(Input):
                 else:
                     if (self.isPlaybackMode ):  # if no bytes read and in playback mode.  then reset the file pointer to the start of the file.
                         self.ser.seek(0)
-                    return aircraft
+                return aircraft
                 
             SentID = self.ser.read(1) # get message id
             if(not isinstance(SentID,str)): SentID = SentID.decode('utf-8')
@@ -269,8 +269,7 @@ class serial_g3x(Input):
                     self.ser.flushInput()  # flush the serial after every message else we see delays
                 return aircraft
 
-        except serial.serialutil.SerialException as e:
-            print(e)
+        except:
             print("G3X serial exception")
             aircraft.errorFoundNeedToExit = True
 

@@ -1,5 +1,13 @@
 # TronView
 Project for connecting efis/flight data to a 2nd screen or HUD.
+![cockpit1](docs/efis_cockpit1.jpeg?raw=true)
+## Active development! (Sept 2024!)
+If you want to help with development or testing please join our [Join Discord](https://discord.gg/xZD5MRhS) sever.
+We are working on several new features. 
+- XReal glasses support
+- Editor to make creating or editing your own screen very easy.
+- Better G3x support
+- Show/Hide screen modules based on key commands or other inputs.
 
 ## Features Include:
 - Build custom efis or hud screens
@@ -34,7 +42,7 @@ to 1,000 ft at next pipper, the 1500ft, and last at 2,000ft.  for better descrip
 
 
 ## Use as backup display screen on dash
-![cockpit1](docs/efis_cockpit1.jpeg?raw=true)
+
 ![cockpit2](docs/efis_cockpit2.jpeg?raw=true)
 
 
@@ -44,6 +52,9 @@ to 1,000 ft at next pipper, the 1500ft, and last at 2,000ft.  for better descrip
 
 ## F18 Style HUD
 ![hud_animation](docs/hud_animated_example.gif?raw=true)
+
+![rv8Hud](docs/efis_HUD_rv8.jpg?raw=true)
+
 
 
 ## Text Mode
@@ -127,11 +138,11 @@ this will ask for username/email password from github.
 
 when done this will create a TronView dir
 
-4) run the setup.sh script to finish install.  This will setup serial port (if not allready setup), and install python libraries needed.
+4) run the util/rpi/setup.sh script to finish install.  This will enable built in serial port, enable i2c , and install python libraries needed.  
 
 go into the TronView by typing
 
-`cd TronView/util`
+`cd TronView/util/rpi`
 
 then to run the script type
 

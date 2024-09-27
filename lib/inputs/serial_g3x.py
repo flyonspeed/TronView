@@ -79,7 +79,6 @@ class serial_g3x(Input):
     def readMessage(self, aircraft):
         def mean(nums):
             return float(sum(nums)) / max(len(nums), 1)
-
         if aircraft.errorFoundNeedToExit:
             return aircraft
         try:
@@ -269,6 +268,21 @@ class serial_g3x(Input):
                             return aircraft
                     else:
                         aircraft.msg_bad += 1
+                elif len(msg) == 28:
+                    if(isinstance(msg,str)): msg = msg.encode() # if read from file then convert to bytes
+                    SentVer, UTCHour, UTCMin, UTCSec, UTCSecFrac, TAS, unknownvalue, Checksum, CRLF = struct.unpack(
+                        "c2s2s2s2s4s11s2s2s", msg
+                    )
+                    if int(SentVer) == 1 and CRLF[0] == self.EOL:
+                        while suppress(ValueError):
+                            aircraft.tas = int(TAS) * 0.115078 # convert knots to mph * 0.1
+                            aircraft.msg_count += 1
+                            if (self.isPlaybackMode):  # if playback mode then add a delay.  Else reading a file is way to fast.
+                                time.sleep(0.08)
+                            if self.output_logFile != None:
+                                Input.addToLog(self,self.output_logFile,bytes([61,ord(SentID)]))
+                                Input.addToLog(self,self.output_logFile,msg)
+                            return aircraft
                 else:
                     aircraft.msg_bad += 1
             elif SentID == "7":  # GPS AGL data message

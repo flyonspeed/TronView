@@ -126,7 +126,7 @@ class serial_g3x(Input):
                                         aircraft.gps.LonDeg,
                                         aircraft.gps.LonMin,
                                     )
-                                    # aircraft.gndspeed = _utils.gndspeed(EWVelmag, NSVelmag) * 1.15078 # convert back to mph
+                                    #aircraft.gndspeed = _utils.gndspeed(EWVelmag, NSVelmag) * 1.15078 # convert back to mph
                                     aircraft.gndtrack = _utils.gndtrack(
                                         EWVelDir, EWVelmag, NSVelDir, NSVelmag
                                     )
@@ -141,16 +141,15 @@ class serial_g3x(Input):
                                     if self.output_logFile != None:
                                         Input.addToLog(self,self.output_logFile,bytes([64]))
                                         Input.addToLog(self,self.output_logFile,msg)
-
                                     aircraft.gps.msg_count += 1
+                                    return aircraft
                             else:
                                 aircraft.gps.msg_bad += 1
 
                 else:
                     if (self.isPlaybackMode ):  # if no bytes read and in playback mode.  then reset the file pointer to the start of the file.
                         self.ser.seek(0)
-                return aircraft
-                
+
             SentID = self.ser.read(1) # get message id
             if(not isinstance(SentID,str)): SentID = SentID.decode('utf-8')
             if SentID == "1":  # atittude/air data message
@@ -201,6 +200,7 @@ class serial_g3x(Input):
                             if self.output_logFile != None:
                                 Input.addToLog(self,self.output_logFile,bytes([61,ord(SentID)]))
                                 Input.addToLog(self,self.output_logFile,msg)
+                            return aircraft
                     else:
                         aircraft.msg_bad += 1
                         aircraft.debug2 = "bad air data - unkown ver"
@@ -220,10 +220,14 @@ class serial_g3x(Input):
                         while suppress(ValueError):
                             aircraft.DA = int(DAlt)
                             aircraft.tas = int(TAS) * 0.115078 # convert knots to mph * 0.1
-                            aircraft.nav.HeadBug = int(HeadingSel)
-                            aircraft.nav.AltBug = int(AltSel)
-                            aircraft.nav.ASIBug = int(AirspeedSel) * 0.115078 # convert knots to mph * 0.1
-                            aircraft.nav.VSIBug = int(VSSel) * 10 # multiply up to hundreds of feet
+                            if(not HeadingSel.decode('utf-8') == ''):
+                                aircraft.nav.HeadBug = int(HeadingSel)
+                            if(not AltSel.decode('utf-8') == ''):
+                                aircraft.nav.AltBug = int(AltSel)
+                            if(not AirspeedSel.decode('utf-8') == '____'):
+                                aircraft.nav.ASIBug = int(AirspeedSel) * 0.115078 # convert knots to mph * 0.1
+                            if(not VSSel.decode('utf-8') == '____'):
+                                aircraft.nav.VSIBug = int(VSSel) * 10 # multiply up to hundreds of feet
                             aircraft.msg_count += 1
                             if (self.isPlaybackMode):  # if playback mode then add a delay.  Else reading a file is way to fast.
                                 time.sleep(0.08)
@@ -231,6 +235,7 @@ class serial_g3x(Input):
                             if self.output_logFile != None:
                                 Input.addToLog(self,self.output_logFile,bytes([61,ord(SentID)]))
                                 Input.addToLog(self,self.output_logFile,msg)
+                            return aircraft
                     else:
                         aircraft.msg_bad += 1
                 else:
@@ -252,6 +257,7 @@ class serial_g3x(Input):
                             if self.output_logFile != None:
                                 Input.addToLog(self,self.output_logFile,bytes([61,ord(SentID)]))
                                 Input.addToLog(self,self.output_logFile,msg)
+                            return aircraft
                     else:
                         aircraft.msg_bad += 1
                         aircraft.debug1 = "bad GPS AGL data - unkown ver"
@@ -269,8 +275,10 @@ class serial_g3x(Input):
                     self.ser.flushInput()  # flush the serial after every message else we see delays
                 return aircraft
 
-        except:
+        except Exception as e:
             print("G3X serial exception")
+            print(type(e))
+            print(e)
             aircraft.errorFoundNeedToExit = True
 
         return aircraft

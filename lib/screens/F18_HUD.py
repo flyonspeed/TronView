@@ -102,11 +102,13 @@ class F18_HUD(Screen):
             )
 
         # ALT
+        baroalt = round(aircraft.BALT/10)
+        baroalt = baroalt * 10
         smartdisplay.draw_box_text_with_big_and_small_text(
             smartdisplay.RIGHT_MID, # postion
             self.fontIndicator, # big font
             self.fontAltSmall, # little font
-            "%s" % (aircraft.BALT), # text
+            "%s" % (baroalt), # text
             2, # how many chars on the right do I want in small text.
             (255, 255, 0), # text color
             5, # total char space length (padding)

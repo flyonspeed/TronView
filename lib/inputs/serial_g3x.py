@@ -97,49 +97,6 @@ class serial_g3x(Input):
                                 "2s2s2s2s2s2sc2s5sc3s5sc3s6sc4sc4sc4s2s", msg
                             )
                             if CRLF[0] == self.EOL:
-<<<<<<< Updated upstream
-                                aircraft.msg_count += 1
-                                aircraft.sys_time_string = "%d:%d:%d"%(int(UTCHour),int(UTCMin),int(UTCSec))
-                                self.time_stamp_string = aircraft.sys_time_string
-                                self.time_stamp_min = int(UTCMin)
-                                self.time_stamp_sec = int(UTCSec)
-                                aircraft.gps.LatHemi = LatHemi.decode('utf-8')  # North or South
-                                aircraft.gps.LatDeg = int(LatDeg)
-                                aircraft.gps.LatMin = int(LatMin) * 0.001  # x.xxx
-                                aircraft.gps.LonHemi = LonHemi.decode('utf-8')  # East or West
-                                aircraft.gps.LonDeg = int(LonDeg)
-                                aircraft.gps.LonMin = int(LonMin) * 0.001  # x.xxx
-                                aircraft.gps.GPSAlt = int(GPSAlt) * 3.28084
-                                aircraft.gps.EWVelDir = EWVelDir.decode('utf-8')  # E or W
-                                aircraft.gps.EWVelmag = int(EWVelmag) * 0.1
-                                aircraft.gps.NSVelDir = NSVelDir.decode('utf-8')  # N or S
-                                aircraft.gps.NSVelmag = int(NSVelmag) * 0.1
-                                aircraft.gps.VVelDir = VVelDir.decode('utf-8')  # U or D
-                                aircraft.gps.VVelmag = int(VVelmag) * 0.1
-                                aircraft.mag_decl = _utils.geomag(
-                                    aircraft.gps.LatHemi,
-                                    aircraft.gps.LatDeg,
-                                    aircraft.gps.LatMin,
-                                    aircraft.gps.LonHemi,
-                                    aircraft.gps.LonDeg,
-                                    aircraft.gps.LonMin,
-                                )
-                                # aircraft.gndspeed = _utils.gndspeed(EWVelmag, NSVelmag) * 1.15078 # convert back to mph
-                                aircraft.gndtrack = _utils.gndtrack(
-                                    EWVelDir, EWVelmag, NSVelDir, NSVelmag
-                                )
-                                aircraft.gps.Source = "G3X"
-                                aircraft.wind_speed, aircraft.wind_dir, aircraft.norm_wind_dir = _utils.windSpdDir(
-                                    aircraft.tas * 0.8689758, # back to knots.
-                                    aircraft.gndspeed * 0.8689758, # convert back to knots
-                                    aircraft.gndtrack,
-                                    aircraft.mag_head,
-                                    aircraft.mag_decl,
-                                )
-                                if self.output_logFile != None:
-                                    Input.addToLog(self,self.output_logFile,bytes([64]))
-                                    Input.addToLog(self,self.output_logFile,msg)
-=======
                                 while suppress(ValueError):
                                     if(not aircraft.gps.Source == "G3X" and not aircraft.gps.Source == None):
                                         return aircraft
@@ -184,7 +141,6 @@ class serial_g3x(Input):
                                     if self.output_logFile != None:
                                         Input.addToLog(self,self.output_logFile,bytes([64]))
                                         Input.addToLog(self,self.output_logFile,msg)
->>>>>>> Stashed changes
 
                                     aircraft.gps.msg_count += 1
                             else:
@@ -289,15 +245,6 @@ class serial_g3x(Input):
                         "c2s2s2s2s3s4s2s2s", msg
                     )
                     if int(SentVer) == 1 and CRLF[0] == self.EOL:
-<<<<<<< Updated upstream
-                        aircraft.agl = int(HeightAGL) * 100
-                        aircraft.gndspeed = int(GroundSpeed) * 0.115078 # convert knots to mph * 0.1
-                        aircraft.msg_count += 1
-                        if self.output_logFile != None:
-                            Input.addToLog(self,self.output_logFile,bytes([61,ord(SentID)]))
-                            Input.addToLog(self,self.output_logFile,msg)
-                        return aircraft
-=======
                         while suppress(ValueError):
                             aircraft.agl = int(HeightAGL) * 100
                             aircraft.gndspeed = int(GroundSpeed) * 0.115078 # convert knots to mph * 0.1
@@ -305,7 +252,6 @@ class serial_g3x(Input):
                             if self.output_logFile != None:
                                 Input.addToLog(self,self.output_logFile,bytes([61,ord(SentID)]))
                                 Input.addToLog(self,self.output_logFile,msg)
->>>>>>> Stashed changes
                     else:
                         aircraft.msg_bad += 1
                         aircraft.debug1 = "bad GPS AGL data - unkown ver"

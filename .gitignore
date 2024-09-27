@@ -6,7 +6,4 @@ output_error.log
 **/.DS_Store
 .DS_Store
 .vscode/
-.venv/
-__pycache__/
-*.pyc
 

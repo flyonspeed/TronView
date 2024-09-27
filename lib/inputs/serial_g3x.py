@@ -89,7 +89,7 @@ class serial_g3x(Input):
                 if len(t) != 0:
                     x = ord(t)
                     if x == 64:  # 64(@) is start of garmin g3x GPS sentence.
-                        msg = self.ser.read(56)
+                        msg = self.ser.readline()
                         if(isinstance(msg,str)): msg = msg.encode() # if read from file then convert to bytes
                         aircraft.msg_last = msg
                         if len(msg) == 56:
@@ -153,7 +153,7 @@ class serial_g3x(Input):
             SentID = self.ser.read(1) # get message id
             if(not isinstance(SentID,str)): SentID = SentID.decode('utf-8')
             if SentID == "1":  # atittude/air data message
-                msg = self.ser.read(57)
+                msg = self.ser.readline()
                 aircraft.msg_last = msg
                 if len(msg) == 57:
                     if(isinstance(msg,str)): msg = msg.encode() # if read from file then convert to bytes
@@ -204,12 +204,43 @@ class serial_g3x(Input):
                     else:
                         aircraft.msg_bad += 1
                         aircraft.debug2 = "bad air data - unkown ver"
-
+                elif len(msg) == 45:
+                    if(isinstance(msg,str)): msg = msg.encode() # if read from file then convert to bytes
+                    SentVer, UTCHour, UTCMin, UTCSec, UTCSecFrac, Pitch, Roll, Heading, Airspeed, PressAlt, VertSpeed, OAT, AltSet, Checksum, CRLF = struct.unpack(
+                        "c2s2s2s2s4s5s3s4s6s4s3s3s2s2s", msg
+                    )
+                    if int(SentVer) == 1 and CRLF[0] == self.EOL:
+                        with suppress(ValueError):
+                            aircraft.gps.UTCHour = int(UTCHour)
+                            aircraft.gps.UTCMin = int(UTCMin)
+                            aircraft.gps.UTCSec = int(UTCSec)
+                            aircraft.roll = int(Roll) * 0.1
+                            aircraft.pitch = int(Pitch) * 0.1
+                            aircraft.ias = int(Airspeed) * 0.115078 # convert knots to mph * 0.1
+                            aircraft.PALT = int(PressAlt)
+                            aircraft.oat = (int(OAT) * 1.8) + 32 # c to f
+                            if len(self.readings1) == self.max_samples1:
+                                self.readings1.pop(0)
+                            aircraft.mag_head = int(Heading)
+                            aircraft.baro = (int(AltSet) + 2750.0) / 100.0
+                            aircraft.baro_diff = aircraft.baro - 29.9213
+                            aircraft.alt = int(
+                                int(PressAlt) + (aircraft.baro_diff / 0.00108)
+                            )  # 0.00108 of inches of mercury change per foot.
+                            aircraft.BALT = aircraft.alt
+                            aircraft.vsi = int(VertSpeed) * 10 # vertical speed in fpm
+                            aircraft.msg_count += 1
+                            if (self.isPlaybackMode):  # if playback mode then add a delay.  Else reading a file is way to fast.
+                                time.sleep(0.08)
+                            if self.output_logFile != None:
+                                Input.addToLog(self,self.output_logFile,bytes([61,ord(SentID)]))
+                                Input.addToLog(self,self.output_logFile,msg)
+                            return aircraft
                 else:
                     aircraft.msg_bad += 1
                     aircraft.debug2 = "bad air data - wrong len"
             elif SentID == "2":
-                msg = self.ser.read(40)
+                msg = self.ser.readline()
                 aircraft.msg_last = msg
                 if len(msg) == 40:
                     if(isinstance(msg,str)): msg = msg.encode() # if read from file then convert to bytes
@@ -241,7 +272,7 @@ class serial_g3x(Input):
                 else:
                     aircraft.msg_bad += 1
             elif SentID == "7":  # GPS AGL data message
-                msg = self.ser.read(20)
+                msg = self.ser.readline()
                 if(isinstance(msg,str)): msg = msg.encode() # if read from file then convert to bytes
                 aircraft.msg_last = msg
                 if len(msg) == 20:

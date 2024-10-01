@@ -28,12 +28,17 @@ from pygame_gui.elements import UIButton, UILabel, UITextEntryLine, UIDropDownMe
 from pygame_gui.elements.ui_window import UIWindow
 from pygame_gui.elements import UITextBox
 from pygame_gui.windows import UIColourPickerDialog
+from collections import deque
 
 
 #############################################
 ## Function: main edit loop
 def main_edit_loop():
     global debug_font
+
+    if shared.Change_history is None:
+        shared.Change_history = ChangeHistory()
+
     # init common things.
     maxframerate = hud_utils.readConfigInt("Main", "maxframerate", 30)
     clock = pygame.time.Clock()
@@ -78,6 +83,8 @@ def main_edit_loop():
     help_window = None
 
     text_entry_active = False
+
+    drag_start_positions = {}  # To store initial positions of dragged objects
 
     ############################################################################################
     ############################################################################################
@@ -169,6 +176,7 @@ def main_edit_loop():
                         # delete the selected module by going through the list of modules and removing the selected one.
                         for sObject in shared.CurrentScreen.ScreenObjects:
                             if sObject.selected:
+                                shared.Change_history.add_change("delete", {"object": sObject})
                                 shared.CurrentScreen.ScreenObjects.remove(sObject)
                                 if edit_options_bar and edit_options_bar.screen_object == sObject:
                                     edit_options_bar.remove_ui()
@@ -183,6 +191,7 @@ def main_edit_loop():
                         # add a new Screen object
                         mx, my = pygame.mouse.get_pos()
                         newObject = TronViewScreenObject(pygamescreen, 'module', f"A_{len(shared.CurrentScreen.ScreenObjects)}", module=None, x=mx, y=my)
+                        shared.Change_history.add_change("add", {"object": newObject})
                         shared.CurrentScreen.ScreenObjects.append(
                             newObject
                         )
@@ -272,6 +281,10 @@ def main_edit_loop():
                                 obj.selected = obj in cloned_objects
 
                         print(f"Cloned {len(cloned_objects)} objects")
+
+                    # Undo functionality
+                    elif event.key == pygame.K_z and (mods & pygame.KMOD_CTRL):
+                        undo_last_change(shared.Change_history)
 
                 # check for Mouse events
                 if event.type == pygame.MOUSEBUTTONDOWN:
@@ -366,6 +379,7 @@ def main_edit_loop():
                                     selected_screen_object = sObject
                                     sObject.selected = True
                                     resizing = True
+                                    resize_start_size = (sObject.width, sObject.height)  # Store initial size
                                     offset_x = mx - sObject.x
                                     offset_y = my - sObject.y
                                     dropdown = None
@@ -392,10 +406,18 @@ def main_edit_loop():
                                     offset_x = mx - sObject.x 
                                     offset_y = my - sObject.y
                                     sObject.selected = True
+                                    # Store initial positions when starting to drag
+                                    if dragging:
+                                        drag_start_positions = {obj: (obj.x, obj.y) for obj in selected_screen_objects}
                                 break
 
                 # Mouse up
                 elif event.type == pygame.MOUSEBUTTONUP:
+                    if dragging:
+                        handle_drag_end(selected_screen_objects, drag_start_positions)
+                        drag_start_positions.clear()
+                    if resizing and selected_screen_object:
+                        handle_resize_end(selected_screen_object, resize_start_size)
                     dragging = False
                     resizing = False
                     #print("Mouse Up")
@@ -477,8 +499,23 @@ def main_edit_loop():
         pygame.display.update()
         clock.tick(maxframerate)
 
+def handle_drag_end(selected_objects, start_positions):
+    for obj in selected_objects:
+        start_pos = start_positions.get(obj)
+        if start_pos and (obj.x, obj.y) != start_pos:
+            shared.Change_history.add_change("move", {
+                "object": obj,
+                "old_pos": start_pos,
+                "new_pos": (obj.x, obj.y)
+            })
 
-
+def handle_resize_end(screen_object, start_size):
+    if (screen_object.width, screen_object.height) != start_size:
+        shared.Change_history.add_change("resize", {
+            "object": screen_object,
+            "old_size": start_size,
+            "new_size": (screen_object.width, screen_object.height)
+        })
 
 ############################################################################################
 ############################################################################################
@@ -952,6 +989,12 @@ class EditOptionsBar:
     def on_checkbox_click(self, option):
         current_value = getattr(self.screen_object.module, option)
         new_value = not current_value
+        shared.Change_history.add_change("option_change", {
+            "object": self.screen_object,
+            "option": option,
+            "old_value": current_value,
+            "new_value": new_value
+        })
         setattr(self.screen_object.module, option, new_value)
         for element in self.ui_elements:
             if isinstance(element, UIButton) and element.option_name == option:
@@ -968,6 +1011,13 @@ class EditOptionsBar:
                 post_change_function()
 
     def on_slider_moved(self, option, value):
+        old_value = getattr(self.screen_object.module, option)
+        shared.Change_history.add_change("option_change", {
+            "object": self.screen_object,
+            "option": option,
+            "old_value": old_value,
+            "new_value": int(value)
+        })
         setattr(self.screen_object.module, option, int(value))
         if hasattr(self.screen_object.module, 'update_option'):
             self.screen_object.module.update_option(option, int(value))
@@ -990,6 +1040,7 @@ class EditOptionsBar:
                         break
 
     def on_text_submit_change(self, option, text):
+        old_value = getattr(self.screen_object.module, option)
         option_type = self.screen_object.module.get_module_options()[option]['type']
         if option_type == 'float':
             value = float(text)
@@ -997,6 +1048,12 @@ class EditOptionsBar:
             value = int(text)
         else:
             value = text
+        shared.Change_history.add_change("option_change", {
+            "object": self.screen_object,
+            "option": option,
+            "old_value": old_value,
+            "new_value": value
+        })
         setattr(self.screen_object.module, option, value)
         if hasattr(self.screen_object.module, 'update_option'):
             self.screen_object.module.update_option(option, value)
@@ -1572,5 +1629,37 @@ def clone_screen_object(obj, offset_x, offset_y):
             new_obj.setModule(new_module)
     
     return new_obj
+
+class ChangeHistory:
+    def __init__(self, max_history=100):
+        self.history = deque(maxlen=max_history)
+
+    def add_change(self, change_type, data):
+        self.history.append({"type": change_type, "data": data})
+        print(f"history added: {change_type}, {data}")
+
+    def undo(self):
+        if self.history:
+            return self.history.pop()
+        return None
+
+def undo_last_change(change_history):
+    change = change_history.undo()
+    if change:
+        print(f"undoing change: {change}")
+        if change["type"] == "move":
+            change["data"]["object"].move(*change["data"]["old_pos"])
+        elif change["type"] == "delete":
+            shared.CurrentScreen.ScreenObjects.append(change["data"]["object"])
+        elif change["type"] == "add":
+            shared.CurrentScreen.ScreenObjects.remove(change["data"]["object"])
+        elif change["type"] == "option_change":
+            setattr(change["data"]["object"].module, change["data"]["option"], change["data"]["old_value"])
+            if hasattr(change["data"]["object"].module, 'update_option'):
+                change["data"]["object"].module.update_option(change["data"]["option"], change["data"]["old_value"])
+        elif change["type"] == "resize":
+            change["data"]["object"].resize(*change["data"]["old_size"])
+    else:
+        print("no change to undo")
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

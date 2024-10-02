@@ -1072,18 +1072,26 @@ class EditOptionsBar:
 
     def show_color_picker(self, option):
         current_color = getattr(self.screen_object.module, option)
-        # Convert tuple to pygame Color object if necessary
-        if isinstance(current_color, tuple):
-            current_color = pygame.Color(*current_color)
+        # Convert to pygame Color object if necessary
+        if isinstance(current_color, (list, tuple)):
+            if len(current_color) == 3:
+                current_color = pygame.Color(*current_color, 255)  # Add alpha channel if missing
+            elif len(current_color) == 4:
+                current_color = pygame.Color(*current_color)
+        elif not isinstance(current_color, pygame.Color):
+            # If it's not a recognized format, default to white
+            current_color = pygame.Color(255, 255, 255, 255)
+
         color_picker = UIColourPickerDialog(
             rect=pygame.Rect(300, 50, 390, 390),
             manager=self.pygame_gui_manager,
             initial_colour=current_color,
-            window_title=f"Choose color for {option}"
+            window_title=f"Color: {option}",
         )
         self.color_pickers[option] = color_picker
 
     def on_color_picked(self, option, color):
+        print(f"color picked: {color}")
         setattr(self.screen_object.module, option, color)
         for element in self.ui_elements:
             if isinstance(element, UIButton) and getattr(element, 'option_name', None) == option:
@@ -1539,12 +1547,13 @@ def show_help_dialog(pygame_gui_manager):
     R - Toggle ruler
     Arrow keys - Move selected object(s)
     Ctrl + Arrow keys - Move selected object(s) by 10 pixels
-    PAGE UP - Move object up in draw order
-    PAGE DOWN - Move object down in draw order
+    PAGE UP - Move selected object up in draw order
+    PAGE DOWN - Move selected object down in draw order
+    Ctrl+z - Undo last change
     """
 
-    window_width = 400
-    window_height = 500
+    window_width = 450
+    window_height = 550
     screen_width, screen_height = pygame.display.get_surface().get_size()
     x = (screen_width - window_width) // 2
     y = (screen_height - window_height) // 2

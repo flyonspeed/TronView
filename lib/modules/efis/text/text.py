@@ -5,11 +5,13 @@
 # Topher 2024.
 # 
 
+import inspect
 from lib.modules._module import Module
 from lib import hud_graphics
 from lib import hud_utils
 from lib import smartdisplay
 from lib import aircraft
+from lib.common import shared
 import pygame
 import math
 
@@ -27,7 +29,7 @@ class text(Module):
         self.box_color = (255,255,255)
         self.box_weight = 0
         self.box_radius = 0
-
+        self.template = ""
     # called once for setup
     def initMod(self, pygamescreen, width=None, height=None):
         if width is None:
@@ -47,37 +49,38 @@ class text(Module):
         # Remove the self.surface creation and fill
 
     def parse_text(self, aircraft):
-        # text can contain variables in the form of {variable_name}
-        # allow %f to format the variable as a float example {variable_name%2f}
+        def get_nested_attr(obj, attr):
+            parts = attr.split('.')
+            for part in parts:
+                if part.endswith('()'):
+                    # It's a function call
+                    func_name = part[:-2]
+                    obj = getattr(obj, func_name)()
+                else:
+                    obj = getattr(obj, part)
+            return obj
 
-        # split the text into words
         words = self.text.split()
         result = self.text
         for word in words:
             if "{" in word and "}" in word:
-                # this is a variable
                 variable_name = word[1:-1]
-                # check if it has a format specifier
                 if "%" in variable_name:
-                    # split the variable name and the format specifier
                     variable_name, format_specifier = variable_name.split("%")
-                    # get the value of the variable from the aircraft object
-                    variable_value = getattr(aircraft, variable_name, "N/A")
-                    # apply the format specifier example %0.2f = float with 2 decimal places. %d = integer
-                    try:
-                        # Use f-string formatting for float values
-                        variable_value = f"{variable_value:{format_specifier}}"
-                    except Exception as e:
-                        # get error message
-                        variable_value = str(e)
-                    
-                    # replace the variable with the value
-                    result = result.replace(word, str(variable_value))
                 else:
-                    # get the value of the variable from the aircraft object
-                    variable_value = getattr(aircraft, variable_name, "N/A")
-                # replace the variable with the value
-                result = result.replace(word, str(variable_value))
+                    format_specifier = None
+
+                try:
+                    variable_value = get_nested_attr(aircraft, variable_name)
+                    
+                    if format_specifier:
+                        variable_value = f"{variable_value:{format_specifier}}"
+                    else:
+                        variable_value = str(variable_value)
+                except Exception as e:
+                    variable_value = f"Error: {str(e)}"
+
+                result = result.replace(word, variable_value)
             else:
                 # this is a normal word
                 result = result.replace(word, word)
@@ -121,11 +124,41 @@ class text(Module):
     
     # return a dict of objects that are used to configure the module.
     def get_module_options(self):
+
+        aircraft_fields = self.get_aircraft_fields(shared.aircraft)
+        # # get a list of all fields in the aircraft object
+        # for field in shared.aircraft.__dict__:
+        #     # check if it's not a special method or object
+        #     #if not callable(getattr(shared.aircraft, field)) and not isinstance(getattr(shared.aircraft, field), object):
+        #         # convert to string
+        #         description = str(field)
+        #         # is field a string?
+        #         if isinstance(getattr(shared.aircraft, field), str):
+        #             description += " (string)"
+        #         # is field a function?
+        #         elif callable(getattr(shared.aircraft, field)):
+        #             description += " (function)"
+        #         # is field an object?
+        #         elif isinstance(getattr(shared.aircraft, field), object):
+        #             description += " (object)"
+        #         templates.append(description)
+        #         print(f"template: {description}")
+        #         # is field a function?
+        print(f"templates: {aircraft_fields}")
+
         return {
+            "template": {
+                "type": "dropdown",
+                "default": "template",
+                "options": aircraft_fields,
+                "label": "Value",
+                "description": "Select a predefined value",
+                "post_change_function": "update_text"
+            },
             "text": {
                 "type": "text",
                 "default": self.text,
-                "label": "Text",
+                "label": "Custom",
                 "description": "Text to display"
             },
             "font_name": {
@@ -186,6 +219,33 @@ class text(Module):
                 "description": "Radius of the box to use"
             }
         }
+
+    def get_aircraft_fields(self,obj, prefix=''):
+        fields = []
+        
+        for name, value in inspect.getmembers(obj):
+            # Skip private and special methods
+            if name.startswith('__'):
+                continue
+            
+            full_name = f"{prefix}{name}" if prefix else name
+            
+            if isinstance(value, (str, int, float, list, tuple, dict)):
+                fields.append(full_name)
+            elif inspect.isfunction(value) or inspect.ismethod(value):
+                fields.append(f"{full_name}()")
+            elif inspect.isclass(value):
+                # Skip classes
+                continue
+            elif hasattr(value, '__dict__'):
+                # It's an object, recurse into it
+                fields.extend(self.get_aircraft_fields(value, f"{full_name}."))
+    
+        return fields
+
+    def update_text(self):
+        self.text = "{"+self.template+"}"
+        #self.buildFont()
 
     # handle events
     def processEvent(self,event,aircraft,smartdisplay):

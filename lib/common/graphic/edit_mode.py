@@ -29,7 +29,7 @@ from pygame_gui.elements.ui_window import UIWindow
 from pygame_gui.elements import UITextBox
 from pygame_gui.windows import UIColourPickerDialog
 from collections import deque
-
+import inspect
 
 #############################################
 ## Function: main edit loop
@@ -285,6 +285,11 @@ def main_edit_loop():
                     # Undo functionality
                     elif event.key == pygame.K_z and (mods & pygame.KMOD_CTRL):
                         undo_last_change(shared.Change_history)
+
+                    # List aircraft fields
+                    elif event.key == pygame.K_i:  # 'i' for 'info'
+                        print("Aircraft fields:")
+                        list_aircraft_fields()
 
                 # check for Mouse events
                 if event.type == pygame.MOUSEBUTTONDOWN:
@@ -852,6 +857,11 @@ class EditOptionsBar:
     def build_ui(self):
         y_offset = 10
         x_offset = 10
+        # clear the ui elements if they exist remove them
+        for element in self.ui_elements:
+            element.kill()
+        self.ui_elements = []
+
         if self.screen_object.type == 'group':
             label = UILabel(
                 relative_rect=pygame.Rect(x_offset, y_offset, 180, 20),
@@ -930,6 +940,24 @@ class EditOptionsBar:
                 color_button.option_name = option
                 color_button.object_id = "#options_color_" + option
                 self.ui_elements.append(color_button)
+            elif details['type'] == 'dropdown':
+                current_value = getattr(self.screen_object.module, option)
+                options_list = details['options']
+                
+                # Ensure the current value is in the options list
+                if current_value not in options_list:
+                    options_list.append(current_value)
+                
+                dropdown = UIDropDownMenu(
+                    options_list=options_list,
+                    starting_option=current_value,
+                    relative_rect=pygame.Rect(x_offset, y_offset, 180, 20),
+                    manager=self.pygame_gui_manager,
+                    container=self.window
+                )
+                dropdown.option_name = option
+                dropdown.object_id = "#options_dropdown_" + option
+                self.ui_elements.append(dropdown)
 
             y_offset += 30 # move down 30 pixels so we can draw another control
             total_height += 5  # Padding between options
@@ -945,6 +973,8 @@ class EditOptionsBar:
         # Adjust container size for scrolling if necessary
         #if total_height > 500:
         #    self.window.set_scrollable_container_height(total_height)
+
+
 
     def handle_event(self, event):
         #print("event: %s" % event)
@@ -985,6 +1015,10 @@ class EditOptionsBar:
             print("Text entry finished")
             self.text_entry_active = False
             self.on_text_submit_change(event.ui_element.option_name, event.text) # send the option name and the text entered
+        elif event.type == pygame_gui.UI_DROP_DOWN_MENU_CHANGED:
+            for element in self.ui_elements:
+                if isinstance(element, UIDropDownMenu) and event.ui_element == element:
+                    self.on_dropdown_selection(element.option_name, event.text)
 
     def on_checkbox_click(self, option):
         current_value = getattr(self.screen_object.module, option)
@@ -1110,6 +1144,28 @@ class EditOptionsBar:
         
         del self.color_pickers[option]
 
+    def on_dropdown_selection(self, option, value):
+        old_value = getattr(self.screen_object.module, option)
+        shared.Change_history.add_change("option_change", {
+            "object": self.screen_object,
+            "option": option,
+            "old_value": old_value,
+            "new_value": value
+        })
+        setattr(self.screen_object.module, option, value)
+        if hasattr(self.screen_object.module, 'update_option'):
+            self.screen_object.module.update_option(option, value)
+        
+        # Check for post_change_function
+        options = self.screen_object.module.get_module_options()
+        if option in options and 'post_change_function' in options[option]:
+            post_change_function = getattr(self.screen_object.module, options[option]['post_change_function'], None)
+            if post_change_function:
+                post_change_function()
+        # refesh all the options in the EditOptionsWindow
+        self.build_ui()
+
+
     def update_position(self):
         window_width = self.window.get_abs_rect().width
         x = min(self.screen_object.x + self.screen_object.width, 
@@ -1117,6 +1173,7 @@ class EditOptionsBar:
         y = self.screen_object.y
         self.window.set_position((x, y))
 
+    #
     def update(self, time_delta):
         if self.visible:
             self.update_position()  # Update position before updating the UI
@@ -1670,5 +1727,34 @@ def undo_last_change(change_history):
             change["data"]["object"].resize(*change["data"]["old_size"])
     else:
         print("no change to undo")
+
+def get_aircraft_fields(obj, prefix=''):
+    fields = []
+    
+    for name, value in inspect.getmembers(obj):
+        # Skip private and special methods
+        if name.startswith('__'):
+            continue
+        
+        full_name = f"{prefix}{name}" if prefix else name
+        
+        if isinstance(value, (str, int, float, list, tuple, dict)):
+            fields.append(full_name)
+        elif inspect.isfunction(value) or inspect.ismethod(value):
+            fields.append(f"{full_name}()")
+        elif inspect.isclass(value):
+            # Skip classes
+            continue
+        elif hasattr(value, '__dict__'):
+            # It's an object, recurse into it
+            fields.extend(get_aircraft_fields(value, f"{full_name}."))
+    
+    return fields
+
+# Example usage:
+def list_aircraft_fields():
+    fields = get_aircraft_fields(shared.aircraft)
+    for field in fields:
+        print(field)
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

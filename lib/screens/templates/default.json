@@ -1,0 +1,718 @@
+{
+  "ver": {
+    "version": "1.0"
+  },
+  "screen": {
+    "title": "No Name",
+    "width": 1920,
+    "height": 1080
+  },
+  "screenObjects": [
+    {
+      "type": "module",
+      "title": "Traffic Scope",
+      "x": 1069,
+      "y": 456,
+      "width": 397,
+      "height": 337,
+      "module": {
+        "name": "Traffic Scope",
+        "options": [
+          {
+            "name": "show_callsign",
+            "value": true
+          },
+          {
+            "name": "show_details",
+            "value": false
+          },
+          {
+            "name": "details_offset",
+            "value": 11
+          },
+          {
+            "name": "target_show_lat_lon",
+            "value": false
+          },
+          {
+            "name": "scope_scale_miles",
+            "value": 3
+          },
+          {
+            "name": "draw_aircraft_icon",
+            "value": true
+          },
+          {
+            "name": "aircraft_icon_scale",
+            "value": 10
+          }
+        ]
+      },
+      "id": "M_pw8dx"
+    },
+    {
+      "type": "module",
+      "title": "HUD Horizon V2",
+      "x": 574,
+      "y": 153,
+      "width": 760,
+      "height": 594,
+      "module": {
+        "name": "HUD Horizon V2",
+        "options": [
+          {
+            "name": "line_mode",
+            "value": 1
+          },
+          {
+            "name": "line_thickness",
+            "value": 2
+          },
+          {
+            "name": "MainColor",
+            "value": [
+              0,
+              255,
+              0
+            ]
+          },
+          {
+            "name": "flight_path_color",
+            "value": [
+              255,
+              0,
+              255
+            ]
+          }
+        ]
+      },
+      "id": "M_w68xg"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 35,
+      "y": 487,
+      "width": 130,
+      "height": 77,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "template",
+            "value": ""
+          },
+          {
+            "name": "text",
+            "value": "{ias%.0f}"
+          },
+          {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 70
+          },
+          {
+            "name": "font_bold",
+            "value": false
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 3
+          },
+          {
+            "name": "box_radius",
+            "value": 10
+          }
+        ]
+      },
+      "id": "M_236bn"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 1608,
+      "y": 378,
+      "width": 200,
+      "height": 50,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "template",
+            "value": ""
+          },
+          {
+            "name": "text",
+            "value": "{alt} ft"
+          },
+          {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 45
+          },
+          {
+            "name": "font_bold",
+            "value": false
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 2
+          },
+          {
+            "name": "box_radius",
+            "value": 10
+          }
+        ]
+      },
+      "id": "M_n4y8t"
+    },
+    {
+      "type": "module",
+      "title": "HUD AOA",
+      "x": 52,
+      "y": 695,
+      "width": 69,
+      "height": 217,
+      "module": {
+        "name": "HUD AOA",
+        "options": [
+          {
+            "name": "showLDMax",
+            "value": true
+          },
+          {
+            "name": "aoa_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          }
+        ]
+      },
+      "id": "M_5a14p"
+    },
+    {
+      "type": "module",
+      "title": "HSI",
+      "x": 796,
+      "y": 671,
+      "width": 300,
+      "height": 315,
+      "module": {
+        "name": "HSI",
+        "options": []
+      },
+      "id": "M_m9f9j"
+    },
+    {
+      "type": "module",
+      "title": "Wind",
+      "x": 16,
+      "y": 958,
+      "width": 57,
+      "height": 108,
+      "module": {
+        "name": "Wind",
+        "options": []
+      },
+      "id": "M_j0j1d"
+    },
+    {
+      "type": "module",
+      "title": "Slip Skid",
+      "x": 823,
+      "y": 1005,
+      "width": 247,
+      "height": 50,
+      "module": {
+        "name": "Slip Skid",
+        "options": []
+      },
+      "id": "M_cxs4z"
+    },
+    {
+      "type": "module",
+      "title": "Heading",
+      "x": 594,
+      "y": 58,
+      "width": 705,
+      "height": 87,
+      "module": {
+        "name": "Heading",
+        "options": []
+      },
+      "id": "M_jx6p6"
+    },
+    {
+      "type": "module",
+      "title": "RollIndicator",
+      "x": 769,
+      "y": 632,
+      "width": 338,
+      "height": 364,
+      "module": {
+        "name": "RollIndicator",
+        "options": []
+      },
+      "id": "M_cmb27"
+    },
+    {
+      "type": "module",
+      "title": "HUD CDI",
+      "x": 804,
+      "y": 370,
+      "width": 314,
+      "height": 177,
+      "module": {
+        "name": "HUD CDI",
+        "options": []
+      },
+      "id": "M_3zurq"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 43,
+      "y": 602,
+      "width": 77,
+      "height": 40,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "template",
+            "value": ""
+          },
+          {
+            "name": "text",
+            "value": "{oat} OAT"
+          },
+          {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 20
+          },
+          {
+            "name": "font_bold",
+            "value": false
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 0
+          },
+          {
+            "name": "box_radius",
+            "value": 0
+          }
+        ]
+      },
+      "id": "M_9q7cq"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 44,
+      "y": 444,
+      "width": 200,
+      "height": 50,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "template",
+            "value": ""
+          },
+          {
+            "name": "text",
+            "value": "TAS {tas%.0f}"
+          },
+          {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 30
+          },
+          {
+            "name": "font_bold",
+            "value": false
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 0
+          },
+          {
+            "name": "box_radius",
+            "value": 0
+          }
+        ]
+      },
+      "id": "M_48jsw"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 908,
+      "y": 7,
+      "width": 76,
+      "height": 40,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "template",
+            "value": ""
+          },
+          {
+            "name": "text",
+            "value": "{mag_head%.0f}"
+          },
+          {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 38
+          },
+          {
+            "name": "font_bold",
+            "value": false
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 0
+          },
+          {
+            "name": "box_radius",
+            "value": 0
+          }
+        ]
+      },
+      "id": "M_nk0q7"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 41,
+      "y": 566,
+      "width": 105,
+      "height": 40,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "template",
+            "value": ""
+          },
+          {
+            "name": "text",
+            "value": "GS {gndspeed%.0f}"
+          },
+          {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 26
+          },
+          {
+            "name": "font_bold",
+            "value": false
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 0
+          },
+          {
+            "name": "box_radius",
+            "value": 0
+          }
+        ]
+      },
+      "id": "M_cdvfm"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 44,
+      "y": 641,
+      "width": 84,
+      "height": 40,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "template",
+            "value": ""
+          },
+          {
+            "name": "text",
+            "value": "G's {vert_G}"
+          },
+          {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 20
+          },
+          {
+            "name": "font_bold",
+            "value": false
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 0
+          },
+          {
+            "name": "box_radius",
+            "value": 0
+          }
+        ]
+      },
+      "id": "M_rqf5y"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 1661,
+      "y": 567,
+      "width": 169,
+      "height": 40,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "template",
+            "value": ""
+          },
+          {
+            "name": "text",
+            "value": "{sys_time_string}"
+          },
+          {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 34
+          },
+          {
+            "name": "font_bold",
+            "value": false
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 0
+          },
+          {
+            "name": "box_radius",
+            "value": 0
+          }
+        ]
+      },
+      "id": "M_nehdt"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 167,
+      "y": 531,
+      "width": 48,
+      "height": 40,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "template",
+            "value": ""
+          },
+          {
+            "name": "text",
+            "value": "mph"
+          },
+          {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 20
+          },
+          {
+            "name": "font_bold",
+            "value": false
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 0
+          },
+          {
+            "name": "box_radius",
+            "value": 0
+          }
+        ]
+      },
+      "id": "M_m7v00"
+    }
+  ]
+}

@@ -5,6 +5,7 @@
 # Topher 2021.
 # Adapted from F18 HUD Screen code by Brian Chesteen.
 
+import pygame.gfxdraw
 from lib.modules._module import Module
 from lib import hud_graphics
 from lib import hud_utils
@@ -12,6 +13,8 @@ from lib import smartdisplay
 from lib import aircraft
 import pygame
 import math
+import numpy as np
+from pygame import gfxdraw
 
 
 class horizon_v2(Module):
@@ -20,6 +23,8 @@ class horizon_v2(Module):
         Module.__init__(self)
         self.name = "HUD Horizon V2"  # set name
         self.flight_path_color = (255, 0, 255)  # Default color, can be changed via settings
+        self.static_elements = None
+        self.line_cache = {}
 
     # called once for setup
     def initMod(self, pygamescreen, width=None, height=None):
@@ -37,7 +42,7 @@ class horizon_v2(Module):
         self.font = pygame.font.SysFont(None, 30)
         self.font_target = pygame.font.SysFont(None, target_font_size)
 
-        self.surface = pygame.Surface((self.width, self.height))
+        self.surface = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
         self.ahrs_bg_width = self.surface.get_width()
         self.ahrs_bg_height = self.surface.get_height()
         self.ahrs_bg_center = (self.ahrs_bg_width / 2 + 160, self.ahrs_bg_height / 2)
@@ -59,6 +64,12 @@ class horizon_v2(Module):
         self.max_samples1 = 30 # Caged FPM smoothing
 
         self.x_offset = 0
+        self.create_static_elements()
+
+    def create_static_elements(self):
+        self.static_elements = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
+        # Draw static elements like the center circle, waterline, etc.
+        self.draw_center(self.static_elements, 0, 0)
 
     #############################################
     ## Function: generateHudReferenceLineArray
@@ -139,87 +150,60 @@ class horizon_v2(Module):
 
     #############################################
     ## Function draw horz lines
-    def draw_horz_lines(
-        self,
-        width,
-        height,
-        ahrs_center,
-        ahrs_line_deg,
-        aircraft,
-        color,
-        line_thickness,
-        line_mode,
-        font,
-        pxy_div,
-        pos
-    ):
-        # x_offset, y_offset = pos
-        # center_x = x_offset + width // 2
-        # center_y = y_offset + height // 2
+    def draw_horz_lines(self, aircraft):
+        for l in range(-60, 61, self.ahrs_line_deg):
+            line_points = self.generate_line_points(l, aircraft.pitch, aircraft.roll)
+            
+            if abs(l) > 45 and l % 5 == 0 and l % 10 != 0:
+                continue
 
-        # Draw lines centered on the screen
-        for l in range(-60, 61, ahrs_line_deg):
-            line_coords = self.generateHudReferenceLineArray(
-                width,
-                height,
-                ahrs_center,  # Use the new center point
-                pxy_div,
-                pitch=aircraft.pitch,
-                roll=aircraft.roll,
-                deg_ref=l,
-                line_mode=line_mode,
-            )
-
-            # No need to adjust coordinates here, as we've centered them in generateHudReferenceLineArray
-
-            if abs(l) > 45:
-                if l % 5 == 0 and l % 10 != 0:
-                    continue
-
-            # Draw lines (already centered)
             if l < 0:
-                self.draw_dashed_line(
-                    self.surface,
-                    color,
-                    line_coords[1],
-                    line_coords[2],
-                    width=line_thickness,
-                    dash_length=5,
-                )
-                pygame.draw.lines(self.surface,
-                    color,
-                    False,
-                    (line_coords[2],
-                    line_coords[4]),
-                    line_thickness
-                )
-                pygame.draw.lines(self.surface,
-                    color,
-                    False,
-                    (line_coords[1],
-                    line_coords[5]),
-                    line_thickness
-                )
+                pygame.draw.line(self.surface, self.MainColor, 
+                                 (int(line_points[2]), int(line_points[3])),
+                                 (int(line_points[4]), int(line_points[5])), self.line_thickness)
+                pygame.draw.line(self.surface, self.MainColor,
+                                 (int(line_points[4]), int(line_points[5])),
+                                 (int(line_points[8]), int(line_points[9])), self.line_thickness)
+                pygame.draw.line(self.surface, self.MainColor,
+                                 (int(line_points[2]), int(line_points[3])),
+                                 (int(line_points[10]), int(line_points[11])), self.line_thickness)
             else:
-                pygame.draw.lines(
-                    self.surface,
-                    color,
-                    False,
-                    (line_coords[0],
-                    line_coords[1],
-                    line_coords[2],
-                    line_coords[3]),
-                    line_thickness
-                )
+                pygame.draw.line(self.surface, self.MainColor,
+                                 (int(line_points[0]), int(line_points[1])),
+                                 (int(line_points[2]), int(line_points[3])), self.line_thickness)
+                pygame.draw.line(self.surface, self.MainColor,
+                                 (int(line_points[2]), int(line_points[3])),
+                                 (int(line_points[4]), int(line_points[5])), self.line_thickness)
+                pygame.draw.line(self.surface, self.MainColor,
+                                 (int(line_points[4]), int(line_points[5])),
+                                 (int(line_points[6]), int(line_points[7])), self.line_thickness)
 
-            # Draw degree text (already centered)
             if l != 0 and l % 5 == 0:
-                text = font.render(str(l), False, color)
+                text = self.font.render(str(l), True, self.MainColor)
                 text_width, text_height = text.get_size()
-                left = int(line_coords[1][0]) - (text_width + int(width / 100))
-                top = int(line_coords[1][1]) - text_height / 2
+                left = int(line_points[2]) - (text_width + int(self.width / 100))
+                top = int(line_points[3]) - text_height / 2
                 self.surface.blit(text, (left, top))
 
+    def generate_line_points(self, deg_ref, pitch, roll):
+        key = (deg_ref, pitch, roll)
+        if key in self.line_cache:
+            return self.line_cache[key]
+
+        line_coords = self.generateHudReferenceLineArray(
+            self.width,
+            self.height,
+            ((self.width // 2), self.height // 2),  # Use the center of the drawing area
+            self.pxy_div,
+            pitch=pitch,
+            roll=roll,
+            deg_ref=deg_ref,
+            line_mode=self.line_mode,
+        )
+
+        line_points = np.array([coord for sublist in line_coords for coord in sublist])
+        self.line_cache[key] = line_points
+        return line_points
 
     def draw_center(self,smartdisplay, x_offset, y_offset):
         center_x = x_offset + self.width // 2
@@ -295,7 +279,7 @@ class horizon_v2(Module):
                 3,
             )
 
-    def draw_flight_path(self,aircraft,smartdisplay, x_offset, y_offset):
+    def draw_flight_path(self, aircraft):
         def mean(nums):
             return int(sum(nums)) / max(len(nums), 1)
 
@@ -318,131 +302,58 @@ class horizon_v2(Module):
         if len(self.readings1) == self.max_samples1:
             self.readings1.pop(0)
 
-        center_x = self.width // 2
-        center_y = self.height // 2
+        center_x, center_y = self.width // 2, self.height // 2
+        fpv_x_pixels = center_x - (int(fpv_x) * 5)
+        fpv_y_pixels = center_y - (aircraft.vsi / 2)
 
-        self.draw_circle(
-            self.surface,
-            self.flight_path_color,  # Use flight_path_color instead of hardcoded color
-            (
-                center_x - (int(fpv_x) * 5),
-                center_y - (aircraft.vsi / 2),
-            ),
-            15,
-            4,
-        )
-        
-        pygame.draw.line(
-            self.surface,
-            self.flight_path_color,  # Use flight_path_color
-            [
-                center_x - (int(fpv_x) * 5) - 15,
-                center_y - (aircraft.vsi / 2),
-            ],
-            [
-                center_x - (int(fpv_x) * 5) - 30,
-                center_y - (aircraft.vsi / 2),
-            ],
-            2,
-        )
-        pygame.draw.line(
-            self.surface,
-            self.flight_path_color,  # Use flight_path_color
-            [
-                center_x - (int(fpv_x) * 5) + 15,
-                center_y - (aircraft.vsi / 2),
-            ],
-            [
-                center_x - (int(fpv_x) * 5) + 30,
-                center_y - (aircraft.vsi / 2),
-            ],
-            2,
-        )
-        pygame.draw.line(
-            self.surface,
-            self.flight_path_color,  # Use flight_path_color
-            [
-                center_x - (int(fpv_x) * 5),
-                center_y - (aircraft.vsi / 2) - 15,
-            ],
-            [
-                center_x - (int(fpv_x) * 5),
-                center_y - (aircraft.vsi / 2) - 30,
-            ],
-            2,
-        )
+        pygame.draw.circle(self.surface, self.flight_path_color, (fpv_x_pixels, fpv_y_pixels), 15, 4)
+        pygame.draw.line(self.surface, self.flight_path_color, 
+                         (fpv_x_pixels - 15, fpv_y_pixels), 
+                         (fpv_x_pixels - 30, fpv_y_pixels), self.line_thickness)
+        pygame.draw.line(self.surface, self.flight_path_color, 
+                         (fpv_x_pixels + 15, fpv_y_pixels), 
+                         (fpv_x_pixels + 30, fpv_y_pixels), self.line_thickness)
+        pygame.draw.line(self.surface, self.flight_path_color, 
+                         (fpv_x_pixels, fpv_y_pixels - 15), 
+                         (fpv_x_pixels, fpv_y_pixels - 30), self.line_thickness)
+
         if self.caged_mode == 1:
-            pygame.draw.line(
-                self.surface,
-                self.flight_path_color,  # Use flight_path_color
-                [
-                    center_x - (int(gfpv_x) * 5) - 15,
-                    center_y - (aircraft.vsi / 2),
-                ],
-                [
-                    center_x - (int(gfpv_x) * 5) - 30,
-                    center_y - (aircraft.vsi / 2),
-                ],
-                2,
-            )
-            pygame.draw.line(
-                self.surface,
-                self.flight_path_color,  # Use flight_path_color
-                [
-                    center_x - (int(gfpv_x) * 5) + 15,
-                    center_y - (aircraft.vsi / 2),
-                ],
-                [
-                    center_x - (int(gfpv_x) * 5) + 30,
-                    center_y - (aircraft.vsi / 2),
-                ],
-                2,
-            )
-            pygame.draw.line(
-                self.surface,
-                self.flight_path_color,  # Use flight_path_color
-                [
-                    center_x - (int(gfpv_x) * 5),
-                    center_y - (aircraft.vsi / 2) - 15,
-                ],
-                [
-                    center_x - (int(gfpv_x) * 5),
-                    center_y - (aircraft.vsi / 2) - 30,
-                ],
-                2,
-            )
+            gfpv_x_pixels = center_x - (int(gfpv_x) * 5)
+            pygame.draw.line(self.surface, self.flight_path_color, 
+                             (gfpv_x_pixels - 15, fpv_y_pixels), 
+                             (gfpv_x_pixels - 30, fpv_y_pixels), self.line_thickness)
+            pygame.draw.line(self.surface, self.flight_path_color, 
+                             (gfpv_x_pixels + 15, fpv_y_pixels), 
+                             (gfpv_x_pixels + 30, fpv_y_pixels), self.line_thickness)
+            pygame.draw.line(self.surface, self.flight_path_color, 
+                             (gfpv_x_pixels, fpv_y_pixels - 15), 
+                             (gfpv_x_pixels, fpv_y_pixels - 30), self.line_thickness)
 
-            aircraft.flightPathMarker_x = fpv_x # save to aircraft object for other modules to use.
+        aircraft.flightPathMarker_x = fpv_x # save to aircraft object for other modules to use.
 
 
     # called every redraw for the mod
     def draw(self, aircraft, smartdisplay, pos=(0, 0)):
+        self.surface.fill((0, 0, 0, 0))
+        
+        self.draw_horz_lines(aircraft)
+        self.draw_flight_path(aircraft)
+        
+        # Blit static elements
+        self.surface.blit(self.static_elements, (0, 0))
+        
+        # Calculate the intersection of the visible area and the surface
         x, y = pos
+        visible_rect = pygame.Rect(max(0, -x), max(0, -y), self.width, self.height)
+        surface_rect = self.surface.get_rect()
+        clip_rect = visible_rect.clip(surface_rect)
         
-        # Clear the surface before drawing
-        self.surface.fill((0, 0, 0, 0 ))
-        
-        # Draw horizon lines starting at the specified position
-        self.draw_horz_lines(
-            self.width,
-            self.height,
-            ((self.width // 2), self.height // 2),  # Use the center of the drawing area
-            self.ahrs_line_deg,
-            aircraft,
-            self.MainColor,
-            self.line_thickness,
-            self.line_mode,
-            self.font,
-            self.pxy_div,
-            (x, y)
-        )
-
-        # Draw center and flight path on the main screen (already adjusted for position)
-        self.draw_center(smartdisplay, x, y)
-        self.draw_flight_path(aircraft, smartdisplay, x, y)
-
-        # Blit the entire surface to the screen at the specified position
-        smartdisplay.pygamescreen.blit(self.surface, pos)
+        if clip_rect.width > 0 and clip_rect.height > 0:
+            clipped_surface = self.surface.subsurface(clip_rect)
+            smartdisplay.pygamescreen.blit(clipped_surface, (max(x, 0), max(y, 0)))
+        else:
+            # The entire surface is outside the visible area, so we don't need to draw anything
+            pass
 
 
     # update a setting

@@ -37,7 +37,7 @@ class gcross(Module):
         self.font = pygame.font.SysFont(
             None, int(self.height / 20)
         )
-        self.surface = pygame.Surface((self.width, self.height))
+        self.surface = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
 
         self.GColor = ( 0,255, 0)  # Gun Cross Color = Yellow
         self.y_offset = hud_utils.readConfigInt("HUD", "Horizon_Offset", 0)  #  Horizon/Waterline Pixel Offset

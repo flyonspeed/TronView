@@ -31,10 +31,15 @@ from pygame_gui.windows import UIColourPickerDialog
 from collections import deque
 import inspect
 
+# Add this near the top of the file, after the imports
+global show_fps
+show_fps = False
+
 #############################################
 ## Function: main edit loop
 def main_edit_loop():
     global debug_font
+    global show_fps
 
     if shared.Change_history is None:
         shared.Change_history = ChangeHistory()
@@ -234,6 +239,7 @@ def main_edit_loop():
                     # Toggle FPS display when 'F' is pressed
                     elif event.key == pygame.K_f:
                         show_fps = not show_fps
+                        TronViewScreenObject.show_fps = show_fps
 
                     # Toggle ruler when 'R' is pressed
                     elif event.key == pygame.K_r:
@@ -495,6 +501,13 @@ def main_edit_loop():
             fps_rect = fps_text.get_rect(topright=(shared.smartdisplay.x_end - 10, 10))
             pygamescreen.blit(fps_text, fps_rect)
 
+            # Add total draw time for all modules
+            total_draw_time = sum(getattr(obj, 'draw_time', 0) for obj in shared.CurrentScreen.ScreenObjects)
+            total_time_text = f"DrawTime: {total_draw_time:.2f}ms" # show time in ms
+            total_time_surface = fps_font.render(total_time_text, True, (255, 255, 255))
+            total_time_rect = total_time_surface.get_rect(topright=(shared.smartdisplay.x_end - 10, 40))
+            pygamescreen.blit(total_time_surface, total_time_rect)
+
         # Draw ruler if enabled
         if show_ruler:
             draw_ruler(pygamescreen, shared.CurrentScreen.ScreenObjects, ruler_color, selected_ruler_color)
@@ -604,6 +617,7 @@ class TronViewScreenObject:
                 module.showBounds = self.showBounds
 
     def draw(self, aircraft, smartdisplay):
+        global show_fps
         if self.module is None and self.type == 'module':
             boxColor = (140, 0, 0)
             if self.selected:
@@ -633,8 +647,11 @@ class TronViewScreenObject:
             for module in self.childScreenObjects:
                 module.draw(aircraft, smartdisplay)
         else:
+            start_time = time.time()
             self.module.draw(aircraft, smartdisplay, (self.x, self.y))
-        
+            end_time = time.time()
+            self.draw_time = (end_time - start_time) * 1000  # Convert to milliseconds
+
         # Draw selection box and title
         if self.selected:
             color = (0, 255, 0)
@@ -643,6 +660,13 @@ class TronViewScreenObject:
             self.edit_toolbar.draw(self.pygamescreen)
         elif self.showBounds:
             pygame.draw.rect(self.pygamescreen, (70, 70, 70), (self.x-5, self.y-5, self.width+10, self.height+10), 2)
+
+        # At the end of the draw method
+        if show_fps and hasattr(self, 'draw_time'):
+            time_text = f"{self.draw_time:.2f}ms"
+            time_surface = debug_font.render(time_text, True, (255, 255, 255))
+            time_rect = time_surface.get_rect(bottomleft=(self.x + 5, self.y + self.height - 5))
+            self.pygamescreen.blit(time_surface, time_rect)
 
     def resize(self, width, height):
         if self.type != 'group':

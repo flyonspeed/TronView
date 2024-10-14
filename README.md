@@ -2,7 +2,7 @@
 Project for connecting efis/flight data to a 2nd screen or HUD.
 ![cockpit1](docs/efis_cockpit1.jpeg?raw=true)
 ## Active development! (Sept 2024!)
-If you want to help with development or testing please join our [Join Discord](https://discord.gg/xZD5MRhS) sever.
+If you want to help with development or testing please join our [Join Discord](https://discord.gg/pdnxWa32aW) sever.
 We are working on several new features. 
 - XReal glasses support
 - Editor to make creating or editing your own screen very easy.

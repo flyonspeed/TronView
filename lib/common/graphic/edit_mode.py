@@ -134,8 +134,52 @@ def main_edit_loop():
                     if event.key == pygame.K_3 or event.key == pygame.K_KP3:
                         # do nothing
                         pass
-                    elif event.key == pygame.K_q or event.key == pygame.K_ESCAPE:
+                    elif event.key == pygame.K_q:
                         shared.aircraft.errorFoundNeedToExit = True
+                    elif event.key == pygame.K_ESCAPE:
+                        # Unselect all selected objects
+                        for sObject in shared.CurrentScreen.ScreenObjects:
+                            sObject.selected = False
+                        selected_screen_objects.clear()
+                        if edit_options_bar:
+                            edit_options_bar.remove_ui()
+                            edit_options_bar = None
+                        print("All objects unselected")
+                    elif event.key == pygame.K_TAB:
+                        # Cycle through selected objects
+                        if selected_screen_objects:
+                            current_index = shared.CurrentScreen.ScreenObjects.index(selected_screen_objects[-1])
+                            next_index = (current_index + 1) % len(shared.CurrentScreen.ScreenObjects)
+                            
+                            # Unselect all objects
+                            for sObject in shared.CurrentScreen.ScreenObjects:
+                                sObject.selected = False
+                            selected_screen_objects.clear()
+                            
+                            # Select the next object
+                            next_object = shared.CurrentScreen.ScreenObjects[next_index]
+                            next_object.selected = True
+                            selected_screen_objects.append(next_object)
+                            
+                            # Update edit options bar
+                            if edit_options_bar:
+                                edit_options_bar.remove_ui()
+                            edit_options_bar = EditOptionsBar(next_object, pygame_gui_manager, shared.smartdisplay)
+                            
+                            print(f"Tab Selected object: {next_object.title}")
+                        else:
+                            # If no objects are selected, select the first one
+                            if shared.CurrentScreen.ScreenObjects:
+                                first_object = shared.CurrentScreen.ScreenObjects[0]
+                                first_object.selected = True
+                                selected_screen_objects.append(first_object)
+                                
+                                # Create edit options bar for the first object
+                                if edit_options_bar:
+                                    edit_options_bar.remove_ui()
+                                edit_options_bar = EditOptionsBar(first_object, pygame_gui_manager, shared.smartdisplay)
+                                
+                                print(f"Tab Selected first object: {first_object.title}")
 
                     # Exit Edit Mode
                     elif event.key == pygame.K_e:
@@ -1612,8 +1656,9 @@ def show_help_dialog(pygame_gui_manager):
     help_text = """
     Key Commands:
     ? - Show this help dialog
-    E - Exit Edit Mode
-    Q or ESC - Quit
+    E - Exit Edit Mode (goto normal mode)
+    Q - Quit
+    ESC - unselect all objects
     A - Add new screen object
     G - Group selected objects
     Ctrl+G - Ungroup selected group
@@ -1622,13 +1667,14 @@ def show_help_dialog(pygame_gui_manager):
     DELETE or BACKSPACE - Delete selected object
     S - Save screen to JSON
     L - Load screen from JSON
-    F - Toggle FPS display
+    F - Toggle FPS and draw time display
     R - Toggle ruler
     Arrow keys - Move selected object(s)
     Ctrl + Arrow keys - Move selected object(s) by 10 pixels
     PAGE UP - Move selected object up in draw order
     PAGE DOWN - Move selected object down in draw order
     Ctrl+z - Undo last change
+    TAB - Cycle through selected objects
     """
 
     window_width = 450

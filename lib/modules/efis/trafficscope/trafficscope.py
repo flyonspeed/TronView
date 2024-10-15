@@ -288,7 +288,6 @@ class trafficscope(Module):
     def get_module_options(self):
 
         # each item in the dict represents a configuration option.  These are variable in this class that are exposed to the user to edit.
-        
         return {
             "show_callsign": {
                 "type": "bool",

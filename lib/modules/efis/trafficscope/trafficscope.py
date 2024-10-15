@@ -51,7 +51,7 @@ class trafficscope(Module):
 
 
     def buildBaseSurface(self):
-        self.surface = pygame.Surface((self.width, self.height))
+        self.surfaceBase = pygame.Surface((self.width, self.height),pygame.SRCALPHA)
         self.surface2= pygame.Surface((self.width, self.height),pygame.SRCALPHA)
         #self.surface.set_alpha(128)
         #self.surface2.set_alpha(128)
@@ -60,8 +60,8 @@ class trafficscope(Module):
 
         # fill background black
         hud_graphics.hud_draw_circle(
-            self.surface, 
-            (0,0,0), 
+            self.surfaceBase, 
+            (0,0,0,0), 
             (self.xCenter, self.yCenter), 
             int(self.width/2), 
             0,
@@ -69,7 +69,7 @@ class trafficscope(Module):
 
         # draw cross lines
         pygame.draw.line(
-            self.surface,
+            self.surfaceBase,
             self.darkGrey,  # color orange
             (0, self.height/2), 
             (self.width,self.height/2),
@@ -77,7 +77,7 @@ class trafficscope(Module):
         )
 
         pygame.draw.line(  # 
-            self.surface,
+            self.surfaceBase,
             self.darkGrey,
             (self.width/2,0), 
             (self.width/2, self.height),
@@ -85,14 +85,14 @@ class trafficscope(Module):
         )
         # draw outter circle
         hud_graphics.hud_draw_circle(
-            self.surface, 
+            self.surfaceBase, 
             self.darkGrey, 
             (self.xCenter, self.yCenter), 
             int(self.width/2), 
             1,
         ) 
         hud_graphics.hud_draw_circle(
-            self.surface, 
+            self.surfaceBase, 
             self.darkGrey, 
             (self.xCenter, self.yCenter), 
             int(self.width/4), 
@@ -102,12 +102,12 @@ class trafficscope(Module):
         # show scale.
         labelScale = self.font.render(str(self.scope_scale_miles)+" mi.", False, (200,255,255), (0,0,0))
         labelScale_rect = labelScale.get_rect()
-        self.surface.blit(labelScale, (self.xCenter-labelScale_rect.width, 5))
+        self.surfaceBase.blit(labelScale, (self.xCenter-labelScale_rect.width, 5))
 
         # show scale.
         labelScale = self.font.render("%.1f mi."%(self.scope_scale_miles/2), False, (200,255,255), (0,0,0))
         labelScale_rect = labelScale.get_rect()
-        self.surface.blit(labelScale, (self.xCenter-labelScale_rect.width, int(self.height/4)+5 ))
+        self.surfaceBase.blit(labelScale, (self.xCenter-labelScale_rect.width, int(self.height/4)+5 ))
 
 
     def setScaleInMiles(self,miles = None ):
@@ -118,8 +118,10 @@ class trafficscope(Module):
 
     # called every redraw for the mod
     def draw(self, aircraft, smartdisplay, pos):
+        # clear the surface
+        self.surface2.fill((0,0,0,0))
         # Clear using the base surface.
-        self.surface2.blit(self.surface, (0, 0))
+        self.surface2.blit(self.surfaceBase, (0, 0))
 
         # Get aircraft heading or ground track
         aircraft_heading = aircraft.mag_head if aircraft.mag_head is not None else aircraft.gps.GndTrack

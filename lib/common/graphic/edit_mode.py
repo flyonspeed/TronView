@@ -1234,9 +1234,25 @@ class EditOptionsBar:
 
     def update_position(self):
         window_width = self.window.get_abs_rect().width
+        window_height = self.window.get_abs_rect().height
+        screen_width, screen_height = pygame.display.get_surface().get_size()
+
+        # Calculate x position
         x = min(self.screen_object.x + self.screen_object.width, 
-                shared.smartdisplay.x_end - window_width)
+                screen_width - window_width)
+        x = max(0, x)  # Ensure it doesn't go off the left edge
+
+        # Calculate y position
         y = self.screen_object.y
+
+        # Check if the bottom of the window goes off the screen
+        if y + window_height > screen_height:
+            # Adjust y to keep the bottom of the window on the screen
+            y = screen_height - window_height
+
+        # Ensure it doesn't go above the top of the screen
+        y = max(0, y)
+
         self.window.set_position((x, y))
 
     #

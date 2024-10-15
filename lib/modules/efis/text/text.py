@@ -162,8 +162,9 @@ class text(Module):
                 "description": "Text to display"
             },
             "font_name": {
-                "type": "text",
+                "type": "dropdown",
                 "default": self.font_name,
+                "options": ["monospace", "sans-serif", "serif","arial","courier","times","helvetica"],
                 "label": "Font Name",
                 "description": "Name of the font to use",
                 "post_change_function": "buildFont"
@@ -172,7 +173,7 @@ class text(Module):
                 "type": "int",
                 "default": self.font_size,
                 "min": 10,
-                "max": 70,
+                "max": 300,
                 "label": "Font Size",
                 "description": "Size of the font to use",
                 "post_change_function": "buildFont"

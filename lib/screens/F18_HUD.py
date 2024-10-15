@@ -50,7 +50,6 @@ class F18_HUD(Screen):
         self.heading = heading.heading()
         self.heading.initMod(self.pygamescreen, self.width, self.height)
         self.heading.setup(
-            (255, 255, 0),  # hdg label color
         )
 
         self.roll_indicator = rollindicator.rollindicator()

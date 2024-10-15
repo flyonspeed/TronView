@@ -18,7 +18,7 @@ class artificalhorz(Module):
         self.name = "ArtificalHorz"  # set name
         self.imagefilename = "lib/modules/efis/artificalhorz/attitude-indicator-1280.png"
         #self.imagefilename = "lib/modules/efis/artificalhorz/horiz_square.bmp"
-
+        self.MainColor = (255,255,255)
     # called once for setup
     def initMod(self, pygamescreen, width=None, height=None):
         if width is None:
@@ -85,6 +85,16 @@ class artificalhorz(Module):
     # handle key events
     def processEvent(self, event):
         print("processEvent")
+    
+    def get_module_options(self):
+        return {
+            "MainColor": {
+                "type": "color",
+                "default": (255,255,255),
+                "label": "Main Color",
+                "description": "Color of the main line.",
+            }
+        }
 
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

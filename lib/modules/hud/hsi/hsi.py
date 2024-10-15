@@ -305,6 +305,18 @@ class hsi(Module):
     # handle key events
     def processEvent(self, event):
         print("processEvent")
+    
+    def get_module_options(self):
+        return {
+            "hsi_size": {
+                "type": "int",
+                "default": self.hsi_size,
+                "min": -1,
+                "max": 300,
+                "label": "HSI Size",
+                "description": "Size of the HSI.",
+            }
+        }
 
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

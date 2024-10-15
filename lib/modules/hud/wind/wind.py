@@ -19,8 +19,9 @@ class wind(Module):
     def __init__(self):
         Module.__init__(self)
         self.name = "Wind"  # set name
-
+        self.arrow_size = 50
         self.x_offset = 0
+        self.y_offset = 0   
 
     # called once for setup
     def initMod(self, pygamescreen, width=None, height=None):
@@ -89,6 +90,27 @@ class wind(Module):
     # handle key events
     def processEvent(self, event):
         print("processEvent")
+    
+    def get_module_options(self):
+        return {
+            "arrow_size": {
+                "type": "int",
+                "default": self.arrow_size,
+                "min": 10,
+                "max": 50,
+                "label": "Arrow Size",
+                "description": "Size of the arrow.",
+                "post_change_function": "update_arrow_size"
+            }
+        }
+    
+    def update_arrow_size(self):
+        self.arrow_size = self.options["arrow_size"]
+        self.arrow_scaled = pygame.transform.scale(
+            self.arrow, (self.arrow_size, self.arrow_size)
+        )
+        self.arrow_scaled_rect = self.arrow_scaled.get_rect()
+
 
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

@@ -118,6 +118,16 @@ class cdi(Module):
     # handle key events
     def processEvent(self, event):
         print("processEvent")
+    
+    def get_module_options(self):
+        return {
+            "cdi_color": {
+                "type": "color",
+                "default": self.cdi_color,
+                "label": "CDI Color",
+                "description": "Color of the CDI needles.",
+            }
+        }
 
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

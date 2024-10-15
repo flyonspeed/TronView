@@ -351,9 +351,11 @@ def main_edit_loop():
                     
                     # Check for EditOptionsBar interactions
                     if edit_options_bar and edit_options_bar.visible:
-                        if edit_options_bar.window.get_abs_rect().collidepoint(mx, my):
+                        if edit_options_bar.is_busy():  # is it busy with a color picker (or something else..)
                             gui_handled = True
-                    
+                        elif edit_options_bar.window.get_abs_rect().collidepoint(mx, my):
+                            gui_handled = True
+                                        
                     # Check for help window interactions
                     if help_window and help_window.get_abs_rect().collidepoint(mx, my):
                         gui_handled = True
@@ -738,7 +740,7 @@ class TronViewScreenObject:
         if self.type != 'group':
             self.x = x
             self.y = y
-        if self.type == 'group':
+        if self.type == 'group': # move all children of the group
             dx = x - self.x
             dy = y - self.y
             self.x = x
@@ -812,9 +814,10 @@ class TronViewScreenObject:
                 "name": self.module.name,
                 "options": []
             }
-            options = self.module.get_module_options()
-            for option, details in options.items():
-                data["module"]["options"].append({
+            if hasattr(self.module, "get_module_options"):
+                options = self.module.get_module_options()
+                for option, details in options.items():
+                    data["module"]["options"].append({
                     "name": option,
                     "value": getattr(self.module, option)
                 })
@@ -850,16 +853,17 @@ class TronViewScreenObject:
             self.setModule(newModules[0], showOptions = False, width = data['width'], height = data['height'])
             
             # now load the options
-            for option in data['module']['options']:
-                try:
-                    setattr(self.module, option['name'], option['value'])
-                    # if the option has a post_change_function, call it. check newModules[0].get_module_options()
-                    if 'post_change_function' in newModules[0].get_module_options()[option['name']]:
-                        post_change_function = getattr(self.module, newModules[0].get_module_options()[option['name']]['post_change_function'], None)
-                        if post_change_function:
-                            post_change_function()
-                except Exception as e:
-                    print("Error setting module (%s) option (%s): %s" % (self.module.name, option['name'], e))
+            if hasattr(self.module, "get_module_options"):
+                for option in data['module']['options']:
+                    try:
+                        setattr(self.module, option['name'], option['value'])
+                        # if the option has a post_change_function, call it. check newModules[0].get_module_options()
+                        if 'post_change_function' in newModules[0].get_module_options()[option['name']]:
+                            post_change_function = getattr(self.module, newModules[0].get_module_options()[option['name']]['post_change_function'], None)
+                            if post_change_function:
+                                post_change_function()
+                    except Exception as e:
+                            print("Error setting module (%s) option (%s): %s" % (self.module.name, option['name'], e))
 
     def center(self):
         screen_width, screen_height = pygame.display.get_surface().get_size()
@@ -919,6 +923,8 @@ class EditOptionsBar:
         if self.screen_object.type == 'module':
             if self.screen_object.module is None:
                 return 0
+            if not hasattr(self.screen_object.module, "get_module_options"):
+                return 30    
             options = self.screen_object.module.get_module_options()
             height = 10  # Initial padding
             for option, details in options.items():
@@ -932,6 +938,7 @@ class EditOptionsBar:
         return 0
 
     def build_ui(self):
+        
         y_offset = 10
         x_offset = 10
         # clear the ui elements if they exist remove them
@@ -946,6 +953,18 @@ class EditOptionsBar:
                 manager=self.pygame_gui_manager,
                 container=self.scrollable_container,
                 object_id="#options_group_"
+            )
+            self.ui_elements.append(label)
+            return
+
+        if not hasattr(self.screen_object.module, "get_module_options"):
+            # add a label saying options not implemented yet
+            label = UILabel(
+                relative_rect=pygame.Rect(10, 10, 180, 20),
+                text="Options Not Implemented Yet",
+                manager=self.pygame_gui_manager,
+                container=self.scrollable_container,
+                object_id="#options_label_not_implemented"
             )
             self.ui_elements.append(label)
             return
@@ -1004,18 +1023,21 @@ class EditOptionsBar:
                 text_entry.object_id = "#options_text_" + option
                 self.ui_elements.append(text_entry)
             elif details['type'] == 'color':
+                # for color add a button that will trigger showing a color picker
                 current_color = getattr(self.screen_object.module, option)
-                if isinstance(current_color, tuple):
-                    current_color = pygame.Color(*current_color)
+                current_color_pygame = pygame.Color(*current_color)
                 color_button = UIButton(
                     relative_rect=pygame.Rect(x_offset, y_offset, 180, 20),
                     text='',
                     manager=self.pygame_gui_manager,
                     container=self.scrollable_container,
                 )
-                color_button.background_colour = current_color
+                # color_button.background_colour = current_color
+                # convert current_color to #RRGGBBAA
+                color_button.colours['normal_bg'] =  current_color_pygame
                 color_button.option_name = option
                 color_button.object_id = "#options_color_" + option
+                color_button.rebuild()
                 self.ui_elements.append(color_button)
             elif details['type'] == 'dropdown':
                 current_value = getattr(self.screen_object.module, option)
@@ -1043,6 +1065,7 @@ class EditOptionsBar:
         self.scrollable_container.set_scrollable_area_dimensions((180, total_height))
 
     def handle_event(self, event):
+
         #print("event: %s" % event)
         if event.type == pygame.MOUSEBUTTONDOWN:
             #print("MOUSEBUTTONDOWN")
@@ -1063,11 +1086,11 @@ class EditOptionsBar:
                     if hasattr(element, 'option_name'):
                         option = element.option_name
                         if self.screen_object.module.get_module_options()[option]['type'] == 'color':
-                            self.show_color_picker(option)
+                            self.show_color_picker(option)  # clicked on a button to open a color picker
                         else:
                             self.on_checkbox_click(option)
         elif event.type == pygame_gui.UI_COLOUR_PICKER_COLOUR_PICKED:
-            # Create a copy of the items before iterating
+            # check if this event is for a color picker
             for option, picker in list(self.color_pickers.items()):
                 if event.ui_element == picker:
                     self.on_color_picked(option, event.colour)
@@ -1171,6 +1194,11 @@ class EditOptionsBar:
                 break
 
     def show_color_picker(self, option):
+        # close any open color pickers
+        for picker in self.color_pickers.values():
+            picker.hide()
+        self.color_pickers = {}  # clear the color pickers
+        print("show_color_picker: %s" % option)
         current_color = getattr(self.screen_object.module, option)
         # Convert to pygame Color object if necessary
         if isinstance(current_color, (list, tuple)):
@@ -1188,16 +1216,17 @@ class EditOptionsBar:
             initial_colour=current_color,
             window_title=f"Color: {option}",
         )
-        self.color_pickers[option] = color_picker
+        self.color_pickers[option] = color_picker  # set the color picker for this option
 
     def on_color_picked(self, option, color):
         print(f"color picked: {color}")
         setattr(self.screen_object.module, option, color)
         for element in self.ui_elements:
             if isinstance(element, UIButton) and getattr(element, 'option_name', None) == option:
-                element.background_colour = color
+                current_color_pygame = pygame.Color(*color)
+                element.colours['normal_bg'] = current_color_pygame
                 element.rebuild()
-                break
+                #break
         if hasattr(self.screen_object.module, 'update_option'):
             self.screen_object.module.update_option(option, color)
         
@@ -1208,7 +1237,7 @@ class EditOptionsBar:
             if post_change_function:
                 post_change_function()
         
-        del self.color_pickers[option]
+        self.color_pickers = {}  # clear the color pickers
 
     def on_dropdown_selection(self, option, value):
         old_value = getattr(self.screen_object.module, option)
@@ -1276,6 +1305,15 @@ class EditOptionsBar:
     def remove_ui(self):
         self.window.kill()
         self.ui_elements.clear()
+    
+    # check if the gui is busy, i.e. if a colour picker is active
+    def is_busy(self):
+        # check if a colour picker is active
+        if hasattr(self, 'color_pickers'):
+            for picker in self.color_pickers.values():
+                if picker.visible:
+                    return True
+        return False
 
 ############################################################################################
 ############################################################################################

@@ -20,6 +20,11 @@ class heading(Module):
         Module.__init__(self)
         self.name = "Heading"  # set name
         self.x_offset = 0
+        self.font1_size = 20
+        self.font2_size = 30
+        self.font_color = (255, 255, 255)
+        self.label_color = (255, 255, 0)
+        self
 
     # called once for setup
     def initMod(self, pygamescreen, width=None, height=None):
@@ -32,21 +37,17 @@ class heading(Module):
         )  # call parent init screen.
         print(("Init Mod: %s %dx%d"%(self.name,self.width,self.height)))
 
-        self.myfont1 = pygame.font.SysFont("Comic Sans MS", 30, bold=True)  # hsi font
-        self.MainColor = (0, 255, 0)  # main color 
 
     # setup must have defaults for all parameters
-    def setup(self, label_color= (255, 255, 0)):
+    def setup(self):
 
-        self.myfont = pygame.font.SysFont("Arial", 20, bold=True)
-        self.myfont1 = pygame.font.SysFont("Arial", 30, bold=True)
+        self.myfont = pygame.font.SysFont("monospace", self.font1_size, bold=True)  
+        self.myfont1 = pygame.font.SysFont("monospace", self.font2_size, bold=True) 
 
         # Setup mask
         self.mask = pygame.Surface((66, 30))
         self.mask.fill((0, 0, 0))
 
-        # hdg Setup
-        self.label_color = label_color
         self.hdg = pygame.Surface((360, 80))
         self.hdg_rect = self.hdg.get_rect()
         self.hdg.fill((0, 0, 0))
@@ -396,6 +397,36 @@ class heading(Module):
     def get_module_options(self):
         # each item in the dict represents a configuration option.  These are variable in this class that are exposed to the user to edit.
         return {
+            "label_color": {
+                "type": "color",
+                "default": self.label_color,
+                "label": "Label Color",
+                "description": "Color of the labels.",
+            },
+            "font_color": {
+                "type": "color",
+                "default": self.font_color,
+                "label": "Font Color",
+                "description": "Color of the font.",
+            },
+            "font1_size": {
+                "type": "int",
+                "default": self.font1_size,
+                "label": "Font Size",
+                "description": "Size of the font.",
+                "min": 10,
+                "max": 50,
+                "post_change_function": "setup",
+            },
+            "font2_size": {
+                "type": "int",
+                "default": self.font2_size,
+                "label": "Font Size 2",
+                "description": "Size of the font 2.",
+                "min": 10,
+                "max": 50,
+                "post_change_function": "setup",
+            },
         }
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

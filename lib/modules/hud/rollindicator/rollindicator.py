@@ -150,6 +150,27 @@ class rollindicator(Module):
     # handle key events
     def processEvent(self, event):
         print("processEvent")
+    
+    def get_module_options(self):
+        return {
+            "roll_point_size": {
+                "type": "int",
+                "default": self.roll_point_size,
+                "min": 10,
+                "max": 50,
+                "label": "Roll Point Size",
+                "description": "Size of the roll point.",
+                "post_change_function": "update_roll_point_size"
+            }
+        }
+    
+    def update_roll_point_size(self):
+        self.roll_point_size = self.options["roll_point_size"]
+        self.roll_point_scaled = pygame.transform.scale(
+            self.roll_point, (self.roll_point_size, self.roll_point_size)
+        )
+        self.roll_point_scaled_rect = self.roll_point_scaled.get_rect()
+    
 
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

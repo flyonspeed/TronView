@@ -89,6 +89,22 @@ class slipskid(Module):
     def processEvent(self, event):
         pass
 
+    def get_module_options(self):
+        return {
+            "MainColor": {
+                "type": "color",
+                "default": self.MainColor,
+                "label": "Main Color",
+                "description": "Color of the main line.",
+            },
+            "BallColor": {
+                "type": "color",
+                "default": self.BallColor,
+                "label": "Ball Color",
+                "description": "Color of the ball.",
+            }
+        }
+
 
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

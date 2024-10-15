@@ -839,8 +839,8 @@ class EditOptionsBar:
         self.ui_elements = []
         self.text_entry_active = False  # Add this line
         
-        window_width = 200
-        window_height = self.calculate_height()
+        window_width = 220
+        window_height = min(self.calculate_height(), 500)  # Limit window height to 500 pixels
         
         # Position the window to the right of the screen object
         x = min(screen_object.x + screen_object.width, smartdisplay.x_end - window_width)
@@ -855,6 +855,15 @@ class EditOptionsBar:
             self.pygame_gui_manager,
             window_display_title=f"Options: {screen_object.title}",
             object_id="#options_window"
+        )
+        
+        # Create a scrollable container inside the window
+        self.scrollable_container = pygame_gui.elements.UIScrollingContainer(
+            relative_rect=pygame.Rect(0, 0, window_width, window_height - 30),
+            manager=self.pygame_gui_manager,
+            container=self.window,
+            anchors={'left': 'left', 'right': 'right', 'top': 'top', 'bottom': 'bottom'},
+            allow_scroll_x=False
         )
         
         self.color_pickers = {}  # To keep track of open color pickers
@@ -891,7 +900,7 @@ class EditOptionsBar:
                 relative_rect=pygame.Rect(x_offset, y_offset, 180, 20),
                 text="Group Options Not Implemented Yet",
                 manager=self.pygame_gui_manager,
-                container=self.window,
+                container=self.scrollable_container,
                 object_id="#options_group_"
             )
             self.ui_elements.append(label)
@@ -908,7 +917,7 @@ class EditOptionsBar:
                 relative_rect=pygame.Rect(x_offset, y_offset, 180, 20),
                 text=details['label'],
                 manager=self.pygame_gui_manager,
-                container=self.window,
+                container=self.scrollable_container,
                 object_id="#options_label_" + option
             )
             y_offset += 25
@@ -922,7 +931,7 @@ class EditOptionsBar:
                     relative_rect=pygame.Rect(x_offset, y_offset, 180, 20),
                     text='On' if getattr(self.screen_object.module, option) else 'Off',
                     manager=self.pygame_gui_manager,
-                    container=self.window
+                    container=self.scrollable_container
                 )
                 checkbox.option_name = option
                 checkbox.object_id = "#options_checkbox_" + option
@@ -933,7 +942,7 @@ class EditOptionsBar:
                     start_value=getattr(self.screen_object.module, option),
                     value_range=(details['min'], details['max']),
                     manager=self.pygame_gui_manager,
-                    container=self.window
+                    container=self.scrollable_container
                 )
                 slider.option_name = option
                 slider.object_id = "#options_slider_" + option
@@ -944,7 +953,7 @@ class EditOptionsBar:
                 text_entry = UITextEntryLine(
                     relative_rect=pygame.Rect(x_offset, y_offset, 180, 20),
                     manager=self.pygame_gui_manager,
-                    container=self.window
+                    container=self.scrollable_container
                 )
                 text_entry.set_text(str(getattr(self.screen_object.module, option)))
                 text_entry.option_name = option
@@ -958,7 +967,7 @@ class EditOptionsBar:
                     relative_rect=pygame.Rect(x_offset, y_offset, 180, 20),
                     text='',
                     manager=self.pygame_gui_manager,
-                    container=self.window,
+                    container=self.scrollable_container,
                 )
                 color_button.background_colour = current_color
                 color_button.option_name = option
@@ -977,7 +986,7 @@ class EditOptionsBar:
                     starting_option=current_value,
                     relative_rect=pygame.Rect(x_offset, y_offset, 180, 20),
                     manager=self.pygame_gui_manager,
-                    container=self.window
+                    container=self.scrollable_container
                 )
                 dropdown.option_name = option
                 dropdown.object_id = "#options_dropdown_" + option
@@ -986,19 +995,8 @@ class EditOptionsBar:
             y_offset += 30 # move down 30 pixels so we can draw another control
             total_height += 5  # Padding between options
 
-        # Add final padding
-        total_height += 60
-
-        # Adjust window height to fit all options
-        new_height = min(total_height, 500)  # Limit to 500 pixels
-        current_width = self.window.get_abs_rect().width
-        self.window.set_dimensions((current_width, new_height))
-
-        # Adjust container size for scrolling if necessary
-        #if total_height > 500:
-        #    self.window.set_scrollable_container_height(total_height)
-
-
+        # Set the scrollable area
+        self.scrollable_container.set_scrollable_area_dimensions((180, total_height))
 
     def handle_event(self, event):
         #print("event: %s" % event)

@@ -621,6 +621,10 @@ class DropDown():
     def toggle(self):
         self.draw_menu = not self.draw_menu
         self.visible = not self.visible
-    
+
+COLOR_INACTIVE = (100, 100, 100)
+COLOR_ACTIVE = (255, 255, 255)
+COLOR_LIST_INACTIVE = (100, 100, 100)
+COLOR_LIST_ACTIVE = (255, 255, 255)
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

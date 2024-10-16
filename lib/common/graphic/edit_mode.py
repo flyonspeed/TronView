@@ -61,8 +61,8 @@ def main_edit_loop():
     edit_options_bar = None
     fps_font = pygame.font.SysFont("monospace", 30)
     show_ruler = False
-    ruler_color = (100, 100, 100)  # Light gray for non-selected objects
-    selected_ruler_color = (0, 255, 0)  # Green for selected objects
+    ruler_color = (100, 100, 100, 6)  # Light gray for non-selected objects
+    selected_ruler_color = (0, 255, 0, 6)  # Green for selected objects
     help_window = None
     text_entry_active = False
     drag_start_positions = {}  # To store initial positions of dragged objects

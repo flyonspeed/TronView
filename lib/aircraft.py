@@ -5,6 +5,8 @@ import time
 from geographiclib.geodesic import Geodesic
 import math
 from . import hud_utils
+import inspect
+from typing import List, Any
 
 #############################################
 ## Class: Aircraft
@@ -203,6 +205,55 @@ class Aircraft(object):
             return "%d %s" % (v,d)
         else:
             return "+%d %s" % (v,d)
+    
+    # get a list of all fields and functions in the aircraft object
+    def _get_all_fields(self, prefix: str = '', force_rebuild: bool = False) -> List[str]:
+        """
+        Get a list of all fields in the aircraft object.
+        
+        Args:
+            prefix (str): Prefix for nested object fields.
+            force_rebuild (bool): If True, rebuild the field list even if cached.
+        
+        Returns:
+            List[str]: List of all fields in the aircraft object.
+        """
+        if not force_rebuild and hasattr(self, '_all_fields'):
+            #print(f"Using cached aircraft field list. len: {len(self._all_fields)}")
+            return self._all_fields
+
+        fields = []
+
+        def add_field(name: str, value: Any, current_prefix: str):
+            full_name = f"{current_prefix}{name}" if current_prefix else name
+            print(f"Checking field: {full_name} with type: {type(value).__name__}", end=' ')
+
+            if isinstance(value, (str, int, float, bool, list, tuple, dict)):
+                fields.append(full_name)
+                print("(added)")
+            elif inspect.ismethod(value) or inspect.isfunction(value):
+                fields.append(f"{full_name}()")
+                print("(added as method)")
+            elif inspect.isclass(value):
+                print("(skipped class)")
+            elif hasattr(value, '__dict__'):
+                print("(recursing)")
+                for attr, attr_value in inspect.getmembers(value):
+                    if not attr.startswith('_'):
+                        add_field(attr, attr_value, f"{full_name}.")
+            else:
+                fields.append(full_name)
+                print("(added as unknown type)")
+
+        for name, value in inspect.getmembers(self):
+            if not name.startswith('_'):
+                add_field(name, value, prefix)
+
+        self._all_fields = fields
+        print(f"Built field list with {len(fields)} items")
+        return fields
+
+
 
 #############################################
 ## Class: Analog Input Data 
@@ -557,5 +608,5 @@ class Target(object):
 #     distance = (R * c) * 0.6213712 # convert to miles.
 #     return distance
 
-# vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python
 
+# vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

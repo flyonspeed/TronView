@@ -5,6 +5,7 @@ from lib.common import shared
 from lib.common.graphic.edit_TronViewScreenObject import TronViewScreenObject
 
 def save_screen_to_json():
+
     data = {
         "ver": {"version": "1.0"},  # You can update this version as needed
         "screen": {
@@ -29,6 +30,8 @@ def save_screen_to_json():
     print(f"Screen saved to {filename}")
 
 def load_screen_from_json(filename):
+    shared.CurrentScreen.ScreenObjects = []
+
     try:
         filename = shared.DataDir + "screens/" + filename
         # if it doesn't end with .json then add it.

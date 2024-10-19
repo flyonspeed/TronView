@@ -33,6 +33,7 @@ from lib.common.text import text_mode
 from lib.common.graphic import graphic_mode
 from lib.common.graphic import edit_mode
 from lib.common import shared # global shared objects stored here.
+from lib.common.graphic import edit_save_load
 
 #############################################
 ## Class: myThreadEfisInputReader
@@ -254,6 +255,14 @@ if __name__ == "__main__":
 
     thread1 = myThreadEfisInputReader()  # start thread for reading efis input.
     thread1.start()
+
+    # testing.. start in edit mode.
+    shared.aircraft.editMode = True
+    shared.aircraft.textMode = False
+    # check if /data/screens/screen.json exists.. if so load edit_save_load.load_screen_from_json()
+    if os.path.exists("data/screens/screen.json"):
+        edit_save_load.load_screen_from_json("screen.json")
+
     # start main loop.
     while not shared.aircraft.errorFoundNeedToExit:
         if shared.aircraft.editMode == True:

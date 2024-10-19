@@ -392,10 +392,15 @@ def main_edit_loop():
                                         sObject.mouse_offset_y = my - sObject.y
                                 else:
                                     if len(selected_screen_objects) > 1 and atLeastOneSelectedObjectIsClicked:
+                                        print("Multiple modules selected, updating mouse offsets (moving objects)")
                                         for sObject in selected_screen_objects:
                                             sObject.mouse_offset_x = mx - sObject.x
                                             sObject.mouse_offset_y = my - sObject.y
                                     else:
+                                        # unselect all other modules
+                                        for unSelectObj in shared.CurrentScreen.ScreenObjects:
+                                            unSelectObj.selected = False
+
                                         selected_screen_objects = [sObject]
                                         sObject.selected = True
                                         print("Selected module: %s" % sObject.title)

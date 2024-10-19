@@ -20,6 +20,9 @@ class horizon_v2(Module):
         Module.__init__(self)
         self.name = "HUD Horizon V2"  # set name
         self.flight_path_color = (255, 0, 255)  # Default color, can be changed via settings
+        self.show_targets = True
+        self.target_distance_threshold = 10
+        self.fov_x = hud_utils.readConfigInt("HUD", "fov_x", 13.942) # Field of View X in degrees
 
     # called once for setup
     def initMod(self, pygamescreen, width=None, height=None):
@@ -31,11 +34,11 @@ class horizon_v2(Module):
             self, pygamescreen, width, height
         )  # call parent init screen.
         print(("Init Mod: %s %dx%d"%(self.name,self.width,self.height)))
-        target_font_size = hud_utils.readConfigInt("HUD", "target_font_size", 40)
+        target_font_size = hud_utils.readConfigInt("HUD", "target_font_size", 12)
 
         # fonts
         self.font = pygame.font.SysFont(None, 30)
-        self.font_target = pygame.font.SysFont(None, target_font_size)
+        self.font_target = pygame.font.SysFont("monospace", target_font_size, bold=False)
 
         self.surface = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
         self.ahrs_bg_width = self.surface.get_width()
@@ -59,6 +62,8 @@ class horizon_v2(Module):
         self.max_samples1 = 30 # Caged FPM smoothing
 
         self.x_offset = 0
+        self.xCenter = self.width // 2
+        self.yCenter = self.height // 2
 
     #############################################
     ## Function: generateHudReferenceLineArray
@@ -437,12 +442,64 @@ class horizon_v2(Module):
             (x, y)
         )
 
+        # Use map() to apply draw_target to all targets
+        if self.show_targets:
+            list(map(lambda t: self.draw_target(t, aircraft), 
+                     filter(lambda t: t.dist is not None and t.dist < self.target_distance_threshold and t.brng is not None, 
+                            aircraft.traffic.targets)))
+
+
         # Draw center and flight path on the main screen (already adjusted for position)
         self.draw_center(smartdisplay, x, y)
         self.draw_flight_path(aircraft, smartdisplay, x, y)
 
         # Blit the entire surface to the screen at the specified position
         smartdisplay.pygamescreen.blit(self.surface, pos)
+
+    def draw_target(self, t, aircraft):
+        # Calculate the relative bearing to the target
+        relative_bearing = (t.brng - aircraft.mag_head + 180) % 360 - 180
+
+        # Check if the target is within the field of view
+        if abs(relative_bearing) > self.fov_x / 2:
+            return  # Target is outside the field of view, don't draw it
+
+        # calculate position of this target above horizontal line using the following:
+        # shared.aircraft.pitch : my pitch above horizon
+        # shared.aircraft.roll : my roll around that axis.
+        # t.altDiff : height difference between us and the target.
+        # t.brng : my heading to the target.
+        # t.dist : distance to the target.
+        # Calculate the target's position relative to the viewer's perspective
+        if t.altDiff is not None and aircraft.pitch is not None and aircraft.roll is not None:
+            # Convert distances to meters
+            alt_diff_meters = t.altDiff * 0.3048  # Convert feet to meters
+            dist_meters = t.dist * 1609.34  # Convert miles to meters
+            # Calculate the angle to the target relative to the horizon in radians
+            angle_to_target = math.atan2(alt_diff_meters, dist_meters)
+            # Adjust for aircraft pitch
+            adjusted_angle = angle_to_target - math.radians(aircraft.pitch)
+            # Calculate the vertical position on the screen
+            vertical_position = self.yCenter - (math.tan(adjusted_angle) * (self.height / 2))
+            # Adjust for aircraft roll
+            roll_radians = math.radians(aircraft.roll)
+            
+            # Use relative_bearing instead of (t.brng - aircraft.mag_head)
+            xx = self.xCenter + relative_bearing * (self.width / self.fov_x)
+            
+            rotated_x = (xx - self.xCenter) * math.cos(roll_radians) - (vertical_position - self.yCenter) * math.sin(roll_radians) + self.xCenter
+            rotated_y = (xx - self.xCenter) * math.sin(roll_radians) + (vertical_position - self.yCenter) * math.cos(roll_radians) + self.yCenter
+
+            xx, yy = rotated_x, rotated_y
+            # draw a dot at the target's position
+            pygame.draw.circle(self.surface, (200,255,255), (int(xx), int(yy)), 6, 0)
+            # draw the callsign at the target's position
+            labelCallsign = self.font_target.render(t.callsign, False, (200,255,255), (0,0,0))
+            labelCallsign_rect = labelCallsign.get_rect()
+            self.surface.blit(labelCallsign, (int(xx) + 10, int(yy)))  # 10 is a fudge factor to center the text.
+            # draw angle to target on the next line. 
+            labelAngle = self.font_target.render(f"angle: {adjusted_angle:.2f}", False, (200,255,255), (0,0,0))
+            self.surface.blit(labelAngle, (int(xx) + 10, int(yy) + labelCallsign_rect.height))
 
 
     # update a setting
@@ -492,6 +549,28 @@ class horizon_v2(Module):
                 "type": "color",
                 "default": (255, 0, 255),
                 "label": "Flight Path Color",
+            },
+            "show_targets": {
+                "type": "bool",
+                "default": True,
+                "label": "Show Targets",
+                "description": ""
+            },
+            "target_distance_threshold": {
+                "type": "int",
+                "default": self.target_distance_threshold,
+                "min": 1,
+                "max": 150,
+                "label": "Target Dist Thres",
+                "description": ""
+            },
+            "fov_x": {
+                "type": "int",
+                "default": self.fov_x,
+                "min": 5,
+                "max": 60,
+                "label": "FOV X",
+                "description": "Field of View X in degrees"
             }
         }
 
@@ -529,3 +608,5 @@ class Point:
         return (self.x, self.y)
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python
+
+

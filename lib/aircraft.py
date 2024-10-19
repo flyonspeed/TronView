@@ -528,6 +528,7 @@ class TrafficData(object):
         t = Target(name)
         t.buoyNum  = self.buoyCount
         t.address = self.buoyCount
+        t.type = 15 # space craft and aliens!
         t.cat = 1
         if(direction=="ahead"):
             if(distance!=None): distance = distance * 1609.344 # convert to meters.

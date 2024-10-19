@@ -136,6 +136,7 @@ class trafficscope(Module):
             xx = self.xCenter + (d * math.cos(radianAngle))
             yy = self.yCenter + (d * math.sin(radianAngle))
 
+            # Draw the target
             if self.draw_aircraft_icon:
                 direction_of_aircraft = ((t.track or brngToUse) - aircraft_heading) % 360
                 t.targetDirection = math.radians(direction_of_aircraft - 90)
@@ -154,14 +155,14 @@ class trafficscope(Module):
                 label_rect = pygame.Rect(0, 0, 0, 0)
 
             if self.show_details:
-                self.draw_target_details(t, xx, yy, x_text, y_text, label_rect, aircraft_heading)
+                self.draw_target_details(t, xx, yy, x_text, y_text, label_rect, aircraft_heading, aircraft)
 
         # Use map() to apply draw_target to all targets
         list(map(draw_target, filter(lambda t: t.dist is not None and t.dist < 100 and t.brng is not None, aircraft.traffic.targets)))
 
         self.pygamescreen.blit(self.surface2, pos)
 
-    def draw_target_details(self, t, xx, yy, x_text, y_text, label_rect, aircraft_heading):
+    def draw_target_details(self, t, xx, yy, x_text, y_text, label_rect, aircraft_heading, aircraft):
         if t.speed is not None and t.speed > -1 and t.track is not None:
             t.targetBrngToUse = (t.track - aircraft_heading) % 360
             radianTargetTrack = math.radians(t.targetBrngToUse - 90)
@@ -186,20 +187,65 @@ class trafficscope(Module):
 
             labelDist = self.font_target.render(f"{t.dist:.1f} mi.", False, (200,255,255), (0,0,0))
             self.surface2.blit(labelDist, (x_text + label_rect.width + 10, y_text))
+            next_text_y_offset = 0
 
             # Add time since last update
             if hasattr(t, 'time'):
                 time_since_update = int(time.time() - t.time)
                 labelUpdate = self.font_target.render(f"{time_since_update}s ago", False, (200,255,255), (0,0,0))
                 self.surface2.blit(labelUpdate, (x_text, y_text + label_rect.height + labelSpeed_rect.height))
+                next_text_y_offset = labelUpdate.get_rect().height
+
+            # # calculate position of this target above horizontal line using the following:
+            # # shared.aircraft.pitch : my pitch above horizon
+            # # shared.aircraft.roll : my roll around that axis.
+            # # t.altDiff : height difference between us and the target.
+            # # t.brng : my heading to the target.
+            # # t.dist : distance to the target.
+            # # Calculate the target's position relative to the viewer's perspective
+            # if t.altDiff is not None and aircraft.pitch is not None and aircraft.roll is not None:
+            #     # Convert distances to meters
+            #     alt_diff_meters = t.altDiff * 0.3048  # Convert feet to meters
+            #     dist_meters = t.dist * 1609.34  # Convert miles to meters
+
+            #     # Calculate the angle to the target relative to the horizon in radians
+            #     angle_to_target = math.atan2(alt_diff_meters, dist_meters)
+
+            #     # Adjust for aircraft pitch
+            #     adjusted_angle = angle_to_target - math.radians(aircraft.pitch)
+
+            #     # Calculate the vertical position on the screen
+            #     screen_height = self.height
+            #     vertical_position = self.yCenter - (math.tan(adjusted_angle) * (screen_height / 2))
+
+            #     # Adjust for aircraft roll
+            #     roll_radians = math.radians(aircraft.roll)
+            #     rotated_x = (xx - self.xCenter) * math.cos(roll_radians) - (vertical_position - self.yCenter) * math.sin(roll_radians) + self.xCenter
+            #     rotated_y = (xx - self.xCenter) * math.sin(roll_radians) + (vertical_position - self.yCenter) * math.cos(roll_radians) + self.yCenter
+
+            #     xx, yy = rotated_x, rotated_y
+            #     # draw a dot at the target's position
+            #     pygame.draw.circle(self.surface2, (200,255,255), (xx, yy), 6, 0)
+            #     # draw the callsign at the target's position
+            #     labelCallsign = self.font_target.render(t.callsign, False, (200,255,255), (0,0,0))
+            #     labelCallsign_rect = labelCallsign.get_rect()
+            #     self.surface2.blit(labelCallsign, (xx, yy))
+            #     # draw angle to target on the next line. 
+            #     labelAngle = self.font_target.render(f"angle: {adjusted_angle:.2f}", False, (200,255,255), (0,0,0))
+            #     self.surface2.blit(labelAngle, (xx, yy + labelCallsign_rect.height))
+            #     # show the targets adjusted_angle
+            #     next_text_y_offset = next_text_y_offset +label_rect.height + labelSpeed_rect.height + (self.font_target.get_height() if hasattr(t, 'time') else 0)
+            #     labelAngle = self.font_target.render(f"angle: {adjusted_angle:.2f}", False, (200,255,255), (0,0,0))
+            #     self.surface2.blit(labelAngle, (x_text, y_text + next_text_y_offset))
+            #     labelAngle_rect = labelAngle.get_rect()
+            #     next_text_y_offset = next_text_y_offset + labelAngle_rect.height
 
             if self.target_show_lat_lon:
-                y_offset = label_rect.height + labelSpeed_rect.height + (self.font_target.get_height() if hasattr(t, 'time') else 0)
                 labelLat = self.font_target.render(f"{t.lat:.6f}", False, (200,255,255), (0,0,0))
-                self.surface2.blit(labelLat, (x_text, y_text + y_offset))
+                self.surface2.blit(labelLat, (x_text, y_text + next_text_y_offset))
                 labelLat_rect = labelLat.get_rect()
                 labelLon = self.font_target.render(f"{t.lon:.6f}", False, (200,255,255), (0,0,0))
-                self.surface2.blit(labelLon, (x_text, y_text + y_offset + labelLat_rect.height))
+                self.surface2.blit(labelLon, (x_text, y_text + next_text_y_offset + labelLat_rect.height))
 
 
     # draw aircraft icon based on the type of aircraft
@@ -488,3 +534,4 @@ def convertCoords(xy, src='', targ=''):
 '''
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python
+

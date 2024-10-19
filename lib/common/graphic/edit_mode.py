@@ -446,9 +446,15 @@ def main_edit_loop():
                 # Mouse up
                 elif event.type == pygame.MOUSEBUTTONUP:
                     if dragging:
-                        handle_drag_end(selected_screen_objects, drag_start_positions)
+                        moves = handle_drag_end(selected_screen_objects, drag_start_positions)
                         drag_start_positions.clear()
-                    if resizing and selected_screen_object:
+                        if moves > 0:
+                            print("Dragging end, %d moves happened" % moves)
+                        else: # send the click event to the screen object. translate the mouse position to the screen object.
+                            for sObject in selected_screen_objects:
+                                sObject.click(shared.aircraft, mx - sObject.x, my - sObject.y)
+                    elif resizing and selected_screen_object:
+                        print("Resizing end")
                         handle_resize_end(selected_screen_object, resize_start_size)
                     dragging = False
                     resizing = False
@@ -539,14 +545,17 @@ def main_edit_loop():
         clock.tick(maxframerate)
 
 def handle_drag_end(selected_objects, start_positions):
+    movesHappened = 0
     for obj in selected_objects:
         start_pos = start_positions.get(obj)
         if start_pos and (obj.x, obj.y) != start_pos:
+            movesHappened += 1
             shared.Change_history.add_change("move", {
                 "object": obj,
                 "old_pos": start_pos,
                 "new_pos": (obj.x, obj.y)
             })
+    return movesHappened
 
 def handle_resize_end(screen_object, start_size):
     if (screen_object.width, screen_object.height) != start_size:

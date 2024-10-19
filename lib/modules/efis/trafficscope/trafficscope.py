@@ -29,6 +29,8 @@ class trafficscope(Module):
         self.aircraft_icon_scale = hud_utils.readConfigInt("TrafficScope", "aircraft_icon_scale", 10)
         self.details_offset = hud_utils.readConfigInt("TrafficScope", "details_offset", 5)
 
+        self.targetDetails = {} # keep track of details about each target. like the x,y position on the screen. and if they are selected.
+
     # called once for setup
     def initMod(self, pygamescreen, width=None, height=None):
         if width is None:
@@ -157,6 +159,13 @@ class trafficscope(Module):
             if self.show_details:
                 self.draw_target_details(t, xx, yy, x_text, y_text, label_rect, aircraft_heading, aircraft)
 
+            # store the x,y position of the target in the local targetDetails dictionary.
+            if t.callsign not in self.targetDetails:
+                self.targetDetails[t.callsign] = {"x": xx, "y": yy, "selected": False}
+            else: # else just update the x,y position.
+                self.targetDetails[t.callsign]["x"] = xx
+                self.targetDetails[t.callsign]["y"] = yy
+
         # Use map() to apply draw_target to all targets
         list(map(draw_target, filter(lambda t: t.dist is not None and t.dist < 100 and t.brng is not None, aircraft.traffic.targets)))
 
@@ -247,6 +256,10 @@ class trafficscope(Module):
                 labelLon = self.font_target.render(f"{t.lon:.6f}", False, (200,255,255), (0,0,0))
                 self.surface2.blit(labelLon, (x_text, y_text + next_text_y_offset + labelLat_rect.height))
 
+            # draw a circle around the target. if it is selected. check if the callsign is in the targetDetails dictionary. 
+            # is self.targetDetails[t.callsign]["selected"] even exist?
+            if t.callsign in self.targetDetails and self.targetDetails[t.callsign]["selected"]:
+                pygame.draw.circle(self.surface2, (120,255,120), (xx, yy), self.aircraft_icon_scale + 2, 2)
 
     # draw aircraft icon based on the type of aircraft
     def drawAircraftIcon(self, surface, target, xx, yy, scale):
@@ -385,6 +398,19 @@ class trafficscope(Module):
                 "description": "Set the scale of the aircraft icon."
             },
         }
+
+    def processClick(self, aircraft, mx, my):
+        # clear any selected targets from self.targetDetails
+        for target in self.targetDetails:
+            self.targetDetails[target]["selected"] = False
+        
+        # check if they clicked near the x,y postion of a target.
+        for target in self.targetDetails:
+            if math.hypot(mx - self.targetDetails[target]["x"], my - self.targetDetails[target]["y"]) < self.aircraft_icon_scale + 2:
+                self.targetDetails[target]["selected"] = True
+                break
+
+        
 
     # handle events
     def processEvent(self,event,aircraft,smartdisplay):

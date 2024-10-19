@@ -37,6 +37,11 @@ class TronViewScreenObject:
     def isClickInside(self, mx, my):
         return self.x <= mx <= self.x + self.width and self.y <= my <= self.y + self.height
 
+    def click(self, aircraft, mx, my):
+        print("Click on %s at %d, %d" % (self.title, mx, my))
+        if hasattr(self.module, "processClick"):
+            self.module.processClick(aircraft, mx, my)
+
     def setShowBounds(self, show):
         self.showBounds = show
         if self.type == 'group':

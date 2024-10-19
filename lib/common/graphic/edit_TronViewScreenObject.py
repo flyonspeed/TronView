@@ -235,7 +235,7 @@ class TronViewScreenObject:
         if self.type == 'module':
             # load the module and options
             newModules, titles  = find_module(self.title)
-            self.setModule(newModules[0], showOptions = False, width = data['width'], height = data['height'])
+            self.setModule(newModules[0], showOptions = True, width = data['width'], height = data['height'])
             
             # now load the options
             if hasattr(self.module, "get_module_options"):
@@ -249,6 +249,8 @@ class TronViewScreenObject:
                                 post_change_function()
                     except Exception as e:
                             print("Error setting module (%s) option (%s): %s" % (self.module.name, option['name'], e))
+                # now that the options are set lets call initMod one more time.
+                self.module.initMod(self.pygamescreen, self.width, self.height)
 
     def center(self):
         screen_width, screen_height = pygame.display.get_surface().get_size()

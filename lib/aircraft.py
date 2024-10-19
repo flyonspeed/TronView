@@ -455,8 +455,8 @@ class TrafficData(object):
         # use lat/lon from traffic source. 
         if(self.src_lat != None and self.src_lon != None and target.lat != 0 and target.lon != 0):
             solve = Geodesic.WGS84.Inverse(self.src_lat,self.src_lon,target.lat,target.lon)
-            brng = solve['azi1']
-            dist = solve['s12'] * 0.0006213712
+            brng = solve['azi1'] # forward azimuth.
+            dist = solve['s12'] * 0.0006213712 # convert to miles.
             if(dist!=dist):
                 # NaN. no distance found.  
                 pass
@@ -522,7 +522,7 @@ class TrafficData(object):
                 del self.targets[i]
         if(numCleared>0): self.clearBuoyTargets()
 
-    def dropTargetBuoy(self,aircraft,name=None,speed=None,direction=None,distance=None):
+    def dropTargetBuoy(self,aircraft,name=None,speed=None,direction=None,distance=None,alt=None):
         self.buoyCount += 1
         if(name==None): name = "Buoy"+str(self.buoyCount)
         t = Target(name)
@@ -532,14 +532,17 @@ class TrafficData(object):
         t.cat = 1
         if(direction=="ahead"):
             if(distance!=None): distance = distance * 1609.344 # convert to meters.
-            else: distance = 1 * 1609.344 # else drop off 1 mile ahead.
-            solve = Geodesic.WGS84.Direct(aircraft.gps.LatDeg,aircraft.gps.LonDeg,aircraft.mag_head,distance)
+            else: distance = 1 * 1609.344 # default to 1 mile. (1609.344 meters)
+            solve = Geodesic.WGS84.Direct(aircraft.gps.LatDeg,aircraft.gps.LonDeg,aircraft.mag_head,distance)  
             t.lat = solve['lat2']
             t.lon = solve['lon2']
         else:
             t.lat = aircraft.gps.LatDeg
             t.lon = aircraft.gps.LonDeg
-        t.alt = aircraft.gps.GPSAlt
+        # if alt was passed in then add it to the altitude of the aircraft.
+        if(alt != None): t.alt = aircraft.gps.GPSAlt + alt
+        else: t.alt = aircraft.gps.GPSAlt
+
         if(aircraft.mag_head): t.track = aircraft.mag_head
         elif(aircraft.gps.GndTrack): t.track = aircraft.gps.GndTrack
         if(speed != None and speed != -1): t.speed = speed
@@ -561,13 +564,13 @@ class Target(object):
         self.address = None # icao address of ads-b
         self.cat = None # Emitter Category - one of the following values to describe type/weight of aircraft
         self.buoyNum = None
-        # 0 = unkown
+        # 0 = unknown
         # 1 = Light (ICAO) < 15 500 lbs
         # 2 = Small - 15 500 to 75 000 lbs
         # 3 = Large - 75 000 to 300 000 lbs
         # 4 = High Vortex Large (e.g., aircraft 24 such as B757)
         # 5 = Heavy (ICAO) - > 300 000 lbs
-        # 7 = Rotorcraft
+        # 7 = Rotor craft
         # 9 = Glider
         # 10 = lighter then air
         # 11 = sky diver

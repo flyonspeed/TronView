@@ -264,10 +264,14 @@ def main_edit_loop():
                     elif event.key == pygame.K_s:
                         save_screen_to_json()
 
+                    # if ctrl + l is pressed then load the screen from the templates folder
+                    elif event.key == pygame.K_l and (pygame.key.get_mods() & pygame.KMOD_CTRL):
+                        load_screen_from_json("default.json", from_templates=True)
+
                     # LOAD SCREEN FROM JSON
                     elif event.key == pygame.K_l:
                         load_screen_from_json("screen.json")
-
+                    
                     # Toggle FPS display when 'F' is pressed
                     elif event.key == pygame.K_f:
                         shared.aircraft.show_FPS = not shared.aircraft.show_FPS

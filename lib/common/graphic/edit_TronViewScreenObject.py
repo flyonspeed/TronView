@@ -49,14 +49,13 @@ class TronViewScreenObject:
                 module.showBounds = self.showBounds
 
     def draw(self, aircraft, smartdisplay, showToolBar = True):
+        # if no module then draw a red box around the screen object
         if self.module is None and self.type == 'module':
             boxColor = (140, 0, 0)
             if self.selected:
                 boxColor = (255, 255, 0)
-            # draw a rect for the module with a x through it.
+            # draw a rect for the module
             pygame.draw.rect(self.pygamescreen, boxColor, (self.x, self.y, self.width, self.height), 1)
-            #text = pygame.font.SysFont("monospace", 25, bold=False).render("X", True, (255, 255, 255))
-            #self.pygamescreen.blit(text, (self.x + self.width/2 - 5, self.y + self.height/2 - 5))
             # draw a little resize handle in the bottom right corner
             pygame.draw.rect(self.pygamescreen, boxColor, (self.x + self.width - 10, self.y + self.height - 10, 10, 10), 1)
             return
@@ -273,11 +272,11 @@ class TronViewScreenObject:
                 self.grid_percentage_y = data['grid_percentage_y']
                 # calculate the grid position using AnchorManager.calculate_grid_position()
                 anchor_manager = GridAnchorManager(self.pygamescreen, self.pygamescreen.get_size()[0], self.pygamescreen.get_size()[1])
-                anchor_manager.set_object_position_from_grid_percentage(self)
+                x_diff, y_diff = anchor_manager.set_object_position_from_grid_percentage(self)
                 #print("%s Calculated Grid position: %s" % (self.title, self.grid_position))
                 if self.type == 'group':
                     print("Group %s calculated grid position: %s x:%d y:%d" % (self.title, self.grid_position, self.x, self.y))
-                    #self.move(self.x, self.y)
+                    self.move(self.x + x_diff, self.y + y_diff) # move the group to the new position
 
 
     def center(self):
@@ -336,6 +335,10 @@ class GridAnchorManager:
     def set_object_position_from_grid_percentage(self, screen_object):
         # based on screen_object.grid_postion and grid_percentage_x and grid_percentage_y
         #print("checking grid position: %s" % screen_object.grid_position)
+        x_diff = 0
+        y_diff = 0
+        x_original = screen_object.x
+        y_original = screen_object.y
         if hasattr(screen_object, 'grid_position'):
             for grid in self.grids:
                 if grid['label'] == screen_object.grid_position:
@@ -350,8 +353,10 @@ class GridAnchorManager:
                         screen_object.x = 0
                     if screen_object.y < 0: # don't let the screen object go off the top of the screen
                         screen_object.y = 0
+                    x_diff = screen_object.x - x_original
+                    y_diff = screen_object.y - y_original
 
-        return
+        return x_diff, y_diff
 
     def anchor_draw(self, selected_screen_objects):
         # draw the grid lines

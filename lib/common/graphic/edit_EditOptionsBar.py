@@ -410,6 +410,10 @@ class EditOptionsBar:
         # Ensure it doesn't go above the top of the screen
         y = max(0, y)
 
+        # if x is in self.screen_object.x, self.screen_object.x + self.screen_object.width, then move it to the left side of the screen_object
+        if x in range(self.screen_object.x, self.screen_object.x + self.screen_object.width):
+            x = self.screen_object.x - window_width
+
         self.window.set_position((x, y))
 
     #

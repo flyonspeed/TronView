@@ -529,6 +529,7 @@ def main_edit_loop():
             # if multiple objects are selected, don't show the toolbar
             sObject.draw(shared.aircraft, shared.smartdisplay, not len(selected_screen_objects) > 1)
 
+            # draw Options Bar?
             if sObject.selected and sObject.showOptions:
                 if edit_options_bar is None or edit_options_bar.screen_object != sObject:
                     if edit_options_bar:

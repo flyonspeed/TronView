@@ -405,6 +405,7 @@ def main_edit_loop():
                                     for sObject in selected_screen_objects:
                                         sObject.mouse_offset_x = mx - sObject.x
                                         sObject.mouse_offset_y = my - sObject.y
+                                        sObject.showOptions = False # hide the options bar when moving multiple objects
                                 else:
                                     if len(selected_screen_objects) > 1 and atLeastOneSelectedObjectIsClicked:
                                         if shared.aircraft.debug_mode > 0:
@@ -512,8 +513,6 @@ def main_edit_loop():
                         mx, my = pygame.mouse.get_pos()
                         temp_width = mx - selected_screen_object.x
                         temp_height = my - selected_screen_object.y
-                        if temp_width < 40: temp_width = 40  # limit minimum size
-                        if temp_height < 40: temp_height = 40
                         selected_screen_object.resize(temp_width, temp_height)
                         pygamescreen.fill((0, 0, 0))
 
@@ -522,7 +521,8 @@ def main_edit_loop():
 
         # Draw the modules
         for sObject in shared.CurrentScreen.ScreenObjects:
-            sObject.draw(shared.aircraft, shared.smartdisplay)
+            # if multiple objects are selected, don't show the toolbar
+            sObject.draw(shared.aircraft, shared.smartdisplay, not len(selected_screen_objects) > 1)
 
             if sObject.selected and sObject.showOptions:
                 if edit_options_bar is None or edit_options_bar.screen_object != sObject:

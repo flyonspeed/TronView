@@ -48,7 +48,7 @@ class TronViewScreenObject:
             for module in self.childScreenObjects:
                 module.showBounds = self.showBounds
 
-    def draw(self, aircraft, smartdisplay):
+    def draw(self, aircraft, smartdisplay, showToolBar = True):
         if self.module is None and self.type == 'module':
             boxColor = (140, 0, 0)
             if self.selected:
@@ -78,31 +78,34 @@ class TronViewScreenObject:
             for module in self.childScreenObjects:
                 module.draw(aircraft, smartdisplay)
         else:
-            start_time = time.time()
-            self.module.draw(aircraft, smartdisplay, (self.x, self.y))
-            end_time = time.time()
-            self.draw_time = (end_time - start_time) * 1000  # Convert to milliseconds
+            if aircraft.show_FPS:
+                start_time = time.time()
+                self.module.draw(aircraft, smartdisplay, (self.x, self.y))
+                end_time = time.time()
+                self.draw_time = (end_time - start_time) * 1000  # Convert to milliseconds
+                time_text = f"{self.draw_time:.2f}ms"
+                time_surface = self.debug_font.render(time_text, True, (255, 255, 255))
+                time_rect = time_surface.get_rect(bottomleft=(self.x + 5, self.y + self.height - 5))
+                self.pygamescreen.blit(time_surface, time_rect)
+            else:
+                self.module.draw(aircraft, smartdisplay, (self.x, self.y))
+
 
         # Draw selection box and title
         if self.selected:
             color = (0, 255, 0)
             pygame.draw.rect(self.pygamescreen, color, (self.x, self.y, self.width, self.height), 1)
             pygame.draw.rect(self.pygamescreen, color, (self.x + self.width - 10, self.y + self.height - 10, 10, 10), 1)
-            self.edit_toolbar.draw(self.pygamescreen)
+            if showToolBar:
+                self.edit_toolbar.draw(self.pygamescreen)
         elif self.showBounds:
             pygame.draw.rect(self.pygamescreen, (70, 70, 70), (self.x-5, self.y-5, self.width+10, self.height+10), 2)
 
-        # At the end of the draw method
-        if aircraft.show_FPS and hasattr(self, 'draw_time'):
-            time_text = f"{self.draw_time:.2f}ms"
-            time_surface = self.debug_font.render(time_text, True, (255, 255, 255))
-            time_rect = time_surface.get_rect(bottomleft=(self.x + 5, self.y + self.height - 5))
-            self.pygamescreen.blit(time_surface, time_rect)
 
     def resize(self, width, height):
         if self.type != 'group':
-            if width < 40: width = 40
-            if height < 40: height = 40
+            if width < 10: width = 10
+            if height < 10: height = 10
             self.width = width
             self.height = height
             if hasattr(self.module, "initMod"):
@@ -184,6 +187,7 @@ class TronViewScreenObject:
         self.height = modMostDown.y + modMostDown.height - self.y
         #print("Generated bounds for group: %s x:%d y:%d w:%d h:%d" % (self.title, self.x, self.y, self.width, self.height))
 
+    # save everything about this object to json. modules, 
     def to_dict(self):
         # save everything about this object to json. modules, 
         # get the grid position
@@ -221,21 +225,15 @@ class TronViewScreenObject:
             data["id"] = self.id
 
         return data
-    def from_dict(self, data):
+    
+    # load the data from the json file
+    def from_dict(self, data, load_grid_position = True):
         self.type = data['type']
         self.title = data['title']
         self.x = data['x'] # start with x and y from the json
         self.y = data['y']
         self.width = data['width']
         self.height = data['height']
-        if 'grid_position' in data:  # if the grid position is in the json, then calculate the x,y
-            self.grid_position = data['grid_position']
-            self.grid_percentage_x = data['grid_percentage_x']
-            self.grid_percentage_y = data['grid_percentage_y']
-            # calculate the grid position using AnchorManager.calculate_grid_position()
-            anchor_manager = GridAnchorManager(self.pygamescreen, self.pygamescreen.get_size()[0], self.pygamescreen.get_size()[1])
-            anchor_manager.set_object_position_from_grid_percentage(self)
-            #print("%s Calculated Grid position: %s" % (self.title, self.grid_position))
         if self.type == 'group' and data['screenObjects']:
             self.childScreenObjects = []
             for childSObj in data['screenObjects']:
@@ -244,7 +242,7 @@ class TronViewScreenObject:
                     childSObj['type'],
                     childSObj['title'],
                 )
-                new_childSObj.from_dict(childSObj)
+                new_childSObj.from_dict(childSObj, load_grid_position = False) # don't load the grid position for the children
                 self.addChildScreenObject(new_childSObj)
         if self.type == 'module':
             # load the module and options
@@ -265,6 +263,22 @@ class TronViewScreenObject:
                             print("Error setting module (%s) option (%s): %s" % (self.module.name, option['name'], e))
                 # now that the options are set lets call initMod one more time.
                 self.module.initMod(self.pygamescreen, self.width, self.height)
+        
+        # now set the position based on the grid position
+        # we want to do this after all the other child modules are loaded (for groups..)  So a group can be positioned correctly based off the total size.
+        if load_grid_position:
+            if 'grid_position' in data:  # if the grid position is in the json, then calculate the x,y
+                self.grid_position = data['grid_position']
+                self.grid_percentage_x = data['grid_percentage_x']
+                self.grid_percentage_y = data['grid_percentage_y']
+                # calculate the grid position using AnchorManager.calculate_grid_position()
+                anchor_manager = GridAnchorManager(self.pygamescreen, self.pygamescreen.get_size()[0], self.pygamescreen.get_size()[1])
+                anchor_manager.set_object_position_from_grid_percentage(self)
+                #print("%s Calculated Grid position: %s" % (self.title, self.grid_position))
+                if self.type == 'group':
+                    print("Group %s calculated grid position: %s x:%d y:%d" % (self.title, self.grid_position, self.x, self.y))
+                    #self.move(self.x, self.y)
+
 
     def center(self):
         screen_width, screen_height = pygame.display.get_surface().get_size()
@@ -312,6 +326,12 @@ class GridAnchorManager:
                 screen_object.grid_position = grid['label']
                 screen_object.grid_percentage_x = (screen_object.x + screen_object.width/2 - grid['rect'].x) / (grid['rect'].width/2)
                 screen_object.grid_percentage_y = (screen_object.y + screen_object.height/2 - grid['rect'].y) / (grid['rect'].height/2)
+        
+        # if no grid position then use the center of the screen. and find the grid_percentage_x and grid_percentage_y based on that.
+        if not hasattr(screen_object, 'grid_position'):
+            screen_object.grid_position = 'MidM'
+            screen_object.grid_percentage_x = (screen_object.x + screen_object.width/2 - self.screen_width/2) / (self.screen_width/2)
+            screen_object.grid_percentage_y = (screen_object.y + screen_object.height/2 - self.screen_height/2) / (self.screen_height/2)
 
     def set_object_position_from_grid_percentage(self, screen_object):
         # based on screen_object.grid_postion and grid_percentage_x and grid_percentage_y

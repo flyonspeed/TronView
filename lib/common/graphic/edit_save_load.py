@@ -29,11 +29,14 @@ def save_screen_to_json():
     
     print(f"Screen saved to {filename}")
 
-def load_screen_from_json(filename):
+def load_screen_from_json(filename,from_templates=False):
     shared.CurrentScreen.ScreenObjects = []
 
     try:
-        filename = shared.DataDir + "screens/" + filename
+        if from_templates:
+            filename = "lib/screens/templates/" + filename
+        else:
+            filename = shared.DataDir + "screens/" + filename
         # if it doesn't end with .json then add it.
         if not filename.endswith(".json"):
             filename = filename + ".json"

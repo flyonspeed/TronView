@@ -262,6 +262,8 @@ if __name__ == "__main__":
     # check if /data/screens/screen.json exists.. if so load edit_save_load.load_screen_from_json()
     if os.path.exists("data/screens/screen.json"):
         edit_save_load.load_screen_from_json("screen.json")
+    else:
+        edit_save_load.load_screen_from_json("default.json",from_templates=True)
 
     # start main loop.
     while not shared.aircraft.errorFoundNeedToExit:

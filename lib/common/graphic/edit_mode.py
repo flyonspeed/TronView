@@ -174,9 +174,14 @@ def main_edit_loop():
                         if selected_screen_object.type == 'group':
                             print("Ungrouping modules: %s" % [module.title for module in selected_screen_object.childScreenObjects])
                             shared.CurrentScreen.ScreenObjects.remove(selected_screen_object)
+                            selected_screen_objects.clear()
                             for sObject in selected_screen_object.childScreenObjects:
                                 shared.CurrentScreen.ScreenObjects.append(sObject)
-                                sObject.selected = False
+                                sObject.selected = True
+                                sObject.showOptions = False # hide the options bar when moving multiple objects
+                                selected_screen_objects.append(sObject)
+                            # remove the group from the screen objects
+                            selected_screen_object = None
                     # CREATE GROUP
                     elif event.key == pygame.K_g:
                         if len(selected_screen_objects) > 1:

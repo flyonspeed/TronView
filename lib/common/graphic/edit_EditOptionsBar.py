@@ -16,7 +16,7 @@ class EditOptionsBar:
         self.text_entry_active = False  # Add this line
         
         window_width = 220
-        window_height = min(self.calculate_height(), 500)  # Limit window height to 500 pixels
+        window_height = self.calculate_height()
         
         # Position the window to the right of the screen object
         x = min(screen_object.x + screen_object.width, smartdisplay.x_end - window_width)
@@ -60,7 +60,9 @@ class EditOptionsBar:
                 height += 30  # Option input height
                 height += 5   # Padding between options
             height += 10  # Additional padding at the bottom
-            return min(height, 500)  # Limit max height to 500 pixels
+            
+            # Ensure a minimum height of 100 pixels
+            return max(min(height, 500), 100)  # Limit height between 100 and 500 pixels
         if self.screen_object.type == 'group':
             return 300
         return 0
@@ -102,6 +104,8 @@ class EditOptionsBar:
         total_height = 10  # Initial padding
 
         for option, details in options.items():
+            if details.get('hidden', False):
+                continue  # Skip hidden options
             # Add height for label
             total_height += 25
             label = UILabel(

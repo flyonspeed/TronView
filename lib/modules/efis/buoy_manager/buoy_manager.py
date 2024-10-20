@@ -180,7 +180,7 @@ class buoy_manager(Module):
         aircraft.traffic.dropTargetBuoy(aircraft,distance=self.buoyDistance,direction="ahead",alt=self.buoyAlt)
 
     def setDistance(self,aircraft,button):
-        print("setDistance clicked")
+        #print("setDistance clicked")
         # unselect all buttons that start with setDistance_
         for b in self.buttons:
             if b["id"].startswith("setDistance_"):
@@ -190,7 +190,7 @@ class buoy_manager(Module):
         self.buoyDistance = int(button["text"])
 
     def setAlt(self,aircraft,button):
-        print("setAlt clicked")
+        #print("setAlt clicked")
         # unselect all buttons that start with setAlt_
         for b in self.buttons:
             if b["id"].startswith("setAlt_"):
@@ -212,21 +212,23 @@ class buoy_manager(Module):
                 "description": "Font size for target labels",
                 "post_change_function": "fontSizeChanged"
             },
-            "buoyDistance": {
+            "buoyDistance": {  # This is here so it will get saved to the screen file.  But we don't want to show it in the options bar.
                 "type": "int",
                 "default": self.buoyDistance,
                 "min": 1,
                 "max": 50,
                 "label": "Buoy Distance",
-                "description": "Distance to drop the buoy"
+                "description": "Distance to drop the buoy",
+                "hidden": True
             },
-            "buoyAlt": {
+            "buoyAlt": {     # This is here so it will get saved to the screen file.
                 "type": "int",
                 "default": self.buoyAlt,
                 "min": -2000,
                 "max": 2000,
                 "label": "Buoy Altitude",
-                "description": "Altitude to drop the buoy"
+                "description": "Altitude to drop the buoy",
+                "hidden": True
             }
         }
 

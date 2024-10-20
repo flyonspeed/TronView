@@ -21,7 +21,8 @@ class wind(Module):
         self.name = "Wind"  # set name
         self.arrow_size = 50
         self.x_offset = 0
-        self.y_offset = 0   
+        self.y_offset = 0
+        self.arrow_size = 50
 
     # called once for setup
     def initMod(self, pygamescreen, width=None, height=None):
@@ -40,7 +41,7 @@ class wind(Module):
         self.arrow = pygame.image.load("lib/modules/hud/wind/arrow_g.bmp").convert()
         self.arrow.set_colorkey((255, 255, 255))
         self.arrow_scaled = pygame.transform.scale(self.arrow, (50, 50))
-
+        self.update_arrow_size()
 
     # called every redraw for the mod
     def draw(self, aircraft, smartdisplay, pos):
@@ -97,7 +98,7 @@ class wind(Module):
                 "type": "int",
                 "default": self.arrow_size,
                 "min": 10,
-                "max": 50,
+                "max": 150,
                 "label": "Arrow Size",
                 "description": "Size of the arrow.",
                 "post_change_function": "update_arrow_size"
@@ -105,7 +106,6 @@ class wind(Module):
         }
     
     def update_arrow_size(self):
-        self.arrow_size = self.options["arrow_size"]
         self.arrow_scaled = pygame.transform.scale(
             self.arrow, (self.arrow_size, self.arrow_size)
         )

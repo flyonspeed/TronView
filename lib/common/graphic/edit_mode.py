@@ -334,7 +334,7 @@ def main_edit_loop():
                         undo_last_change(shared.Change_history, shared)
 
                 # check for Mouse events
-                if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.type == pygame.MOUSEBUTTONDOWN or event.type == pygame.FINGERDOWN:
                     mx, my = pygame.mouse.get_pos()
                     if shared.aircraft.debug_mode > 0:
                         print("Mouse Click %d x %d" % (mx, my))
@@ -471,7 +471,7 @@ def main_edit_loop():
                                 break
 
                 # Mouse up
-                elif event.type == pygame.MOUSEBUTTONUP:
+                elif event.type == pygame.MOUSEBUTTONUP or event.type == pygame.FINGERUP:
                     if dragging:
                         moves = handle_drag_end(selected_screen_objects, drag_start_positions)
                         drag_start_positions.clear()
@@ -490,7 +490,7 @@ def main_edit_loop():
                     #print("Mouse Up")
 
                 # Mouse move.. resize or move the module??
-                elif event.type == pygame.MOUSEMOTION:
+                elif event.type == pygame.MOUSEMOTION or event.type == pygame.FINGERMOTION:
                     if dragging and len(selected_screen_objects) == 1:  # if dragging a single screen object
                         mx, my = pygame.mouse.get_pos()
                         selected_screen_objects[0].move(mx - offset_x, my - offset_y)
@@ -650,7 +650,7 @@ class DropDown():
             self.draw_menu = False
 
         for event in event_list:
-            if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.type == pygame.MOUSEBUTTONDOWN or event.type == pygame.FINGERDOWN:
                 if self.menu_active:
                     self.draw_menu = not self.draw_menu
                     self.visible = not self.visible

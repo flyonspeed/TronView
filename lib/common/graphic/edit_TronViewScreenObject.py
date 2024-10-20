@@ -38,7 +38,7 @@ class TronViewScreenObject:
         return self.x <= mx <= self.x + self.width and self.y <= my <= self.y + self.height
 
     def click(self, aircraft, mx, my):
-        print("Click on %s at %d, %d" % (self.title, mx, my))
+        #print("Click on %s at %d, %d" % (self.title, mx, my))
         if hasattr(self.module, "processClick"):
             self.module.processClick(aircraft, mx, my)
 
@@ -186,13 +186,19 @@ class TronViewScreenObject:
 
     def to_dict(self):
         # save everything about this object to json. modules, 
+        # get the grid position
+        anchor_manager = GridAnchorManager(self.pygamescreen, self.pygamescreen.get_size()[0], self.pygamescreen.get_size()[1])
+        anchor_manager.set_object_grid_position(self)
         data = {
             "type": self.type,
             "title": self.title,
             "x": self.x,
-            "y": self.y,
-            "width": self.width,
-            "height": self.height,
+            "y": int(self.y),
+            "width": int(self.width),
+            "height": int(self.height),
+            "grid_position": self.grid_position,
+            "grid_percentage_x": self.grid_percentage_x,
+            "grid_percentage_y": self.grid_percentage_y,
         }
         if self.module:
             data["module"] = {
@@ -218,10 +224,18 @@ class TronViewScreenObject:
     def from_dict(self, data):
         self.type = data['type']
         self.title = data['title']
-        self.x = data['x']
+        self.x = data['x'] # start with x and y from the json
         self.y = data['y']
         self.width = data['width']
         self.height = data['height']
+        if 'grid_position' in data:  # if the grid position is in the json, then calculate the x,y
+            self.grid_position = data['grid_position']
+            self.grid_percentage_x = data['grid_percentage_x']
+            self.grid_percentage_y = data['grid_percentage_y']
+            # calculate the grid position using AnchorManager.calculate_grid_position()
+            anchor_manager = GridAnchorManager(self.pygamescreen, self.pygamescreen.get_size()[0], self.pygamescreen.get_size()[1])
+            anchor_manager.set_object_position_from_grid_percentage(self)
+            #print("%s Calculated Grid position: %s" % (self.title, self.grid_position))
         if self.type == 'group' and data['screenObjects']:
             self.childScreenObjects = []
             for childSObj in data['screenObjects']:
@@ -235,7 +249,7 @@ class TronViewScreenObject:
         if self.type == 'module':
             # load the module and options
             newModules, titles  = find_module(self.title)
-            self.setModule(newModules[0], showOptions = True, width = data['width'], height = data['height'])
+            self.setModule(newModules[0], showOptions = True, width = self.width, height = self.height)
             
             # now load the options
             if hasattr(self.module, "get_module_options"):
@@ -262,3 +276,96 @@ class TronViewScreenObject:
     def align_right(self):
         screen_width, screen_height = pygame.display.get_surface().get_size()
         self.x = screen_width - self.width
+
+
+class GridAnchorManager:
+    def __init__(self, pgscreen, screen_width, screen_height):
+        self.pgscreen = pgscreen
+        self.screen_width = screen_width
+        self.screen_height = screen_height
+        self.grids = []
+        self.grid_labels = [
+            "TopL", "TopM", "TopR",
+            "MidL", "MidM", "MidR",
+            "BotL", "BotM", "BotR"
+        ]
+
+        grid_width = screen_width / 3
+        grid_height = screen_height / 3
+        
+        for i, label in enumerate(self.grid_labels):
+            x = (i % 3) * grid_width
+            y = (i // 3) * grid_height
+            self.grids.append({
+                'rect': pygame.Rect(x, y, grid_width, grid_height),
+                'label': label
+            })
+                
+        #print("Anchor grid set: %d grids" % len(self.grids), self.screen_width, self.screen_height)
+        self.font = pygame.font.SysFont("monospace", 20, bold=True)
+
+    # set the grid position and percentage based on the screen object's x,y
+    def set_object_grid_position(self, screen_object):
+        # generate the grid_position and grid_percentage_x and grid_percentage_y
+        for grid in self.grids:
+            if grid['rect'].collidepoint(screen_object.x + screen_object.width/2, screen_object.y + screen_object.height/2):
+                screen_object.grid_position = grid['label']
+                screen_object.grid_percentage_x = (screen_object.x + screen_object.width/2 - grid['rect'].x) / (grid['rect'].width/2)
+                screen_object.grid_percentage_y = (screen_object.y + screen_object.height/2 - grid['rect'].y) / (grid['rect'].height/2)
+
+    def set_object_position_from_grid_percentage(self, screen_object):
+        # based on screen_object.grid_postion and grid_percentage_x and grid_percentage_y
+        #print("checking grid position: %s" % screen_object.grid_position)
+        if hasattr(screen_object, 'grid_position'):
+            for grid in self.grids:
+                if grid['label'] == screen_object.grid_position:
+                    center_object_x = screen_object.width/2
+                    center_object_y = screen_object.height/2
+                    # use the percentage to move the screen object. use the center of the screen object and the center of the grid
+                    screen_object.x = int(grid['rect'].x + (screen_object.grid_percentage_x * grid['rect'].width/2) - screen_object.width/2)
+                    screen_object.y = int(grid['rect'].y + (screen_object.grid_percentage_y * grid['rect'].height/2) - screen_object.height/2)
+                    #print("size updated:%s %s x:%d y:%d" % (screen_object.title, screen_object.grid_position, screen_object.x, screen_object.y))
+                    #screen_object.move(screen_object.x, screen_object.y)
+                    if screen_object.x < 0: # don't let the screen object go off the left side of the screen
+                        screen_object.x = 0
+                    if screen_object.y < 0: # don't let the screen object go off the top of the screen
+                        screen_object.y = 0
+
+        return
+
+    def anchor_draw(self, selected_screen_objects):
+        # draw the grid lines
+        for grid in self.grids:
+            pygame.draw.rect(self.pgscreen, (70, 70, 70), grid['rect'], 1)
+                    
+        in_grid = None
+
+        # draw the grid box around the selected screen object
+        for selected_screen_object in selected_screen_objects:
+            for grid in self.grids:
+                if grid['rect'].collidepoint(selected_screen_object.x + selected_screen_object.width/2, selected_screen_object.y + selected_screen_object.height/2):
+                    pygame.draw.rect(self.pgscreen, (60, 255, 40), grid['rect'], 2)
+                    in_grid = grid
+                    # draw the grid label in the center of the grid
+                    label_surface = self.font.render(in_grid['label'], True, (200, 200, 200, 60))
+                    label_rect = label_surface.get_rect(center=in_grid['rect'].center)
+                    self.pgscreen.blit(label_surface, label_rect)
+        
+        # get the percentage of distance from center of screen object to center of selected grid
+        # and draw a line from the screen object to the grid
+        for selected_screen_object in selected_screen_objects:
+            for grid in self.grids:
+                if grid == in_grid:
+                    center_object_x = selected_screen_object.width/2
+                    center_object_y = selected_screen_object.height/2
+                    distance_x = (selected_screen_object.x + center_object_x) - grid['rect'].center[0]
+                    distance_y = (selected_screen_object.y + center_object_y) - grid['rect'].center[1]
+                    percentage_x = distance_x / (grid['rect'].width/2)
+                    percentage_y = distance_y / (grid['rect'].height/2)
+
+                    # draw a line from the screen object to the grid
+                    pygame.draw.line(self.pgscreen, (200, 200, 200), (selected_screen_object.x + selected_screen_object.width/2, selected_screen_object.y + selected_screen_object.height/2), grid['rect'].center, 1)
+                    # draw the percentage on the line
+                    percentage_text = self.font.render(f"x:{percentage_x:.0%} y:{percentage_y:.0%}", True, (200, 200, 200))
+                    percentage_rect = percentage_text.get_rect(center=((selected_screen_object.x + selected_screen_object.width/2 + grid['rect'].center[0])/2, (selected_screen_object.y + selected_screen_object.height/2 + grid['rect'].center[1])/2))
+                    self.pgscreen.blit(percentage_text, percentage_rect)

@@ -15,6 +15,7 @@ from lib.common import shared
 import pygame
 import math
 
+
 class text(Module):
     # called only when object is first created.
     def __init__(self):
@@ -39,7 +40,8 @@ class text(Module):
         Module.initMod(
             self, pygamescreen, width, height
         )  # call parent init screen.
-        print(("Init Mod: %s %dx%d"%(self.name,self.width,self.height)))
+        if shared.aircraft.debug_mode > 0:
+            print(("Init Mod: %s %dx%d"%(self.name,self.width,self.height)))
         # does the self.font_name variable exist?
             
         self.font = pygame.font.SysFont(self.font_name, self.font_size, self.font_bold)

@@ -6,7 +6,7 @@ class ChangeHistory:
 
     def add_change(self, change_type, data):
         self.history.append({"type": change_type, "data": data})
-        print(f"history added: {change_type}, {data}")
+        #print(f"history added: {change_type}, {data}")
 
     def undo(self):
         if self.history:

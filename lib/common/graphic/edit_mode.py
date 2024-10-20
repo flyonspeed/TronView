@@ -18,6 +18,7 @@ from lib.common.graphic.edit_find_module import find_module
 from lib.common.graphic.edit_save_load import save_screen_to_json, load_screen_from_json
 from lib.common.graphic.edit_EditToolBar import EditToolBar
 from lib.common.graphic.edit_EditOptionsBar import EditOptionsBar
+from lib.common.graphic.edit_TronViewScreenObject import GridAnchorManager
 
 # Add this near the top of the file, after the imports
 
@@ -32,7 +33,6 @@ def main_edit_loop():
     maxframerate = hud_utils.readConfigInt("Main", "maxframerate", 30)
     clock = pygame.time.Clock()
     pygame.time.set_timer(pygame.USEREVENT, 1000) # fire User events ever sec.
-    debug_mode = 0
     debug_font = pygame.font.SysFont("monospace", 25, bold=False)
 
     exit_edit_mode = False
@@ -40,9 +40,10 @@ def main_edit_loop():
     print("Entering Edit Mode")
 
     # clear screen using pygame
-    pygamescreen = pygame.display.set_mode((shared.smartdisplay.x_end, shared.smartdisplay.y_end))
+    pygamescreen = shared.smartdisplay.pygamescreen
     pygamescreen.fill((0, 0, 0))
     pygame.display.update()
+    anchor_manager = GridAnchorManager(pygamescreen, shared.smartdisplay.x_end, shared.smartdisplay.y_end)
 
     # if shared.CurrentScreen.ScreenObjects exists.. if it doesn't create it as array
     if not hasattr(shared.CurrentScreen, "ScreenObjects"):
@@ -54,13 +55,14 @@ def main_edit_loop():
     offset_y = 0 # y offset for dragging
     resizing = False  # are we resizing?
     dropdown = None # dropdown menu for module selection (if any)
-    modulesFound, listModules = find_module(debugOutput=True)
+    modulesFound, listModules = find_module(debugOutput=False)
     showAllBoundryBoxes = False
     selected_screen_objects = []
     pygame_gui_manager = pygame_gui.UIManager((shared.smartdisplay.x_end, shared.smartdisplay.y_end))
     edit_options_bar = None
     fps_font = pygame.font.SysFont("monospace", 30)
     show_ruler = False
+    show_anchor_grid = False
     ruler_color = (100, 100, 100, 6)  # Light gray for non-selected objects
     selected_ruler_color = (0, 255, 0, 6)  # Green for selected objects
     help_window = None
@@ -112,6 +114,11 @@ def main_edit_loop():
                         pass
                     elif event.key == pygame.K_q:
                         shared.aircraft.errorFoundNeedToExit = True
+                    elif event.key == pygame.K_d:
+                        shared.aircraft.debug_mode += 1
+                        if shared.aircraft.debug_mode > 2:
+                            shared.aircraft.debug_mode = 0
+                        print("Debug mode: %d" % shared.aircraft.debug_mode)
                     elif event.key == pygame.K_ESCAPE:
                         # Unselect all selected objects
                         for sObject in shared.CurrentScreen.ScreenObjects:
@@ -262,7 +269,13 @@ def main_edit_loop():
 
                     # Toggle ruler when 'R' is pressed
                     elif event.key == pygame.K_r:
-                        show_ruler = not show_ruler
+                        if(not show_ruler and not show_anchor_grid):
+                            show_ruler = True
+                        elif(show_ruler and not show_anchor_grid):
+                            show_ruler = False
+                            show_anchor_grid = True
+                        elif(not show_ruler and show_anchor_grid):
+                            show_anchor_grid = False
 
                     # Move selected screen object with arrow keys
                     elif event.key in [pygame.K_UP, pygame.K_DOWN, pygame.K_LEFT, pygame.K_RIGHT]:
@@ -314,7 +327,8 @@ def main_edit_loop():
                 # check for Mouse events
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     mx, my = pygame.mouse.get_pos()
-                    print("Mouse Click %d x %d" % (mx, my))
+                    if shared.aircraft.debug_mode > 0:
+                        print("Mouse Click %d x %d" % (mx, my))
                     
                     # Check for GUI interactions first
                     gui_handled = False
@@ -385,14 +399,16 @@ def main_edit_loop():
                                     if sObject not in selected_screen_objects:
                                         selected_screen_objects.append(sObject)
                                         sObject.selected = True
-                                        print("Selected module: %s (shift) current modules: %d" % (sObject.title, len(selected_screen_objects)))
+                                        if shared.aircraft.debug_mode > 0:
+                                            print("Selected module: %s (shift) current modules: %d" % (sObject.title, len(selected_screen_objects)))
                                     # update the mouse offset for all selected modules
                                     for sObject in selected_screen_objects:
                                         sObject.mouse_offset_x = mx - sObject.x
                                         sObject.mouse_offset_y = my - sObject.y
                                 else:
                                     if len(selected_screen_objects) > 1 and atLeastOneSelectedObjectIsClicked:
-                                        print("Multiple modules selected, updating mouse offsets (moving objects)")
+                                        if shared.aircraft.debug_mode > 0:
+                                            print("Multiple modules selected, updating mouse offsets (moving objects)")
                                         for sObject in selected_screen_objects:
                                             sObject.mouse_offset_x = mx - sObject.x
                                             sObject.mouse_offset_y = my - sObject.y
@@ -403,7 +419,8 @@ def main_edit_loop():
 
                                         selected_screen_objects = [sObject]
                                         sObject.selected = True
-                                        print("Selected module: %s" % sObject.title)
+                                        if shared.aircraft.debug_mode > 0:
+                                            print("Selected module: %s" % sObject.title)
                                 #################
                                 # RESIZE MODULE
                                 if mx >= sObject.x + sObject.width - 10 and my >= sObject.y + sObject.height - 10 and mx <= sObject.x + sObject.width and my <= sObject.y + sObject.height:
@@ -449,12 +466,14 @@ def main_edit_loop():
                         moves = handle_drag_end(selected_screen_objects, drag_start_positions)
                         drag_start_positions.clear()
                         if moves > 0:
-                            print("Dragging end, %d moves happened" % moves)
+                            #print("Dragging end, %d moves happened" % moves)
+                            pass
                         else: # send the click event to the screen object. translate the mouse position to the screen object.
                             for sObject in selected_screen_objects:
                                 sObject.click(shared.aircraft, mx - sObject.x, my - sObject.y)
                     elif resizing and selected_screen_object:
-                        print("Resizing end")
+                        if shared.aircraft.debug_mode > 0:
+                            print("Resizing end")
                         handle_resize_end(selected_screen_object, resize_start_size)
                     dragging = False
                     resizing = False
@@ -538,6 +557,10 @@ def main_edit_loop():
         # Draw ruler if enabled
         if show_ruler:
             draw_ruler(pygamescreen, shared.CurrentScreen.ScreenObjects, ruler_color, selected_ruler_color)
+
+        # Draw anchor points if enabled
+        if show_anchor_grid:
+            anchor_manager.anchor_draw(selected_screen_objects)
 
         pygame_gui_manager.draw_ui(pygamescreen)
         #now make pygame update display.
@@ -642,3 +665,4 @@ COLOR_LIST_INACTIVE = (100, 100, 100)
 COLOR_LIST_ACTIVE = (255, 255, 255)
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python
+

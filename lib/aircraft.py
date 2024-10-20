@@ -61,6 +61,7 @@ class Aircraft(object):
         self.debug1 = ""
         self.debug2 = ""
         self.debug3 = ""
+        self.debug_mode = 0
 
         self.msg_count = 0
         self.msg_bad = 0
@@ -226,31 +227,31 @@ class Aircraft(object):
 
         def add_field(name: str, value: Any, current_prefix: str):
             full_name = f"{current_prefix}{name}" if current_prefix else name
-            print(f"Checking field: {full_name} with type: {type(value).__name__}", end=' ')
+            #print(f"Checking field: {full_name} with type: {type(value).__name__}", end=' ')
 
             if isinstance(value, (str, int, float, bool, list, tuple, dict)):
                 fields.append(full_name)
-                print("(added)")
+                #print("(added)")
             elif inspect.ismethod(value) or inspect.isfunction(value):
                 fields.append(f"{full_name}()")
-                print("(added as method)")
-            elif inspect.isclass(value):
-                print("(skipped class)")
+                #print("(added as method)")
+            #elif inspect.isclass(value):
+                #print("(skipped class)")
             elif hasattr(value, '__dict__'):
-                print("(recursing)")
+                #print("(recursing)")
                 for attr, attr_value in inspect.getmembers(value):
                     if not attr.startswith('_'):
                         add_field(attr, attr_value, f"{full_name}.")
             else:
                 fields.append(full_name)
-                print("(added as unknown type)")
+                #print("(added as unknown type)")
 
         for name, value in inspect.getmembers(self):
             if not name.startswith('_'):
                 add_field(name, value, prefix)
 
         self._all_fields = fields
-        print(f"Built field list with {len(fields)} items")
+        #print(f"Built field list with {len(fields)} items")
         return fields
 
 

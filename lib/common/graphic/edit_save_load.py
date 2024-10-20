@@ -45,8 +45,8 @@ def load_screen_from_json(filename):
         
         # Set screen properties
         shared.CurrentScreen.title = data['screen']['title']
-        shared.smartdisplay.x_end = data['screen']['width']
-        shared.smartdisplay.y_end = data['screen']['height']
+        #shared.smartdisplay.x_end = data['screen']['width']
+        #shared.smartdisplay.y_end = data['screen']['height']
         
         # Load screen objects using the from_dict method
         for obj_data in data['screenObjects']:

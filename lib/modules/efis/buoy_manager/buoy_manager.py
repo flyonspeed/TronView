@@ -11,6 +11,7 @@ from lib import smartdisplay
 from lib import aircraft
 import pygame
 import math
+from lib.common import shared
 
 
 class buoy_manager(Module):
@@ -34,7 +35,8 @@ class buoy_manager(Module):
         Module.initMod(
             self, pygamescreen, width, height
         )  # call parent init screen.
-        print(("Init Mod: %s %dx%d"%(self.name,self.width,self.height)))
+        if shared.aircraft.debug_mode > 0:
+            print(("Init Mod: %s %dx%d"%(self.name,self.width,self.height)))
 
         self.buttons = []
 

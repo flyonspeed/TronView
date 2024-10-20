@@ -10,7 +10,7 @@ import importlib
 # load config.cfg file if it exists.
 configParser = configparser.RawConfigParser()
 configParser.read("config.cfg")
-def readConfig(section, name, defaultValue=0, show_error=False,hideoutput=False):
+def readConfig(section, name, defaultValue=0, show_error=False,hideoutput=True):
     global configParser
     try:
         value = configParser.get(section, name)

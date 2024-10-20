@@ -14,6 +14,8 @@ import pygame
 import math
 import time
 #from osgeo import osr
+from lib.common import shared
+
 
 class trafficscope(Module):
     # called only when object is first created.
@@ -40,7 +42,8 @@ class trafficscope(Module):
         Module.initMod(
             self, pygamescreen, width, height
         )  # call parent init screen.
-        print(("Init Mod: %s %dx%d"%(self.name,self.width,self.height)))
+        if shared.aircraft.debug_mode > 0:
+            print(("Init Mod: %s %dx%d"%(self.name,self.width,self.height)))
 
         self.xCenter = self.width/2
         self.yCenter = self.height/2
@@ -135,8 +138,8 @@ class trafficscope(Module):
             brngToUse = (t.brng - aircraft_heading) % 360
             radianAngle = math.radians(brngToUse - 90)
             d = t.dist * self.scope_scale
-            xx = self.xCenter + (d * math.cos(radianAngle))
-            yy = self.yCenter + (d * math.sin(radianAngle))
+            xx = self.xCenter + (d * math.cos(radianAngle)) # translate to screen coordinates.
+            yy = self.yCenter + (d * math.sin(radianAngle)) # translate to screen coordinates.
 
             # Draw the target
             if self.draw_aircraft_icon:
@@ -162,6 +165,8 @@ class trafficscope(Module):
             # store the x,y position of the target in the local targetDetails dictionary.
             if t.callsign not in self.targetDetails:
                 self.targetDetails[t.callsign] = {"x": xx, "y": yy, "selected": False}
+                if shared.aircraft.debug_mode > 0:
+                    print("Added target to targetDetails: %s" % t.callsign, "x: %d, y: %d" % (xx, yy))
             else: # else just update the x,y position.
                 self.targetDetails[t.callsign]["x"] = xx
                 self.targetDetails[t.callsign]["y"] = yy
@@ -256,10 +261,6 @@ class trafficscope(Module):
                 labelLon = self.font_target.render(f"{t.lon:.6f}", False, (200,255,255), (0,0,0))
                 self.surface2.blit(labelLon, (x_text, y_text + next_text_y_offset + labelLat_rect.height))
 
-            # draw a circle around the target. if it is selected. check if the callsign is in the targetDetails dictionary. 
-            # is self.targetDetails[t.callsign]["selected"] even exist?
-            if t.callsign in self.targetDetails and self.targetDetails[t.callsign]["selected"]:
-                pygame.draw.circle(self.surface2, (120,255,120), (xx, yy), self.aircraft_icon_scale + 2, 2)
 
     # draw aircraft icon based on the type of aircraft
     def drawAircraftIcon(self, surface, target, xx, yy, scale):
@@ -335,6 +336,11 @@ class trafficscope(Module):
             smile_rect = pygame.Rect(xx - scale * 0.5, yy, scale, scale * 0.5)
             pygame.draw.arc(surface, (70,150,255), smile_rect, math.pi * 0.1, math.pi * 0.9, 1)
 
+        # draw a circle around the target. if it is selected. check if the callsign is in the targetDetails dictionary. 
+        # is self.targetDetails[t.callsign]["selected"] even exist?
+        if target.callsign in self.targetDetails and self.targetDetails[target.callsign]["selected"]:
+            pygame.draw.circle(self.surface2, (120,255,120), (xx, yy), self.aircraft_icon_scale + 2, 2)
+
 
 
     # called before screen draw.  To clear the screen to your favorite color.
@@ -400,14 +406,27 @@ class trafficscope(Module):
         }
 
     def processClick(self, aircraft, mx, my):
+        if aircraft.debug_mode > 0:
+            print("TrafficScope processClick: %d x %d" % (mx, my))
         # clear any selected targets from self.targetDetails
         for target in self.targetDetails:
             self.targetDetails[target]["selected"] = False
         
+        # # translate mx,my to same coordinate system as self.targetDetails.  which is based of the center of the surface is 0,0.
+        # mx = mx - self.xCenter
+        # my = my - self.yCenter
+        # if shared.aircraft.debug_mode > 0:
+        #     print("mx: %d, my: %d" % (mx, my))
+
         # check if they clicked near the x,y postion of a target.
         for target in self.targetDetails:
-            if math.hypot(mx - self.targetDetails[target]["x"], my - self.targetDetails[target]["y"]) < self.aircraft_icon_scale + 2:
+            # translate target x,y to screen coordinates.
+            #if shared.aircraft.debug_mode > 0:
+                #print("target: %s, x: %d, y: %d" % (target, self.targetDetails[target]["x"], self.targetDetails[target]["y"]))
+            if mx >= self.targetDetails[target]["x"] - self.aircraft_icon_scale and mx <= self.targetDetails[target]["x"] + self.aircraft_icon_scale and my >= self.targetDetails[target]["y"] - self.aircraft_icon_scale and my <= self.targetDetails[target]["y"] + self.aircraft_icon_scale:
                 self.targetDetails[target]["selected"] = True
+                if shared.aircraft.debug_mode > 0:
+                    print("selected target: %s" % target)
                 break
 
         

@@ -189,6 +189,7 @@ def loadScreen(ScreenNameToLoad):
     shared.CurrentScreen = class_()
     pygamescreen, screen_size = hud_graphics.initDisplay(0)
     width, height = screen_size
+    print(("Screen size: %d x %d"%(width,height)))
     shared.smartdisplay.setDisplaySize(width,height)
     shared.CurrentScreen.initDisplay(
         pygamescreen, width, height

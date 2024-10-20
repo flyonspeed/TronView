@@ -51,6 +51,7 @@ class EditToolBar:
         self.height = 40  # Increased to match button height
         self.position = "top"  # Default to top
 
+    # draw the toolbar
     def draw(self, surface):
         x, y = self.get_position()
         self.buttons[6].state = self.screen_object.showOptions # set the state of the edit options button

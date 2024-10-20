@@ -413,6 +413,9 @@ class EditOptionsBar:
         # if x is in self.screen_object.x, self.screen_object.x + self.screen_object.width, then move it to the left side of the screen_object
         if x in range(self.screen_object.x, self.screen_object.x + self.screen_object.width):
             x = self.screen_object.x - window_width
+            # what if the window is off the screen to the left? then draw it on the right side of the screen_object
+            if x < 0:
+                x = self.screen_object.width - window_width
 
         self.window.set_position((x, y))
 

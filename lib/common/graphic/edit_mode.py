@@ -335,9 +335,12 @@ def main_edit_loop():
 
                 # check for Mouse events
                 if event.type == pygame.MOUSEBUTTONDOWN or event.type == pygame.FINGERDOWN:
-                    mx, my = pygame.mouse.get_pos()
+                    if event.type == pygame.FINGERDOWN:
+                        mx, my = event.pos
+                    else:
+                        mx, my = pygame.mouse.get_pos()
                     if shared.aircraft.debug_mode > 0:
-                        print("Mouse Click %d x %d" % (mx, my))
+                        print("Click %d x %d" % (mx, my))
                     
                     # Check for GUI interactions first
                     gui_handled = False
@@ -491,15 +494,17 @@ def main_edit_loop():
 
                 # Mouse move.. resize or move the module??
                 elif event.type == pygame.MOUSEMOTION or event.type == pygame.FINGERMOTION:
-                    if dragging and len(selected_screen_objects) == 1:  # if dragging a single screen object
+                    if event.type == pygame.FINGERMOTION:
+                        mx, my = event.pos
+                    else:
                         mx, my = pygame.mouse.get_pos()
+                    if dragging and len(selected_screen_objects) == 1:  # if dragging a single screen object
                         selected_screen_objects[0].move(mx - offset_x, my - offset_y)
                         # Update EditOptionsBar position if it exists
                         if edit_options_bar and edit_options_bar.screen_object == selected_screen_objects[0]:
                             edit_options_bar.update_position()
                     
                     elif dragging and len(selected_screen_objects) > 1:  # if dragging multiple screen objects
-                        mx, my = pygame.mouse.get_pos()
                         # move all children of the selected screen objects
                         for sObject in selected_screen_objects:
                             # get the difference in x and y from the current position to the new position
@@ -513,13 +518,11 @@ def main_edit_loop():
 
                         pygamescreen.fill((0, 0, 0))
                     elif dragging and selected_screen_object:  # dragging a single screen object
-                        mx, my = pygame.mouse.get_pos()
                         selected_screen_object.move(mx, my)
                         # Update EditOptionsBar position if it exists
                         if edit_options_bar and edit_options_bar.screen_object == selected_screen_object:
                             edit_options_bar.update_position()
                     elif resizing and selected_screen_object: # resizing
-                        mx, my = pygame.mouse.get_pos()
                         temp_width = mx - selected_screen_object.x
                         temp_height = my - selected_screen_object.y
                         selected_screen_object.resize(temp_width, temp_height)

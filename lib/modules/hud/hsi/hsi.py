@@ -2,7 +2,7 @@
 
 #################################################
 # Module: HSI
-# Topher 2021.
+# Topher 2024 re-write.
 # Adapted from hsi code by Brian Chesteen.
 
 from lib.modules._module import Module

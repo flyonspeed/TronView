@@ -165,7 +165,6 @@ class rollindicator(Module):
         }
     
     def update_roll_point_size(self):
-        self.roll_point_size = self.options["roll_point_size"]
         self.roll_point_scaled = pygame.transform.scale(
             self.roll_point, (self.roll_point_size, self.roll_point_size)
         )

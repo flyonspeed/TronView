@@ -399,9 +399,7 @@ class EditOptionsBar:
         screen_width, screen_height = pygame.display.get_surface().get_size()
 
         # Calculate x position
-        x = min(self.screen_object.x + self.screen_object.width, 
-                screen_width - window_width)
-        x = max(0, x)  # Ensure it doesn't go off the left edge
+        x = self.screen_object.x + self.screen_object.width
 
         # Calculate y position
         y = self.screen_object.y
@@ -414,12 +412,13 @@ class EditOptionsBar:
         # Ensure it doesn't go above the top of the screen
         y = max(0, y)
 
-        # if x is in self.screen_object.x, self.screen_object.x + self.screen_object.width, then move it to the left side of the screen_object
-        if x in range(self.screen_object.x, self.screen_object.x + self.screen_object.width):
+        # if x + window_width is off the screen to the right, then move it to the left side of the screen_object
+        if x + window_width > screen_width:
             x = self.screen_object.x - window_width
-            # what if the window is off the screen to the left? then draw it on the right side of the screen_object
-            if x < 0:
-                x = self.screen_object.width - window_width
+
+        # what if the window is off the screen to the left? then draw it on the right side of the screen_object
+        if x < 0:
+            x = self.screen_object.width - window_width
 
         self.window.set_position((x, y))
 

@@ -34,7 +34,10 @@ def clone_screen_objects(selected_objects, mouse_x, mouse_y):
                     if not callable(value) and not attr.startswith("__"):
                         setattr(new_module, attr, value)
                 new_obj.setModule(new_module)
-        
+
+        # reset the width and height to the original values.
+        new_obj.width = obj.width
+        new_obj.height = obj.height
         cloned_objects.append(new_obj)
     
     return cloned_objects
@@ -65,4 +68,8 @@ def clone_screen_object(obj, offset_x, offset_y):
                     setattr(new_module, attr, value)
             new_obj.setModule(new_module)
     
+    # reset the width and height to the original values.
+    new_obj.width = obj.width
+    new_obj.height = obj.height
     return new_obj
+

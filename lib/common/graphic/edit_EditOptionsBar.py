@@ -352,7 +352,9 @@ class EditOptionsBar:
 
     def on_color_picked(self, option, color):
         print(f"color picked: {color}")
-        setattr(self.screen_object.module, option, color)
+        # convert color to a list of ints
+        newColorValue = [int(c) for c in color]
+        setattr(self.screen_object.module, option, newColorValue)
         for element in self.ui_elements:
             if isinstance(element, UIButton) and getattr(element, 'option_name', None) == option:
                 current_color_pygame = pygame.Color(*color)
@@ -360,7 +362,7 @@ class EditOptionsBar:
                 element.rebuild()
                 #break
         if hasattr(self.screen_object.module, 'update_option'):
-            self.screen_object.module.update_option(option, color)
+            self.screen_object.module.update_option(option, newColorValue)
         
         # Check for post_change_function
         options = self.screen_object.module.get_module_options()

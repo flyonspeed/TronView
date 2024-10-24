@@ -11,12 +11,12 @@
     {
       "type": "module",
       "title": "HUD Horizon V2",
-      "x": -1,
+      "x": 0,
       "y": 0,
       "width": 1918,
       "height": 1077,
       "grid_position": "MidM",
-      "grid_percentage_x": 0.99375,
+      "grid_percentage_x": 0.996875,
       "grid_percentage_y": 0.9916666666666667,
       "module": {
         "name": "HUD Horizon V2",
@@ -59,7 +59,7 @@
           }
         ]
       },
-      "id": "M_47zgz"
+      "id": "M_n4e1a"
     },
     {
       "type": "module",
@@ -76,11 +76,11 @@
         "options": [
           {
             "name": "show_callsign",
-            "value": false
+            "value": true
           },
           {
             "name": "show_details",
-            "value": false
+            "value": true
           },
           {
             "name": "details_offset",
@@ -104,7 +104,7 @@
           }
         ]
       },
-      "id": "M_1p6h0"
+      "id": "M_wpsao"
     },
     {
       "type": "module",
@@ -165,7 +165,7 @@
           }
         ]
       },
-      "id": "M_ek5bh"
+      "id": "M_ifo82"
     },
     {
       "type": "module",
@@ -194,39 +194,39 @@
           }
         ]
       },
-      "id": "M_4jlto"
+      "id": "M_cta2b"
     },
     {
       "type": "module",
       "title": "HSI",
-      "x": 781,
-      "y": 656,
-      "width": 300,
-      "height": 315,
+      "x": 695,
+      "y": 582,
+      "width": 445,
+      "height": 430,
       "grid_position": "BotM",
-      "grid_percentage_x": 0.909375,
-      "grid_percentage_y": 0.5194444444444445,
+      "grid_percentage_x": 0.8671875,
+      "grid_percentage_y": 0.42777777777777776,
       "module": {
         "name": "HSI",
         "options": [
           {
             "name": "hsi_size",
-            "value": 300
+            "value": 445
           }
         ]
       },
-      "id": "M_c1p1g"
+      "id": "M_vccxw"
     },
     {
       "type": "module",
       "title": "Wind",
-      "x": 27,
-      "y": 952,
-      "width": 150,
-      "height": 150,
+      "x": 18,
+      "y": 940,
+      "width": 108,
+      "height": 113,
       "grid_position": "BotL",
-      "grid_percentage_x": 0.31875,
-      "grid_percentage_y": 1.7055555555555555,
+      "grid_percentage_x": 0.225,
+      "grid_percentage_y": 1.5361111111111112,
       "module": {
         "name": "Wind",
         "options": [
@@ -236,17 +236,17 @@
           }
         ]
       },
-      "id": "M_94u5g"
+      "id": "M_cpuyf"
     },
     {
       "type": "module",
       "title": "Slip Skid",
-      "x": 823,
+      "x": 836,
       "y": 1004,
       "width": 247,
       "height": 50,
       "grid_position": "BotM",
-      "grid_percentage_x": 0.9578125,
+      "grid_percentage_x": 0.9984375,
       "grid_percentage_y": 1.7166666666666666,
       "module": {
         "name": "Slip Skid",
@@ -269,17 +269,17 @@
           }
         ]
       },
-      "id": "M_k1ag0"
+      "id": "M_x8g8q"
     },
     {
       "type": "module",
       "title": "Heading",
-      "x": 607,
+      "x": 577,
       "y": 38,
       "width": 706,
       "height": 113,
       "grid_position": "TopM",
-      "grid_percentage_x": 1.0,
+      "grid_percentage_x": 0.90625,
       "grid_percentage_y": 0.525,
       "module": {
         "name": "Heading",
@@ -293,45 +293,32 @@
             ]
           },
           {
-            "name": "font_color",
-            "value": [
-              255,
-              255,
-              255
-            ]
-          },
-          {
             "name": "font1_size",
             "value": 20
           },
           {
             "name": "font2_size",
             "value": 30
-          }
-        ]
-      },
-      "id": "M_807dm"
-    },
-    {
-      "type": "module",
-      "title": "RollIndicator",
-      "x": 755,
-      "y": 611,
-      "width": 500,
-      "height": 500,
-      "grid_position": "BotM",
-      "grid_percentage_x": 1.140625,
-      "grid_percentage_y": 0.7833333333333333,
-      "module": {
-        "name": "RollIndicator",
-        "options": [
+          },
           {
-            "name": "roll_point_size",
-            "value": 20
+            "name": "pixels_per_degree",
+            "value": 12
+          },
+          {
+            "name": "show_track",
+            "value": true
+          },
+          {
+            "name": "tick_color",
+            "value": [
+              0,
+              255,
+              0
+            ]
           }
         ]
       },
-      "id": "M_y06gj"
+      "id": "M_e7ip7"
     },
     {
       "type": "module",
@@ -356,7 +343,7 @@
           }
         ]
       },
-      "id": "M_mhfom"
+      "id": "M_2xx1d"
     },
     {
       "type": "module",
@@ -417,18 +404,18 @@
           }
         ]
       },
-      "id": "M_yloh7"
+      "id": "M_tcip8"
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 1622,
-      "y": 568,
-      "width": 200,
-      "height": 50,
+      "x": 1628,
+      "y": 593,
+      "width": 169,
+      "height": 31,
       "grid_position": "MidR",
-      "grid_percentage_x": 1.38125,
-      "grid_percentage_y": 1.2944444444444445,
+      "grid_percentage_x": 1.3515625,
+      "grid_percentage_y": 1.3805555555555555,
       "module": {
         "name": "Text",
         "options": [
@@ -478,7 +465,7 @@
           }
         ]
       },
-      "id": "M_iryla"
+      "id": "M_fyvjh"
     },
     {
       "type": "module",
@@ -507,7 +494,7 @@
           }
         ]
       },
-      "id": "M_u34tl"
+      "id": "M_56f17"
     },
     {
       "type": "module",
@@ -525,14 +512,15 @@
           {
             "name": "MainColor",
             "value": [
-              255,
-              255,
+              211,
+              6,
+              6,
               255
             ]
           }
         ]
       },
-      "id": "M_unk15"
+      "id": "M_era0a"
     },
     {
       "type": "module",
@@ -593,7 +581,7 @@
           }
         ]
       },
-      "id": "M_vtx42"
+      "id": "M_9vu87"
     },
     {
       "type": "module",
@@ -654,7 +642,7 @@
           }
         ]
       },
-      "id": "M_7otcl"
+      "id": "M_4nqak"
     },
     {
       "type": "module",
@@ -715,7 +703,7 @@
           }
         ]
       },
-      "id": "M_e6x39"
+      "id": "M_1cdat"
     },
     {
       "type": "module",
@@ -776,29 +764,29 @@
           }
         ]
       },
-      "id": "M_97g1b"
+      "id": "M_sdq9u"
     },
     {
       "type": "group",
       "title": "Group_24",
-      "x": 23,
-      "y": 407,
+      "x": 15,
+      "y": 402,
       "width": 259,
       "height": 241,
       "grid_position": "MidL",
-      "grid_percentage_x": 0.4765625,
-      "grid_percentage_y": 0.9305555555555556,
+      "grid_percentage_x": 0.4515625,
+      "grid_percentage_y": 0.9027777777777778,
       "screenObjects": [
         {
           "type": "module",
           "title": "Text",
-          "x": 59,
-          "y": 407,
+          "x": 51,
+          "y": 402,
           "width": 130,
           "height": 34,
           "grid_position": "MidL",
-          "grid_percentage_x": 0.3875,
-          "grid_percentage_y": 0.35555555555555557,
+          "grid_percentage_x": 0.3625,
+          "grid_percentage_y": 0.3277777777777778,
           "module": {
             "name": "Text",
             "options": [
@@ -848,18 +836,18 @@
               }
             ]
           },
-          "id": "M_kom5v"
+          "id": "M_enck5"
         },
         {
           "type": "module",
           "title": "Text",
-          "x": 23,
-          "y": 436,
+          "x": 15,
+          "y": 431,
           "width": 197,
           "height": 132,
           "grid_position": "MidL",
-          "grid_percentage_x": 0.3796875,
-          "grid_percentage_y": 0.7888888888888889,
+          "grid_percentage_x": 0.3546875,
+          "grid_percentage_y": 0.7611111111111111,
           "module": {
             "name": "Text",
             "options": [
@@ -909,18 +897,18 @@
               }
             ]
           },
-          "id": "M_sex7a"
+          "id": "M_4323n"
         },
         {
           "type": "module",
           "title": "Text",
-          "x": 221,
-          "y": 536,
+          "x": 213,
+          "y": 531,
           "width": 61,
           "height": 34,
           "grid_position": "MidL",
-          "grid_percentage_x": 0.7859375,
-          "grid_percentage_y": 1.0722222222222222,
+          "grid_percentage_x": 0.7609375,
+          "grid_percentage_y": 1.0444444444444445,
           "module": {
             "name": "Text",
             "options": [
@@ -970,18 +958,18 @@
               }
             ]
           },
-          "id": "M_41x1a"
+          "id": "M_3oufg"
         },
         {
           "type": "module",
           "title": "Text",
-          "x": 45,
-          "y": 569,
+          "x": 37,
+          "y": 564,
           "width": 102,
           "height": 27,
           "grid_position": "MidL",
-          "grid_percentage_x": 0.3,
-          "grid_percentage_y": 1.2361111111111112,
+          "grid_percentage_x": 0.275,
+          "grid_percentage_y": 1.2083333333333333,
           "module": {
             "name": "Text",
             "options": [
@@ -1031,18 +1019,18 @@
               }
             ]
           },
-          "id": "M_5kdua"
+          "id": "M_42w9f"
         },
         {
           "type": "module",
           "title": "Text",
-          "x": 45,
-          "y": 598,
+          "x": 37,
+          "y": 593,
           "width": 79,
           "height": 22,
           "grid_position": "MidL",
-          "grid_percentage_x": 0.2640625,
-          "grid_percentage_y": 1.3833333333333333,
+          "grid_percentage_x": 0.2390625,
+          "grid_percentage_y": 1.3555555555555556,
           "module": {
             "name": "Text",
             "options": [
@@ -1092,18 +1080,18 @@
               }
             ]
           },
-          "id": "M_tpl7b"
+          "id": "M_pyb41"
         },
         {
           "type": "module",
           "title": "Text",
-          "x": 45,
-          "y": 622,
+          "x": 37,
+          "y": 617,
           "width": 86,
           "height": 26,
           "grid_position": "MidL",
-          "grid_percentage_x": 0.275,
-          "grid_percentage_y": 1.5277777777777777,
+          "grid_percentage_x": 0.25,
+          "grid_percentage_y": 1.5,
           "module": {
             "name": "Text",
             "options": [
@@ -1153,10 +1141,616 @@
               }
             ]
           },
-          "id": "M_lpk54"
+          "id": "M_idwal"
         }
       ],
-      "id": "M_kaqw5"
+      "id": "M_2p97i"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 1028,
+      "y": 18,
+      "width": 200,
+      "height": 50,
+      "grid_position": "TopM",
+      "grid_percentage_x": 1.525,
+      "grid_percentage_y": 0.2388888888888889,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "template",
+            "value": "gndtrack"
+          },
+          {
+            "name": "text",
+            "value": "gndtrack: {gndtrack}"
+          },
+          {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 20
+          },
+          {
+            "name": "font_bold",
+            "value": false
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 0
+          },
+          {
+            "name": "box_radius",
+            "value": 0
+          }
+        ]
+      },
+      "id": "M_uw19q"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 1448,
+      "y": 1024,
+      "width": 161,
+      "height": 22,
+      "grid_position": "BotR",
+      "grid_percentage_x": 0.7765625,
+      "grid_percentage_y": 1.75,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "template",
+            "value": "traffic.src_alt"
+          },
+          {
+            "name": "text",
+            "value": "src_alt: {traffic.src_alt}"
+          },
+          {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 20
+          },
+          {
+            "name": "font_bold",
+            "value": false
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 0
+          },
+          {
+            "name": "box_radius",
+            "value": 0
+          }
+        ]
+      },
+      "id": "M_on1pm"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 1635,
+      "y": 1004,
+      "width": 165,
+      "height": 23,
+      "grid_position": "BotR",
+      "grid_percentage_x": 1.3671875,
+      "grid_percentage_y": 1.6416666666666666,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "template",
+            "value": "traffic.src_alt"
+          },
+          {
+            "name": "text",
+            "value": "trf count: {traffic.count}"
+          },
+          {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 20
+          },
+          {
+            "name": "font_bold",
+            "value": false
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 0
+          },
+          {
+            "name": "box_radius",
+            "value": 0
+          }
+        ]
+      },
+      "id": "M_n5h89"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 1633,
+      "y": 1050,
+      "width": 225,
+      "height": 23,
+      "grid_position": "BotR",
+      "grid_percentage_x": 1.4546875,
+      "grid_percentage_y": 1.8972222222222221,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "template",
+            "value": "traffic.lcl_time_string"
+          },
+          {
+            "name": "text",
+            "value": "trf_time: {traffic.lcl_time_string}"
+          },
+          {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 20
+          },
+          {
+            "name": "font_bold",
+            "value": false
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 0
+          },
+          {
+            "name": "box_radius",
+            "value": 0
+          }
+        ]
+      },
+      "id": "M_wk8ct"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 1447,
+      "y": 1002,
+      "width": 168,
+      "height": 25,
+      "grid_position": "BotR",
+      "grid_percentage_x": 0.784375,
+      "grid_percentage_y": 1.636111111111111,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "template",
+            "value": "traffic.src_alt"
+          },
+          {
+            "name": "text",
+            "value": "src_trk: {traffic.src_gndtrack}"
+          },
+          {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 20
+          },
+          {
+            "name": "font_bold",
+            "value": false
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 0
+          },
+          {
+            "name": "box_radius",
+            "value": 0
+          }
+        ]
+      },
+      "id": "M_nqcz3"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 1621,
+      "y": 567,
+      "width": 169,
+      "height": 27,
+      "grid_position": "MidR",
+      "grid_percentage_x": 1.3296875,
+      "grid_percentage_y": 1.225,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "template",
+            "value": "vsi"
+          },
+          {
+            "name": "text",
+            "value": "VSI: {vsi} fpm"
+          },
+          {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 20
+          },
+          {
+            "name": "font_bold",
+            "value": false
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 0
+          },
+          {
+            "name": "box_radius",
+            "value": 0
+          }
+        ]
+      },
+      "id": "M_jobti"
+    },
+    {
+      "type": "module",
+      "title": "ArtificalHorz",
+      "x": 151,
+      "y": 795,
+      "width": 341,
+      "height": 262,
+      "grid_position": "BotL",
+      "grid_percentage_x": 1.0046875,
+      "grid_percentage_y": 1.1444444444444444,
+      "module": {
+        "name": "ArtificalHorz",
+        "options": [
+          {
+            "name": "LineColor",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "SkyColorBottom",
+            "value": [
+              0,
+              153,
+              204
+            ]
+          },
+          {
+            "name": "SkyColorTop",
+            "value": [
+              0,
+              102,
+              204
+            ]
+          },
+          {
+            "name": "GroundColorTop",
+            "value": [
+              153,
+              102,
+              51
+            ]
+          },
+          {
+            "name": "GroundColorBottom",
+            "value": [
+              102,
+              51,
+              0
+            ]
+          }
+        ]
+      },
+      "id": "M_5xr6u"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 1412,
+      "y": 1046,
+      "width": 187,
+      "height": 22,
+      "grid_position": "BotR",
+      "grid_percentage_x": 0.7046875,
+      "grid_percentage_y": 1.8722222222222222,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "template",
+            "value": "traffic.src_gndspeed"
+          },
+          {
+            "name": "text",
+            "value": "src_gndspd: {traffic.src_gndspeed}"
+          },
+          {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 20
+          },
+          {
+            "name": "font_bold",
+            "value": false
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 0
+          },
+          {
+            "name": "box_radius",
+            "value": 0
+          }
+        ]
+      },
+      "id": "M_fxzn2"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 1634,
+      "y": 1026,
+      "width": 168,
+      "height": 25,
+      "grid_position": "BotR",
+      "grid_percentage_x": 1.36875,
+      "grid_percentage_y": 1.7694444444444444,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "template",
+            "value": "traffic.msg_count"
+          },
+          {
+            "name": "text",
+            "value": "trf_msg: {traffic.msg_count}"
+          },
+          {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 20
+          },
+          {
+            "name": "font_bold",
+            "value": false
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 0
+          },
+          {
+            "name": "box_radius",
+            "value": 0
+          }
+        ]
+      },
+      "id": "M_f6281"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 1816,
+      "y": 1026,
+      "width": 118,
+      "height": 24,
+      "grid_position": "BotR",
+      "grid_percentage_x": 1.859375,
+      "grid_percentage_y": 1.7666666666666666,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "template",
+            "value": "traffic.msg_count"
+          },
+          {
+            "name": "text",
+            "value": "bad: {traffic.msg_bad}"
+          },
+          {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 20
+          },
+          {
+            "name": "font_bold",
+            "value": false
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 0
+          },
+          {
+            "name": "box_radius",
+            "value": 0
+          }
+        ]
+      },
+      "id": "M_7ca37"
     }
   ]
 }

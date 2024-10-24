@@ -57,52 +57,58 @@ class artificalhorz(Module):
         else:
             x, y = pos
 
-        self.surface.fill((0, 0, 0))
+        # Create a temporary surface for drawing
+        temp_surface = pygame.Surface((self.width, self.height))
+        temp_surface.fill((0, 0, 0))
 
         # Calculate horizon line position
-        # Invert pitch to correct direction
         horizon_y = int(self.height / 2 + (aircraft.pitch * self.pixels_per_deg))
 
         # Draw sky
         sky_height = max(0, min(horizon_y, self.height))
         if sky_height > 0:
             sky_surface = pygame.transform.scale(self.sky_gradient, (self.width, sky_height))
-            self.surface.blit(sky_surface, (0, 0))
+            temp_surface.blit(sky_surface, (0, 0))
 
         # Draw ground
         ground_start = max(0, min(horizon_y, self.height))
         ground_height = max(0, self.height - ground_start)
         if ground_height > 0:
             ground_surface = pygame.transform.scale(self.ground_gradient, (self.width, ground_height))
-            self.surface.blit(ground_surface, (0, ground_start))
+            temp_surface.blit(ground_surface, (0, ground_start))
 
         # Draw pitch lines
-        self.draw_pitch_lines(horizon_y)
+        self.draw_pitch_lines(temp_surface, horizon_y)
 
         # Rotate the surface
-        # Invert roll to correct direction
-        rotated_surface = pygame.transform.rotate(self.surface, aircraft.roll)
+        rotated_surface = pygame.transform.rotate(temp_surface, aircraft.roll)
         rotated_rect = rotated_surface.get_rect(center=(self.width/2, self.height/2))
 
-        # Draw on pygamescreen
-        self.pygamescreen.blit(rotated_surface, (x + rotated_rect.x, y + rotated_rect.y))
+        # Create a surface for the final output, considering the rotation
+        final_surface = pygame.Surface((self.width, self.height))
+        final_surface.fill((0, 0, 0, 0))  # Fill with transparent color
+
+        # Blit the rotated surface onto the final surface
+        final_surface.blit(rotated_surface, (rotated_rect.x, rotated_rect.y))
+
+        # Draw the final surface on the pygamescreen at the specified position, trimming off excess
+        self.pygamescreen.blit(final_surface, (x, y), (0, 0, self.width, self.height))
 
         # Draw fixed elements
         self.draw_fixed_elements(x, y)
 
-    def draw_pitch_lines(self, horizon_y):
+    def draw_pitch_lines(self, surface, horizon_y):
         for pitch in range(-self.pitch_range, self.pitch_range + 1, 5):
             if pitch == 0:
                 continue
-            # Invert pitch calculation here as well
             y_pitch = horizon_y + (pitch * self.pixels_per_deg)
             length = 50 if pitch % 10 == 0 else 25
-            pygame.draw.line(self.surface, self.LineColor, (self.width/2 - length, y_pitch), (self.width/2 + length, y_pitch), 2)
+            pygame.draw.line(surface, self.LineColor, (self.width/2 - length, y_pitch), (self.width/2 + length, y_pitch), 2)
             
             if pitch % 10 == 0:
                 text = self.font.render(str(abs(pitch)), True, self.LineColor)
-                self.surface.blit(text, (self.width/2 + length + 5, y_pitch - text.get_height()/2))
-                self.surface.blit(text, (self.width/2 - length - text.get_width() - 5, y_pitch - text.get_height()/2))
+                surface.blit(text, (self.width/2 + length + 5, y_pitch - text.get_height()/2))
+                surface.blit(text, (self.width/2 - length - text.get_width() - 5, y_pitch - text.get_height()/2))
 
     def draw_fixed_elements(self, x, y):
         center_x, center_y = x + self.width/2, y + self.height/2

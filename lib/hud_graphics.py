@@ -9,6 +9,11 @@ from . import hud_utils
 ## Function: initDisplay
 def initDisplay(debug):
     pygame.init()
+    # set the window icon
+    icon = pygame.image.load("lib/common/assets/tronview_logo1.png")
+    pygame.display.set_icon(icon)
+    pygame.display.set_caption('TronView')
+
     disp_no = os.getenv("DISPLAY")
     print(("sys.platform:%s"%(sys.platform)))
     print(("platform.machine:%s"%(platform.machine())))
@@ -32,7 +37,6 @@ def initDisplay(debug):
         print(("default to XDisplay {0}".format(disp_no)))
         if showFullScreen == False:
             screen = pygame.display.set_mode(size)
-            pygame.display.set_caption('efis')
         else:
             # Go full screen with no frame.
             size = pygame.display.Info().current_w, pygame.display.Info().current_h
@@ -58,11 +62,11 @@ def initDisplay(debug):
         # check if we want to show fullscreen or window.
         if showFullScreen == False:
             screen = pygame.display.set_mode(size, pygame.RESIZABLE)
-            pygame.display.set_caption('efis')
         else:
             # else go full screen.
             size = pygame.display.Info().current_w, pygame.display.Info().current_h
             screen = pygame.display.set_mode(size, pygame.FULLSCREEN)
+
 
     showMouse = hud_utils.readConfig("Main", "ShowMouse", "false")  # default screen to load
     if showMouse != "false":

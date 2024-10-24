@@ -20,8 +20,8 @@ class artificalhorz(Module):
         self.GroundColorBottom = (102, 51, 0)
         self.LineColor = (255, 255, 255)
         self.pitch_range = 30
-        self.width = 500 # default width
-        self.height = 500 # default height
+        self.width = 500  # default width
+        self.height = 500  # default height
         self.font_size = 20
         self.bank_angle_radius = None
 
@@ -41,8 +41,22 @@ class artificalhorz(Module):
         if self.bank_angle_radius is None:
             self.bank_angle_radius = self.height / 3
 
-        self.sky_gradient = self.create_gradient(self.SkyColorTop, self.SkyColorBottom, self.height // 2)
-        self.ground_gradient = self.create_gradient(self.GroundColorTop, self.GroundColorBottom, self.height // 2)
+        # Create a larger combined surface for sky and ground
+        larger_width = int(self.width * 1.5)
+        larger_height = int(self.height * 1.5)
+        self.combined_surface = pygame.Surface((larger_width, larger_height))
+
+        # Pre-render the combined sky and ground
+        self.sky_gradient = self.create_gradient(self.SkyColorTop, self.SkyColorBottom, larger_height // 2)
+        self.ground_gradient = self.create_gradient(self.GroundColorTop, self.GroundColorBottom, larger_height // 2)
+
+        for i in range(larger_height // 2):
+            color = self.sky_gradient.get_at((0, i))
+            pygame.draw.line(self.combined_surface, color, (0, i), (larger_width, i))
+
+        for i in range(larger_height // 2):
+            color = self.ground_gradient.get_at((0, i))
+            pygame.draw.line(self.combined_surface, color, (0, i + larger_height // 2), (larger_width, i + larger_height // 2))
 
     def create_gradient(self, color1, color2, height):
         gradient = pygame.Surface((1, height))
@@ -60,29 +74,25 @@ class artificalhorz(Module):
             x, y = pos
 
         # Create a temporary surface for drawing
-        temp_surface = pygame.Surface((self.width, self.height))
+        larger_width = int(self.width * 1.5)
+        larger_height = int(self.height * 1.5)
+        temp_surface = pygame.Surface((larger_width, larger_height))
         temp_surface.fill((0, 0, 0))
 
         # Calculate horizon line position
-        horizon_y = int(self.height / 2 + (aircraft.pitch * self.pixels_per_deg))
+        horizon_y = int(larger_height / 2 + (aircraft.pitch * self.pixels_per_deg))
 
-        # Draw sky
-        sky_height = max(0, min(horizon_y, self.height))
-        if sky_height > 0:
-            sky_surface = pygame.transform.scale(self.sky_gradient, (self.width, sky_height))
-            temp_surface.blit(sky_surface, (0, 0))
+        # Blit pre-rendered combined surface
+        temp_surface.blit(self.combined_surface, (0, 0))
 
-        # Draw ground
-        ground_start = max(0, min(horizon_y, self.height))
-        ground_height = max(0, self.height - ground_start)
-        if ground_height > 0:
-            ground_surface = pygame.transform.scale(self.ground_gradient, (self.width, ground_height))
-            temp_surface.blit(ground_surface, (0, ground_start))
+        # Draw pitch lines on the original-sized surface
+        pitch_surface = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
+        self.draw_pitch_lines(pitch_surface, self.height / 2 + (aircraft.pitch * self.pixels_per_deg))
 
-        # Draw pitch lines
-        self.draw_pitch_lines(temp_surface, horizon_y)
+        # Blit pitch lines onto the larger surface
+        temp_surface.blit(pitch_surface, ((larger_width - self.width) // 2, (larger_height - self.height) // 2))
 
-        # Rotate the surface
+        # Rotate the larger surface
         rotated_surface = pygame.transform.rotate(temp_surface, aircraft.roll)
         rotated_rect = rotated_surface.get_rect(center=(self.width/2, self.height/2))
 

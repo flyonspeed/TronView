@@ -83,7 +83,7 @@ class TronViewScreenObject:
                 end_time = time.time()
                 self.draw_time = (end_time - start_time) * 1000  # Convert to milliseconds
                 time_text = f"{self.draw_time:.2f}ms"
-                time_surface = self.debug_font.render(time_text, True, (255, 255, 255))
+                time_surface = self.debug_font.render(time_text, True, (255, 255, 255), (0, 0, 0, 0), pygame.SRCALPHA)
                 time_rect = time_surface.get_rect(bottomleft=(self.x + 5, self.y + self.height - 5))
                 self.pygamescreen.blit(time_surface, time_rect)
             else:

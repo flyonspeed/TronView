@@ -556,14 +556,14 @@ def main_edit_loop():
         # Draw FPS if enabled
         if shared.aircraft.show_FPS:
             fps = clock.get_fps()
-            fps_text = fps_font.render(f"FPS: {fps:.2f}", True, (255, 255, 255))
+            fps_text = fps_font.render(f"FPS: {fps:.2f}", True, (255, 255, 255), (0, 0, 0, 0), pygame.SRCALPHA)
             fps_rect = fps_text.get_rect(topright=(shared.smartdisplay.x_end - 10, 10))
             pygamescreen.blit(fps_text, fps_rect)
 
             # Add total draw time for all modules
             total_draw_time = sum(getattr(obj, 'draw_time', 0) for obj in shared.CurrentScreen.ScreenObjects)
             total_time_text = f"DrawTime: {total_draw_time:.2f}ms" # show time in ms
-            total_time_surface = fps_font.render(total_time_text, True, (255, 255, 255))
+            total_time_surface = fps_font.render(total_time_text, True, (255, 255, 255), (0, 0, 0, 0))
             total_time_rect = total_time_surface.get_rect(topright=(shared.smartdisplay.x_end - 10, 40))
             pygamescreen.blit(total_time_surface, total_time_rect)
 

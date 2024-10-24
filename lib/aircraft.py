@@ -52,7 +52,7 @@ class Aircraft(object):
         self.gps = GPSData()
         self.engine = EngineData()
         self.nav = NavData()
-        self.traffic = TrafficData()
+        self.traffic: TrafficData = TrafficData()
         self.fuel = FuelData()
         self.internal = InteralData()
         self.inputs = [InputDetails(),InputDetails(),InputDetails()]

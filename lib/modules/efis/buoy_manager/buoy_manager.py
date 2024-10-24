@@ -79,7 +79,7 @@ class buoy_manager(Module):
                 b["selected"] = True
 
     # called every redraw for the module
-    def draw(self, aircraft, smartdisplay, pos=(0, 0)):
+    def draw(self, aircraft: aircraft, smartdisplay, pos=(0, 0)):
         # Clear the surface with full transparency
         self.surface.fill((0, 0, 0, 0))
 
@@ -109,13 +109,17 @@ class buoy_manager(Module):
     ##########################################################
     # add a button to the module
     ##########################################################
-    def addButton(self, id, text, function = None, x=-1, y=-1, width=0, height=30, newRow=False, center=False, selected=False, type="button"):
+    def addButton(self, id, text, function = None, x=-1, y=-1, width=0, height=0, newRow=False, center=False, selected=False, type="button"):
         # Calculate the button width based on text if width is 0
         label_width = self.font_target.size(text)[0]
         if width == 0:
             width = label_width + 10  # Add 5px padding on each side
         else:
             width = max(width, label_width + 10)  # Ensure the width is at least as wide as the text plus padding
+
+        # if height is 0, then set it to the height of the text
+        if height == 0:
+            height = self.font_target.size(text)[1] + 10
 
         # Find the last button's position
         last_button = None if len(self.buttons) == 0 else self.buttons[-1]
@@ -168,7 +172,7 @@ class buoy_manager(Module):
         print("clear")
 
     # handle mouse clicks
-    def processClick(self, aircraft, mx, my):
+    def processClick(self, aircraft: aircraft, mx, my):
         for button in self.buttons:
             if button["x"] <= mx <= button["x"] + button["width"] and button["y"] <= my <= button["y"] + button["height"]:
                 if button["function"]:

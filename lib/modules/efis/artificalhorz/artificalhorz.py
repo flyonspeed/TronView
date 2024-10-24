@@ -7,6 +7,8 @@
 from lib.modules._module import Module
 import pygame
 import math
+from lib.common import shared
+
 
 class artificalhorz(Module):
     def __init__(self):
@@ -19,8 +21,8 @@ class artificalhorz(Module):
         self.GroundColorBottom = (102, 51, 0)
         self.LineColor = (255, 255, 255)
         self.pitch_range = 30
-        self.width = 500
-        self.height = 500
+        self.width = 500 # default width
+        self.height = 500 # default height
         self.font_size = 20
         self.bank_angle_radius = None
 
@@ -30,7 +32,8 @@ class artificalhorz(Module):
         if height is not None:
             self.height = height
         Module.initMod(self, pygamescreen, self.width, self.height)
-        print(f"Init Mod: {self.name} {self.width}x{self.height}")
+        if shared.aircraft.debug_mode > 0:
+            print(f"Init Mod: {self.name} {self.width}x{self.height}")
 
         self.font = pygame.font.SysFont(None, self.font_size)
         self.surface = pygame.Surface((self.width, self.height))

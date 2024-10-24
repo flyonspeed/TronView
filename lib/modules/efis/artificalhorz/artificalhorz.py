@@ -10,6 +10,7 @@ from lib import hud_utils
 from lib import smartdisplay
 import pygame
 import math
+import numpy as np
 
 class artificalhorz(Module):
     def __init__(self):
@@ -17,11 +18,15 @@ class artificalhorz(Module):
         self.name = "ArtificalHorz"
         self.MainColor = (255, 255, 255)
         self.SkyColor = (0, 153, 204)
+        self.SkyColorTop = (0, 102, 204)  # Darker blue for top of sky
         self.GroundColor = (153, 102, 51)
+        self.GroundColorBottom = (102, 51, 0)  # Darker brown for bottom of ground
         self.LineColor = (255, 255, 255)
         self.pitch_range = 30  # Degrees of pitch to show above and below horizon
         self.width = 500
         self.height = 500
+        self.sky_gradient = None
+        self.ground_gradient = None
 
     def initMod(self, pygamescreen, width=None, height=None):
         if width is not None:
@@ -34,26 +39,44 @@ class artificalhorz(Module):
         self.font = pygame.font.SysFont(None, int(self.height / 20))
         self.surface = pygame.Surface((self.width, self.height))
 
+        # Pre-render sky gradient
+        self.sky_gradient = self.create_gradient(self.SkyColorTop, self.SkyColor, self.height // 2)
+
+        # Pre-render ground gradient
+        self.ground_gradient = self.create_gradient(self.GroundColor, self.GroundColorBottom, self.height // 2)
+
+    def create_gradient(self, color1, color2, height):
+        gradient = pygame.Surface((1, height))
+        for i in range(height):
+            r = int(color1[0] + (color2[0] - color1[0]) * i / height)
+            g = int(color1[1] + (color2[1] - color1[1]) * i / height)
+            b = int(color1[2] + (color2[2] - color1[2]) * i / height)
+            gradient.set_at((0, i), (r, g, b))
+        return gradient
+
     def draw(self, aircraft, smartdisplay, pos=(None, None)):
         if pos[0] is None or pos[1] is None:
-            x = 0
-            y = 0
+            x, y = 0, 0
         else:
-            x, y = pos[0], pos[1]
+            x, y = pos
 
         # Create a temporary surface for drawing
         temp_surface = pygame.Surface((self.width, self.height))
-        temp_surface.fill(self.SkyColor)
-        
+
         # Calculate horizon line position
         horizon_y = self.height / 2 - (aircraft.pitch / self.pitch_range) * (self.height / 2)
-        
-        # Draw ground
-        pygame.draw.rect(temp_surface, self.GroundColor, (0, horizon_y, self.width, self.height - horizon_y))
-        
+
+        # Draw sky gradient
+        sky_rect = pygame.Rect(0, 0, self.width, horizon_y)
+        pygame.transform.scale(self.sky_gradient, (self.width, int(horizon_y)), temp_surface.subsurface(sky_rect))
+
+        # Draw ground gradient
+        ground_rect = pygame.Rect(0, horizon_y, self.width, self.height - horizon_y)
+        pygame.transform.scale(self.ground_gradient, (self.width, int(self.height - horizon_y)), temp_surface.subsurface(ground_rect))
+
         # Draw horizon line
         pygame.draw.line(temp_surface, self.LineColor, (0, horizon_y), (self.width, horizon_y), 2)
-        
+
         # Draw pitch lines
         for pitch in range(-self.pitch_range, self.pitch_range + 1, 5):
             if pitch == 0:
@@ -124,14 +147,26 @@ class artificalhorz(Module):
             "SkyColor": {
                 "type": "color",
                 "default": (0, 153, 204),
-                "label": "Sky Color",
-                "description": "Color of the sky.",
+                "label": "Sky Color (Bottom)",
+                "description": "Color of the sky at the horizon.",
+            },
+            "SkyColorTop": {
+                "type": "color",
+                "default": (0, 102, 204),
+                "label": "Sky Color (Top)",
+                "description": "Color of the sky at the top.",
             },
             "GroundColor": {
                 "type": "color",
                 "default": (153, 102, 51),
-                "label": "Ground Color",
-                "description": "Color of the ground.",
+                "label": "Ground Color (Top)",
+                "description": "Color of the ground at the horizon.",
+            },
+            "GroundColorBottom": {
+                "type": "color",
+                "default": (102, 51, 0),
+                "label": "Ground Color (Bottom)",
+                "description": "Color of the ground at the bottom.",
             },
         }
 

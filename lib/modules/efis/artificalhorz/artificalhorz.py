@@ -14,7 +14,6 @@ class artificalhorz(Module):
     def __init__(self):
         Module.__init__(self)
         self.name = "ArtificalHorz"
-        self.MainColor = (255, 255, 255)
         self.SkyColorTop = (0, 102, 204)
         self.SkyColorBottom = (0, 153, 204)
         self.GroundColorTop = (153, 102, 51)
@@ -151,36 +150,44 @@ class artificalhorz(Module):
     
     def get_module_options(self):
         return {
-            "MainColor": {
+            "LineColor": {
                 "type": "color",
                 "default": (255, 255, 255),
-                "label": "Main Color",
-                "description": "Color of the main lines and text.",
+                "label": "Line Color",
+                "description": "Color of the lines and text.",
+                "post_change_function": "changeHappened"
             },
             "SkyColorBottom": {
                 "type": "color",
                 "default": (0, 153, 204),
                 "label": "Sky Color (Bottom)",
                 "description": "Color of the sky at the horizon.",
+                "post_change_function": "changeHappened"
             },
             "SkyColorTop": {
                 "type": "color",
                 "default": (0, 102, 204),
                 "label": "Sky Color (Top)",
                 "description": "Color of the sky at the top.",
+                "post_change_function": "changeHappened"
             },
             "GroundColorTop": {
                 "type": "color",
                 "default": (153, 102, 51),
                 "label": "Ground Color (Top)",
                 "description": "Color of the ground at the horizon.",
+                "post_change_function": "changeHappened"
             },
             "GroundColorBottom": {
                 "type": "color",
                 "default": (102, 51, 0),
                 "label": "Ground Color (Bottom)",
                 "description": "Color of the ground at the bottom.",
+                "post_change_function": "changeHappened"
             },
         }
+
+    def changeHappened(self):
+        self.initMod(self.pygamescreen, self.width, self.height)
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

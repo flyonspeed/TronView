@@ -469,19 +469,24 @@ class TrafficData(object):
                     #its NaN.
                     target.brng = None
                 else: target.brng = brng
+
+        # target is beyond distance that we want to listen to.. so bye bye baby!
+        if(self.ignore_traffic_beyond_distance != 0):
+            if(target.dist == None or target.dist > self.ignore_traffic_beyond_distance):
+                # remove it.
+                if(self.contains(target)):
+                    self.remove(target.callsign)
+                self.count = len(self.targets)
+                return
+            
         # check difference in altitude from self.
         if(target.alt != None):
             if(self.src_alt != None ):  # default to using alt from traffic source...
                 target.altDiff = target.alt - self.src_alt
-            if(aircraft.PALT != None ):
+            elif(aircraft.PALT != None ):
                 target.altDiff = target.alt - aircraft.PALT
             elif(aircraft.gps.GPSAlt != None):
                 target.altDiff = target.alt - aircraft.gps.GPSAlt
-
-        if(self.ignore_traffic_beyond_distance != 0):
-            if(target.dist == None or target.dist > self.ignore_traffic_beyond_distance):
-                # target is beyond distance that we want to listen to.. so bye bye baby!
-                return
 
         if(self.contains(target)==False):
             self.targets.append(target)

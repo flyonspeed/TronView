@@ -2,10 +2,14 @@
 
 #######################################################################################################################################
 #######################################################################################################################################
-# edit mode
-#
-# import random
-# import string
+# Edit mode
+# Topher 2024
+# while in edit mode, the user can add, move, resize, and delete screen objects
+# the user can also select multiple objects and move them as a group
+# This is a modified version of the play mode.  special keys are used to perform actions.
+# And debug modes, frame rate, ruler, anchor grid, and help dialog are available.
+#######################################################################################################################################
+####################################################################################################################################### 
 from lib.common import shared
 import pygame, pygame_gui
 from lib import hud_utils
@@ -20,7 +24,6 @@ from lib.common.graphic.edit_EditToolBar import EditToolBar
 from lib.common.graphic.edit_EditOptionsBar import EditOptionsBar
 from lib.common.graphic.edit_TronViewScreenObject import GridAnchorManager
 
-# Add this near the top of the file, after the imports
 
 #############################################
 ## Function: main edit loop

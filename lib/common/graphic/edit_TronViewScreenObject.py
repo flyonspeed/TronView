@@ -20,6 +20,7 @@ class TronViewScreenObject:
         self.mouse_offset_x = 0
         self.mouse_offset_y = 0
         self.showOptions = False
+        self.showEvents = False
         self.debug_font = pygame.font.SysFont("monospace", 25, bold=False)
         
         if type == 'group':
@@ -223,6 +224,9 @@ class TronViewScreenObject:
         if self.id:
             data["id"] = self.id
 
+        if hasattr(self, 'event_handlers'):
+            data["event_handlers"] = self.event_handlers
+
         return data
     
     # load the data from the json file
@@ -278,6 +282,8 @@ class TronViewScreenObject:
                     print("Group %s calculated grid position: %s x:%d y:%d" % (self.title, self.grid_position, self.x, self.y))
                     self.move(self.x + x_diff, self.y + y_diff) # move the group to the new position
 
+        if 'event_handlers' in data:
+            self.event_handlers = data['event_handlers']
 
     def center(self):
         screen_width, screen_height = pygame.display.get_surface().get_size()

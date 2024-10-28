@@ -1,4 +1,5 @@
 import pygame
+from lib.common.graphic.edit_EditEventsWindow import EditEventsWindow
 
 class EditToolBarButton:
     def __init__(self, text=None, icon=None, id=None, state=False):
@@ -41,10 +42,11 @@ class EditToolBar:
         self.buttons = [
             EditToolBarButton(text=screen_object.title, id="title"),
             EditToolBarButton(text="|", id="center"),
-            EditToolBarButton(text="<", id="align_left"),
-            EditToolBarButton(text=">", id="align_right"),
+            # EditToolBarButton(text="<", id="align_left"),
+            # EditToolBarButton(text=">", id="align_right"),
             EditToolBarButton(text="+", id="move_up"),
             EditToolBarButton(text="-", id="move_down"),
+            EditToolBarButton(text="E", id="edit_events", state=screen_object.showEvents),
             EditToolBarButton(text="O", id="edit_options", state=screen_object.showOptions)
         ]
         self.width = sum(button.width for button in self.buttons)
@@ -54,11 +56,24 @@ class EditToolBar:
     # draw the toolbar
     def draw(self, surface):
         x, y = self.get_position()
-        self.buttons[6].state = self.screen_object.showOptions # set the state of the edit options button
+        # self.buttons[6].state = self.screen_object.showEvents # set the state of the edit events button
+        # self.buttons[6].state = self.screen_object.showOptions # set the state of the edit options button
+
+        # find the edit events button
+        edit_events_button = next((button for button in self.buttons if button.id == "edit_events"), None)
+        if edit_events_button:
+            edit_events_button.state = self.screen_object.showEvents
+        
+        # find the edit options button
+        edit_options_button = next((button for button in self.buttons if button.id == "edit_options"), None)
+        if edit_options_button:
+            edit_options_button.state = self.screen_object.showOptions
+
         for button in self.buttons:
             button.draw(surface, x, y)
             x += button.width
 
+    # get the position of the toolbar
     def get_position(self):
         screen_width, screen_height = pygame.display.get_surface().get_size()
         
@@ -95,3 +110,13 @@ class EditToolBar:
             print("Button clicked: %s" % button_id)
             return button_id        
         return None
+
+    def show_events_window(self):
+        if hasattr(self.screen_object, 'edit_events_window') and self.screen_object.edit_events_window:
+            self.screen_object.edit_events_window.show()
+        else:
+            self.screen_object.edit_events_window = EditEventsWindow(self.screen_object, self.screen_object.pygame_gui_manager, self.screen_object.smartdisplay)
+        
+        # Hide the options window if it's open
+        if hasattr(self.screen_object, 'edit_options_bar') and self.screen_object.edit_options_bar:
+            self.screen_object.edit_options_bar.hide()

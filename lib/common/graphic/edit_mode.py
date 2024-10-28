@@ -23,6 +23,7 @@ from lib.common.graphic.edit_save_load import save_screen_to_json, load_screen_f
 from lib.common.graphic.edit_EditToolBar import EditToolBar
 from lib.common.graphic.edit_EditOptionsBar import EditOptionsBar
 from lib.common.graphic.edit_TronViewScreenObject import GridAnchorManager
+from lib.common.graphic.edit_EditEventsWindow import EditEventsWindow, save_event_handlers_to_json, load_event_handlers_from_json
 
 
 #############################################
@@ -63,6 +64,7 @@ def main_edit_loop():
     selected_screen_objects = []
     pygame_gui_manager = pygame_gui.UIManager((shared.smartdisplay.x_end, shared.smartdisplay.y_end))
     edit_options_bar = None
+    edit_events_window = None
     fps_font = pygame.font.SysFont("monospace", 30)
     show_ruler = False
     show_anchor_grid = False
@@ -88,18 +90,26 @@ def main_edit_loop():
                 #print("gui Button pressed: %s" % event.ui_element.text)
                 if edit_options_bar:
                     edit_options_bar.handle_event(event)
+                if edit_events_window:
+                    edit_events_window.handle_event(event)
                 action_performed = True
                 continue
             if event.type == pygame_gui.UI_HORIZONTAL_SLIDER_MOVED:
                 #print("gui Slider moved: %s" % event.ui_element.option_name)
                 if edit_options_bar:
                     edit_options_bar.handle_event(event)
+                if edit_events_window:
+                    edit_events_window.handle_event(event)
                 action_performed = True
                 continue
 
             if edit_options_bar:
                 edit_options_bar.handle_event(event)
                 text_entry_active = edit_options_bar.text_entry_active
+            if edit_events_window:
+                edit_events_window.handle_event(event)
+                if edit_events_window.is_busy():
+                    continue
 
             if dropdown and dropdown.visible:
                 selection = dropdown.update(event_list)
@@ -130,6 +140,8 @@ def main_edit_loop():
                         if edit_options_bar:
                             edit_options_bar.remove_ui()
                             edit_options_bar = None
+                        if edit_events_window:
+                            edit_events_window.hide()
                         print("All objects unselected")
                     elif event.key == pygame.K_TAB:
                         # Cycle through selected objects
@@ -221,6 +233,8 @@ def main_edit_loop():
                                 if edit_options_bar and edit_options_bar.screen_object == sObject:
                                     edit_options_bar.remove_ui()
                                     edit_options_bar = None
+                                if edit_events_window and edit_events_window.screen_object == sObject:
+                                    edit_events_window = None
                                 break
                     # ADD SCREEN OBJECT
                     elif event.key == pygame.K_a:
@@ -306,6 +320,8 @@ def main_edit_loop():
                                 # Update EditOptionsBar position if it exists
                                 if edit_options_bar and edit_options_bar.screen_object == sObject:
                                     edit_options_bar.update_position()
+                                if edit_events_window and edit_events_window.screen_object == sObject:
+                                    edit_events_window.update_position()
 
                     # Show help dialog when '?' is pressed
                     elif event.key == pygame.K_QUESTION or event.key == pygame.K_SLASH:
@@ -354,7 +370,13 @@ def main_edit_loop():
                             gui_handled = True
                         elif edit_options_bar.window.get_abs_rect().collidepoint(mx, my):
                             gui_handled = True
-                                        
+
+                    if edit_events_window and edit_events_window.visible:
+                        if edit_events_window.is_busy():  # is it busy with a color picker (or something else..)
+                            gui_handled = True
+                        elif edit_events_window.window.get_abs_rect().collidepoint(mx, my):
+                            gui_handled = True
+
                     # Check for help window interactions
                     if help_window and help_window.get_abs_rect().collidepoint(mx, my):
                         gui_handled = True
@@ -384,6 +406,12 @@ def main_edit_loop():
                                         sObject.align_right()
                                     elif action == "edit_options":
                                         sObject.showOptions = not sObject.showOptions
+                                        if sObject.showOptions:
+                                            sObject.showEvents = False
+                                    elif action == "edit_events":
+                                        sObject.showEvents = not sObject.showEvents
+                                        if sObject.showEvents:
+                                            sObject.showOptions = False
                                     break  # Stop checking other objects if action performed
                     
                     # If no GUI item was clicked, handle screen object selection
@@ -406,6 +434,9 @@ def main_edit_loop():
                                 if edit_options_bar:
                                     edit_options_bar.remove_ui() # remove the edit options bar
                                     edit_options_bar = None # set it to None
+                                if edit_events_window:
+                                    edit_events_window.hide()
+                                    edit_events_window = None
 
                         # Check if the mouse click is inside any screenObject (check from the top down)
                         for sObject in shared.CurrentScreen.ScreenObjects[::-1]:
@@ -549,6 +580,17 @@ def main_edit_loop():
             elif edit_options_bar and edit_options_bar.screen_object == sObject and not sObject.showOptions:
                 edit_options_bar.remove_ui()
                 edit_options_bar = None
+            
+            # draw Events Window?
+            if sObject.selected and sObject.showEvents:
+                if edit_events_window is None or edit_events_window.screen_object != sObject:
+                    if edit_events_window:
+                        edit_events_window.hide()
+                    edit_events_window = EditEventsWindow(sObject, pygame_gui_manager, shared.smartdisplay)
+                edit_events_window.update(time_delta)
+            elif edit_events_window and edit_events_window.screen_object == sObject and not sObject.showEvents:
+                edit_events_window.hide()
+                edit_events_window = None
 
             # Last... Draw the dropdown menu if visible over the top of everything.
             if dropdown and dropdown.visible and selected_screen_object == sObject:
@@ -681,4 +723,5 @@ COLOR_LIST_INACTIVE = (100, 100, 100)
 COLOR_LIST_ACTIVE = (255, 255, 255)
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python
+
 

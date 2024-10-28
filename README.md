@@ -1,23 +1,26 @@
 # TronView
 Project for connecting efis/flight data to a 2nd screen or HUD.
 ![cockpit1](docs/efis_cockpit1.jpeg?raw=true)
-## Active development! (Sept 2024!)
+## Active development! (Oct 2024!)
 If you want to help with development or testing please join our [Join Discord](https://discord.gg/pdnxWa32aW) sever.
 We are working on several new features. 
-- XReal glasses support
+- XReal glasses support or other AR glasses
 - Editor to make creating or editing your own screen very easy.
 - Better G3x support
 - Show/Hide screen modules based on key commands or other inputs.
+- Additional IMU/Gyro support (BNO085, BNO055)
+- Looking into live data broadcast to other TronView displays (that would be cool!)
+- Moving Map?
 
 ## Features Include:
-- Build custom efis or hud screens
+- Build custom efis or hud screens or AR glasses screen. (or any kinda of screen you want)
 - Record and Playback flight log data ( and fast forward through playback )
 - All screens look and work the same for all supported data input.
 - All display screen sizes and ratios supported.
 - Built in editor to make creating or editing your own screen.
 - Text mode
 - Touch screen support
-- 30 + FPS on Raspberry Pi 4 
+- 30 + FPS on Raspberry Pi 4/5 (60+ FPS on Mac M1)
 - Remote keypad / user input support.
 - Display flight data in Knots, Standard, Metric, F or C
 - Designed for Raspberry Pi 4/5 but also runs on Mac OSx, Windows, and other linux systems.
@@ -27,7 +30,7 @@ We are working on several new features.
 
 # Quick Start for Raspberry Pi and Mac OS
 
-[Quick Start for Raspberry Pi](docs/quick_start_raspberry_pi.MD)
+[Quick Start for Raspberry Pi](docs/quick_start_pi.MD)
 
 [Quick Start for Mac OS](docs/quick_start_macos.MD)
 

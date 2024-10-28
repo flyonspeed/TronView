@@ -35,12 +35,10 @@ We are working on several new features.
 
 ![cockpit2](docs/efis_cockpit2.jpeg?raw=true)
 
-## Traditional EFIS looking screen
-![screenshot1](docs/efis_screenshot.png?raw=true)
+## Editor Screenshot
+![screenshot1](docs/screenshots/screenshot_2_editor.jpg?raw=true)
 
 ## F18 Style HUD
-![hud_animation](docs/hud_animated_example.gif?raw=true)
-
 ![rv8Hud](docs/efis_HUD_rv8.jpg?raw=true)
 
 ## Text Mode
@@ -82,11 +80,17 @@ Code is written in Python 3.7 and the Pygame 2.0 module for handling the graphic
 
 # More details
 
-Analog CDI from IFR Navigator: [input_analog.MD](https://github.com/flyonspeed/TronView/blob/master/lib/inputs/input_analog.MD)
+Analog CDI from IFR Navigator: [input analog details](docs/input_analog.MD)
 
-Config example:  [config_example.cfg](https://github.com/flyonspeed/TronView/blob/master/config_example.cfg)
+Config example:  [config_example.cfg](config_example.cfg)
 
-View demo data in the docs folder.
-https://github.com/flyonspeed/TronView/blob/master/docs/efis_data.MD
+Lots of different efis test data: [Test Data](docs/efis_data.MD)
 
-IncludesF-18 style HUD screen: [screen_F18.MD](https://github.com/flyonspeed/TronView/blob/master/docs/screen_F18.MD)
+IncludesF-18 style HUD screen: [screen_F18.MD](docs/screen_F18.MD)
+
+# Join our Discord server
+
+We are active on Discord helping each other with development and testing.  Come help or share ideas.
+
+[Join Discord](https://discord.gg/pdnxWa32aW)
+

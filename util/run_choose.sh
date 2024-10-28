@@ -21,6 +21,8 @@ echo "5. MGL - Gyro Test"
 echo "6. Dynon D100"
 echo "7. Dynon Skyview"
 echo "8. Stratux 5 Demo"
+echo "20. live i2c bno085 data"
+echo "21. live i2c bno055 data"
 read -p "Enter your choice: " choice
 
 if [ $choice -eq 1 ]; then
@@ -55,3 +57,10 @@ if [ $choice -eq 8 ]; then
     $RUN_PREFIX python3 main.py -i stratux_wifi -c stratux_5.dat -s F18_HUD
 fi
 
+if [ $choice -eq 20 ]; then
+    $RUN_PREFIX python3 main.py -i gyro_i2c_bno085 -s F18_HUD
+fi
+
+if [ $choice -eq 21 ]; then
+    $RUN_PREFIX python3 main.py -i gyro_i2c_bno055 -s F18_HUD
+fi

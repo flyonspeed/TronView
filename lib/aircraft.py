@@ -58,6 +58,7 @@ class Aircraft(object):
         self.inputs = [InputDetails(),InputDetails(),InputDetails()]
         self.alerts = []
         self.analog = AnalogData()
+        self.imus = []
         self.debug1 = ""
         self.debug2 = ""
         self.debug3 = ""
@@ -255,6 +256,16 @@ class Aircraft(object):
         return fields
 
 
+#############################################
+## Class: IMU Gyro Input Data 
+class IMUData(object):
+    def __init__(self):
+        self.Name = None
+        self.Purpose = None # Aircraft, HeadTracker
+        self.x = 0
+        self.y = 0
+        self.z = 0
+        self.Errors = None   
 
 #############################################
 ## Class: Analog Input Data 

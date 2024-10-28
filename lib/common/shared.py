@@ -41,7 +41,7 @@ CurrentScreen = None
 ####################################
 ## Default flight log dir.
 ## default location where flight logs are saved. Can be overwritten in config file.
-DefaultFlightLogDir = "/flightlog/"
+DefaultFlightLogDir = "./flightlog/"
 
 
 ####################################

@@ -12,17 +12,17 @@ fi
 $RUN_PREFIX pkill -f 'python3'
 
 # ask user to choose which demo to run
-echo "Choose which demo to run:"
-echo "1. G3X - EFIS"
-echo "2. G3X - AOA Test data"
-echo "3. MGL & Stratux - chasing traffic"
-echo "4. MGL - G430 CDI"
-echo "5. MGL - Gyro Test"
-echo "6. Dynon D100"
-echo "7. Dynon Skyview"
-echo "8. Stratux 5 Demo"
-echo "20. live i2c bno085 data"
-echo "21. live i2c bno055 data"
+echo "Choose which demo/test to run:"
+#echo "1:  G3X - EFIS"
+#echo "2:  G3X - AOA Test data"
+echo "3:  MGL & Stratux - chasing traffic"
+echo "4:  MGL - G430 CDI"
+echo "5:  MGL - Gyro Test"
+echo "6:  Dynon D100"
+echo "7:  Dynon Skyview"
+echo "8:  Stratux 5 Demo - Shows traffic targets only, No AHRS data"
+echo "20: live i2c bno085 IMU data (linux/raspberry pi only)"
+echo "21: live i2c bno055 IMU data (linux/raspberry pi only)"
 read -p "Enter your choice: " choice
 
 if [ $choice -eq 1 ]; then
@@ -58,9 +58,19 @@ if [ $choice -eq 8 ]; then
 fi
 
 if [ $choice -eq 20 ]; then
-    $RUN_PREFIX python3 main.py -i gyro_i2c_bno085 -s F18_HUD
+    # linux/raspberry pi only
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        $RUN_PREFIX python3 main.py -i gyro_i2c_bno085 -s F18_HUD
+    else
+        echo "Currently only supported on linux/raspberry pi"
+    fi
 fi
 
 if [ $choice -eq 21 ]; then
-    $RUN_PREFIX python3 main.py -i gyro_i2c_bno055 -s F18_HUD
+    # linux/raspberry pi only
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        $RUN_PREFIX python3 main.py -i gyro_i2c_bno055 -s F18_HUD
+    else
+        echo "Currently only supported on linux/raspberry pi"
+    fi
 fi

@@ -5,6 +5,8 @@ import time
 from geographiclib.geodesic import Geodesic
 import math
 from . import hud_utils
+import inspect
+from typing import List, Any
 
 #############################################
 ## Class: Aircraft
@@ -50,15 +52,17 @@ class Aircraft(object):
         self.gps = GPSData()
         self.engine = EngineData()
         self.nav = NavData()
-        self.traffic = TrafficData()
+        self.traffic: TrafficData = TrafficData()
         self.fuel = FuelData()
         self.internal = InteralData()
         self.inputs = [InputDetails(),InputDetails(),InputDetails()]
         self.alerts = []
         self.analog = AnalogData()
+        self.imus = []
         self.debug1 = ""
         self.debug2 = ""
         self.debug3 = ""
+        self.debug_mode = 0
 
         self.msg_count = 0
         self.msg_bad = 0
@@ -66,6 +70,7 @@ class Aircraft(object):
         self.msg_last = ""
         self.errorFoundNeedToExit = False
         self.textMode = False
+        self.editMode = False
         self.show_FPS = False #show screen refresh rate in frames per second for performance tuning
         self.fps = 0
 
@@ -202,6 +207,65 @@ class Aircraft(object):
             return "%d %s" % (v,d)
         else:
             return "+%d %s" % (v,d)
+    
+    # get a list of all fields and functions in the aircraft object
+    def _get_all_fields(self, prefix: str = '', force_rebuild: bool = False) -> List[str]:
+        """
+        Get a list of all fields in the aircraft object.
+        
+        Args:
+            prefix (str): Prefix for nested object fields.
+            force_rebuild (bool): If True, rebuild the field list even if cached.
+        
+        Returns:
+            List[str]: List of all fields in the aircraft object.
+        """
+        if not force_rebuild and hasattr(self, '_all_fields'):
+            #print(f"Using cached aircraft field list. len: {len(self._all_fields)}")
+            return self._all_fields
+
+        fields = []
+
+        def add_field(name: str, value: Any, current_prefix: str):
+            full_name = f"{current_prefix}{name}" if current_prefix else name
+            #print(f"Checking field: {full_name} with type: {type(value).__name__}", end=' ')
+
+            if isinstance(value, (str, int, float, bool, list, tuple, dict)):
+                fields.append(full_name)
+                #print("(added)")
+            elif inspect.ismethod(value) or inspect.isfunction(value):
+                fields.append(f"{full_name}()")
+                #print("(added as method)")
+            #elif inspect.isclass(value):
+                #print("(skipped class)")
+            elif hasattr(value, '__dict__'):
+                #print("(recursing)")
+                for attr, attr_value in inspect.getmembers(value):
+                    if not attr.startswith('_'):
+                        add_field(attr, attr_value, f"{full_name}.")
+            else:
+                fields.append(full_name)
+                #print("(added as unknown type)")
+
+        for name, value in inspect.getmembers(self):
+            if not name.startswith('_'):
+                add_field(name, value, prefix)
+
+        self._all_fields = fields
+        #print(f"Built field list with {len(fields)} items")
+        return fields
+
+
+#############################################
+## Class: IMU Gyro Input Data 
+class IMUData(object):
+    def __init__(self):
+        self.Name = None
+        self.Purpose = None # Aircraft, HeadTracker
+        self.x = 0
+        self.y = 0
+        self.z = 0
+        self.Errors = None   
 
 #############################################
 ## Class: Analog Input Data 
@@ -404,8 +468,8 @@ class TrafficData(object):
         # use lat/lon from traffic source. 
         if(self.src_lat != None and self.src_lon != None and target.lat != 0 and target.lon != 0):
             solve = Geodesic.WGS84.Inverse(self.src_lat,self.src_lon,target.lat,target.lon)
-            brng = solve['azi1']
-            dist = solve['s12'] * 0.0006213712
+            brng = solve['azi1'] # forward azimuth.
+            dist = solve['s12'] * 0.0006213712 # convert to miles.
             if(dist!=dist):
                 # NaN. no distance found.  
                 pass
@@ -416,19 +480,24 @@ class TrafficData(object):
                     #its NaN.
                     target.brng = None
                 else: target.brng = brng
+
+        # target is beyond distance that we want to listen to.. so bye bye baby!
+        if(self.ignore_traffic_beyond_distance != 0):
+            if(target.dist == None or target.dist > self.ignore_traffic_beyond_distance):
+                # remove it.
+                if(self.contains(target)):
+                    self.remove(target.callsign)
+                self.count = len(self.targets)
+                return
+            
         # check difference in altitude from self.
         if(target.alt != None):
             if(self.src_alt != None ):  # default to using alt from traffic source...
                 target.altDiff = target.alt - self.src_alt
-            if(aircraft.PALT != None ):
+            elif(aircraft.PALT != None ):
                 target.altDiff = target.alt - aircraft.PALT
             elif(aircraft.gps.GPSAlt != None):
                 target.altDiff = target.alt - aircraft.gps.GPSAlt
-
-        if(self.ignore_traffic_beyond_distance != 0):
-            if(target.dist == None or target.dist > self.ignore_traffic_beyond_distance):
-                # target is beyond distance that we want to listen to.. so bye bye baby!
-                return
 
         if(self.contains(target)==False):
             self.targets.append(target)
@@ -471,23 +540,27 @@ class TrafficData(object):
                 del self.targets[i]
         if(numCleared>0): self.clearBuoyTargets()
 
-    def dropTargetBuoy(self,aircraft,name=None,speed=None,direction=None,distance=None):
+    def dropTargetBuoy(self,aircraft,name=None,speed=None,direction=None,distance=None,alt=None):
         self.buoyCount += 1
         if(name==None): name = "Buoy"+str(self.buoyCount)
         t = Target(name)
         t.buoyNum  = self.buoyCount
         t.address = self.buoyCount
+        t.type = 15 # space craft and aliens!
         t.cat = 1
         if(direction=="ahead"):
             if(distance!=None): distance = distance * 1609.344 # convert to meters.
-            else: distance = 1 * 1609.344 # else drop off 1 mile ahead.
-            solve = Geodesic.WGS84.Direct(aircraft.gps.LatDeg,aircraft.gps.LonDeg,aircraft.mag_head,distance)
+            else: distance = 1 * 1609.344 # default to 1 mile. (1609.344 meters)
+            solve = Geodesic.WGS84.Direct(aircraft.gps.LatDeg,aircraft.gps.LonDeg,aircraft.mag_head,distance)  
             t.lat = solve['lat2']
             t.lon = solve['lon2']
         else:
             t.lat = aircraft.gps.LatDeg
             t.lon = aircraft.gps.LonDeg
-        t.alt = aircraft.gps.GPSAlt
+        # if alt was passed in then add it to the altitude of the aircraft.
+        if(alt != None): t.alt = aircraft.gps.GPSAlt + alt
+        else: t.alt = aircraft.gps.GPSAlt
+
         if(aircraft.mag_head): t.track = aircraft.mag_head
         elif(aircraft.gps.GndTrack): t.track = aircraft.gps.GndTrack
         if(speed != None and speed != -1): t.speed = speed
@@ -509,13 +582,13 @@ class Target(object):
         self.address = None # icao address of ads-b
         self.cat = None # Emitter Category - one of the following values to describe type/weight of aircraft
         self.buoyNum = None
-        # 0 = unkown
+        # 0 = unknown
         # 1 = Light (ICAO) < 15 500 lbs
         # 2 = Small - 15 500 to 75 000 lbs
         # 3 = Large - 75 000 to 300 000 lbs
         # 4 = High Vortex Large (e.g., aircraft 24 such as B757)
         # 5 = Heavy (ICAO) - > 300 000 lbs
-        # 7 = Rotorcraft
+        # 7 = Rotor craft
         # 9 = Glider
         # 10 = lighter then air
         # 11 = sky diver
@@ -557,5 +630,5 @@ class Target(object):
 #     distance = (R * c) * 0.6213712 # convert to miles.
 #     return distance
 
-# vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python
 
+# vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

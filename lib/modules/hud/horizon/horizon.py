@@ -3,6 +3,7 @@
 #################################################
 # Module: Hud Horizon
 # Topher 2021.
+# TRON Aug 2024, updated FPM turn rate accuracy
 # Adapted from F18 HUD Screen code by Brian Chesteen.
 
 from lib.modules._module import Module
@@ -14,14 +15,18 @@ import pygame
 import math
 
 
-class Horizon(Module):
+class horizon(Module):
     # called only when object is first created.
     def __init__(self):
         Module.__init__(self)
-        self.name = "Horizon"  # set name
+        self.name = "HUD Horizon"  # set name
 
     # called once for setup
-    def initMod(self, pygamescreen, width, height):
+    def initMod(self, pygamescreen, width=None, height=None):
+        if width is None:
+            width = pygamescreen.get_width() # default width
+        if height is None:
+            height = 640 # default height
         Module.initMod(
             self, pygamescreen, width, height
         )  # call parent init screen.
@@ -298,15 +303,15 @@ class Horizon(Module):
         # flight path indicator  Default Caged Mode
         if self.caged_mode == 1:
             fpv_x = 0.0
-        else:
-            fpv_x = ((((aircraft.mag_head - aircraft.gndtrack) + 180) % 360) - 180) * 1.5  - (
+        else:  #  changed the  "- (aircraft.turn_rate * 5" to a "+ (aircraft.turn_rate * 5" 
+            fpv_x = ((((aircraft.mag_head - aircraft.gndtrack) + 180) % 360) - 180) * 1.5  + (
                 aircraft.turn_rate * 5
             )
             self.readings.append(fpv_x)
             fpv_x = mean(self.readings)  # Moving average to smooth a bit
             if len(self.readings) == self.max_samples:
                 self.readings.pop(0)
-        gfpv_x = ((((aircraft.mag_head - aircraft.gndtrack) + 180) % 360) - 180) * 1.5  - (
+        gfpv_x = ((((aircraft.mag_head - aircraft.gndtrack) + 180) % 360) - 180) * 1.5  + (
             aircraft.turn_rate * 5
         )
         self.readings1.append(gfpv_x)
@@ -330,7 +335,7 @@ class Horizon(Module):
             [
                 (smartdisplay.width / 2 + self.x_offset) - (int(fpv_x) * 5) - 15,
                 (smartdisplay.y_center + self.y_offset) - (aircraft.vsi / 2),
-            ],
+            ], 
             [
                 (smartdisplay.width / 2 + self.x_offset) - (int(fpv_x) * 5) - 30,
                 (smartdisplay.y_center + self.y_offset) - (aircraft.vsi / 2),
@@ -408,7 +413,11 @@ class Horizon(Module):
 
 
     # called every redraw for the mod
-    def draw(self, aircraft, smartdisplay):
+    def draw(self, aircraft, smartdisplay, pos=(None, None)):
+        if pos[0] != None:
+            self.x_offset = pos[0]
+        if pos[1] != None:
+            self.y_offset = pos[1]
 
         self.surface.fill((0, 0, 0))  # clear surface
 
@@ -463,7 +472,7 @@ class Horizon(Module):
     def cyclecaged_mode(self):
         self.caged_mode = self.caged_mode + 1
         if (self.caged_mode > 1):
-	        self.caged_mode = 0
+            self.caged_mode = 0
 
     # called before screen draw.  To clear the screen to your favorite color.
     def clear(self):

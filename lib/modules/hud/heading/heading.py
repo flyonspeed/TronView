@@ -2,8 +2,7 @@
 
 #################################################
 # Module: Heading
-# Topher 2021.
-# Adapted from hdg code by Brian Chesteen.
+# Topher 2024 re-write.
 
 from lib.modules._module import Module
 from lib import hud_graphics
@@ -12,36 +11,45 @@ from lib import smartdisplay
 from lib import aircraft
 import pygame
 import math
+from lib.common import shared
 
 
-class Heading(Module):
+
+class heading(Module):
     # called only when object is first created.
     def __init__(self):
         Module.__init__(self)
         self.name = "Heading"  # set name
         self.x_offset = 0
+        self.font1_size = 20
+        self.font2_size = 30
+        self.label_color = (255, 255, 0)
+        self.pixels_per_degree = 12  # Default value, can be adjusted
+        self.show_track = True
+        self.tick_color = (0, 255, 0)
 
     # called once for setup
-    def initMod(self, pygamescreen, width, height):
+    def initMod(self, pygamescreen, width=None, height=None):
+        if width is None:
+            width = 500 # default width
+        if height is None:
+            height = 200 # default height
         Module.initMod(
             self, pygamescreen, width, height
         )  # call parent init screen.
-        print(("Init Mod: %s %dx%d"%(self.name,self.width,self.height)))
+        if shared.aircraft.debug_mode > 0:  # only print if debug mode is on.
+            print(("Init Mod: %s %dx%d"%(self.name,self.width,self.height)))
 
-        self.myfont1 = pygame.font.SysFont("Comic Sans MS", 30, bold=True)  # hsi font
-        self.MainColor = (0, 255, 0)  # main color 
 
-    def setup(self, hsi_size, gnd_trk_tick_size, rose_color, label_color):
-
-        self.myfont = pygame.font.SysFont("Arial", 20, bold=True)
-        self.myfont1 = pygame.font.SysFont("Arial", 30, bold=True)
+    # setup must have defaults for all parameters
+    def setup(self):
+        self.myfont = pygame.font.SysFont("monospace", self.font1_size, bold=True)  
+        self.myfont1 = pygame.font.SysFont("monospace", self.font2_size, bold=True) 
 
         # Setup mask
         self.mask = pygame.Surface((66, 30))
         self.mask.fill((0, 0, 0))
 
-        # hdg Setup
-        self.label_color = label_color
         self.hdg = pygame.Surface((360, 80))
         self.hdg_rect = self.hdg.get_rect()
         self.hdg.fill((0, 0, 0))
@@ -127,250 +135,77 @@ class Heading(Module):
         self.old_gnd_trk = None
 
 
+
     def roint(self,num):
         return int(round(num))
 
+
     # called every redraw for the mod
-    def draw(self, aircraft, smartdisplay):
+    def draw(self, aircraft, smartdisplay, pos=(None, None)):
+        x = pos[0] if pos[0] is not None else 0
+        y = pos[1] if pos[1] is not None else 0
 
         hdg_hdg = aircraft.mag_head
         gnd_trk = self.roint(aircraft.gndtrack)
 
-        if (
-            self.old_hdg_hdg != hdg_hdg or self.old_gnd_trk != gnd_trk
-        ):  # Don't waste time recalculating/redrawing until the variable changes
+        # Only redraw if the heading or track has changed
+        if self.old_hdg_hdg != hdg_hdg or self.old_gnd_trk != gnd_trk:
+            self.hdg = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
+            self.trk = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
 
-            ## Draw Labels
-            q = (-hdg_hdg) % 360
-            d = (-q + 5) * 12
-            p = q * 12
-            t = p - (((-gnd_trk) % 360) * 12) % 4320
+            center_x = self.width // 2
 
-            self.hdg.fill(pygame.SRCALPHA)
-            self.trk.fill(pygame.SRCALPHA)
-            for hdg_ticks in range(44):
-                x0 = self.roint(hdg_ticks * 120)
-                y0 = self.roint(30)
-                x1 = self.roint(hdg_ticks * 120)
-                y1 = self.roint(60)
+            # Draw ticks
+            for tick in range(0, 72):  # Changed to cover all 360 degrees (72 * 5 = 360)
+                angle = tick * 5 % 360
+                x0 = self.roint(center_x + ((angle - hdg_hdg + 180) % 360 - 180) * self.pixels_per_degree)
+                
+                if tick % 2 == 0:  # Major ticks (every 10 degrees)
+                    pygame.draw.line(self.hdg, self.tick_color , [x0, 30], [x0, 60], 3)
+                else:  # Minor ticks (every 5 degrees)
+                    pygame.draw.line(self.hdg, self.tick_color , [x0, 45], [x0, 60], 3)
 
-                pygame.draw.line(
-                    self.hdg, (0, 255, 0), [x0 - 4440 - d, y0], [x1 - 4440 - d, y1], 3
-                )
+            # Draw labels
+            label_positions = {
+                0: self.N, 10: self.R1, 20: self.R2, 30: self.R3, 40: self.R4,
+                50: self.R5, 60: self.R6, 70: self.R7, 80: self.R8, 90: self.E,
+                100: self.R10, 110: self.R11, 120: self.R12, 130: self.R13, 140: self.R14,
+                150: self.R15, 160: self.R16, 170: self.R17, 180: self.S, 190: self.R19,
+                200: self.R20, 210: self.R21, 220: self.R22, 230: self.R23, 240: self.R24,
+                250: self.R25, 260: self.R26, 270: self.W, 280: self.R28, 290: self.R29,
+                300: self.R30, 310: self.R31, 320: self.R32, 330: self.R33, 340: self.R34,
+                350: self.R35
+            }
 
-            for hdg_lticks in range(88):
-                x3 = self.roint(hdg_lticks * 60)
-                y3 = self.roint(45)
-                x4 = self.roint(hdg_lticks * 60)
-                y4 = self.roint(60)
-                pygame.draw.line(
-                    self.hdg, (0, 255, 0), [x3 - 4440 - d, y3], [x4 - 4440 - d, y4], 3
-                )
+            for angle, label in label_positions.items():
+                x2 = self.roint(center_x + ((angle - hdg_hdg + 180) % 360 - 180) * self.pixels_per_degree)
+                self.hdg.blit(label, (x2 - label.get_rect().center[0], 18))
 
-            for hdg_tick_label in range(641):
-                x2 = self.roint(hdg_tick_label)
-                y2 = self.roint(30)
-                if hdg_tick_label == (t + 320) % 4320:
-                    pygame.draw.line(self.trk, (255, 0, 255), [x2, 60], [x2, 80], 3)
-                    pygame.draw.line(
-                        self.trk, (255, 0, 255), [x2 - 10, 60], [x2 + 10, 60], 3
-                    )
-                if hdg_tick_label == (p + 180) % 4320:
-                    self.hdg.blit(
-                        self.N,
-                        (x2 - self.N_rect.center[0], y2 - self.N_rect.center[1] - 12),
-                    )
-                if hdg_tick_label == (p + 300) % 4320:
-                    self.hdg.blit(
-                        self.R1,
-                        (x2 - self.R1_rect.center[0], y2 - self.R1_rect.center[1] - 12),
-                    )
-                if hdg_tick_label == (p + 420) % 4320:
-                    self.hdg.blit(
-                        self.R2,
-                        (x2 - self.R2_rect.center[0], y2 - self.R2_rect.center[1] - 12),
-                    )
-                if hdg_tick_label == (p + 540) % 4320:
-                    self.hdg.blit(
-                        self.R3,
-                        (x2 - self.R3_rect.center[0], y2 - self.R3_rect.center[1] - 12),
-                    )
-                if hdg_tick_label == (p + 660) % 4320:
-                    self.hdg.blit(
-                        self.R4,
-                        (x2 - self.R4_rect.center[0], y2 - self.R4_rect.center[1] - 12),
-                    )
-                if hdg_tick_label == (p + 780) % 4320:
-                    self.hdg.blit(
-                        self.R5,
-                        (x2 - self.R5_rect.center[0], y2 - self.R5_rect.center[1] - 12),
-                    )
-                if hdg_tick_label == (p + 900) % 4320:
-                    self.hdg.blit(
-                        self.R6,
-                        (x2 - self.R6_rect.center[0], y2 - self.R6_rect.center[1] - 12),
-                    )
-                if hdg_tick_label == (p + 1020) % 4320:
-                    self.hdg.blit(
-                        self.R7,
-                        (x2 - self.R7_rect.center[0], y2 - self.R7_rect.center[1] - 12),
-                    )
-                if hdg_tick_label == (p + 1140) % 4320:
-                    self.hdg.blit(
-                        self.R8,
-                        (x2 - self.R8_rect.center[0], y2 - self.R8_rect.center[1] - 12),
-                    )
-                if hdg_tick_label == (p + 1260) % 4320:
-                    self.hdg.blit(
-                        self.E,
-                        (x2 - self.E_rect.center[0], y2 - self.E_rect.center[1] - 12),
-                    )
-                if hdg_tick_label == (p + 1380) % 4320:
-                    self.hdg.blit(
-                        self.R10,
-                        (x2 - self.R10_rect.center[0], y2 - self.R10_rect.center[1] - 12),
-                    )
-                if hdg_tick_label == (p + 1500) % 4320:
-                    self.hdg.blit(
-                        self.R11,
-                        (x2 - self.R11_rect.center[0], y2 - self.R11_rect.center[1] - 12),
-                    )
-                if hdg_tick_label == (p + 1620) % 4320:
-                    self.hdg.blit(
-                        self.R12,
-                        (x2 - self.R12_rect.center[0], y2 - self.R12_rect.center[1] - 12),
-                    )
-                if hdg_tick_label == (p + 1740) % 4320:
-                    self.hdg.blit(
-                        self.R13,
-                        (x2 - self.R13_rect.center[0], y2 - self.R13_rect.center[1] - 12),
-                    )
-                if hdg_tick_label == (p + 1860) % 4320:
-                    self.hdg.blit(
-                        self.R14,
-                        (x2 - self.R14_rect.center[0], y2 - self.R14_rect.center[1] - 12),
-                    )
-                if hdg_tick_label == (p + 1980) % 4320:
-                    self.hdg.blit(
-                        self.R15,
-                        (x2 - self.R15_rect.center[0], y2 - self.R15_rect.center[1] - 12),
-                    )
-                if hdg_tick_label == (p + 2100) % 4320:
-                    self.hdg.blit(
-                        self.R16,
-                        (x2 - self.R16_rect.center[0], y2 - self.R16_rect.center[1] - 12),
-                    )
-                if hdg_tick_label == (p + 2220) % 4320:
-                    self.hdg.blit(
-                        self.R17,
-                        (x2 - self.R17_rect.center[0], y2 - self.R17_rect.center[1] - 12),
-                    )
-                if hdg_tick_label == (p + 2340) % 4320:
-                    self.hdg.blit(
-                        self.S,
-                        (x2 - self.S_rect.center[0], y2 - self.S_rect.center[1] - 12),
-                    )
-                if hdg_tick_label == (p + 2460) % 4320:
-                    self.hdg.blit(
-                        self.R19,
-                        (x2 - self.R19_rect.center[0], y2 - self.R19_rect.center[1] - 12),
-                    )
-                if hdg_tick_label == (p + 2580) % 4320:
-                    self.hdg.blit(
-                        self.R20,
-                        (x2 - self.R20_rect.center[0], y2 - self.R20_rect.center[1] - 12),
-                    )
-                if hdg_tick_label == (p + 2700) % 4320:
-                    self.hdg.blit(
-                        self.R21,
-                        (x2 - self.R21_rect.center[0], y2 - self.R21_rect.center[1] - 12),
-                    )
-                if hdg_tick_label == (p + 2820) % 4320:
-                    self.hdg.blit(
-                        self.R22,
-                        (x2 - self.R22_rect.center[0], y2 - self.R22_rect.center[1] - 12),
-                    )
-                if hdg_tick_label == (p + 2940) % 4320:
-                    self.hdg.blit(
-                        self.R23,
-                        (x2 - self.R23_rect.center[0], y2 - self.R23_rect.center[1] - 12),
-                    )
-                if hdg_tick_label == (p + 3060) % 4320:
-                    self.hdg.blit(
-                        self.R24,
-                        (x2 - self.R24_rect.center[0], y2 - self.R24_rect.center[1] - 12),
-                    )
-                if hdg_tick_label == (p + 3180) % 4320:
-                    self.hdg.blit(
-                        self.R25,
-                        (x2 - self.R25_rect.center[0], y2 - self.R25_rect.center[1] - 12),
-                    )
-                if hdg_tick_label == (p + 3300) % 4320:
-                    self.hdg.blit(
-                        self.R26,
-                        (x2 - self.R26_rect.center[0], y2 - self.R26_rect.center[1] - 12),
-                    )
-                if hdg_tick_label == (p + 3420) % 4320:
-                    self.hdg.blit(
-                        self.W,
-                        (x2 - self.W_rect.center[0], y2 - self.W_rect.center[1] - 12),
-                    )
-                if hdg_tick_label == (p + 3540) % 4320:
-                    self.hdg.blit(
-                        self.R28,
-                        (x2 - self.R28_rect.center[0], y2 - self.R28_rect.center[1] - 12),
-                    )
-                if hdg_tick_label == (p + 3660) % 4320:
-                    self.hdg.blit(
-                        self.R29,
-                        (x2 - self.R29_rect.center[0], y2 - self.R29_rect.center[1] - 12),
-                    )
-                if hdg_tick_label == (p + 3780) % 4320:
-                    self.hdg.blit(
-                        self.R30,
-                        (x2 - self.R30_rect.center[0], y2 - self.R30_rect.center[1] - 12),
-                    )
-                if hdg_tick_label == (p + 3900) % 4320:
-                    self.hdg.blit(
-                        self.R31,
-                        (x2 - self.R31_rect.center[0], y2 - self.R31_rect.center[1] - 12),
-                    )
-                if hdg_tick_label == (p + 4020) % 4320:
-                    self.hdg.blit(
-                        self.R32,
-                        (x2 - self.R32_rect.center[0], y2 - self.R32_rect.center[1] - 12),
-                    )
-                if hdg_tick_label == (p + 4140) % 4320:
-                    self.hdg.blit(
-                        self.R33,
-                        (x2 - self.R33_rect.center[0], y2 - self.R33_rect.center[1] - 12),
-                    )
-                if hdg_tick_label == (p + 4260) % 4320:
-                    self.hdg.blit(
-                        self.R34,
-                        (x2 - self.R34_rect.center[0], y2 - self.R34_rect.center[1] - 12),
-                    )
-                if hdg_tick_label == (p + 4380) % 4320:
-                    self.hdg.blit(
-                        self.R35,
-                        (x2 - self.R35_rect.center[0], y2 - self.R35_rect.center[1] - 12),
-                    )
+            # Draw heading indicator (always at center)
+            pygame.draw.line(self.hdg, self.tick_color , [center_x - 10, 80], [center_x, 60], 3)
+            pygame.draw.line(self.hdg, self.tick_color , [center_x, 60], [center_x + 10, 80], 3)
 
-            # draw the ^ pointer
-            pygame.draw.line(self.hdg, (0, 255, 0), [self.hdg_rect.center[0]-10, 80], [self.hdg_rect.center[0], 60], 3)
-            pygame.draw.line(self.hdg, (0, 255, 0), [self.hdg_rect.center[0], 60], [self.hdg_rect.center[0]+10, 80], 3)
+            # Calculate track indicator offset
+            track_diff = (gnd_trk - hdg_hdg + 180) % 360 - 180
+            track_offset = self.roint(track_diff * self.pixels_per_degree)
 
-            # Mag heading
-            # Draw Mask
-            #self.hdg.blit(self.mask, (147, 6))
+            # Draw track indicator marker
+            pygame.draw.line(self.trk, (255, 0, 255), [center_x + track_offset, 60], [center_x + track_offset, 80], 3)
+            pygame.draw.line(self.trk, (255, 0, 255), [center_x + track_offset - 10, 60], [center_x + track_offset + 10, 60], 3)
+
+            # draw the hdg_hdg value under the heading indicator and center it.  pad it to always show 3 digits.
+            if self.show_track:
+                hdg_hdg_text = self.myfont.render(f"{hdg_hdg:03.0f}", False, self.label_color)
+                hdg_hdg_rect = hdg_hdg_text.get_rect()
+                hdg_hdg_rect.center = (center_x, 100)
+                self.hdg.blit(hdg_hdg_text, hdg_hdg_rect)
 
             self.old_hdg_hdg = hdg_hdg
             self.old_gnd_trk = gnd_trk
 
-        #self.pygamescreen.blit(self.hdg1, (smartdisplay.x_start, smartdisplay.y_start))
-        self.pygamescreen.blit(self.hdg, (smartdisplay.x_center - self.hdg_rect.center[0] + self.x_offset, smartdisplay.y_start))
-        #self.pygamescreen.blit(self.trk, (smartdisplay.x_center - 270, smartdisplay.y_start))
-
+        # Draw the heading and track surfaces at the specified position
+        self.pygamescreen.blit(self.hdg, (x, y))
+        self.pygamescreen.blit(self.trk, (x, y))
 
     # called before screen draw.  To clear the screen to your favorite color.
     def clear(self):
@@ -381,5 +216,63 @@ class Heading(Module):
     def processEvent(self, event):
         print("processEvent")
 
+    # return a dict of objects that are used to configure the module.
+    def get_module_options(self):
+        # each item in the dict represents a configuration option.  These are variable in this class that are exposed to the user to edit.
+        return {
+            "label_color": {
+                "type": "color",
+                "default": self.label_color,
+                "label": "Label Color",
+                "description": "Color of the labels.",
+            },
+            "font1_size": {
+                "type": "int",
+                "default": self.font1_size,
+                "label": "Font Size",
+                "description": "Size of the font.",
+                "min": 10,
+                "max": 50,
+                "post_change_function": "setup",
+            },
+            "font2_size": {
+                "type": "int",
+                "default": self.font2_size,
+                "label": "Font Size 2",
+                "description": "Size of the font 2.",
+                "min": 10,
+                "max": 50,
+                "post_change_function": "setup",
+            },
+            "pixels_per_degree": {
+                "type": "int",
+                "default": self.pixels_per_degree,
+                "label": "Pixels per Degree",
+                "description": "Number of pixels between each degree marker.",
+                "min": 7,
+                "max": 30,
+                "post_change_function": "setup",
+            },
+            "show_track": {
+                "type": "bool",
+                "default": self.show_track,
+                "label": "Show Track",
+                "description": "Show the track indicator.",
+            },
+            "tick_color": {
+                "type": "color",
+                "default": self.tick_color,
+                "label": "Tick Color",
+                "description": "Color of the tick marks.",
+            },
+        }
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python
+
+
+
+
+
+
+
+

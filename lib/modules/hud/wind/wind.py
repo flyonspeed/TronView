@@ -14,16 +14,22 @@ import pygame
 import math
 
 
-class Wind(Module):
+class wind(Module):
     # called only when object is first created.
     def __init__(self):
         Module.__init__(self)
         self.name = "Wind"  # set name
-
+        self.arrow_size = 50
         self.x_offset = 0
+        self.y_offset = 0
+        self.arrow_size = 50
 
     # called once for setup
-    def initMod(self, pygamescreen, width, height):
+    def initMod(self, pygamescreen, width=None, height=None):
+        if width is None:
+            width = 150 # default width
+        if height is None:
+            height = 150 # default height
         Module.initMod(
             self, pygamescreen, width, height
         )  # call parent init screen.
@@ -35,7 +41,7 @@ class Wind(Module):
         self.arrow = pygame.image.load("lib/modules/hud/wind/arrow_g.bmp").convert()
         self.arrow.set_colorkey((255, 255, 255))
         self.arrow_scaled = pygame.transform.scale(self.arrow, (50, 50))
-
+        self.update_arrow_size()
 
     # called every redraw for the mod
     def draw(self, aircraft, smartdisplay, pos):
@@ -85,6 +91,26 @@ class Wind(Module):
     # handle key events
     def processEvent(self, event):
         print("processEvent")
+    
+    def get_module_options(self):
+        return {
+            "arrow_size": {
+                "type": "int",
+                "default": self.arrow_size,
+                "min": 10,
+                "max": 150,
+                "label": "Arrow Size",
+                "description": "Size of the arrow.",
+                "post_change_function": "update_arrow_size"
+            }
+        }
+    
+    def update_arrow_size(self):
+        self.arrow_scaled = pygame.transform.scale(
+            self.arrow, (self.arrow_size, self.arrow_size)
+        )
+        self.arrow_scaled_rect = self.arrow_scaled.get_rect()
+
 
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

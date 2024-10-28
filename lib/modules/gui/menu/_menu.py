@@ -14,14 +14,14 @@ import math
 import pygame_menu
 from typing import Tuple, Any
 
-class Menu(Module):
+class menu(Module):
     # called only when object is first created.
     def __init__(self):
         Module.__init__(self)
         self.name = "Menu"  # set name
 
     # called once for setup
-    def initMod(self, pygamescreen, width, height,title):
+    def initMod(self, pygamescreen, width, height,title=""):
         Module.initMod(
             self, pygamescreen, width, height
         )  # call parent init screen.
@@ -43,7 +43,7 @@ class Menu(Module):
         self.menu.disable()
 
     # called every redraw for the mod
-    def draw(self, aircraft, smartdisplay):
+    def draw(self, aircraft, smartdisplay,pos):
 
         print("draw menu")
 

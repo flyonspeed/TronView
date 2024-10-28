@@ -15,7 +15,7 @@ import pygame
 import math
 
 
-class SlipSkid(Module):
+class slipskid(Module):
     # called only when object is first created.
     def __init__(self):
         Module.__init__(self)
@@ -24,7 +24,11 @@ class SlipSkid(Module):
         self.x_offset = 0
 
     # called once for setup
-    def initMod(self, pygamescreen, width, height):
+    def initMod(self, pygamescreen, width=None, height=None):
+        if width is None:
+            width = 400 # default width
+        if height is None:
+            height = 80 # default height
         Module.initMod(
             self, pygamescreen, width, height
         )  # call parent init screen.
@@ -38,9 +42,16 @@ class SlipSkid(Module):
         self.yCenterForBall = int(self.height /2)
 
     # called every redraw for the mod
-    def draw(self, aircraft, smartdisplay, pos):
+    def draw(self, aircraft, smartdisplay, pos=(None,None)):
 
-        x,y = pos
+        if pos[0] is None:
+            x = smartdisplay.x_center
+        else:
+            x = pos[0] + self.width / 2
+        if pos[1] is None:
+            y = smartdisplay.y_center
+        else:
+            y = pos[1] 
 
         # Slip/Skid Indicator
         if aircraft.slip_skid != None:
@@ -68,34 +79,6 @@ class SlipSkid(Module):
             (x - self.xLineFromCenter + self.x_offset, y + self.yLineHeight),
             3,
         )
-        # pygame.draw.line(
-        #     self.pygamescreen,
-        #     (0, 0, 0),
-        #     (x + 61, y + 179),
-        #     (x + 61, y + 201),
-        #     1,
-        # )
-        # pygame.draw.line(
-        #     self.pygamescreen,
-        #     (0, 0, 0),
-        #     (x + 65, y + 179),
-        #     (x + 65, y + 201),
-        #     1,
-        # )
-        # pygame.draw.line(
-        #     self.pygamescreen,
-        #     (0, 0, 0),
-        #     (x + 39, y + 179),
-        #     (x + 39, y + 201),
-        #     1,
-        # )
-        # pygame.draw.line(
-        #     self.pygamescreen,
-        #     (0, 0, 0),
-        #     (x + 35, y + 179),
-        #     (x + 35, y + 201),
-        #     1,
-        # )
 
     # called before screen draw.  To clear the screen to your favorite color.
     def clear(self):
@@ -105,6 +88,22 @@ class SlipSkid(Module):
     # handle key events
     def processEvent(self, event):
         pass
+
+    def get_module_options(self):
+        return {
+            "MainColor": {
+                "type": "color",
+                "default": self.MainColor,
+                "label": "Main Color",
+                "description": "Color of the main line.",
+            },
+            "BallColor": {
+                "type": "color",
+                "default": self.BallColor,
+                "label": "Ball Color",
+                "description": "Color of the ball.",
+            }
+        }
 
 
 

@@ -36,9 +36,11 @@ def main_graphical():
     debug_mode = 0
     debug_font = pygame.font.SysFont("monospace", 25, bold=False)
 
+    exit_graphic_mode = False
+
     ##########################################
     # Main graphics draw loop
-    while not shared.aircraft.errorFoundNeedToExit and not shared.aircraft.textMode:
+    while not shared.aircraft.errorFoundNeedToExit and not shared.aircraft.textMode and not exit_graphic_mode:
         clock.tick(maxframerate)
         for event in pygame.event.get():  # check for event like keyboard input.
             if event.type == pygame.QUIT:
@@ -117,6 +119,9 @@ def main_graphical():
                     shared.aircraft.textMode = True # switch to text mode?
                 elif event.key == pygame.K_m:
                     pygame.mouse.set_visible(True)
+                elif event.key == pygame.K_e:
+                    shared.aircraft.editMode = True
+                    exit_graphic_mode = True
                 elif event.key == pygame.K_k:
                     vkey = VirtualKeyboard(pygamescreen) # create a virtual keyboard
                     #vkey.run("test")
@@ -157,10 +162,11 @@ def main_graphical():
         #now make pygame update display.
         pygame.display.update()
 
+    print("Exiting graphic mode.")
 
     # once exists main loop, close down pygame. and exit.
-    pygame.quit()
-    pygame.display.quit()
+    # pygame.quit()
+    # pygame.display.quit()
 
 # used to pass along custom events to screens.
 class MyEvent(object):
@@ -183,6 +189,7 @@ def loadScreen(ScreenNameToLoad):
     shared.CurrentScreen = class_()
     pygamescreen, screen_size = hud_graphics.initDisplay(0)
     width, height = screen_size
+    print(("Screen size: %d x %d"%(width,height)))
     shared.smartdisplay.setDisplaySize(width,height)
     shared.CurrentScreen.initDisplay(
         pygamescreen, width, height
@@ -335,6 +342,8 @@ def draw_debug(debug_mode,aircraft,smartdisplay):
         draw_debug_object(aircraft.inputs[1])
         draw_label_debug_title("Internatl")
         draw_debug_object(aircraft.internal)
+
+    smartdisplay.draw_text(smartdisplay.BOTTOM_RIGHT, debug_font, "%0.2f FPS" % (aircraft.fps), (255, 255, 0))
 
 
 

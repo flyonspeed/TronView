@@ -41,8 +41,20 @@ CurrentScreen = None
 ####################################
 ## Default flight log dir.
 ## default location where flight logs are saved. Can be overwritten in config file.
-DefaultFlightLogDir = "/flightlog/"
+DefaultFlightLogDir = "./flightlog/"
 
+
+####################################
+## Default data dir.
+## default location where data is saved. Can be overwritten in config file.
+DataDir = "./data/"
+
+
+####################################
+## Change History
+## This is a global object that is used to store the history of changes to the screen objects while in edit mode.
+## This is used for the undo functionality.
+Change_history = None
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python
 

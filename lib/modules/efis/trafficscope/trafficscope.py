@@ -12,25 +12,38 @@ from lib import smartdisplay
 from lib import aircraft
 import pygame
 import math
+import time
 #from osgeo import osr
+from lib.common import shared
 
-class TrafficScope(Module):
+
+class trafficscope(Module):
     # called only when object is first created.
     def __init__(self):
         Module.__init__(self)
         self.name = "Traffic Scope"  # set name
-
-    # called once for setup
-    def initMod(self, pygamescreen, width, height):
-        Module.initMod(
-            self, pygamescreen, width, height
-        )  # call parent init screen.
-        print(("Init Mod: %s %dx%d"%(self.name,self.width,self.height)))
-
         self.show_callsign = False
         self.show_details = False
         self.scope_scale = 0
-        self.scope_scale_miles = 0
+        self.scope_scale_miles = 10
+        self.target_show_lat_lon = hud_utils.readConfigBool("TrafficScope", "target_show_lat_lon", False)
+        self.draw_aircraft_icon = hud_utils.readConfigBool("TrafficScope", "draw_aircraft_icon", True)
+        self.aircraft_icon_scale = hud_utils.readConfigInt("TrafficScope", "aircraft_icon_scale", 10)
+        self.details_offset = hud_utils.readConfigInt("TrafficScope", "details_offset", 5)
+
+        self.targetDetails = {} # keep track of details about each target. like the x,y position on the screen. and if they are selected.
+
+    # called once for setup
+    def initMod(self, pygamescreen, width=None, height=None):
+        if width is None:
+            width = 500 # default width
+        if height is None:
+            height = 500 # default height
+        Module.initMod(
+            self, pygamescreen, width, height
+        )  # call parent init screen.
+        if shared.aircraft.debug_mode > 0:
+            print(("Init Mod: %s %dx%d"%(self.name,self.width,self.height)))
 
         self.xCenter = self.width/2
         self.yCenter = self.height/2
@@ -39,13 +52,11 @@ class TrafficScope(Module):
         self.font = pygame.font.SysFont("monospace", 12, bold=False)
         self.font_target = pygame.font.SysFont("monospace", target_font_size, bold=False)
 
-        self.target_show_lat_lon = hud_utils.readConfigBool("TrafficScope", "target_show_lat_lon", False)
-
-        self.setScaleInMiles(10)
+        self.setScaleInMiles()
 
 
     def buildBaseSurface(self):
-        self.surface = pygame.Surface((self.width, self.height))
+        self.surfaceBase = pygame.Surface((self.width, self.height),pygame.SRCALPHA)
         self.surface2= pygame.Surface((self.width, self.height),pygame.SRCALPHA)
         #self.surface.set_alpha(128)
         #self.surface2.set_alpha(128)
@@ -54,8 +65,8 @@ class TrafficScope(Module):
 
         # fill background black
         hud_graphics.hud_draw_circle(
-            self.surface, 
-            (0,0,0), 
+            self.surfaceBase, 
+            (0,0,0,0), 
             (self.xCenter, self.yCenter), 
             int(self.width/2), 
             0,
@@ -63,7 +74,7 @@ class TrafficScope(Module):
 
         # draw cross lines
         pygame.draw.line(
-            self.surface,
+            self.surfaceBase,
             self.darkGrey,  # color orange
             (0, self.height/2), 
             (self.width,self.height/2),
@@ -71,7 +82,7 @@ class TrafficScope(Module):
         )
 
         pygame.draw.line(  # 
-            self.surface,
+            self.surfaceBase,
             self.darkGrey,
             (self.width/2,0), 
             (self.width/2, self.height),
@@ -79,14 +90,14 @@ class TrafficScope(Module):
         )
         # draw outter circle
         hud_graphics.hud_draw_circle(
-            self.surface, 
+            self.surfaceBase, 
             self.darkGrey, 
             (self.xCenter, self.yCenter), 
             int(self.width/2), 
             1,
         ) 
         hud_graphics.hud_draw_circle(
-            self.surface, 
+            self.surfaceBase, 
             self.darkGrey, 
             (self.xCenter, self.yCenter), 
             int(self.width/4), 
@@ -96,126 +107,239 @@ class TrafficScope(Module):
         # show scale.
         labelScale = self.font.render(str(self.scope_scale_miles)+" mi.", False, (200,255,255), (0,0,0))
         labelScale_rect = labelScale.get_rect()
-        self.surface.blit(labelScale, (self.xCenter-labelScale_rect.width, 5))
+        self.surfaceBase.blit(labelScale, (self.xCenter-labelScale_rect.width, 5))
 
         # show scale.
         labelScale = self.font.render("%.1f mi."%(self.scope_scale_miles/2), False, (200,255,255), (0,0,0))
         labelScale_rect = labelScale.get_rect()
-        self.surface.blit(labelScale, (self.xCenter-labelScale_rect.width, int(self.height/4)+5 ))
+        self.surfaceBase.blit(labelScale, (self.xCenter-labelScale_rect.width, int(self.height/4)+5 ))
 
 
-    def setScaleInMiles(self,miles):
-        self.scope_scale = (self.width/2) / miles 
-        #self.scope_scale = miles * 16
-        self.scope_scale_miles = miles
+    def setScaleInMiles(self,miles = None ):
+        if miles is not None:
+            self.scope_scale_miles = miles
+        self.scope_scale = (self.width/2) / self.scope_scale_miles 
         self.buildBaseSurface()
 
     # called every redraw for the mod
     def draw(self, aircraft, smartdisplay, pos):
-
+        # clear the surface
+        self.surface2.fill((0,0,0,0))
         # Clear using the base surface.
-        self.surface2.blit(self.surface, (0, 0))
+        self.surface2.blit(self.surfaceBase, (0, 0))
 
-        # go through all targets and draw them
-        for i, t in enumerate(aircraft.traffic.targets):
-            if(t.dist!=None and t.dist<100 and t.brng !=None):
-                brngToUse = t.brng
-                # adjust bearing to target based on the aircraft heading.
-                if(aircraft.mag_head != None):
-                    brngToUse = brngToUse - aircraft.mag_head
-                elif(aircraft.gps.GndTrack != None): # else use gps ground track if we have it.
-                    brngToUse = brngToUse - aircraft.gps.GndTrack
-                if(brngToUse<0): brngToUse = 360 - abs(brngToUse)
+        # Get aircraft heading or ground track
+        aircraft_heading = aircraft.mag_head if aircraft.mag_head is not None else aircraft.gps.GndTrack
 
-                radianAngle = (brngToUse-90) * math.pi / 180 # convert to radians
-                d = t.dist * self.scope_scale
-                xx = self.xCenter + (d * math.cos(radianAngle))
-                yy = self.yCenter + (d * math.sin(radianAngle))
-                hud_graphics.hud_draw_circle(
-                    self.surface2, 
-                    ( 0, 255, 129), 
-                    (xx, yy), 
-                    4, 
-                    0,
-                )
-                # show callsign?
-                if(self.show_callsign==True):
-                    label = self.font_target.render(t.callsign, False, (200,255,255), (0,0,0))
-                    label_rect = label.get_rect()
-                    self.surface2.blit(label, (xx, yy))
-                # show details?
-                if(self.show_details==True):
-                    if(t.speed != None and t.speed > -1 and t.track != None):
-                        # generate line in direct aircraft is flying..
+        def draw_target(t):
+            if t.dist is None or t.dist >= 100 or t.brng is None:
+                return
 
-                        targetBrngToUse = t.track # get brng the target is going.
-                        if(aircraft.mag_head != None):  # change it based on what direction we are going because up is now our heading.. not north.
-                            targetBrngToUse = targetBrngToUse - aircraft.mag_head
-                        elif(aircraft.gps.GndTrack != None): # else use gps ground track if we have it.
-                            targetBrngToUse = targetBrngToUse - aircraft.gps.GndTrack
-                        if(targetBrngToUse<0): targetBrngToUse = 360 - abs(targetBrngToUse)
+            brngToUse = (t.brng - aircraft_heading) % 360
+            radianAngle = math.radians(brngToUse - 90)
+            d = t.dist * self.scope_scale
+            xx = self.xCenter + (d * math.cos(radianAngle)) # translate to screen coordinates.
+            yy = self.yCenter + (d * math.sin(radianAngle)) # translate to screen coordinates.
 
-                        radianTargetTrack = (targetBrngToUse-90) * math.pi / 180
-                        radianArrowPt = (targetBrngToUse-82) * math.pi / 180
-                        radianArrowPt2 = (targetBrngToUse-98) * math.pi / 180
-                        d = t.speed / 3
-                        if(d>60): d = 60  # cap at 60 pixels length for arrow.
-                        #print("line speed:"+str(d))
-                        lineX = xx + (d * math.cos(radianTargetTrack))
-                        lineY = yy + (d * math.sin(radianTargetTrack))
-                        arrowX = xx + ((d-2) * math.cos(radianArrowPt))
-                        arrowY = yy + ((d-2) * math.sin(radianArrowPt))
-                        arrowX2 = xx + ((d-2) * math.cos(radianArrowPt2))
-                        arrowY2 = yy + ((d-2) * math.sin(radianArrowPt2))
-                        # draw speed line
-                        pygame.draw.line(  # 
-                            self.surface2,
-                            (200,255,255),
-                            (xx,yy), 
-                            (lineX, lineY),
-                            1,
-                        )
-                        #draw_triangle(self.surface2,(200,255,255),(lineX,lineY), 4, (xx,yy))
+            # Draw the target
+            if self.draw_aircraft_icon:
+                direction_of_aircraft = ((t.track or brngToUse) - aircraft_heading) % 360
+                t.targetDirection = math.radians(direction_of_aircraft - 90)
+                self.drawAircraftIcon(self.surface2, t, xx, yy, self.aircraft_icon_scale)
+            else:
+                hud_graphics.hud_draw_circle(self.surface2, (0, 255, 129), (xx, yy), 4, 0)
 
-                        pygame.draw.line(  # arrow head 1
-                           self.surface2,
-                           (200,255,255),
-                           (lineX,lineY),
-                           (arrowX, arrowY),
-                           1,
-                        )
-                        pygame.draw.line(  # arrow head 2
-                           self.surface2,
-                           (200,255,255),
-                           (lineX,lineY),
-                           (arrowX2, arrowY2),
-                           1,
-                        )
-                        # show speed info
-                        labelSpeed = self.font_target.render(str(t.speed)+"mph", False, (200,255,255), (0,0,0))
-                        labelSpeed_rect = labelSpeed.get_rect()
-                        self.surface2.blit(labelSpeed, (xx, yy+label_rect.height))
-                        # show altitude diff
-                        if(t.altDiff != None):
-                            if(t.altDiff>0): prefix = "+"
-                            else: prefix = ""
-                            labelAlt = self.font_target.render(prefix+'{:,}ft'.format(t.altDiff), False, (200,255,255), (0,0,0))
-                            self.surface2.blit(labelAlt, (xx+labelSpeed_rect.width+10, yy+label_rect.height))
-                        # distance
-                        labelDist = self.font_target.render("%.1f mi."%(t.dist), False, (200,255,255), (0,0,0))
-                        self.surface2.blit(labelDist, (xx+label_rect.width+10, yy))
+            x_text = xx + self.details_offset
+            y_text = yy + self.details_offset
 
-                        #show lat lon?
-                        if(self.target_show_lat_lon==True):
-                            labelLat = self.font_target.render("%f "%(t.lat), False, (200,255,255), (0,0,0))
-                            self.surface2.blit(labelLat, (xx, yy+labelSpeed_rect.height+label_rect.height))
-                            labelLat_rect = labelLat.get_rect()
-                            labelLon = self.font_target.render("%f "%(t.lon), False, (200,255,255), (0,0,0))
-                            self.surface2.blit(labelLon, (xx, yy+labelSpeed_rect.height+label_rect.height+labelLat_rect.height))
+            if self.show_callsign:
+                label = self.font_target.render(t.callsign, False, (200,255,255), (0,0,0))
+                self.surface2.blit(label, (x_text, y_text))
+                label_rect = label.get_rect()
+            else:
+                label_rect = pygame.Rect(0, 0, 0, 0)
 
+            if self.show_details:
+                self.draw_target_details(t, xx, yy, x_text, y_text, label_rect, aircraft_heading, aircraft)
 
+            # store the x,y position of the target in the local targetDetails dictionary.
+            if t.callsign not in self.targetDetails:
+                self.targetDetails[t.callsign] = {"x": xx, "y": yy, "selected": False}
+                if shared.aircraft.debug_mode > 0:
+                    print("Added target to targetDetails: %s" % t.callsign, "x: %d, y: %d" % (xx, yy))
+            else: # else just update the x,y position.
+                self.targetDetails[t.callsign]["x"] = xx
+                self.targetDetails[t.callsign]["y"] = yy
+
+        # Use map() to apply draw_target to all targets
+        list(map(draw_target, filter(lambda t: t.dist is not None and t.dist < 100 and t.brng is not None, aircraft.traffic.targets)))
 
         self.pygamescreen.blit(self.surface2, pos)
+
+    def draw_target_details(self, t, xx, yy, x_text, y_text, label_rect, aircraft_heading, aircraft):
+        if t.speed is not None and t.speed > -1 and t.track is not None:
+            t.targetBrngToUse = (t.track - aircraft_heading) % 360
+            radianTargetTrack = math.radians(t.targetBrngToUse - 90)
+            d = min(t.speed / 3, 60)
+            
+            lineX, lineY = xx + d * math.cos(radianTargetTrack), yy + d * math.sin(radianTargetTrack)
+            arrowX, arrowY = xx + (d-2) * math.cos(math.radians(t.targetBrngToUse - 82)), yy + (d-2) * math.sin(math.radians(t.targetBrngToUse - 82))
+            arrowX2, arrowY2 = xx + (d-2) * math.cos(math.radians(t.targetBrngToUse - 98)), yy + (d-2) * math.sin(math.radians(t.targetBrngToUse - 98))
+
+            pygame.draw.line(self.surface2, (200,255,255), (xx,yy), (lineX, lineY), 1)
+            pygame.draw.line(self.surface2, (200,255,255), (lineX,lineY), (arrowX, arrowY), 1)
+            pygame.draw.line(self.surface2, (200,255,255), (lineX,lineY), (arrowX2, arrowY2), 1)
+
+            labelSpeed = self.font_target.render(f"{t.speed}mph", False, (200,255,255), (0,0,0))
+            labelSpeed_rect = labelSpeed.get_rect()
+            self.surface2.blit(labelSpeed, (x_text, y_text + label_rect.height))
+
+            if t.altDiff is not None:
+                prefix = "+" if t.altDiff > 0 else ""
+                labelAlt = self.font_target.render(f"{prefix}{t.altDiff:,}ft", False, (200,255,255), (0,0,0))
+                self.surface2.blit(labelAlt, (x_text + labelSpeed_rect.width + 10, y_text + label_rect.height))
+
+            labelDist = self.font_target.render(f"{t.dist:.1f} mi.", False, (200,255,255), (0,0,0))
+            self.surface2.blit(labelDist, (x_text + label_rect.width + 10, y_text))
+            next_text_y_offset = 0
+
+            # Add time since last update
+            if hasattr(t, 'time'):
+                time_since_update = int(time.time() - t.time)
+                labelUpdate = self.font_target.render(f"{time_since_update}s ago", False, (200,255,255), (0,0,0))
+                self.surface2.blit(labelUpdate, (x_text, y_text + label_rect.height + labelSpeed_rect.height))
+                next_text_y_offset = labelUpdate.get_rect().height
+
+            # # calculate position of this target above horizontal line using the following:
+            # # shared.aircraft.pitch : my pitch above horizon
+            # # shared.aircraft.roll : my roll around that axis.
+            # # t.altDiff : height difference between us and the target.
+            # # t.brng : my heading to the target.
+            # # t.dist : distance to the target.
+            # # Calculate the target's position relative to the viewer's perspective
+            # if t.altDiff is not None and aircraft.pitch is not None and aircraft.roll is not None:
+            #     # Convert distances to meters
+            #     alt_diff_meters = t.altDiff * 0.3048  # Convert feet to meters
+            #     dist_meters = t.dist * 1609.34  # Convert miles to meters
+
+            #     # Calculate the angle to the target relative to the horizon in radians
+            #     angle_to_target = math.atan2(alt_diff_meters, dist_meters)
+
+            #     # Adjust for aircraft pitch
+            #     adjusted_angle = angle_to_target - math.radians(aircraft.pitch)
+
+            #     # Calculate the vertical position on the screen
+            #     screen_height = self.height
+            #     vertical_position = self.yCenter - (math.tan(adjusted_angle) * (screen_height / 2))
+
+            #     # Adjust for aircraft roll
+            #     roll_radians = math.radians(aircraft.roll)
+            #     rotated_x = (xx - self.xCenter) * math.cos(roll_radians) - (vertical_position - self.yCenter) * math.sin(roll_radians) + self.xCenter
+            #     rotated_y = (xx - self.xCenter) * math.sin(roll_radians) + (vertical_position - self.yCenter) * math.cos(roll_radians) + self.yCenter
+
+            #     xx, yy = rotated_x, rotated_y
+            #     # draw a dot at the target's position
+            #     pygame.draw.circle(self.surface2, (200,255,255), (xx, yy), 6, 0)
+            #     # draw the callsign at the target's position
+            #     labelCallsign = self.font_target.render(t.callsign, False, (200,255,255), (0,0,0))
+            #     labelCallsign_rect = labelCallsign.get_rect()
+            #     self.surface2.blit(labelCallsign, (xx, yy))
+            #     # draw angle to target on the next line. 
+            #     labelAngle = self.font_target.render(f"angle: {adjusted_angle:.2f}", False, (200,255,255), (0,0,0))
+            #     self.surface2.blit(labelAngle, (xx, yy + labelCallsign_rect.height))
+            #     # show the targets adjusted_angle
+            #     next_text_y_offset = next_text_y_offset +label_rect.height + labelSpeed_rect.height + (self.font_target.get_height() if hasattr(t, 'time') else 0)
+            #     labelAngle = self.font_target.render(f"angle: {adjusted_angle:.2f}", False, (200,255,255), (0,0,0))
+            #     self.surface2.blit(labelAngle, (x_text, y_text + next_text_y_offset))
+            #     labelAngle_rect = labelAngle.get_rect()
+            #     next_text_y_offset = next_text_y_offset + labelAngle_rect.height
+
+            if self.target_show_lat_lon:
+                labelLat = self.font_target.render(f"{t.lat:.6f}", False, (200,255,255), (0,0,0))
+                self.surface2.blit(labelLat, (x_text, y_text + next_text_y_offset))
+                labelLat_rect = labelLat.get_rect()
+                labelLon = self.font_target.render(f"{t.lon:.6f}", False, (200,255,255), (0,0,0))
+                self.surface2.blit(labelLon, (x_text, y_text + next_text_y_offset + labelLat_rect.height))
+
+
+    # draw aircraft icon based on the type of aircraft
+    def drawAircraftIcon(self, surface, target, xx, yy, scale):
+
+        direction_of_aircraft = target.targetDirection
+        # types of aircraft
+        # 0 = unkown
+        # 1 = Light (ICAO) < 15 500 lbs
+        # 2 = Small - 15 500 to 75 000 lbs
+        # 3 = Large - 75 000 to 300 000 lbs
+        # 4 = High Vortex Large (e.g., aircraft 24 such as B757)
+        # 5 = Heavy (ICAO) - > 300 000 lbs
+        # 7 = Rotorcraft
+        # 9 = Glider
+        # 10 = lighter then air
+        # 11 = sky diver
+        # 12 = ultra light
+        # 14 = drone Unmanned aerial vehicle
+        # 15 = space craft and aliens!
+        nose = (xx + scale * math.cos(direction_of_aircraft), 
+            yy + scale * math.sin(direction_of_aircraft))
+        tail = (xx - scale * math.cos(direction_of_aircraft), 
+                yy - scale * math.sin(direction_of_aircraft))
+                
+        # if type is 0 through 5 then draw a simple aircraft icon
+        if(target.type >= 0 and target.type <= 5):
+            # Calculate points for the target aircraft outline
+
+            wing_left = (xx + scale * 0.7 * math.cos(direction_of_aircraft + math.pi/2), 
+                            yy + scale * 0.7 * math.sin(direction_of_aircraft + math.pi/2))
+            wing_right = (xx + scale * 0.7 * math.cos(direction_of_aircraft - math.pi/2), 
+                            yy + scale * 0.7 * math.sin(direction_of_aircraft - math.pi/2))
+            elevator_left = (tail[0] + scale * 0.3 * math.cos(direction_of_aircraft + math.pi/2), 
+                                tail[1] + scale * 0.3 * math.sin(direction_of_aircraft + math.pi/2))
+            elevator_right = (tail[0] + scale * 0.3 * math.cos(direction_of_aircraft - math.pi/2), 
+                                tail[1] + scale * 0.3 * math.sin(direction_of_aircraft - math.pi/2))
+
+            # Draw the aircraft outline
+            pygame.draw.line(surface, (0, 255, 129), nose, tail, 1)
+            pygame.draw.line(surface, (0, 255, 129), wing_left, wing_right, 1)
+            pygame.draw.line(surface, (0, 255, 129), elevator_left, elevator_right, 1)
+        elif(target.type == 7):
+            # draw a helicopter. which will look like a X with a line through it. use nose and tail to draw it.
+            # calculate the angle of the helicopter blades.
+            # calculate the angle of the helicopter blades.
+            blade_angle = math.atan2(tail[1] - nose[1], tail[0] - nose[0])
+            # calculate the length of the blades.
+            blade_length = scale * 0.7
+            # calculate the position of the blades.
+            blade_pos = (nose[0] + blade_length * math.cos(blade_angle), 
+                            nose[1] + blade_length * math.sin(blade_angle))
+            # also draw a light circle around the helicopter.
+            pygame.draw.circle(surface, (0, 255, 129), tail, scale * 0.2, 1)
+            pygame.draw.circle(surface, (0, 255, 129), blade_pos, scale * 0.8, 1)
+
+            # draw the blades.
+            pygame.draw.line(surface, (0, 255, 129), nose, blade_pos, 1)
+            pygame.draw.line(surface, (0, 255, 129), tail, blade_pos, 1)
+            # draw a line through the middle of the helicopter.
+            pygame.draw.line(surface, (0, 255, 129), nose, tail, 1)
+        else:
+            # Draw a smiley face as the default
+            # Main circle (face)
+            pygame.draw.circle(surface, (70,150,255), (xx, yy), scale, 1)
+            
+            # Eyes
+            eye_offset = scale * 0.3
+            eye_size = max(1, int(scale * 0.15))
+            pygame.draw.circle(surface, (70,150,255), (int(xx - eye_offset), int(yy - eye_offset)), eye_size, 0)
+            pygame.draw.circle(surface, (70,150,255), (int(xx + eye_offset), int(yy - eye_offset)), eye_size, 0)
+            
+            # Smile
+            smile_rect = pygame.Rect(xx - scale * 0.5, yy, scale, scale * 0.5)
+            pygame.draw.arc(surface, (70,150,255), smile_rect, math.pi * 0.1, math.pi * 0.9, 1)
+
+        # draw a circle around the target. if it is selected. check if the callsign is in the targetDetails dictionary. 
+        # is self.targetDetails[t.callsign]["selected"] even exist?
+        if target.callsign in self.targetDetails and self.targetDetails[target.callsign]["selected"]:
+            pygame.draw.circle(self.surface2, (120,255,120), (xx, yy), self.aircraft_icon_scale + 2, 2)
 
 
 
@@ -224,6 +348,88 @@ class TrafficScope(Module):
         #self.ahrs_bg.fill((0, 0, 0))  # clear screen
         #print("clear")
         pass
+    
+    # return a dict of objects that are used to configure the module.
+    def get_module_options(self):
+
+        # each item in the dict represents a configuration option.  These are variable in this class that are exposed to the user to edit.
+        return {
+            "show_callsign": {
+                "type": "bool",
+                "default": False,
+                "label": "Show Callsign",
+                "description": "Show the callsign of the targets on the scope."
+            },
+            "show_details": {
+                "type": "bool",
+                "default": False,
+                "label": "Show Details",
+                "description": "Show the details of the targets on the scope."
+            },
+            "details_offset": {
+                "type": "int",
+                "default": self.details_offset,
+                "min": 0,
+                "max": 20,
+                "label": "Details Offset",
+                "description": "Set the offset of the details from the target in pixels."
+            },
+            "target_show_lat_lon": {
+                "type": "bool",
+                "default": False,
+                "label": "Show Lat/Lon",
+                "description": "Show the latitude and longitude of the targets on the scope."
+            },
+            "scope_scale_miles": {
+                "type": "int",
+                "default": self.scope_scale_miles,
+                "min": 1,
+                "max": 50,
+                "label": "Scope Scale",
+                "description": "Set the scale of the scope in miles.",
+                "post_change_function": "setScaleInMiles"
+            },
+            "draw_aircraft_icon": {
+                "type": "bool",
+                "default": True,
+                "label": "Draw Aircraft Icon",
+                "description": "Draw a simple aircraft outline instead of a dot for targets."
+            },
+            "aircraft_icon_scale": {
+                "type": "int",
+                "default": 10,
+                "min": 10,
+                "max": 30,
+                "label": "Aircraft Icon Scale",
+                "description": "Set the scale of the aircraft icon."
+            },
+        }
+
+    def processClick(self, aircraft, mx, my):
+        if aircraft.debug_mode > 0:
+            print("TrafficScope processClick: %d x %d" % (mx, my))
+        # clear any selected targets from self.targetDetails
+        for target in self.targetDetails:
+            self.targetDetails[target]["selected"] = False
+        
+        # # translate mx,my to same coordinate system as self.targetDetails.  which is based of the center of the surface is 0,0.
+        # mx = mx - self.xCenter
+        # my = my - self.yCenter
+        # if shared.aircraft.debug_mode > 0:
+        #     print("mx: %d, my: %d" % (mx, my))
+
+        # check if they clicked near the x,y postion of a target.
+        for target in self.targetDetails:
+            # translate target x,y to screen coordinates.
+            #if shared.aircraft.debug_mode > 0:
+                #print("target: %s, x: %d, y: %d" % (target, self.targetDetails[target]["x"], self.targetDetails[target]["y"]))
+            if mx >= self.targetDetails[target]["x"] - self.aircraft_icon_scale and mx <= self.targetDetails[target]["x"] + self.aircraft_icon_scale and my >= self.targetDetails[target]["y"] - self.aircraft_icon_scale and my <= self.targetDetails[target]["y"] + self.aircraft_icon_scale:
+                self.targetDetails[target]["selected"] = True
+                if shared.aircraft.debug_mode > 0:
+                    print("selected target: %s" % target)
+                break
+
+        
 
     # handle events
     def processEvent(self,event,aircraft,smartdisplay):
@@ -373,3 +579,4 @@ def convertCoords(xy, src='', targ=''):
 '''
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python
+

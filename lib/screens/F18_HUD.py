@@ -32,7 +32,7 @@ class F18_HUD(Screen):
         self.caged_mode = 1 # default on
         self.MainColor = (0, 255, 0)  # main color of hud graphics
 
-    # called once for setuping up the screen
+    # called once for setting up the screen
     def initDisplay(self, pygamescreen, width, height):
         Screen.initDisplay(
             self, pygamescreen, width, height
@@ -47,29 +47,25 @@ class F18_HUD(Screen):
         self.fontAltSmall = pygame.font.SysFont("monospace", 50, bold=True)  # smaller font for right side of ALT
         self.fontIndicatorSmaller = pygame.font.SysFont("monospace", 30, bold=True)  # ie. baro and VSI, etc
 
-        self.heading = heading.Heading()
+        self.heading = heading.heading()
         self.heading.initMod(self.pygamescreen, self.width, self.height)
-        self.heading.setup(            
-            350,  # hdg size
-            20,  # Gnd Trk Tick size
-            (0, 255, 0),  # hdg rose color
-            (255, 255, 0),  # hdg label color
+        self.heading.setup(
         )
 
-        self.roll_indicator = rollindicator.RollIndicator()
+        self.roll_indicator = rollindicator.rollindicator()
         self.roll_indicator.initMod(self.pygamescreen, self.width, self.height)
 
-        self.horizon = horizon.Horizon()
+        self.horizon = horizon.horizon()
         self.horizon.initMod(self.pygamescreen, self.width, self.height)
 
-        self.aoa = aoa.AOA()
+        self.aoa = aoa.aoa()
         self.aoa.initMod(self.pygamescreen, 40, 133)
         #Sets Width(X) and Height (Y) of AOA HUD Size
 
-        self.slipskid = slipskid.SlipSkid()
+        self.slipskid = slipskid.slipskid()
         self.slipskid.initMod(self.pygamescreen, 250, 30)
 
-        self.wind = wind.Wind()
+        self.wind = wind.wind()
         self.wind.initMod(self.pygamescreen, self.width, self.height)
         
         self.cdi = cdi.cdi()
@@ -78,7 +74,7 @@ class F18_HUD(Screen):
         self.gcross = gcross.gcross()
         self.gcross.initMod(self.pygamescreen, self.width, self.height)
 
-        self.trafficScope = trafficscope.TrafficScope()
+        self.trafficScope = trafficscope.trafficscope()
         self.trafficScope.initMod(self.pygamescreen, 400, 400)
 
     # called every redraw for the screen
@@ -156,13 +152,13 @@ class F18_HUD(Screen):
         smartdisplay.draw_text(smartdisplay.LEFT_MID_DOWN, self.fontIndicatorSmaller, "G %0.1f" % (aircraft.vert_G), (255, 255, 0))
 
         # draw wind direction
-        self.wind.draw(aircraft,smartdisplay,(15,smartdisplay.y_end - 110))
+        self.wind.draw(aircraft,smartdisplay,(30,smartdisplay.y_end - 210))
 
         # draw Slip Skid
         self.slipskid.draw(aircraft,smartdisplay,(smartdisplay.x_center,smartdisplay.y_end-35))
 
         # draw AOA indicator
-        self.aoa.draw(aircraft,smartdisplay,(smartdisplay.x_start + 140 ,smartdisplay.y_end - 140))
+        self.aoa.draw(aircraft,smartdisplay,(smartdisplay.x_start + 75 ,smartdisplay.y_end - 400))
       
         # draw roll indicator
         self.roll_indicator.draw(aircraft,smartdisplay)

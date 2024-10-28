@@ -14,6 +14,8 @@ class Module:
         self.width = 640
         self.height = 480
         self.pygamescreen = 0
+        self.x = 0
+        self.y = 0
 
     def initMod(self, pygamescreen, width, height):
         self.pygamescreen = pygamescreen
@@ -34,5 +36,14 @@ class Module:
     def clear(self):
         print("Clear screen")
 
+    def resize(self, width, height):
+        self.width = width
+        self.height = height
+        self.widthCenter = width / 2
+        self.heightCenter = height / 2
+    
+    # return a dict of objects that are used to configure the module.
+    def get_module_options(self):
+        return {}
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

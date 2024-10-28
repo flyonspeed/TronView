@@ -10,7 +10,7 @@ import importlib
 # load config.cfg file if it exists.
 configParser = configparser.RawConfigParser()
 configParser.read("config.cfg")
-def readConfig(section, name, defaultValue=0, show_error=False,hideoutput=False):
+def readConfig(section, name, defaultValue=0, show_error=False,hideoutput=True):
     global configParser
     try:
         value = configParser.get(section, name)
@@ -207,6 +207,23 @@ def getDataRecorderDir(exitOnFail=False):
         return False
     if fullpath.endswith('/')==False: fullpath = fullpath + "/" # add a slash if needed.
     return fullpath
+
+##############################################
+## function: setupDirs()
+## setup the directories for the system.
+def setupDirs():
+    # find data dir
+    path_data = readConfig("Main", "data_dir", "./data/")
+    # if it doesn't end with / then add it.
+    if not path_data.endswith('/'):
+        path_data = path_data + '/'
+    if not os.path.exists(path_data):
+        os.makedirs(path_data)
+    # check for screens subdir
+    path_screens = path_data + "screens/"
+    if not os.path.exists(path_screens):
+        os.makedirs(path_screens)
+        
 
 ##############################################
 ## function: findScreen()

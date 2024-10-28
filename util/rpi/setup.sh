@@ -1,7 +1,7 @@
 #!/bin/bash
 
-printf "Raspberry Pi Setup script Version 0.1 \n\n"
-read -p "Setup Pi for running HUD software? (y or n)" yn;
+printf "Raspberry Pi Setup script Version 0.1.1 \n\n"
+read -p "Setup Pi for running TronView software? (y or n)" yn;
 case $yn in
 	[Yy]* )
 		# update apt-get quietly
@@ -30,9 +30,9 @@ case $yn in
 
 		# check if i2c is already enabled by running sudo raspi-config nonint get_i2c
 		if [ $(sudo raspi-config nonint get_i2c) -eq 0 ]; then
-			echo "i2c already enabled (used for ADS1115 analog to digital converter)"
+			echo "i2c already enabled (used for ADS1115 analog to digital converter and BNO085/BNO055 IMU)"
 		else
-			echo "Enabling i2c for use of ADS1115 (analog to digital converter)"
+			echo "Enabling i2c for use of ADS1115 (analog to digital converter) and BNO085/BNO055 IMU"
 			sudo raspi-config nonint do_i2c 0
 		fi
 
@@ -50,7 +50,6 @@ case $yn in
 			sudo pip3 install numpy --break-system-packages
 			sudo pip3 install pygame_gui --break-system-packages 
 
-
 		else
 			# get os pretty name
 			echo "OS is $os_pretty_name.  "
@@ -66,7 +65,40 @@ case $yn in
 			sudo pip3 install pygame_gui --break-system-packages
 		fi
 
-		echo "Please reboot your pi now.  Type sudo reboot"
+		# ask if we should install the BNO055 IMU python library
+		read -p "Install BNO055 IMU python library? (y or n)" yn;
+		case $yn in
+			[Yy]* )
+				echo "Installing BNO055 IMU python library"
+				sudo pip3 install adafruit-circuitpython-bno055 --break-system-packages
+				;;
+		esac
+
+		# ask if we should install the BNO085 IMU python library
+		read -p "Install BNO085 IMU python library? (y or n)" yn;
+		case $yn in
+			[Yy]* )
+				echo "Installing BNO085 IMU python library"
+				sudo pip3 install adafruit-circuitpython-bno08x --break-system-packages
+				;;
+		esac
+
+		# check if /boot/config.txt has already been modified to support 400000 i2c baud rate
+		if grep -q "dtparam=i2c_arm_baudrate=400000" /boot/config.txt; then
+			echo "i2c baud rate already set to 400000"
+		else
+			read -p "The BNO085 IMU requires a faster i2c baud rate of 400000.  Set i2c baud rate to 400000? (y or n)" yn;
+			case $yn in
+				[Yy]* )
+					echo "Setting i2c baud rate to 400000"
+					sudo bash -c 'echo "dtparam=i2c_arm_baudrate=400000" >> /boot/config.txt'
+					;;
+			esac
+		fi
+
+		echo "" # blank line
+		echo "----------------------------------------"
+		echo "Done. Please reboot your pi now.  Type sudo reboot"
 		;;
 	[Nn]* )echo "Ok. Nothing done."; exit;;
 esac

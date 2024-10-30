@@ -1,56 +1,31 @@
 
-## Steps to get the software running on raspberry pi
+# Steps to get the software running on raspberry pi
 
-1) WIFI and autologin. You’ll want to get the pi on your wifi network so it can download the latest source.  Here are some instructions online that might help.  https://www.raspberrypi.org/documentation/configuration/wireless/wireless-cli.md
+1) Create a fresh image of the latest Raspberry Pi OS.  See [quick_start_pi_image](quick_start_pi_image.MD)
+ for more details.
 
-To setup auto login. (so you don't have to login to pi every time it boots up)
+2) run the install script on the pi terminal.
 
-Enter the command `sudo raspi-config` Scroll down to Boot Options and select Console Autologin. Then exit the configuration menu and reboot.
+    `curl -fsSL https://tronview.org/rpi.sh | sh`
 
-2) Install git command.   This will let you get the latest source from github directly onto the pi.
+    This download the latest install script and runs it.
 
-`sudo apt-get -y install git`
+    It will ask you a few questions about your setup.
 
-3) clone the source from github
+    After it's done it will show you a list of demo options to run.
 
-`git clone https://github.com/flyonspeed/TronView.git`
+    While running some keyboard commands:
 
-this will ask for username/email password from github.
+    q - quit
 
-when done this will create a TronView dir
-
-4) run the util/rpi/setup.sh script to finish install.  This will enable built in serial port, enable i2c , and install python libraries needed.  
-
-
-`sudo ./util/rpi/setup.sh`
-
-5) reboot the device.  type
-
-`sudo reboot`
-
-6) Test the hud/efis screen with existing example data.  
-run the following.  First make sure you are in the efis_hud dir.
-
-`cd TronView`
-
-Run a demo
-
-`./util/run_choose.sh`
-
-This will show you a list of options to run.
-
-Some keyboard commands:
-
-q - quit
-
-? - show help
+    ? - show help
 
 
-7) Next if you want to run live serial data from your efis.
+# If you want to run live serial data from your efis.
 run the serial_read.py script to confirm data being sent is correct.
-go into TronView dir then type
+go into TronView dir (if you are not already there) then type
 
-`cd TronView`
+`cd TronView` 
 
 `sudo python util/serial_read.py`
 
@@ -60,7 +35,7 @@ make sure the data is coming through and looks good.
 
 to exit hit cntrl-c
 
-8) run it
+4) run it
 
 Note:  You have to run using sudo in order to get access to serial port.
 

@@ -1,33 +1,17 @@
 
-## Steps to get the software running on Mac OS
+# Steps to get the software running on Mac OS
 
 1) Open a terminal window.
 
-2) Install brew (if not already installed)
+2) run the install script on the terminal.
 
-`/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`
+`/bin/bash -c "$(curl -fsSL https://tronview.org/macos.sh)"`
 
-3) install git (if not already installed)
+or goto https://tronview.org/ where you can copy and paste the script.
 
-`brew install git`
+This will download the latest install script and run it.
 
-4) Clone the source from github
-
-`git clone https://github.com/flyonspeed/TronView.git`
-
-3) run the setup script
-
-`./util/macos/setup.sh`
-
-4) Run TronView Demo
-
-`cd TronView`
-
-Run a demo
-
-`./util/run_choose.sh`
-
-This will show you a list of options to run.
+Then it will give you some demo options to run.
 
 Some keyboard commands:
 

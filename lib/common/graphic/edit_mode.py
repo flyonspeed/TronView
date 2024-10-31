@@ -58,7 +58,7 @@ def main_edit_loop():
     offset_x = 0 # x offset for dragging
     offset_y = 0 # y offset for dragging
     resizing = False  # are we resizing?
-    dropdown = None # dropdown menu for module selection (if any)
+    dropdown_add_new = None # dropdown menu for module selection (if any)
     modulesFound, listModules = find_module(debugOutput=False)
     showAllBoundryBoxes = False
     selected_screen_objects = []
@@ -111,8 +111,8 @@ def main_edit_loop():
                 if edit_events_window.is_busy():
                     continue
 
-            if dropdown and dropdown.visible:
-                selection = dropdown.update(event_list)
+            if dropdown_add_new and dropdown_add_new.visible:
+                selection = dropdown_add_new.update(event_list)
                 if selection >= 0:
                     print("Selected module: %s" % listModules[selection])
                     selected_screen_object.title = listModules[selection]
@@ -251,13 +251,13 @@ def main_edit_loop():
                         )
                         newObject.selected = True
                         selected_screen_object = newObject
-                        dropdown = DropDown([COLOR_INACTIVE, COLOR_ACTIVE],
+                        dropdown_add_new = DropDown([COLOR_INACTIVE, COLOR_ACTIVE],
                                 [COLOR_LIST_INACTIVE, COLOR_LIST_ACTIVE], 
                             newObject.x, newObject.y, 140, 30, 
                             pygame.font.SysFont(None, 25), 
                             "Select Module", listModules)
-                        dropdown.visible = True
-                        dropdown.draw_menu = True
+                        dropdown_add_new.visible = True
+                        dropdown_add_new.draw_menu = True
 
                     # MOVE SCREEN OBJECT UP IN DRAW ORDER (page up)
                     elif event.key == pygame.K_PAGEUP:
@@ -478,24 +478,24 @@ def main_edit_loop():
                                     resize_start_size = (sObject.width, sObject.height)  # Store initial size
                                     offset_x = mx - sObject.x
                                     offset_y = my - sObject.y
-                                    dropdown = None
+                                    dropdown_add_new = None
                                 ##################
                                 # DROPDOWN MENU (select module) top right corner
                                 elif sObject.y <= my <= sObject.y + 20 and (sObject.module is None) and sObject.type == 'module':  # Assuming the title area is 20 pixels high
                                     # only if module is not a group or has no module
                                     selected_screen_object = sObject
                                     sObject.selected = True
-                                    dropdown = DropDown([COLOR_INACTIVE, COLOR_ACTIVE],
+                                    dropdown_add_new = DropDown([COLOR_INACTIVE, COLOR_ACTIVE],
                                             [COLOR_LIST_INACTIVE, COLOR_LIST_ACTIVE], 
                                         sObject.x, sObject.y, 140, 30, 
                                         pygame.font.SysFont(None, 25), 
                                         "Select Module", listModules)
-                                    dropdown.visible = True
-                                    dropdown.draw_menu = True
+                                    dropdown_add_new.visible = True
+                                    dropdown_add_new.draw_menu = True
                                 ##################
                                 # MOVE MODULE
                                 else:
-                                    dropdown = None
+                                    dropdown_add_new = None
                                     # Click is inside the module, start moving
                                     selected_screen_object = sObject
                                     dragging = True
@@ -593,8 +593,8 @@ def main_edit_loop():
                 edit_events_window = None
 
             # Last... Draw the dropdown menu if visible over the top of everything.
-            if dropdown and dropdown.visible and selected_screen_object == sObject:
-                dropdown.draw(pygamescreen)
+            if dropdown_add_new and dropdown_add_new.visible and selected_screen_object == sObject:
+                dropdown_add_new.draw(pygamescreen)
 
         pygame_gui_manager.update(time_delta)
 
@@ -655,63 +655,109 @@ class DropDown():
         self.color_option = color_option
         self.rect = pygame.Rect(x, y, w, h)
         self.font = font
-        self.main = main    # main text
+        self.main = main
         self.options = options
         self.draw_menu = False
         self.menu_active = False
-        self.active_option = -1 # -1 means no option is selected else it is the index of the selected option.
-        self.value = None # value of the selected option
+        self.active_option = -1
+        self.value = None
         self.visible = False
+        self.option_rects = []  # Store rectangles for each option
 
-    # draw the drop down.
     def draw(self, surf):
-        #if not self.visible:
-        #    return
+        screen_width = surf.get_width()
+        screen_height = surf.get_height()
+        
+        # Draw main dropdown button
         pygame.draw.rect(surf, self.color_menu[self.menu_active], self.rect, 0)
         msg = self.font.render(self.main, 1, (0, 0, 0))
-        surf.blit(msg, msg.get_rect(center = self.rect.center))
+        surf.blit(msg, msg.get_rect(center=self.rect.center))
 
         if self.draw_menu:
-            for i, text in enumerate(self.options):
-                rect = self.rect.copy()
-                rect.y += (i+1) * self.rect.height
-                pygame.draw.rect(surf, self.color_option[1 if i == self.active_option else 0], rect, 0)
-                msg = self.font.render(text, 1, (0, 0, 0))
-                surf.blit(msg, msg.get_rect(center = rect.center))
+            self.option_rects = []  # Clear previous option rects
+            
+            # Calculate items that can fit in one column
+            items_per_column = (screen_height - 40) // self.rect.height  # Leave 40px margin
+            if items_per_column < 1:
+                items_per_column = 1
+            
+            # Calculate number of columns needed
+            num_columns = (len(self.options) + items_per_column - 1) // items_per_column
+            total_width = num_columns * self.rect.width
+            
+            # Initial position
+            start_x = self.rect.x
+            start_y = self.rect.y + self.rect.height
+            
+            # Adjust horizontal position if menu would go off right edge
+            if start_x + total_width > screen_width:
+                start_x = screen_width - total_width - 10  # 10px margin
+                if start_x < 10:  # Ensure minimum left margin
+                    start_x = 10
+            
+            # Adjust vertical position if menu would go off bottom
+            if start_y + (items_per_column * self.rect.height) > screen_height:
+                # Move menu up, but ensure it doesn't go above top of screen
+                start_y = max(20, screen_height - (items_per_column * self.rect.height) - 20)
+            
+            current_x = start_x
+            current_y = start_y
+            current_index = 0
+            
+            while current_index < len(self.options):
+                # Start new column if we've reached max items in current column
+                if (current_y + self.rect.height > screen_height - 20 or 
+                    (current_index > 0 and current_index % items_per_column == 0)):
+                    current_y = start_y
+                    current_x += self.rect.width
+                
+                option_rect = pygame.Rect(current_x, current_y, self.rect.width, self.rect.height)
+                self.option_rects.append(option_rect)
+                
+                # Draw option background
+                pygame.draw.rect(surf, 
+                               self.color_option[1 if current_index == self.active_option else 0],
+                               option_rect, 0)
+                
+                # Draw option text
+                msg = self.font.render(self.options[current_index], 1, (0, 0, 0))
+                surf.blit(msg, msg.get_rect(center=option_rect.center))
+                
+                current_y += self.rect.height
+                current_index += 1
 
-    # returns the index of the selected option
+    def is_option_clicked(self, pos):
+        """Check if mouse position is inside any option rectangle"""
+        if not self.draw_menu:
+            return -1
+            
+        for i, rect in enumerate(self.option_rects):
+            if rect.collidepoint(pos):
+                return i
+        return -1
+
     def update(self, event_list):
         mpos = pygame.mouse.get_pos()
         self.menu_active = self.rect.collidepoint(mpos)
-        self.active_option = -1
-        self.value = None
-        for i in range(len(self.options)):
-            rect = self.rect.copy()
-            rect.y += (i+1) * self.rect.height
-            if rect.collidepoint(mpos):
-                self.active_option = i
-                #if self.menu_active:
-                self.value = self.options[i]
-                break
-
-        if not self.menu_active and self.active_option == -1:
-            self.draw_menu = False
-
+        
+        # Update active option based on mouse position
+        self.active_option = self.is_option_clicked(mpos)
+        
         for event in event_list:
             if event.type == pygame.MOUSEBUTTONDOWN or event.type == pygame.FINGERDOWN:
                 if self.menu_active:
                     self.draw_menu = not self.draw_menu
                     self.visible = not self.visible
-                    print("Menu active")
-                elif self.draw_menu and self.active_option >= 0:
-                    self.draw_menu = False
-                    self.visible = False
-                    return self.active_option
-                
-                self.visible = False
-                self.draw_menu = False        
+                elif self.draw_menu:
+                    clicked_option = self.is_option_clicked(mpos)
+                    if clicked_option >= 0:
+                        self.draw_menu = False
+                        self.visible = False
+                        return clicked_option
+                    else:
+                        self.draw_menu = False
+                        self.visible = False
         return -1
-
 
     def toggle(self):
         self.draw_menu = not self.draw_menu

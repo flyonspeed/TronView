@@ -43,6 +43,8 @@ class gauge(Module):
         self.step = 10
         self.show_text = True
         self.text_offset = 1
+        self.pointer_distance = 1
+    
 
         # Add new attributes for gauge drawing
         self.startAngle = 225  # Start angle in degrees (bottom left)
@@ -101,9 +103,16 @@ class gauge(Module):
         # Clear the surface
         self.surface2.fill((0,0,0,0))
         
-        # Get current value
+        # Get current value 
         value = self.get_data_field(aircraft, self.data_field)
         
+        # Store actual value for display
+        actual_value = value
+        
+        # Limit value for pointer position only
+        if value is not None:
+            value = max(self.minValue, min(self.maxValue, value))  # Clamp value for pointer
+
         # Draw 3D effect for the outer circle (bezel)
         for i in range(4):
             # Create gradient effect from dark to light
@@ -164,31 +173,43 @@ class gauge(Module):
                                  (value - self.minValue) * self.sweepAngle / 
                                  (self.maxValue - self.minValue))
         
-            # Create pointer triangle with gradient
-            pointer_length = self.arcRadius * 0.7
+            # Create shorter, stubbier pointer triangle
+            pointer_length = self.arcRadius * 0.15  # Reduced from 0.35 to 0.15 to make it shorter
+            pointer_base_width = self.pointer_width * 1.5  # Made base wider
+            
+            # Calculate center offset based on pointer_distance
+            center_offset = (self.arcRadius * 0.3) * (self.pointer_distance/10)  # How far from center to start
+            
+            # Adjust the base position of the pointer
+            base_x = self.arcCenter[0] + center_offset * math.cos(value_angle)
+            base_y = self.arcCenter[1] - center_offset * math.sin(value_angle)
+            
+            # Calculate points for stubby triangle
             pointer_points = [
-                (self.arcCenter[0] + pointer_length * math.cos(value_angle),
-                self.arcCenter[1] - pointer_length * math.sin(value_angle)),
-                (self.arcCenter[0] + self.pointer_width * math.cos(value_angle + math.pi/2),
-                self.arcCenter[1] - self.pointer_width * math.sin(value_angle + math.pi/2)),
-                (self.arcCenter[0] + self.pointer_width * math.cos(value_angle - math.pi/2),
-                self.arcCenter[1] - self.pointer_width * math.sin(value_angle - math.pi/2))
+                # Tip of pointer - closer to numbers
+                (base_x + pointer_length * math.cos(value_angle),
+                 base_y - pointer_length * math.sin(value_angle)),
+                # Wider base points
+                (base_x + pointer_base_width * math.cos(value_angle + math.pi/2),
+                 base_y - pointer_base_width * math.sin(value_angle + math.pi/2)),
+                (base_x + pointer_base_width * math.cos(value_angle - math.pi/2),
+                 base_y - pointer_base_width * math.sin(value_angle - math.pi/2))
             ]
             
             # Draw pointer shadow
-            shadow_points = [(x + 2, y + 2) for x, y in pointer_points]
+            shadow_points = [(x + 1, y + 1) for x, y in pointer_points]  # Reduced shadow offset
             pygame.draw.polygon(self.surface2, (30, 30, 30), shadow_points)
             
             # Draw pointer with highlight
             pygame.draw.polygon(self.surface2, self.value_color, pointer_points)
             
-            # Add highlight to pointer
+            # Add highlight to pointer - adjusted for stubby shape
             highlight_points = [
                 pointer_points[0],
-                (pointer_points[1][0] * 0.9 + self.arcCenter[0] * 0.1,
-                pointer_points[1][1] * 0.9 + self.arcCenter[1] * 0.1),
-                (pointer_points[2][0] * 0.9 + self.arcCenter[0] * 0.1,
-                pointer_points[2][1] * 0.9 + self.arcCenter[1] * 0.1)
+                (pointer_points[1][0] * 0.8 + self.arcCenter[0] * 0.2,
+                 pointer_points[1][1] * 0.8 + self.arcCenter[1] * 0.2),
+                (pointer_points[2][0] * 0.8 + self.arcCenter[0] * 0.2,
+                 pointer_points[2][1] * 0.8 + self.arcCenter[1] * 0.2)
             ]
             highlight_color = (
                 min(255, self.value_color[0] + 50),
@@ -204,23 +225,23 @@ class gauge(Module):
                          self.pointer_width + 2)
         
         # Draw main hub
-        pygame.draw.circle(self.surface2, self.value_color, self.arcCenter, 
-                         self.pointer_width)
+        # pygame.draw.circle(self.surface2, self.value_color, self.arcCenter, 
+        #                  self.pointer_width)
         
         # Add highlight to hub
-        highlight_color = (
-            min(255, self.value_color[0] + 50),
-            min(255, self.value_color[1] + 50),
-            min(255, self.value_color[2] + 50)
-        )
-        pygame.draw.circle(self.surface2, highlight_color,
-                         (self.arcCenter[0] - 1, self.arcCenter[1] - 1),
-                         self.pointer_width - 2)
+        # highlight_color = (
+        #     min(255, self.value_color[0] + 50),
+        #     min(255, self.value_color[1] + 50),
+        #     min(255, self.value_color[2] + 50)
+        # )
+        # pygame.draw.circle(self.surface2, highlight_color,
+        #                  (self.arcCenter[0] - 1, self.arcCenter[1] - 1),
+        #                  self.pointer_width - 2)
 
         # Draw the current value text if enabled
-        if self.show_text and value is not None:
-            # Format the value text
-            value_str = f"{value:.1f}"  # Show one decimal place
+        if self.show_text and actual_value is not None:
+            # Format the actual value text (not the limited value)
+            value_str = f"{actual_value:.1f}"  # Show one decimal place
             
             # Create larger font for value display
             value_font = pygame.font.SysFont(self.font_name, int(self.font_size * 1.2), self.font_bold)
@@ -353,6 +374,14 @@ class gauge(Module):
                 "label": "Outline Weight",
                 "description": "Weight of the outline to use"
             }, 
+            "pointer_distance": {
+                "type": "int",
+                "default": self.pointer_distance,
+                "min": 1,
+                "max": 15,
+                "label": "Pointer Distance",
+                "description": "Distance of the pointer from the center"
+            },
         }
 
 

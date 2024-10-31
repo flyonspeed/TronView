@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 #################################################
-# Module: gauge
+# Module: gauge_arc
 # A gauge is a module that displays a value on a gauge.
 # It is a circular display of a value within a range.
 # The gauge can be filled with a color that represents the value.
@@ -21,11 +21,11 @@ import pygame
 import math
 
 
-class gauge(Module):
+class gauge_arc(Module):
     # called only when object is first created.
     def __init__(self):
         Module.__init__(self)
-        self.name = "Gauge"  # set name
+        self.name = "Gauge Arc"  # set name
         self.font_name = "monospace"
         self.font_size = 20
         self.font_bold = False
@@ -42,8 +42,8 @@ class gauge(Module):
         self.maxValue = 100
         self.step = 10
         self.show_text = True
-        self.text_offset = 1
-        self.pointer_distance = 1
+        self.text_offset = 7
+        self.pointer_distance = 15
     
 
         # Add new attributes for gauge drawing
@@ -52,6 +52,10 @@ class gauge(Module):
         self.arcRadius = 0  # Will be calculated in initMod
         self.pointer_width = 0  # Will be calculated in initMod
         self.arcCenter = None  # Will be set in initMod
+
+        # Add smoothing variables
+        self.current_smooth_value = 0  # Current interpolated value
+        self.smooth_factor = 0.15  # How quickly to move to target (0.1 = slow, 0.9 = fast)
 
     # called once for setup
     def initMod(self, pygamescreen, width=None, height=None):
@@ -104,14 +108,21 @@ class gauge(Module):
         self.surface2.fill((0,0,0,0))
         
         # Get current value 
-        value = self.get_data_field(aircraft, self.data_field)
+        target_value = self.get_data_field(aircraft, self.data_field)
         
         # Store actual value for display
-        actual_value = value
+        actual_value = target_value
         
-        # Limit value for pointer position only
-        if value is not None:
-            value = max(self.minValue, min(self.maxValue, value))  # Clamp value for pointer
+        # Apply smoothing
+        if target_value is not None:
+            # Interpolate towards target value
+            diff = target_value - self.current_smooth_value
+            self.current_smooth_value += diff * self.smooth_factor
+            
+            # Use smoothed value for pointer
+            value = max(self.minValue, min(self.maxValue, self.current_smooth_value))
+        else:
+            value = None
 
         # Draw 3D effect for the outer circle (bezel)
         for i in range(4):
@@ -220,9 +231,9 @@ class gauge(Module):
             
         # Draw center hub with 3D effect
         # Draw hub shadow
-        pygame.draw.circle(self.surface2, (30, 30, 30), 
-                         (self.arcCenter[0] + 2, self.arcCenter[1] + 2), 
-                         self.pointer_width + 2)
+        # pygame.draw.circle(self.surface2, (30, 30, 30), 
+        #                  (self.arcCenter[0] + 2, self.arcCenter[1] + 2), 
+        #                  self.pointer_width + 2)
         
         # Draw main hub
         # pygame.draw.circle(self.surface2, self.value_color, self.arcCenter, 
@@ -381,6 +392,14 @@ class gauge(Module):
                 "max": 15,
                 "label": "Pointer Distance",
                 "description": "Distance of the pointer from the center"
+            },
+            "smooth_factor": {
+                "type": "float",
+                "default": self.smooth_factor,
+                "min": 0.01,
+                "max": 1.0,
+                "label": "Smooth Factor",
+                "description": "How quickly the pointer moves to new values (0.01=slow, 1.0=instant)"
             },
         }
 

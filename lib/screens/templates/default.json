@@ -59,7 +59,7 @@
           }
         ]
       },
-      "id": "M_n4e1a"
+      "id": "M_k2y1x"
     },
     {
       "type": "module",
@@ -92,7 +92,7 @@
           },
           {
             "name": "scope_scale_miles",
-            "value": 1
+            "value": 4
           },
           {
             "name": "draw_aircraft_icon",
@@ -104,7 +104,7 @@
           }
         ]
       },
-      "id": "M_wpsao"
+      "id": "M_xsjf3"
     },
     {
       "type": "module",
@@ -165,7 +165,7 @@
           }
         ]
       },
-      "id": "M_ifo82"
+      "id": "M_p0slc"
     },
     {
       "type": "module",
@@ -194,18 +194,18 @@
           }
         ]
       },
-      "id": "M_cta2b"
+      "id": "M_yfw19"
     },
     {
       "type": "module",
       "title": "HSI",
-      "x": 695,
-      "y": 582,
+      "x": 732,
+      "y": 593,
       "width": 445,
       "height": 430,
       "grid_position": "BotM",
-      "grid_percentage_x": 0.8671875,
-      "grid_percentage_y": 0.42777777777777776,
+      "grid_percentage_x": 0.9828125,
+      "grid_percentage_y": 0.4888888888888889,
       "module": {
         "name": "HSI",
         "options": [
@@ -215,7 +215,7 @@
           }
         ]
       },
-      "id": "M_vccxw"
+      "id": "M_mcsr8"
     },
     {
       "type": "module",
@@ -236,7 +236,7 @@
           }
         ]
       },
-      "id": "M_cpuyf"
+      "id": "M_t19l0"
     },
     {
       "type": "module",
@@ -269,7 +269,7 @@
           }
         ]
       },
-      "id": "M_x8g8q"
+      "id": "M_auaan"
     },
     {
       "type": "module",
@@ -318,7 +318,7 @@
           }
         ]
       },
-      "id": "M_e7ip7"
+      "id": "M_ilkqy"
     },
     {
       "type": "module",
@@ -343,7 +343,7 @@
           }
         ]
       },
-      "id": "M_2xx1d"
+      "id": "M_dg8h4"
     },
     {
       "type": "module",
@@ -404,7 +404,7 @@
           }
         ]
       },
-      "id": "M_tcip8"
+      "id": "M_yru7y"
     },
     {
       "type": "module",
@@ -465,7 +465,7 @@
           }
         ]
       },
-      "id": "M_fyvjh"
+      "id": "M_anfac"
     },
     {
       "type": "module",
@@ -486,15 +486,25 @@
           },
           {
             "name": "buoyDistance",
-            "value": 10
+            "value": 50
           },
           {
             "name": "buoyAlt",
-            "value": -500
+            "value": -100
           }
         ]
       },
-      "id": "M_56f17"
+      "id": "M_sqvvs",
+      "event_handlers": [
+        {
+          "id": "test",
+          "field": "123",
+          "operator": "<=",
+          "value": "123",
+          "action": "resize",
+          "target_id": "123123"
+        }
+      ]
     },
     {
       "type": "module",
@@ -520,7 +530,7 @@
           }
         ]
       },
-      "id": "M_era0a"
+      "id": "M_fhl16"
     },
     {
       "type": "module",
@@ -581,7 +591,7 @@
           }
         ]
       },
-      "id": "M_9vu87"
+      "id": "M_r63iv"
     },
     {
       "type": "module",
@@ -642,7 +652,7 @@
           }
         ]
       },
-      "id": "M_4nqak"
+      "id": "M_818em"
     },
     {
       "type": "module",
@@ -703,7 +713,7 @@
           }
         ]
       },
-      "id": "M_1cdat"
+      "id": "M_ftw58"
     },
     {
       "type": "module",
@@ -764,7 +774,7 @@
           }
         ]
       },
-      "id": "M_sdq9u"
+      "id": "M_mjbts"
     },
     {
       "type": "group",
@@ -836,7 +846,7 @@
               }
             ]
           },
-          "id": "M_enck5"
+          "id": "M_3t9o7"
         },
         {
           "type": "module",
@@ -897,7 +907,7 @@
               }
             ]
           },
-          "id": "M_4323n"
+          "id": "M_onnyv"
         },
         {
           "type": "module",
@@ -958,7 +968,7 @@
               }
             ]
           },
-          "id": "M_3oufg"
+          "id": "M_a3sjm"
         },
         {
           "type": "module",
@@ -1019,7 +1029,7 @@
               }
             ]
           },
-          "id": "M_42w9f"
+          "id": "M_h5b84"
         },
         {
           "type": "module",
@@ -1080,7 +1090,7 @@
               }
             ]
           },
-          "id": "M_pyb41"
+          "id": "M_4wqd0"
         },
         {
           "type": "module",
@@ -1141,10 +1151,11 @@
               }
             ]
           },
-          "id": "M_idwal"
+          "id": "M_lmakg"
         }
       ],
-      "id": "M_2p97i"
+      "id": "M_zq8wp",
+      "event_handlers": []
     },
     {
       "type": "module",
@@ -1205,7 +1216,7 @@
           }
         ]
       },
-      "id": "M_uw19q"
+      "id": "M_xfz0l"
     },
     {
       "type": "module",
@@ -1266,7 +1277,7 @@
           }
         ]
       },
-      "id": "M_on1pm"
+      "id": "M_41a6v"
     },
     {
       "type": "module",
@@ -1327,7 +1338,7 @@
           }
         ]
       },
-      "id": "M_n5h89"
+      "id": "M_h82uw"
     },
     {
       "type": "module",
@@ -1388,7 +1399,7 @@
           }
         ]
       },
-      "id": "M_wk8ct"
+      "id": "M_0fumd"
     },
     {
       "type": "module",
@@ -1449,7 +1460,7 @@
           }
         ]
       },
-      "id": "M_nqcz3"
+      "id": "M_btmb6"
     },
     {
       "type": "module",
@@ -1510,18 +1521,18 @@
           }
         ]
       },
-      "id": "M_jobti"
+      "id": "M_nvyej"
     },
     {
       "type": "module",
       "title": "ArtificalHorz",
-      "x": 151,
-      "y": 795,
-      "width": 341,
-      "height": 262,
-      "grid_position": "BotL",
-      "grid_percentage_x": 1.0046875,
-      "grid_percentage_y": 1.1444444444444444,
+      "x": 145,
+      "y": 590,
+      "width": 218,
+      "height": 195,
+      "grid_position": "MidL",
+      "grid_percentage_x": 0.79375,
+      "grid_percentage_y": 1.8194444444444444,
       "module": {
         "name": "ArtificalHorz",
         "options": [
@@ -1567,7 +1578,8 @@
           }
         ]
       },
-      "id": "M_5xr6u"
+      "id": "M_hkfyx",
+      "event_handlers": []
     },
     {
       "type": "module",
@@ -1628,7 +1640,7 @@
           }
         ]
       },
-      "id": "M_fxzn2"
+      "id": "M_wzonk"
     },
     {
       "type": "module",
@@ -1689,7 +1701,7 @@
           }
         ]
       },
-      "id": "M_f6281"
+      "id": "M_3a8uc"
     },
     {
       "type": "module",
@@ -1750,7 +1762,924 @@
           }
         ]
       },
-      "id": "M_7ca37"
+      "id": "M_pxvc5"
+    },
+    {
+      "type": "module",
+      "title": "Gauge Bar",
+      "x": 403,
+      "y": 903,
+      "width": 53,
+      "height": 166,
+      "grid_position": "BotL",
+      "grid_percentage_x": 1.3421875,
+      "grid_percentage_y": 1.4777777777777779,
+      "module": {
+        "name": "Gauge Bar",
+        "options": [
+          {
+            "name": "data_field",
+            "value": "engine.FuelFlow"
+          },
+          {
+            "name": "minValue",
+            "value": 0
+          },
+          {
+            "name": "maxValue",
+            "value": 21
+          },
+          {
+            "name": "vertical",
+            "value": true
+          },
+          {
+            "name": "show_text",
+            "value": true
+          },
+          {
+            "name": "show_borders",
+            "value": true
+          },
+          {
+            "name": "border_width",
+            "value": 2
+          },
+          {
+            "name": "bar_color",
+            "value": [
+              0,
+              255,
+              0
+            ]
+          },
+          {
+            "name": "background_color",
+            "value": [
+              40,
+              40,
+              40
+            ]
+          },
+          {
+            "name": "border_color",
+            "value": [
+              100,
+              100,
+              100
+            ]
+          },
+          {
+            "name": "smooth_factor",
+            "value": 0.15
+          },
+          {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 20
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "max_bars",
+            "value": 8
+          }
+        ]
+      },
+      "id": "M_bgg80"
+    },
+    {
+      "type": "module",
+      "title": "Gauge Arc",
+      "x": 100,
+      "y": 792,
+      "width": 313,
+      "height": 302,
+      "grid_position": "BotL",
+      "grid_percentage_x": 0.8015625,
+      "grid_percentage_y": 1.238888888888889,
+      "module": {
+        "name": "Gauge Arc",
+        "options": [
+          {
+            "name": "data_field",
+            "value": "norm_wind_dir"
+          },
+          {
+            "name": "minValue",
+            "value": 0
+          },
+          {
+            "name": "maxValue",
+            "value": 362
+          },
+          {
+            "name": "step",
+            "value": 37
+          },
+          {
+            "name": "show_text",
+            "value": true
+          },
+          {
+            "name": "text_offset",
+            "value": 7
+          },
+          {
+            "name": "value_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 20
+          },
+          {
+            "name": "font_bold",
+            "value": false
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "outline_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "outline_weight",
+            "value": 0
+          },
+          {
+            "name": "pointer_distance",
+            "value": 15
+          },
+          {
+            "name": "smooth_factor",
+            "value": 0.15
+          }
+        ]
+      },
+      "id": "M_ph43i"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 216,
+      "y": 1002,
+      "width": 106,
+      "height": 22,
+      "grid_position": "BotL",
+      "grid_percentage_x": 0.840625,
+      "grid_percentage_y": 1.6277777777777778,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "template",
+            "value": "traffic.src_alt"
+          },
+          {
+            "name": "text",
+            "value": "Wind Dir"
+          },
+          {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 20
+          },
+          {
+            "name": "font_bold",
+            "value": false
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 0
+          },
+          {
+            "name": "box_radius",
+            "value": 0
+          }
+        ]
+      },
+      "id": "M_jsdgq"
+    },
+    {
+      "type": "module",
+      "title": "Gauge Bar",
+      "x": 454,
+      "y": 910,
+      "width": 177,
+      "height": 155,
+      "grid_position": "BotL",
+      "grid_percentage_x": 1.6953125,
+      "grid_percentage_y": 1.4861111111111112,
+      "module": {
+        "name": "Gauge Bar",
+        "options": [
+          {
+            "name": "data_field",
+            "value": "fuel.FuelLevels"
+          },
+          {
+            "name": "minValue",
+            "value": 0
+          },
+          {
+            "name": "maxValue",
+            "value": 1000
+          },
+          {
+            "name": "vertical",
+            "value": true
+          },
+          {
+            "name": "show_text",
+            "value": false
+          },
+          {
+            "name": "show_borders",
+            "value": true
+          },
+          {
+            "name": "border_width",
+            "value": 2
+          },
+          {
+            "name": "bar_color",
+            "value": [
+              0,
+              255,
+              0
+            ]
+          },
+          {
+            "name": "background_color",
+            "value": [
+              40,
+              40,
+              40
+            ]
+          },
+          {
+            "name": "border_color",
+            "value": [
+              100,
+              100,
+              100
+            ]
+          },
+          {
+            "name": "smooth_factor",
+            "value": 0.15
+          },
+          {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 20
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "max_bars",
+            "value": 8
+          }
+        ]
+      },
+      "id": "M_vnn9p"
+    },
+    {
+      "type": "module",
+      "title": "Gauge Bar",
+      "x": 626,
+      "y": 921,
+      "width": 173,
+      "height": 143,
+      "grid_position": "BotM",
+      "grid_percentage_x": 0.2265625,
+      "grid_percentage_y": 1.5138888888888888,
+      "module": {
+        "name": "Gauge Bar",
+        "options": [
+          {
+            "name": "data_field",
+            "value": "engine.CHT"
+          },
+          {
+            "name": "minValue",
+            "value": 0
+          },
+          {
+            "name": "maxValue",
+            "value": 1000
+          },
+          {
+            "name": "vertical",
+            "value": true
+          },
+          {
+            "name": "show_text",
+            "value": true
+          },
+          {
+            "name": "show_borders",
+            "value": true
+          },
+          {
+            "name": "border_width",
+            "value": 2
+          },
+          {
+            "name": "bar_color",
+            "value": [
+              0,
+              255,
+              0
+            ]
+          },
+          {
+            "name": "background_color",
+            "value": [
+              40,
+              40,
+              40
+            ]
+          },
+          {
+            "name": "border_color",
+            "value": [
+              100,
+              100,
+              100
+            ]
+          },
+          {
+            "name": "smooth_factor",
+            "value": 0.15
+          },
+          {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 20
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "max_bars",
+            "value": 4
+          }
+        ]
+      },
+      "id": "M_cp416"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 638,
+      "y": 904,
+      "width": 106,
+      "height": 22,
+      "grid_position": "BotM",
+      "grid_percentage_x": 0.159375,
+      "grid_percentage_y": 1.0833333333333333,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "template",
+            "value": "traffic.src_alt"
+          },
+          {
+            "name": "text",
+            "value": "CHT"
+          },
+          {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 20
+          },
+          {
+            "name": "font_bold",
+            "value": false
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 0
+          },
+          {
+            "name": "box_radius",
+            "value": 0
+          }
+        ]
+      },
+      "id": "M_grr5t"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 474,
+      "y": 894,
+      "width": 123,
+      "height": 21,
+      "grid_position": "BotL",
+      "grid_percentage_x": 1.6734375,
+      "grid_percentage_y": 1.025,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "template",
+            "value": "traffic.src_alt"
+          },
+          {
+            "name": "text",
+            "value": "Fuel Level"
+          },
+          {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 20
+          },
+          {
+            "name": "font_bold",
+            "value": false
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 0
+          },
+          {
+            "name": "box_radius",
+            "value": 0
+          }
+        ]
+      },
+      "id": "M_5rdq5"
+    },
+    {
+      "type": "module",
+      "title": "Gauge Bar",
+      "x": 1105,
+      "y": 939,
+      "width": 153,
+      "height": 131,
+      "grid_position": "BotM",
+      "grid_percentage_x": 1.6921875,
+      "grid_percentage_y": 1.5805555555555555,
+      "module": {
+        "name": "Gauge Bar",
+        "options": [
+          {
+            "name": "data_field",
+            "value": "engine.EGT"
+          },
+          {
+            "name": "minValue",
+            "value": 0
+          },
+          {
+            "name": "maxValue",
+            "value": 1000
+          },
+          {
+            "name": "vertical",
+            "value": true
+          },
+          {
+            "name": "show_text",
+            "value": true
+          },
+          {
+            "name": "show_borders",
+            "value": true
+          },
+          {
+            "name": "border_width",
+            "value": 2
+          },
+          {
+            "name": "bar_color",
+            "value": [
+              0,
+              255,
+              0
+            ]
+          },
+          {
+            "name": "background_color",
+            "value": [
+              40,
+              40,
+              40
+            ]
+          },
+          {
+            "name": "border_color",
+            "value": [
+              100,
+              100,
+              100
+            ]
+          },
+          {
+            "name": "smooth_factor",
+            "value": 0.15
+          },
+          {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 20
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "max_bars",
+            "value": 4
+          }
+        ]
+      },
+      "id": "M_i4lui"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 1126,
+      "y": 919,
+      "width": 106,
+      "height": 22,
+      "grid_position": "BotM",
+      "grid_percentage_x": 1.684375,
+      "grid_percentage_y": 1.1666666666666667,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "template",
+            "value": "traffic.src_alt"
+          },
+          {
+            "name": "text",
+            "value": "EGT"
+          },
+          {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 20
+          },
+          {
+            "name": "font_bold",
+            "value": false
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 0
+          },
+          {
+            "name": "box_radius",
+            "value": 0
+          }
+        ]
+      },
+      "id": "M_4h2nx"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 410,
+      "y": 886,
+      "width": 43,
+      "height": 22,
+      "grid_position": "BotL",
+      "grid_percentage_x": 1.3484375,
+      "grid_percentage_y": 0.9833333333333333,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "template",
+            "value": "traffic.src_alt"
+          },
+          {
+            "name": "text",
+            "value": "GPH"
+          },
+          {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 20
+          },
+          {
+            "name": "font_bold",
+            "value": false
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 0
+          },
+          {
+            "name": "box_radius",
+            "value": 0
+          }
+        ]
+      },
+      "id": "M_0kdgn"
+    },
+    {
+      "type": "module",
+      "title": "Gauge Arc",
+      "x": 1225,
+      "y": 851,
+      "width": 258,
+      "height": 235,
+      "grid_position": "BotR",
+      "grid_percentage_x": 0.23125,
+      "grid_percentage_y": 1.3805555555555555,
+      "module": {
+        "name": "Gauge Arc",
+        "options": [
+          {
+            "name": "data_field",
+            "value": "engine.RPM"
+          },
+          {
+            "name": "minValue",
+            "value": 0
+          },
+          {
+            "name": "maxValue",
+            "value": 3000
+          },
+          {
+            "name": "step",
+            "value": 500
+          },
+          {
+            "name": "show_text",
+            "value": true
+          },
+          {
+            "name": "text_offset",
+            "value": 6
+          },
+          {
+            "name": "value_color",
+            "value": [
+              255,
+              255,
+              0,
+              255
+            ]
+          },
+          {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 20
+          },
+          {
+            "name": "font_bold",
+            "value": false
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "outline_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "outline_weight",
+            "value": 0
+          },
+          {
+            "name": "pointer_distance",
+            "value": 15
+          },
+          {
+            "name": "smooth_factor",
+            "value": 0.15
+          }
+        ]
+      },
+      "id": "M_dfmi7"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 1336,
+      "y": 960,
+      "width": 106,
+      "height": 22,
+      "grid_position": "BotR",
+      "grid_percentage_x": 0.340625,
+      "grid_percentage_y": 1.3944444444444444,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "template",
+            "value": "traffic.src_alt"
+          },
+          {
+            "name": "text",
+            "value": "RPM"
+          },
+          {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 20
+          },
+          {
+            "name": "font_bold",
+            "value": false
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 0
+          },
+          {
+            "name": "box_radius",
+            "value": 0
+          }
+        ]
+      },
+      "id": "M_i0772"
     }
   ]
 }

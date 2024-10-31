@@ -38,7 +38,7 @@ class gauge_bar(Module):
         self.show_text = True
         self.show_borders = True
         self.border_width = 2
-        self.direction = 1  # 1 = facing right, 2 = facing left, 3 = facing up.
+        self.max_bars = 8
         
         # 3D effect parameters
         self.gradient_steps = 5  # Number of gradient steps for 3D effect
@@ -89,96 +89,133 @@ class gauge_bar(Module):
         # Clear surface
         self.surface2.fill((0,0,0,0))
         
-        # Get and smooth value
+        # Get and smooth value(s)
         target_value = self.get_data_field(aircraft, self.data_field)
-        actual_value = target_value
         
-        if target_value is not None:
-            diff = target_value - self.current_smooth_value
-            self.current_smooth_value += diff * self.smooth_factor
-            value = max(self.minValue, min(self.maxValue, self.current_smooth_value))
+        # Convert single value to list for uniform processing
+        if not isinstance(target_value, (list, tuple)):
+            target_value = [target_value]
         else:
-            value = None
-
-        if value is not None:
-            # Calculate bar dimensions
-            padding = 10
-            bar_height = self.height - (padding * 2)
-            bar_width = self.width - (padding * 2)
+            # Limit number of bars if target_value is a list/tuple
+            target_value = list(target_value)[:self.max_bars]
             
-            if self.vertical:
-                # Draw background with 3D effect
-                for i in range(self.gradient_steps):
-                    shade = max(0, self.background_color[0] - (i * 5))
-                    bg_color = (shade, shade, shade)
-                    bar_rect = pygame.Rect(padding, padding + i, 
-                                         bar_width, bar_height - i)
-                    pygame.draw.rect(self.surface2, bg_color, bar_rect)
-
-                # Calculate value height
-                value_percent = (value - self.minValue) / (self.maxValue - self.minValue)
-                value_height = int(bar_height * value_percent)
+        # Initialize smooth values if needed
+        if not hasattr(self, 'current_smooth_values') or len(self.current_smooth_values) != len(target_value):
+            self.current_smooth_values = [0] * len(target_value)
+            
+        # Process each value
+        for i, (target, smooth_val) in enumerate(zip(target_value, self.current_smooth_values)):
+            if target is not None:
+                diff = target - smooth_val
+                self.current_smooth_values[i] += diff * self.smooth_factor
+                value = max(self.minValue, min(self.maxValue, self.current_smooth_values[i]))
+            else:
+                value = None
                 
-                # Draw value bar with 3D effect
-                for i in range(self.gradient_steps):
-                    # Create gradient colors
-                    bar_shade = (
-                        max(0, self.bar_color[0] - (i * 15)),
-                        max(0, self.bar_color[1] - (i * 15)),
-                        max(0, self.bar_color[2] - (i * 15))
-                    )
+            if value is not None:
+                # Calculate bar dimensions
+                padding = 10
+                total_bars = len(target_value)
+                
+                if self.vertical:
+                    bar_height = self.height - (padding * 2)
+                    individual_width = (self.width - (padding * 2) - (total_bars - 1) * 5) / total_bars
+                    bar_width = individual_width
+                    bar_x = padding + i * (individual_width + 5)
                     
-                    bar_rect = pygame.Rect(padding,
-                                         padding + (bar_height - value_height) + i,
-                                         bar_width - i,
-                                         value_height - i)
-                    pygame.draw.rect(self.surface2, bar_shade, bar_rect)
-                
-            else:  # Horizontal
-                # Draw background with 3D effect
-                for i in range(self.gradient_steps):
-                    shade = max(0, self.background_color[0] - (i * 5))
-                    bg_color = (shade, shade, shade)
-                    bar_rect = pygame.Rect(padding + i, padding + i, 
-                                         bar_width - i, bar_height - i)
-                    pygame.draw.rect(self.surface2, bg_color, bar_rect)
+                    # Draw background with 3D effect
+                    for step in range(self.gradient_steps):
+                        shade = max(0, self.background_color[0] - (step * 5))
+                        bg_color = (shade, shade, shade)
+                        bar_rect = pygame.Rect(bar_x, padding + step, 
+                                             bar_width, bar_height - step)
+                        pygame.draw.rect(self.surface2, bg_color, bar_rect)
 
-                # Calculate value width
-                value_percent = (value - self.minValue) / (self.maxValue - self.minValue)
-                value_width = int(bar_width * value_percent)
-                
-                # Draw value bar with 3D effect
-                for i in range(self.gradient_steps):
-                    # Create gradient colors
-                    bar_shade = (
-                        max(0, self.bar_color[0] - (i * 15)),
-                        max(0, self.bar_color[1] - (i * 15)),
-                        max(0, self.bar_color[2] - (i * 15))
-                    )
+                    # Calculate value height
+                    value_percent = (value - self.minValue) / (self.maxValue - self.minValue)
+                    value_height = int(bar_height * value_percent)
                     
-                    bar_rect = pygame.Rect(padding + i, padding + i,
-                                         value_width - i, bar_height - i)
-                    pygame.draw.rect(self.surface2, bar_shade, bar_rect)
+                    # Draw value bar with 3D effect
+                    for step in range(self.gradient_steps):
+                        bar_shade = (
+                            max(0, self.bar_color[0] - (step * 15)),
+                            max(0, self.bar_color[1] - (step * 15)),
+                            max(0, self.bar_color[2] - (step * 15))
+                        )
+                        
+                        bar_rect = pygame.Rect(bar_x,
+                                             padding + (bar_height - value_height) + step,
+                                             bar_width - step,
+                                             value_height - step)
+                        pygame.draw.rect(self.surface2, bar_shade, bar_rect)
+                    
+                    # Draw borders for individual bar
+                    if self.show_borders:
+                        border_rect = pygame.Rect(bar_x, padding, bar_width, bar_height)
+                        pygame.draw.rect(self.surface2, self.border_color, border_rect, self.border_width)
 
-            # Draw borders
-            if self.show_borders:
-                border_rect = pygame.Rect(padding, padding, bar_width, bar_height)
-                pygame.draw.rect(self.surface2, self.border_color, border_rect, self.border_width)
+                else:  # Horizontal
+                    bar_width = self.width - (padding * 2)
+                    individual_height = (self.height - (padding * 2) - (total_bars - 1) * 5) / total_bars
+                    bar_height = individual_height
+                    bar_y = padding + i * (individual_height + 5)
+                    
+                    # Draw background with 3D effect
+                    for step in range(self.gradient_steps):
+                        shade = max(0, self.background_color[0] - (step * 5))
+                        bg_color = (shade, shade, shade)
+                        bar_rect = pygame.Rect(padding + step, bar_y + step, 
+                                             bar_width - step, bar_height - step)
+                        pygame.draw.rect(self.surface2, bg_color, bar_rect)
 
-            # Draw value text
-            if self.show_text:
-                text = f"{actual_value:.1f}"
-                text_surface = self.font.render(text, True, self.text_color)
-                text_rect = text_surface.get_rect()
-                
-                # Position text in center of bar
-                text_x = padding + (bar_width - text_rect.width) // 2
-                text_y = padding + (bar_height - text_rect.height) // 2
-                
-                # Draw text shadow
-                shadow_surface = self.font.render(text, True, (30, 30, 30))
-                self.surface2.blit(shadow_surface, (text_x + 1, text_y + 1))
-                self.surface2.blit(text_surface, (text_x, text_y))
+                    # Calculate value width
+                    value_percent = (value - self.minValue) / (self.maxValue - self.minValue)
+                    value_width = int(bar_width * value_percent)
+                    
+                    # Draw value bar with 3D effect
+                    for step in range(self.gradient_steps):
+                        bar_shade = (
+                            max(0, self.bar_color[0] - (step * 15)),
+                            max(0, self.bar_color[1] - (step * 15)),
+                            max(0, self.bar_color[2] - (step * 15))
+                        )
+                        
+                        bar_rect = pygame.Rect(padding + step, bar_y + step,
+                                             value_width - step, bar_height - step)
+                        pygame.draw.rect(self.surface2, bar_shade, bar_rect)
+                    
+                    # Draw borders for individual bar
+                    if self.show_borders:
+                        border_rect = pygame.Rect(padding, bar_y, bar_width, bar_height)
+                        pygame.draw.rect(self.surface2, self.border_color, border_rect, self.border_width)
+
+                # Draw value text for each bar
+                if self.show_text:
+                    text = f"{target:.1f}"
+                    
+                    # Create text surfaces
+                    if self.vertical:
+                        # For vertical mode, rotate text 90 degrees
+                        text_surface_normal = self.font.render(text, True, self.text_color)
+                        text_surface = pygame.transform.rotate(text_surface_normal, 90)
+                        shadow_surface_normal = self.font.render(text, True, (30, 30, 30))
+                        shadow_surface = pygame.transform.rotate(shadow_surface_normal, 90)
+                    else:
+                        text_surface = self.font.render(text, True, self.text_color)
+                        shadow_surface = self.font.render(text, True, (30, 30, 30))
+                    
+                    text_rect = text_surface.get_rect()
+                    
+                    if self.vertical:
+                        text_x = bar_x + (bar_width - text_rect.width) // 2
+                        text_y = padding + (bar_height - text_rect.height) // 2
+                    else:
+                        text_x = padding + (bar_width - text_rect.width) // 2
+                        text_y = bar_y + (bar_height - text_rect.height) // 2
+                    
+                    # Draw text shadow
+                    self.surface2.blit(shadow_surface, (text_x + 1, text_y + 1))
+                    self.surface2.blit(text_surface, (text_x, text_y))
 
         # Blit to screen
         self.pygamescreen.blit(self.surface2, (x, y))
@@ -284,6 +321,14 @@ class gauge_bar(Module):
                 "default": self.text_color,
                 "label": "Text Color",
                 "description": "Color of the value text"
+            },
+            "max_bars": {
+                "type": "int",
+                "default": self.max_bars,
+                "min": 1,
+                "max": 20,
+                "label": "Max Bars",
+                "description": "Maximum number of bars to show for list/tuple values"
             }
         }
 

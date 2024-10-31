@@ -57,6 +57,11 @@ class gauge_arc(Module):
         self.current_smooth_value = 0  # Current interpolated value
         self.smooth_factor = 0.15  # How quickly to move to target (0.1 = slow, 0.9 = fast)
 
+        # Cache for expensive calculations
+        self._cached_tick_positions = []
+        self._cached_text_positions = []
+        self._cached_surfaces = {}
+
     # called once for setup
     def initMod(self, pygamescreen, width=None, height=None):
         if width is None:
@@ -73,6 +78,39 @@ class gauge_arc(Module):
         
         self.font = pygame.font.SysFont(self.font_name, self.font_size, self.font_bold)
         self.surface2 = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
+
+        # Pre-calculate tick and text positions
+        self._precalculate_positions()
+
+    def _precalculate_positions(self):
+        """Pre-calculate tick and text positions for better performance"""
+        self._cached_tick_positions = []
+        self._cached_text_positions = []
+        
+        for i in range(self.minValue, self.maxValue + 1, self.step):
+            angle = math.radians(self.startAngle - 
+                               (i - self.minValue) * self.sweepAngle / 
+                               (self.maxValue - self.minValue))
+            
+            inner_x = self.arcCenter[0] + (self.arcRadius - 15) * math.cos(angle)
+            inner_y = self.arcCenter[1] - (self.arcRadius - 15) * math.sin(angle)
+            outer_x = self.arcCenter[0] + (self.arcRadius - 5) * math.cos(angle)
+            outer_y = self.arcCenter[1] - (self.arcRadius - 5) * math.sin(angle)
+            
+            text_x = self.arcCenter[0] + (self.arcRadius - 35) * math.cos(angle)
+            text_y = self.arcCenter[1] - (self.arcRadius - 35) * math.sin(angle)
+            
+            self._cached_tick_positions.append(((inner_x, inner_y), (outer_x, outer_y)))
+            self._cached_text_positions.append((text_x, text_y, str(i)))
+
+    def _get_cached_text_surface(self, text, color):
+        """Cache and return text surfaces"""
+        # Convert color tuple to string for hashing
+        key = (text, str(color))
+        if key not in self._cached_surfaces:
+            text_surface = self.font.render(text, True, color)
+            self._cached_surfaces[key] = text_surface
+        return self._cached_surfaces[key]
 
     def get_data_field(self, aircraft, data_field):
         def get_nested_attr(obj, attr):
@@ -95,126 +133,88 @@ class gauge_arc(Module):
 
     # called every redraw for the mod
     def draw(self, aircraft, smartdisplay, pos=(None,None)):
-        if pos[0] is None:
-            x = smartdisplay.x_center
-        else:
-            x = pos[0]
-        if pos[1] is None:
-            y = smartdisplay.y_center
-        else:
-            y = pos[1]
+        x = pos[0] if pos[0] is not None else smartdisplay.x_center
+        y = pos[1] if pos[1] is not None else smartdisplay.y_center
 
         # Clear the surface
         self.surface2.fill((0,0,0,0))
         
-        # Get current value 
+        # Get and smooth value
         target_value = self.get_data_field(aircraft, self.data_field)
-        
-        # Store actual value for display
         actual_value = target_value
         
-        # Apply smoothing
         if target_value is not None:
-            # Interpolate towards target value
-            diff = target_value - self.current_smooth_value
-            self.current_smooth_value += diff * self.smooth_factor
-            
-            # Use smoothed value for pointer
+            self.current_smooth_value += (target_value - self.current_smooth_value) * self.smooth_factor
             value = max(self.minValue, min(self.maxValue, self.current_smooth_value))
         else:
             value = None
 
-        # Draw 3D effect for the outer circle (bezel)
+        # Draw bezel (3D effect)
         for i in range(4):
-            # Create gradient effect from dark to light
-            alpha = 150 - (i * 30)
-            color = (
-                max(0, self.outline_color[0] - 40 + i * 10),
-                max(0, self.outline_color[1] - 40 + i * 10),
-                max(0, self.outline_color[2] - 40 + i * 10)
-            )
+            color = tuple(max(0, c - 40 + i * 10) for c in self.outline_color)
             pygame.draw.circle(self.surface2, color, self.arcCenter, 
                              self.arcRadius - i, max(1, self.outline_weight))
 
-        # Draw main dial face with slight gradient
+        # Draw dial face
         for i in range(3):
-            alpha = 255 - (i * 20)
-            face_color = (20, 20, 20, alpha)
-            pygame.draw.circle(self.surface2, face_color, self.arcCenter, 
-                             self.arcRadius - 4 - i)
+            pygame.draw.circle(self.surface2, (20, 20, 20, 255 - i * 20), 
+                             self.arcCenter, self.arcRadius - 4 - i)
 
-        # Draw tick marks and values with 3D effect
-        for i in range(self.minValue, self.maxValue + 1, self.step):
-            angle = math.radians(self.startAngle - 
-                               (i - self.minValue) * self.sweepAngle / 
-                               (self.maxValue - self.minValue))
+        # Draw tick marks and values using cached positions
+        shadow_color = (30, 30, 30)
+        for (inner_pos, outer_pos), (text_x, text_y, text) in zip(
+            self._cached_tick_positions, self._cached_text_positions):
             
-            # Draw main tick mark
-            inner_x = self.arcCenter[0] + (self.arcRadius - 15) * math.cos(angle)
-            inner_y = self.arcCenter[1] - (self.arcRadius - 15) * math.sin(angle)
-            outer_x = self.arcCenter[0] + (self.arcRadius - 5) * math.cos(angle)
-            outer_y = self.arcCenter[1] - (self.arcRadius - 5) * math.sin(angle)
-            
-            # Draw tick shadow
-            shadow_color = (30, 30, 30)
+            # Draw tick shadow and main tick
             pygame.draw.line(self.surface2, shadow_color,
-                           (inner_x + 1, inner_y + 1), 
-                           (outer_x + 1, outer_y + 1), 2)
-            
-            # Draw main tick
+                           (inner_pos[0] + 1, inner_pos[1] + 1),
+                           (outer_pos[0] + 1, outer_pos[1] + 1), 2)
             pygame.draw.line(self.surface2, self.outline_color,
-                           (inner_x, inner_y), (outer_x, outer_y), 2)
+                           inner_pos, outer_pos, 2)
             
-            # Draw value text with shadow
-            text = str(i)
-            # Draw text shadow
-            shadow_surface = self.font.render(text, True, (30, 30, 30))
-            text_surface = self.font.render(text, True, self.text_color)
+            # Draw text with shadow
+            text_surface = self._get_cached_text_surface(text, self.text_color)
+            shadow_surface = self._get_cached_text_surface(text, shadow_color)
             text_rect = text_surface.get_rect()
-            text_x = self.arcCenter[0] + (self.arcRadius - 35) * math.cos(angle) - text_rect.width/2
-            text_y = self.arcCenter[1] - (self.arcRadius - 35) * math.sin(angle) - text_rect.height/2
             
-            # Blit shadow then text
-            self.surface2.blit(shadow_surface, (text_x + 1, text_y + 1))
-            self.surface2.blit(text_surface, (text_x, text_y))
+            self.surface2.blit(shadow_surface, 
+                             (text_x - text_rect.width/2 + 1, 
+                              text_y - text_rect.height/2 + 1))
+            self.surface2.blit(text_surface, 
+                             (text_x - text_rect.width/2, 
+                              text_y - text_rect.height/2))
 
-        # Draw the pointer with 3D effect
+        # Draw pointer (optimized calculation)
         if value is not None:
             value_angle = math.radians(self.startAngle - 
-                                 (value - self.minValue) * self.sweepAngle / 
-                                 (self.maxValue - self.minValue))
-        
-            # Create shorter, stubbier pointer triangle
-            pointer_length = self.arcRadius * 0.15  # Reduced from 0.35 to 0.15 to make it shorter
-            pointer_base_width = self.pointer_width * 1.5  # Made base wider
+                                     (value - self.minValue) * self.sweepAngle / 
+                                     (self.maxValue - self.minValue))
             
-            # Calculate center offset based on pointer_distance
-            center_offset = (self.arcRadius * 0.3) * (self.pointer_distance/10)  # How far from center to start
-            
-            # Adjust the base position of the pointer
+            center_offset = (self.arcRadius * 0.3) * (self.pointer_distance/10)
             base_x = self.arcCenter[0] + center_offset * math.cos(value_angle)
             base_y = self.arcCenter[1] - center_offset * math.sin(value_angle)
             
-            # Calculate points for stubby triangle
+            # Calculate pointer points once
+            cos_val = math.cos(value_angle)
+            sin_val = math.sin(value_angle)
+            pointer_length = self.arcRadius * 0.15
+            pointer_base_width = self.pointer_width * 1.5
+            
             pointer_points = [
-                # Tip of pointer - closer to numbers
-                (base_x + pointer_length * math.cos(value_angle),
-                 base_y - pointer_length * math.sin(value_angle)),
-                # Wider base points
+                (base_x + pointer_length * cos_val,
+                 base_y - pointer_length * sin_val),
                 (base_x + pointer_base_width * math.cos(value_angle + math.pi/2),
                  base_y - pointer_base_width * math.sin(value_angle + math.pi/2)),
                 (base_x + pointer_base_width * math.cos(value_angle - math.pi/2),
                  base_y - pointer_base_width * math.sin(value_angle - math.pi/2))
             ]
             
-            # Draw pointer shadow
-            shadow_points = [(x + 1, y + 1) for x, y in pointer_points]  # Reduced shadow offset
-            pygame.draw.polygon(self.surface2, (30, 30, 30), shadow_points)
-            
-            # Draw pointer with highlight
+            # Draw pointer with shadow and highlight
+            pygame.draw.polygon(self.surface2, (30, 30, 30), 
+                              [(x + 1, y + 1) for x, y in pointer_points])
             pygame.draw.polygon(self.surface2, self.value_color, pointer_points)
             
-            # Add highlight to pointer - adjusted for stubby shape
+            # Highlight calculation
             highlight_points = [
                 pointer_points[0],
                 (pointer_points[1][0] * 0.8 + self.arcCenter[0] * 0.2,
@@ -222,55 +222,34 @@ class gauge_arc(Module):
                 (pointer_points[2][0] * 0.8 + self.arcCenter[0] * 0.2,
                  pointer_points[2][1] * 0.8 + self.arcCenter[1] * 0.2)
             ]
-            highlight_color = (
-                min(255, self.value_color[0] + 50),
-                min(255, self.value_color[1] + 50),
-                min(255, self.value_color[2] + 50)
-            )
+            highlight_color = tuple(min(255, c + 50) for c in self.value_color)
             pygame.draw.polygon(self.surface2, highlight_color, highlight_points)
-            
-        # Draw center hub with 3D effect
-        # Draw hub shadow
-        # pygame.draw.circle(self.surface2, (30, 30, 30), 
-        #                  (self.arcCenter[0] + 2, self.arcCenter[1] + 2), 
-        #                  self.pointer_width + 2)
-        
-        # Draw main hub
-        # pygame.draw.circle(self.surface2, self.value_color, self.arcCenter, 
-        #                  self.pointer_width)
-        
-        # Add highlight to hub
-        # highlight_color = (
-        #     min(255, self.value_color[0] + 50),
-        #     min(255, self.value_color[1] + 50),
-        #     min(255, self.value_color[2] + 50)
-        # )
-        # pygame.draw.circle(self.surface2, highlight_color,
-        #                  (self.arcCenter[0] - 1, self.arcCenter[1] - 1),
-        #                  self.pointer_width - 2)
 
-        # Draw the current value text if enabled
+        # Draw value text if enabled
         if self.show_text and actual_value is not None:
-            # Format the actual value text (not the limited value)
-            value_str = f"{actual_value:.1f}"  # Show one decimal place
+            value_str = f"{actual_value:.1f}"
+            # Convert color to string for the key
+            text_key = (value_str, str(self.text_color))
             
-            # Create larger font for value display
-            value_font = pygame.font.SysFont(self.font_name, int(self.font_size * 1.2), self.font_bold)
+            if text_key not in self._cached_surfaces:
+                value_font = pygame.font.SysFont(self.font_name, 
+                                               int(self.font_size * 1.2), 
+                                               self.font_bold)
+                self._cached_surfaces[text_key] = value_font.render(
+                    value_str, True, self.text_color)
             
-            # Render value text with shadow
-            shadow_surface = value_font.render(value_str, True, (30, 30, 30))
-            value_surface = value_font.render(value_str, True, self.text_color)
-            
-            # Position text at bottom center of gauge
+            value_surface = self._cached_surfaces[text_key]
             text_rect = value_surface.get_rect()
-            text_x = self.arcCenter[0] - text_rect.width / 2  # Center horizontally
-            text_y = self.arcCenter[1] + self.arcRadius * (self.text_offset/10) # Position below center
+            text_x = self.arcCenter[0] - text_rect.width / 2
+            text_y = self.arcCenter[1] + self.arcRadius * (self.text_offset/10)
             
-            # Draw shadow then text
-            self.surface2.blit(shadow_surface, (text_x + 1, text_y + 1))
+            # Use string conversion for shadow color key as well
+            shadow_text_key = (value_str, str((30, 30, 30)))
+            self.surface2.blit(self._get_cached_text_surface(value_str, (30, 30, 30)), 
+                             (text_x + 1, text_y + 1))
             self.surface2.blit(value_surface, (text_x, text_y))
 
-        # Blit the surface to the screen
+        # Final blit to screen
         self.pygamescreen.blit(self.surface2, (x, y))
 
     # called before screen draw.  To clear the screen to your favorite color.
@@ -302,24 +281,27 @@ class gauge_arc(Module):
                 "label": "Min Value",
                 "min": 0,
                 "max": 1000,
-                "description": "Minimum value to display"
+                "description": "Minimum value to display",
+                "post_change_function": "update_cached_positions"
             },
             "maxValue": {
                 "type": "int",
                 "default": self.maxValue,
                 "label": "Max Value",
                 "min": 1,
-                "max": 1000,
-                "description": "Maximum value to display"
+                "max": 10000,
+                "description": "Maximum value to display",
+                "post_change_function": "update_cached_positions"
             },
 
             "step": {
                 "type": "int",
                 "default": self.step,
                 "min": 1,
-                "max": 100,
-                "label": "Step",
-                "description": "Step size to use"
+                "max": 1000,
+                "label": "Step Size",
+                "description": "Step size to use",
+                "post_change_function": "update_cached_positions"
             },
             "show_text": {
                 "type": "bool",
@@ -333,7 +315,8 @@ class gauge_arc(Module):
                 "min": 1,
                 "max": 10,
                 "label": "Text Offset",
-                "description": "Offset of the text from the center"
+                "description": "Offset of the text from the center",
+                "post_change_function": "update_cached_positions"
             },            
             "value_color": {
                 "type": "color",
@@ -402,6 +385,9 @@ class gauge_arc(Module):
                 "description": "How quickly the pointer moves to new values (0.01=slow, 1.0=instant)"
             },
         }
+    
+    def update_cached_positions(self):
+        self._precalculate_positions()
 
 
     # handle events

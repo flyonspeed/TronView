@@ -161,14 +161,14 @@ class gauge_arc(Module):
                              self.arcCenter, self.arcRadius - 4 - i)
 
         # Draw tick marks and values using cached positions
-        shadow_color = (30, 30, 30)
+        shadow_color = (50, 50, 50)
         for (inner_pos, outer_pos), (text_x, text_y, text) in zip(
             self._cached_tick_positions, self._cached_text_positions):
             
             # Draw tick shadow and main tick
             pygame.draw.line(self.surface2, shadow_color,
-                           (inner_pos[0] + 1, inner_pos[1] + 1),
-                           (outer_pos[0] + 1, outer_pos[1] + 1), 2)
+                           (inner_pos[0] + 2, inner_pos[1] + 2),
+                           (outer_pos[0] + 2, outer_pos[1] + 2), 2)
             pygame.draw.line(self.surface2, self.outline_color,
                            inner_pos, outer_pos, 2)
             
@@ -210,20 +210,20 @@ class gauge_arc(Module):
             ]
             
             # Draw pointer with shadow and highlight
-            pygame.draw.polygon(self.surface2, (30, 30, 30), 
-                              [(x + 1, y + 1) for x, y in pointer_points])
+            pygame.draw.polygon(self.surface2, (50, 50, 50), 
+                              [(x + 2, y + 2) for x, y in pointer_points])
             pygame.draw.polygon(self.surface2, self.value_color, pointer_points)
             
-            # Highlight calculation
-            highlight_points = [
-                pointer_points[0],
-                (pointer_points[1][0] * 0.8 + self.arcCenter[0] * 0.2,
-                 pointer_points[1][1] * 0.8 + self.arcCenter[1] * 0.2),
-                (pointer_points[2][0] * 0.8 + self.arcCenter[0] * 0.2,
-                 pointer_points[2][1] * 0.8 + self.arcCenter[1] * 0.2)
-            ]
-            highlight_color = tuple(min(255, c + 50) for c in self.value_color)
-            pygame.draw.polygon(self.surface2, highlight_color, highlight_points)
+            # # Highlight calculation
+            # highlight_points = [
+            #     pointer_points[0],
+            #     (pointer_points[1][0] * 0.8 + self.arcCenter[0] * 0.2,
+            #      pointer_points[1][1] * 0.8 + self.arcCenter[1] * 0.2),
+            #     (pointer_points[2][0] * 0.8 + self.arcCenter[0] * 0.2,
+            #      pointer_points[2][1] * 0.8 + self.arcCenter[1] * 0.2)
+            # ]
+            # highlight_color = tuple(min(255, c + 50) for c in self.value_color)
+            # pygame.draw.polygon(self.surface2, highlight_color, highlight_points)
 
         # Draw value text if enabled
         if self.show_text and actual_value is not None:
@@ -285,11 +285,9 @@ class gauge_arc(Module):
                 "post_change_function": "update_cached_positions"
             },
             "maxValue": {
-                "type": "int",
+                "type": "float",
                 "default": self.maxValue,
                 "label": "Max Value",
-                "min": 1,
-                "max": 10000,
                 "description": "Maximum value to display",
                 "post_change_function": "update_cached_positions"
             },

@@ -240,11 +240,9 @@ class gauge_bar(Module):
                 "description": "Minimum value"
             },
             "maxValue": {
-                "type": "int",
+                "type": "float",
                 "default": self.maxValue,
                 "label": "Max Value",
-                "min": 1,
-                "max": 1000,
                 "description": "Maximum value"
             },
             "vertical": {

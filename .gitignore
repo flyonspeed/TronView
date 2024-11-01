@@ -10,4 +10,4 @@ output_error.log
 __pycache__/
 *.pyc
 data/
-
+flightlog/

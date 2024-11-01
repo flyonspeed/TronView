@@ -15,7 +15,7 @@ class EditOptionsBar:
         self.ui_elements = []
         self.text_entry_active = False  # Add this line
         
-        window_width = 220
+        window_width = 260
         window_height = self.calculate_height()
         
         # Position the window to the right of the screen object
@@ -182,10 +182,11 @@ class EditOptionsBar:
                 dropdown = UIDropDownMenu(
                     options_list=options_list,
                     starting_option=current_value,
-                    relative_rect=pygame.Rect(x_offset, y_offset, 180, 20),
+                    relative_rect=pygame.Rect(x_offset, y_offset, 200, 25),
                     manager=self.pygame_gui_manager,
                     container=self.scrollable_container
                 )
+                y_offset += 5 # make room for the dropdown
                 dropdown.option_name = option
                 dropdown.object_id = "#options_dropdown_" + option
                 self.ui_elements.append(dropdown)
@@ -298,7 +299,11 @@ class EditOptionsBar:
         old_value = getattr(self.screen_object.module, option)
         option_type = self.screen_object.module.get_module_options()[option]['type']
         if option_type == 'float':
-            value = float(text)
+            # check if there is a decimal point
+            if '.' in text:
+                value = float(text)
+            else:
+                value = int(text)
         elif option_type == 'int':
             value = int(text)
         else:

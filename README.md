@@ -1,5 +1,6 @@
 # TronView
-Project for connecting efis/flight data to a 2nd screen or HUD.
+Project for connecting efis or any external sensor data to a Screen, HUD, or AR glasses.  This was created for the aviation community but can be used for any application where you want to display data in a custom GUI (and interact with it).
+
 ![cockpit1](docs/efis_cockpit1.jpeg?raw=true)
 ## Active development! (Oct 2024!)
 If you want to help with development or testing please join our [Join Discord](https://discord.gg/pdnxWa32aW) sever.
@@ -11,9 +12,11 @@ We are working on several new features.
 - Additional IMU/Gyro support (BNO085, BNO055)
 - Looking into live data broadcast to other TronView displays (that would be cool!)
 - Moving Map?
+- More external sensors (Pressure, Voltage, GPS, etc)
 
 ## Features Include:
 - Build custom efis or hud screens or AR glasses screen. (or any kinda of screen you want)
+- Can build any kind of UI for external sensors or external data.
 - Record and Playback flight log data ( and fast forward through playback )
 - All screens look and work the same for all supported data input.
 - All display screen sizes and ratios supported.

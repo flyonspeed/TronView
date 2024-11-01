@@ -2,13 +2,13 @@
 Project for connecting efis or any external sensor data to a Screen, HUD, or AR glasses.  This was created for the aviation community but can be used for any application where you want to display data in a custom GUI (and interact with it).
 
 ![cockpit1](docs/efis_cockpit1.jpeg?raw=true)
-## Active development! (Oct 2024!)
+## Active development! (Nov 2024!)
 If you want to help with development or testing please join our [Join Discord](https://discord.gg/pdnxWa32aW) sever.
 We are working on several new features. 
 - XReal glasses support or other AR glasses
 - Editor to make creating or editing your own screen very easy.
 - Better G3x support
-- Show/Hide screen modules based on key commands or other inputs.
+- Show/Hide screen modules based on key commands or other inputs. (event handlers)
 - Additional IMU/Gyro support (BNO085, BNO055)
 - Looking into live data broadcast to other TronView displays (that would be cool!)
 - Moving Map?
@@ -42,7 +42,7 @@ We are working on several new features.
 ![cockpit2](docs/efis_cockpit2.jpeg?raw=true)
 
 ## Editor Screenshot
-![screenshot1](docs/screenshots/screenshot_2_editor.jpg?raw=true)
+![screenshot1](docs/screenshots/screenshot_2_editor.png?raw=true)
 
 ## F18 Style HUD
 ![rv8Hud](docs/efis_HUD_rv8.jpg?raw=true)

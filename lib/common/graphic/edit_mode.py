@@ -135,6 +135,7 @@ def main_edit_loop():
                         load_screen_from_json(dropdown_load_screen_template.options[selection], from_templates=True)
 
             else:
+                ############################################################################################
                 # KEY MAPPINGS
                 if event.type == pygame.KEYDOWN and not text_entry_active:
                     mods = pygame.key.get_mods()
@@ -380,6 +381,10 @@ def main_edit_loop():
                             selected_screen_objects = cloned_objects
                             for obj in shared.CurrentScreen.ScreenObjects:
                                 obj.selected = obj in cloned_objects
+                                # hide the edit options bar
+                                if edit_options_bar and edit_options_bar.screen_object == obj:
+                                    edit_options_bar.remove_ui()
+                                    edit_options_bar = None
 
                         print(f"Cloned {len(cloned_objects)} objects")
 
@@ -405,7 +410,7 @@ def main_edit_loop():
                             gui_handled = True
                         elif edit_options_bar.window.get_abs_rect().collidepoint(mx, my):
                             gui_handled = True
-
+                    # Check for EditEventsWindow interactions
                     if edit_events_window and edit_events_window.visible:
                         if edit_events_window.is_busy():  # is it busy with a color picker (or something else..)
                             gui_handled = True
@@ -434,6 +439,7 @@ def main_edit_loop():
                                         if index > 0:
                                             shared.CurrentScreen.ScreenObjects[index], shared.CurrentScreen.ScreenObjects[index-1] = shared.CurrentScreen.ScreenObjects[index-1], shared.CurrentScreen.ScreenObjects[index]
                                     elif action == "center":
+                                        shared.Change_history.add_change("move", {"object": sObject, "old_pos": (sObject.x, sObject.y), "new_pos": sObject.center()})
                                         sObject.center()
                                     elif action == "align_left":
                                         sObject.align_left()
@@ -541,7 +547,7 @@ def main_edit_loop():
                                         drag_start_positions = {obj: (obj.x, obj.y) for obj in selected_screen_objects}
                                 break
 
-                # Mouse up
+                # Mouse button up
                 elif event.type == pygame.MOUSEBUTTONUP or event.type == pygame.FINGERUP:
                     if dragging:
                         moves = handle_drag_end(selected_screen_objects, drag_start_positions)
@@ -601,8 +607,10 @@ def main_edit_loop():
 
         # Draw the modules
         for sObject in shared.CurrentScreen.ScreenObjects:
-            # if multiple objects are selected, don't show the toolbar
-            sObject.draw(shared.aircraft, shared.smartdisplay, not len(selected_screen_objects) > 1)
+            # if multiple objects are selected, don't show the toolbar or if shift is held (shift is for multiple selection)
+            shift_held = pygame.key.get_mods() & pygame.KMOD_SHIFT
+            shouldDrawToolbar = not len(selected_screen_objects) > 1 and not shift_held
+            sObject.draw(shared.aircraft, shared.smartdisplay, shouldDrawToolbar)
 
             # draw Options Bar?
             if sObject.selected and sObject.showOptions:

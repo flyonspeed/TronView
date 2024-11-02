@@ -117,11 +117,20 @@ def main_edit_loop():
             if dropdown_add_new_module and dropdown_add_new_module.visible:
                 selection = dropdown_add_new_module.update(event_list)
                 if selection >= 0:
-                    print("Selected module: %s" % listModules[selection])
-                    selected_screen_object.title = listModules[selection]
-                    newModules, titles  = find_module(listModules[selection])
-                    selected_screen_object.setModule(newModules[0])
-                    selected_screen_objects.append(selected_screen_object)
+                    new_x = dropdown_add_new_module.storeObject["x"] # get the x,y from the dropdown storeObject..
+                    new_y = dropdown_add_new_module.storeObject["y"]
+                    print("Adding module: %s at %d x %d" % (listModules[selection], new_x, new_y))
+                    newObject = TronViewScreenObject(
+                        pygamescreen, 
+                        'module', 
+                        f"A_{len(shared.CurrentScreen.ScreenObjects)}", 
+                        module=find_module(byName=listModules[selection])[0][0],  # find and load the module by name
+                        x=new_x, y=new_y) # set the x,y position 
+                    shared.Change_history.add_change("add", {"object": newObject})
+                    shared.CurrentScreen.ScreenObjects.append( newObject )
+                    newObject.selected = True
+                    selected_screen_object = newObject
+                    selected_screen_objects = [newObject]
             
             if dropdown_load_screen_template and dropdown_load_screen_template.visible:
                 selection = dropdown_load_screen_template.update(event_list)
@@ -261,18 +270,19 @@ def main_edit_loop():
                         selected_screen_objects.clear()
                         # add a new Screen object
                         mx, my = pygame.mouse.get_pos()
-                        newObject = TronViewScreenObject(pygamescreen, 'module', f"A_{len(shared.CurrentScreen.ScreenObjects)}", module=None, x=mx, y=my)
-                        shared.Change_history.add_change("add", {"object": newObject})
-                        shared.CurrentScreen.ScreenObjects.append(
-                            newObject
-                        )
-                        newObject.selected = True
-                        selected_screen_object = newObject
+                        # newObject = TronViewScreenObject(pygamescreen, 'module', f"A_{len(shared.CurrentScreen.ScreenObjects)}", module=None, x=mx, y=my)
+                        # shared.Change_history.add_change("add", {"object": newObject})
+                        # shared.CurrentScreen.ScreenObjects.append(
+                        #     newObject
+                        # )
+                        # newObject.selected = True
+                        # selected_screen_object = newObject
                         dropdown_add_new_module = DropDown( 
-                            x=newObject.x, y=newObject.y, w=140, h=30, 
+                            x=mx, y=my, w=140, h=30, 
                             main="Select Module", options=listModules)
-                        dropdown_add_new_module.visible = True
-                        dropdown_add_new_module.draw_menu = True
+                        dropdown_add_new_module.visible = True # show the dropdown menu
+                        dropdown_add_new_module.draw_menu = True # draw the menu
+                        dropdown_add_new_module.storeObject = {"type": "module", "x": mx, "y": my} # store the object details
 
                     # MOVE SCREEN OBJECT UP IN DRAW ORDER (page up)
                     elif event.key == pygame.K_PAGEUP:
@@ -638,7 +648,7 @@ def main_edit_loop():
                 edit_events_window = None
 
         # Last... Draw the dropdown menu if visible over the top of everything.
-        if dropdown_add_new_module and dropdown_add_new_module.visible and selected_screen_object == sObject:
+        if dropdown_add_new_module and dropdown_add_new_module.visible:
             dropdown_add_new_module.draw(pygamescreen)
         elif dropdown_load_screen_template and dropdown_load_screen_template.visible:
             dropdown_load_screen_template.draw(pygamescreen)
@@ -711,7 +721,8 @@ class DropDown():
                 options=[], 
                 menuTitle=None,
                 callback=None,
-                showButton=False):
+                showButton=False,
+                storeObject=[]):
         
         self.menuTitle = menuTitle
         self.color_menu = color_menu
@@ -728,6 +739,7 @@ class DropDown():
         self.option_rects = []  # Store rectangles for each option
         self.callback = callback
         self.showButton = showButton
+        self.storeObject = storeObject # place to store a object with details about what this dropdown is for.
 
     def load_file_dir_as_options(self, path, ignore_regex=None, sort=True):
         # each file name is the option. remove the extension.

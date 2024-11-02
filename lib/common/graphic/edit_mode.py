@@ -385,6 +385,9 @@ def main_edit_loop():
                                 if edit_options_bar and edit_options_bar.screen_object == obj:
                                     edit_options_bar.remove_ui()
                                     edit_options_bar = None
+                            
+                            # add the cloned objects to the change history
+                            shared.Change_history.add_change("add", {"object": cloned_objects})
 
                         print(f"Cloned {len(cloned_objects)} objects")
 

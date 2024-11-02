@@ -25,7 +25,13 @@ def undo_last_change(change_history, shared):
         elif change["type"] == "delete":
             shared.CurrentScreen.ScreenObjects.append(change["data"]["object"])
         elif change["type"] == "add":
-            shared.CurrentScreen.ScreenObjects.remove(change["data"]["object"])
+            # if it's a list of objects then remove all of them
+            if isinstance(change["data"]["object"], list):
+                for obj in change["data"]["object"]:
+                    shared.CurrentScreen.ScreenObjects.remove(obj)
+            else:
+                # else just remove the one object
+                shared.CurrentScreen.ScreenObjects.remove(change["data"]["object"])
         elif change["type"] == "option_change":
             setattr(change["data"]["object"].module, change["data"]["option"], change["data"]["old_value"])
             if hasattr(change["data"]["object"].module, 'update_option'):

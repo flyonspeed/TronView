@@ -12,6 +12,9 @@ class ChangeHistory:
         if self.history:
             return self.history.pop()
         return None
+    
+    def clear(self):
+        self.history.clear()
 
 def undo_last_change(change_history, shared):
     change = change_history.undo()

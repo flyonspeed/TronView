@@ -10,6 +10,8 @@
 # And debug modes, frame rate, ruler, anchor grid, and help dialog are available.
 #######################################################################################################################################
 ####################################################################################################################################### 
+import os
+import re
 from lib.common import shared
 import pygame, pygame_gui
 from lib import hud_utils
@@ -58,7 +60,8 @@ def main_edit_loop():
     offset_x = 0 # x offset for dragging
     offset_y = 0 # y offset for dragging
     resizing = False  # are we resizing?
-    dropdown_add_new = None # dropdown menu for module selection (if any)
+    dropdown_add_new_module = None # dropdown menu for module selection (if any)
+    dropdown_load_screen_template = None # dropdown menu for screen template selection (if any)
     modulesFound, listModules = find_module(debugOutput=False)
     showAllBoundryBoxes = False
     selected_screen_objects = []
@@ -111,13 +114,26 @@ def main_edit_loop():
                 if edit_events_window.is_busy():
                     continue
 
-            if dropdown_add_new and dropdown_add_new.visible:
-                selection = dropdown_add_new.update(event_list)
+            if dropdown_add_new_module and dropdown_add_new_module.visible:
+                selection = dropdown_add_new_module.update(event_list)
                 if selection >= 0:
                     print("Selected module: %s" % listModules[selection])
                     selected_screen_object.title = listModules[selection]
                     newModules, titles  = find_module(listModules[selection])
                     selected_screen_object.setModule(newModules[0])
+                    selected_screen_objects.append(selected_screen_object)
+            
+            if dropdown_load_screen_template and dropdown_load_screen_template.visible:
+                selection = dropdown_load_screen_template.update(event_list)
+                if selection >= 0:
+                    print("Selected template: %s" % dropdown_load_screen_template.options[selection])
+                    shared.Change_history.clear()
+                    if dropdown_load_screen_template.active_option == 0:
+                        # clear the screen
+                        shared.CurrentScreen.ScreenObjects.clear()
+                    else:
+                        load_screen_from_json(dropdown_load_screen_template.options[selection], from_templates=True)
+
             else:
                 # KEY MAPPINGS
                 if event.type == pygame.KEYDOWN and not text_entry_active:
@@ -251,13 +267,11 @@ def main_edit_loop():
                         )
                         newObject.selected = True
                         selected_screen_object = newObject
-                        dropdown_add_new = DropDown([COLOR_INACTIVE, COLOR_ACTIVE],
-                                [COLOR_LIST_INACTIVE, COLOR_LIST_ACTIVE], 
-                            newObject.x, newObject.y, 140, 30, 
-                            pygame.font.SysFont(None, 25), 
-                            "Select Module", listModules)
-                        dropdown_add_new.visible = True
-                        dropdown_add_new.draw_menu = True
+                        dropdown_add_new_module = DropDown( 
+                            x=newObject.x, y=newObject.y, w=140, h=30, 
+                            main="Select Module", options=listModules)
+                        dropdown_add_new_module.visible = True
+                        dropdown_add_new_module.draw_menu = True
 
                     # MOVE SCREEN OBJECT UP IN DRAW ORDER (page up)
                     elif event.key == pygame.K_PAGEUP:
@@ -283,7 +297,28 @@ def main_edit_loop():
 
                     # if ctrl + l is pressed then load the screen from the templates folder
                     elif event.key == pygame.K_l and (pygame.key.get_mods() & pygame.KMOD_CTRL):
-                        load_screen_from_json("default.json", from_templates=True)
+                        # first unselect all modules
+                        for sObject in shared.CurrentScreen.ScreenObjects:
+                            sObject.selected = False
+                        selected_screen_objects.clear()
+                        if edit_options_bar:
+                            edit_options_bar.remove_ui()
+                            edit_options_bar = None
+                        if edit_events_window:
+                            edit_events_window.hide()
+                        mx, my = pygame.mouse.get_pos()  # Get current mouse position
+                        print("Load template key pressed at %d x %d" % (mx, my))
+                        dropdown_load_screen_template = DropDown(
+                            x=mx, y=my, w=140, h=30, 
+                            menuTitle="Screen Templates")
+                        # get root dir of the current module
+                        root_dir = os.path.dirname(os.path.abspath(__file__))
+                        dropdown_load_screen_template.load_file_dir_as_options(os.path.join(root_dir+"/../../screens", "templates"))
+                        # add a option at the top of the list
+                        dropdown_load_screen_template.insert_option("CLEAR SCREEN", 0)
+                        dropdown_load_screen_template.visible = True
+                        dropdown_load_screen_template.draw_menu = True
+                        #load_screen_from_json("default.json", from_templates=True)
 
                     # LOAD SCREEN FROM JSON
                     elif event.key == pygame.K_l:
@@ -478,24 +513,23 @@ def main_edit_loop():
                                     resize_start_size = (sObject.width, sObject.height)  # Store initial size
                                     offset_x = mx - sObject.x
                                     offset_y = my - sObject.y
-                                    dropdown_add_new = None
+                                    dropdown_add_new_module = None
                                 ##################
                                 # DROPDOWN MENU (select module) top right corner
                                 elif sObject.y <= my <= sObject.y + 20 and (sObject.module is None) and sObject.type == 'module':  # Assuming the title area is 20 pixels high
                                     # only if module is not a group or has no module
                                     selected_screen_object = sObject
                                     sObject.selected = True
-                                    dropdown_add_new = DropDown([COLOR_INACTIVE, COLOR_ACTIVE],
-                                            [COLOR_LIST_INACTIVE, COLOR_LIST_ACTIVE], 
-                                        sObject.x, sObject.y, 140, 30, 
-                                        pygame.font.SysFont(None, 25), 
-                                        "Select Module", listModules)
-                                    dropdown_add_new.visible = True
-                                    dropdown_add_new.draw_menu = True
+                                    dropdown_add_new_module = DropDown(
+                                        x=sObject.x, y=sObject.y, w=140, h=30, 
+                                        font=pygame.font.SysFont(None, 25), 
+                                        main="Select Module", options=listModules)
+                                    dropdown_add_new_module.visible = True
+                                    dropdown_add_new_module.draw_menu = True
                                 ##################
                                 # MOVE MODULE
                                 else:
-                                    dropdown_add_new = None
+                                    dropdown_add_new_module = None
                                     # Click is inside the module, start moving
                                     selected_screen_object = sObject
                                     dragging = True
@@ -592,9 +626,11 @@ def main_edit_loop():
                 edit_events_window.hide()
                 edit_events_window = None
 
-            # Last... Draw the dropdown menu if visible over the top of everything.
-            if dropdown_add_new and dropdown_add_new.visible and selected_screen_object == sObject:
-                dropdown_add_new.draw(pygamescreen)
+        # Last... Draw the dropdown menu if visible over the top of everything.
+        if dropdown_add_new_module and dropdown_add_new_module.visible and selected_screen_object == sObject:
+            dropdown_add_new_module.draw(pygamescreen)
+        elif dropdown_load_screen_template and dropdown_load_screen_template.visible:
+            dropdown_load_screen_template.draw(pygamescreen)
 
         pygame_gui_manager.update(time_delta)
 
@@ -646,15 +682,31 @@ def handle_resize_end(screen_object, start_size):
             "new_size": (screen_object.width, screen_object.height)
         })
 
+
+COLOR_INACTIVE = (100, 100, 100)
+COLOR_ACTIVE = (255, 255, 255)
+COLOR_LIST_INACTIVE = (100, 100, 100)
+COLOR_LIST_ACTIVE = (255, 255, 255)
+
 ############################################################################################
 ############################################################################################
 # DropDown class used to pick the module from the list of modules.
 class DropDown():
-    def __init__(self, color_menu, color_option, x, y, w, h, font, main, options):
+    def __init__(self, color_menu=[COLOR_INACTIVE, COLOR_ACTIVE],
+                color_option=[COLOR_LIST_INACTIVE, COLOR_LIST_ACTIVE],
+                x=0, y=0, w=140, h=30, 
+                font=None, 
+                main="Select Option", 
+                options=[], 
+                menuTitle=None,
+                callback=None,
+                showButton=False):
+        
+        self.menuTitle = menuTitle
         self.color_menu = color_menu
         self.color_option = color_option
         self.rect = pygame.Rect(x, y, w, h)
-        self.font = font
+        self.font = font if font else pygame.font.SysFont(None, 25)
         self.main = main
         self.options = options
         self.draw_menu = False
@@ -663,32 +715,48 @@ class DropDown():
         self.value = None
         self.visible = False
         self.option_rects = []  # Store rectangles for each option
+        self.callback = callback
+        self.showButton = showButton
+
+    def load_file_dir_as_options(self, path, ignore_regex=None, sort=True):
+        # each file name is the option. remove the extension.
+        self.options = [
+            os.path.splitext(os.path.basename(f))[0] for f in os.listdir(path) 
+            if os.path.isfile(os.path.join(path, f)) 
+            and (not ignore_regex or not re.match(ignore_regex, f))
+        ]
+        if sort:
+            self.options.sort()
 
     def draw(self, surf):
         screen_width = surf.get_width()
         screen_height = surf.get_height()
+        eachOptionHeight = 20
         
         # Draw main dropdown button
-        pygame.draw.rect(surf, self.color_menu[self.menu_active], self.rect, 0)
-        msg = self.font.render(self.main, 1, (0, 0, 0))
-        surf.blit(msg, msg.get_rect(center=self.rect.center))
+        if self.showButton:
+            pygame.draw.rect(surf, self.color_menu[self.menu_active], self.rect, 0)
+            msg = self.font.render(self.main, 1, (0, 0, 0))
+            surf.blit(msg, msg.get_rect(center=self.rect.center))
 
         if self.draw_menu:
             self.option_rects = []  # Clear previous option rects
             
             # Calculate items that can fit in one column
-            items_per_column = (screen_height - 40) // self.rect.height  # Leave 40px margin
-            if items_per_column < 1:
-                items_per_column = 1
+            max_items_per_column = (screen_height - 40) // self.rect.height  # Leave 40px margin
+            if max_items_per_column < 1:
+                max_items_per_column = 1
+            
+            items_found = len(self.options)
             
             # Calculate number of columns needed
-            num_columns = (len(self.options) + items_per_column - 1) // items_per_column
+            num_columns = (items_found + max_items_per_column - 1) // max_items_per_column
             total_width = num_columns * self.rect.width
             
             # Initial position
             start_x = self.rect.x
             start_y = self.rect.y + self.rect.height
-            
+
             # Adjust horizontal position if menu would go off right edge
             if start_x + total_width > screen_width:
                 start_x = screen_width - total_width - 10  # 10px margin
@@ -696,18 +764,25 @@ class DropDown():
                     start_x = 10
             
             # Adjust vertical position if menu would go off bottom
-            if start_y + (items_per_column * self.rect.height) > screen_height:
+            if start_y + (items_found * eachOptionHeight) > screen_height:
+                print("Menu would go off bottom, moving up start_y:%d items_found:%d eachOptionHeight:%d > screen_height:%d" % (start_y, items_found, eachOptionHeight, screen_height))
                 # Move menu up, but ensure it doesn't go above top of screen
-                start_y = max(20, screen_height - (items_per_column * self.rect.height) - 20)
+                start_y = max(20, screen_height - (items_found * eachOptionHeight) - 20)
             
             current_x = start_x
             current_y = start_y
             current_index = 0
-            
+
+            if self.menuTitle:
+                # draw the menu title at the top of the menu.
+                msg = self.font.render(self.menuTitle, 1, (0, 0, 0), bgcolor=(255, 255, 255))
+                surf.blit(msg, msg.get_rect(center=(self.rect.centerx, self.rect.y + 10)))
+                start_y += 20
+
             while current_index < len(self.options):
                 # Start new column if we've reached max items in current column
                 if (current_y + self.rect.height > screen_height - 20 or 
-                    (current_index > 0 and current_index % items_per_column == 0)):
+                    (current_index > 0 and current_index % max_items_per_column == 0)):
                     current_y = start_y
                     current_x += self.rect.width
                 
@@ -725,6 +800,10 @@ class DropDown():
                 
                 current_y += self.rect.height
                 current_index += 1
+
+    def insert_option(self, option, index):
+        self.options.insert(index, option)
+        self.option_rects.insert(index, pygame.Rect(0, 0, self.rect.width, self.rect.height))
 
     def is_option_clicked(self, pos):
         """Check if mouse position is inside any option rectangle"""
@@ -753,6 +832,8 @@ class DropDown():
                     if clicked_option >= 0:
                         self.draw_menu = False
                         self.visible = False
+                        if self.callback:
+                            self.callback(clicked_option)
                         return clicked_option
                     else:
                         self.draw_menu = False
@@ -763,10 +844,6 @@ class DropDown():
         self.draw_menu = not self.draw_menu
         self.visible = not self.visible
 
-COLOR_INACTIVE = (100, 100, 100)
-COLOR_ACTIVE = (255, 255, 255)
-COLOR_LIST_INACTIVE = (100, 100, 100)
-COLOR_LIST_ACTIVE = (255, 255, 255)
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python
 

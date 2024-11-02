@@ -10,67 +10,14 @@
   "screenObjects": [
     {
       "type": "module",
-      "title": "HUD Horizon V2",
-      "x": 1,
-      "y": 1,
-      "width": 1918,
-      "height": 1077,
-      "grid_position": "MidM",
-      "grid_percentage_x": 1.0,
-      "grid_percentage_y": 0.9972222222222222,
-      "module": {
-        "name": "HUD Horizon V2",
-        "options": [
-          {
-            "name": "line_mode",
-            "value": 1
-          },
-          {
-            "name": "line_thickness",
-            "value": 2
-          },
-          {
-            "name": "MainColor",
-            "value": [
-              0,
-              255,
-              0
-            ]
-          },
-          {
-            "name": "flight_path_color",
-            "value": [
-              255,
-              0,
-              255
-            ]
-          },
-          {
-            "name": "show_targets",
-            "value": true
-          },
-          {
-            "name": "target_distance_threshold",
-            "value": 10
-          },
-          {
-            "name": "fov_x",
-            "value": 20
-          }
-        ]
-      },
-      "id": "M_2lxik"
-    },
-    {
-      "type": "module",
       "title": "Traffic Scope",
-      "x": 1494,
-      "y": 636,
-      "width": 397,
-      "height": 337,
-      "grid_position": "BotR",
-      "grid_percentage_x": 1.2890625,
-      "grid_percentage_y": 0.46944444444444444,
+      "x": 502,
+      "y": 129,
+      "width": 859,
+      "height": 804,
+      "grid_position": "MidM",
+      "grid_percentage_x": 0.9109375,
+      "grid_percentage_y": 0.95,
       "module": {
         "name": "Traffic Scope",
         "options": [
@@ -104,7 +51,7 @@
           }
         ]
       },
-      "id": "M_mpspq"
+      "id": "M_nbcmh"
     },
     {
       "type": "module",
@@ -165,111 +112,7 @@
           }
         ]
       },
-      "id": "M_yrqof"
-    },
-    {
-      "type": "module",
-      "title": "HUD AOA",
-      "x": 28,
-      "y": 664,
-      "width": 64,
-      "height": 185,
-      "grid_position": "BotL",
-      "grid_percentage_x": 0.1875,
-      "grid_percentage_y": 0.20277777777777778,
-      "module": {
-        "name": "HUD AOA",
-        "options": [
-          {
-            "name": "showLDMax",
-            "value": true
-          },
-          {
-            "name": "aoa_color",
-            "value": [
-              255,
-              255,
-              255
-            ]
-          }
-        ]
-      },
-      "id": "M_08nib"
-    },
-    {
-      "type": "module",
-      "title": "HSI",
-      "x": 731,
-      "y": 592,
-      "width": 445,
-      "height": 430,
-      "grid_position": "BotM",
-      "grid_percentage_x": 0.9796875,
-      "grid_percentage_y": 0.48333333333333334,
-      "module": {
-        "name": "HSI",
-        "options": [
-          {
-            "name": "hsi_size",
-            "value": 445
-          }
-        ]
-      },
-      "id": "M_wug4l"
-    },
-    {
-      "type": "module",
-      "title": "Wind",
-      "x": 24,
-      "y": 870,
-      "width": 108,
-      "height": 113,
-      "grid_position": "BotL",
-      "grid_percentage_x": 0.24375,
-      "grid_percentage_y": 1.1472222222222221,
-      "module": {
-        "name": "Wind",
-        "options": [
-          {
-            "name": "arrow_size",
-            "value": 50
-          }
-        ]
-      },
-      "id": "M_81nxe"
-    },
-    {
-      "type": "module",
-      "title": "Slip Skid",
-      "x": 822,
-      "y": 985,
-      "width": 247,
-      "height": 50,
-      "grid_position": "BotM",
-      "grid_percentage_x": 0.9546875,
-      "grid_percentage_y": 1.6111111111111112,
-      "module": {
-        "name": "Slip Skid",
-        "options": [
-          {
-            "name": "MainColor",
-            "value": [
-              255,
-              255,
-              255
-            ]
-          },
-          {
-            "name": "BallColor",
-            "value": [
-              255,
-              255,
-              255
-            ]
-          }
-        ]
-      },
-      "id": "M_6nv5x"
+      "id": "M_9sbbt"
     },
     {
       "type": "module",
@@ -318,32 +161,7 @@
           }
         ]
       },
-      "id": "M_3zdx6"
-    },
-    {
-      "type": "module",
-      "title": "HUD CDI",
-      "x": 860,
-      "y": 438,
-      "width": 200,
-      "height": 200,
-      "grid_position": "MidM",
-      "grid_percentage_x": 1.0,
-      "grid_percentage_y": 0.9888888888888889,
-      "module": {
-        "name": "HUD CDI",
-        "options": [
-          {
-            "name": "cdi_color",
-            "value": [
-              255,
-              255,
-              255
-            ]
-          }
-        ]
-      },
-      "id": "M_lsf9p"
+      "id": "M_93vzb"
     },
     {
       "type": "module",
@@ -404,7 +222,7 @@
           }
         ]
       },
-      "id": "M_3na8p"
+      "id": "M_294am"
     },
     {
       "type": "module",
@@ -465,18 +283,18 @@
           }
         ]
       },
-      "id": "M_g62lx"
+      "id": "M_xia1i"
     },
     {
       "type": "module",
       "title": "Buoy Manager",
       "x": 20,
-      "y": 9,
+      "y": 8,
       "width": 377,
       "height": 280,
       "grid_position": "TopL",
       "grid_percentage_x": 0.6515625,
-      "grid_percentage_y": 0.8277777777777777,
+      "grid_percentage_y": 0.8222222222222222,
       "module": {
         "name": "Buoy Manager",
         "options": [
@@ -494,7 +312,7 @@
           }
         ]
       },
-      "id": "M_c0mmc",
+      "id": "M_98fa9",
       "event_handlers": [
         {
           "id": "test",
@@ -530,7 +348,7 @@
           }
         ]
       },
-      "id": "M_tsn7g"
+      "id": "M_mb9uk"
     },
     {
       "type": "module",
@@ -591,7 +409,7 @@
           }
         ]
       },
-      "id": "M_1n30j"
+      "id": "M_wu9t7"
     },
     {
       "type": "module",
@@ -652,7 +470,7 @@
           }
         ]
       },
-      "id": "M_glvsq"
+      "id": "M_xoy5w"
     },
     {
       "type": "module",
@@ -713,7 +531,7 @@
           }
         ]
       },
-      "id": "M_eol8s"
+      "id": "M_vi2v8"
     },
     {
       "type": "module",
@@ -774,7 +592,7 @@
           }
         ]
       },
-      "id": "M_3s5p3"
+      "id": "M_gnjs1"
     },
     {
       "type": "group",
@@ -846,7 +664,7 @@
               }
             ]
           },
-          "id": "M_12e8f"
+          "id": "M_2knd4"
         },
         {
           "type": "module",
@@ -907,7 +725,7 @@
               }
             ]
           },
-          "id": "M_qyt2f"
+          "id": "M_zt7f9"
         },
         {
           "type": "module",
@@ -968,7 +786,7 @@
               }
             ]
           },
-          "id": "M_wo9ut"
+          "id": "M_hxmcc"
         },
         {
           "type": "module",
@@ -1029,7 +847,7 @@
               }
             ]
           },
-          "id": "M_yvqxw"
+          "id": "M_dojhd"
         },
         {
           "type": "module",
@@ -1090,7 +908,7 @@
               }
             ]
           },
-          "id": "M_pe7fw"
+          "id": "M_zqyzh"
         },
         {
           "type": "module",
@@ -1151,10 +969,10 @@
               }
             ]
           },
-          "id": "M_3s2ba"
+          "id": "M_no3fo"
         }
       ],
-      "id": "M_86zwo",
+      "id": "M_oniji",
       "event_handlers": []
     },
     {
@@ -1216,18 +1034,18 @@
           }
         ]
       },
-      "id": "M_chmbd"
+      "id": "M_musmv"
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 1440,
-      "y": 981,
+      "x": 746,
+      "y": 985,
       "width": 161,
       "height": 22,
-      "grid_position": "BotR",
-      "grid_percentage_x": 0.7515625,
-      "grid_percentage_y": 1.511111111111111,
+      "grid_position": "BotM",
+      "grid_percentage_x": 0.5828125,
+      "grid_percentage_y": 1.5333333333333334,
       "module": {
         "name": "Text",
         "options": [
@@ -1277,18 +1095,18 @@
           }
         ]
       },
-      "id": "M_dydqf"
+      "id": "M_i40xr"
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 1627,
-      "y": 961,
+      "x": 933,
+      "y": 965,
       "width": 165,
       "height": 23,
-      "grid_position": "BotR",
-      "grid_percentage_x": 1.3421875,
-      "grid_percentage_y": 1.4027777777777777,
+      "grid_position": "BotM",
+      "grid_percentage_x": 1.1734375,
+      "grid_percentage_y": 1.425,
       "module": {
         "name": "Text",
         "options": [
@@ -1338,18 +1156,18 @@
           }
         ]
       },
-      "id": "M_pus6r"
+      "id": "M_qku4v"
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 1625,
-      "y": 1007,
+      "x": 931,
+      "y": 1011,
       "width": 225,
       "height": 23,
-      "grid_position": "BotR",
-      "grid_percentage_x": 1.4296875,
-      "grid_percentage_y": 1.6583333333333334,
+      "grid_position": "BotM",
+      "grid_percentage_x": 1.2609375,
+      "grid_percentage_y": 1.6805555555555556,
       "module": {
         "name": "Text",
         "options": [
@@ -1399,18 +1217,18 @@
           }
         ]
       },
-      "id": "M_6nwu8"
+      "id": "M_mvx8p"
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 1439,
-      "y": 959,
+      "x": 746,
+      "y": 963,
       "width": 168,
       "height": 25,
-      "grid_position": "BotR",
-      "grid_percentage_x": 0.759375,
-      "grid_percentage_y": 1.3972222222222221,
+      "grid_position": "BotM",
+      "grid_percentage_x": 0.59375,
+      "grid_percentage_y": 1.4194444444444445,
       "module": {
         "name": "Text",
         "options": [
@@ -1460,7 +1278,7 @@
           }
         ]
       },
-      "id": "M_2wrzj"
+      "id": "M_r8n11"
     },
     {
       "type": "module",
@@ -1521,76 +1339,18 @@
           }
         ]
       },
-      "id": "M_xd05f"
-    },
-    {
-      "type": "module",
-      "title": "ArtificalHorz",
-      "x": 134,
-      "y": 594,
-      "width": 218,
-      "height": 195,
-      "grid_position": "MidL",
-      "grid_percentage_x": 0.759375,
-      "grid_percentage_y": 1.8416666666666666,
-      "module": {
-        "name": "ArtificalHorz",
-        "options": [
-          {
-            "name": "LineColor",
-            "value": [
-              255,
-              255,
-              255
-            ]
-          },
-          {
-            "name": "SkyColorBottom",
-            "value": [
-              0,
-              153,
-              204
-            ]
-          },
-          {
-            "name": "SkyColorTop",
-            "value": [
-              0,
-              102,
-              204
-            ]
-          },
-          {
-            "name": "GroundColorTop",
-            "value": [
-              153,
-              102,
-              51
-            ]
-          },
-          {
-            "name": "GroundColorBottom",
-            "value": [
-              102,
-              51,
-              0
-            ]
-          }
-        ]
-      },
-      "id": "M_y16l9",
-      "event_handlers": []
+      "id": "M_nb16b"
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 1404,
-      "y": 1003,
+      "x": 710,
+      "y": 1007,
       "width": 187,
       "height": 22,
-      "grid_position": "BotR",
-      "grid_percentage_x": 0.6796875,
-      "grid_percentage_y": 1.6333333333333333,
+      "grid_position": "BotM",
+      "grid_percentage_x": 0.5109375,
+      "grid_percentage_y": 1.6555555555555554,
       "module": {
         "name": "Text",
         "options": [
@@ -1640,18 +1400,18 @@
           }
         ]
       },
-      "id": "M_vdpoh"
+      "id": "M_t1mry"
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 1626,
-      "y": 983,
+      "x": 932,
+      "y": 987,
       "width": 168,
       "height": 25,
-      "grid_position": "BotR",
-      "grid_percentage_x": 1.34375,
-      "grid_percentage_y": 1.5305555555555554,
+      "grid_position": "BotM",
+      "grid_percentage_x": 1.175,
+      "grid_percentage_y": 1.5527777777777778,
       "module": {
         "name": "Text",
         "options": [
@@ -1701,18 +1461,18 @@
           }
         ]
       },
-      "id": "M_wrobw"
+      "id": "M_0c4jd"
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 1808,
-      "y": 983,
+      "x": 1114,
+      "y": 987,
       "width": 118,
       "height": 24,
-      "grid_position": "BotR",
-      "grid_percentage_x": 1.834375,
-      "grid_percentage_y": 1.5277777777777777,
+      "grid_position": "BotM",
+      "grid_percentage_x": 1.665625,
+      "grid_percentage_y": 1.55,
       "module": {
         "name": "Text",
         "options": [
@@ -1762,928 +1522,7 @@
           }
         ]
       },
-      "id": "M_w62eq"
-    },
-    {
-      "type": "module",
-      "title": "Gauge Bar",
-      "x": 331,
-      "y": 835,
-      "width": 53,
-      "height": 166,
-      "grid_position": "BotL",
-      "grid_percentage_x": 1.1171875,
-      "grid_percentage_y": 1.1,
-      "module": {
-        "name": "Gauge Bar",
-        "options": [
-          {
-            "name": "data_field",
-            "value": "engine.FuelFlow"
-          },
-          {
-            "name": "minValue",
-            "value": 0
-          },
-          {
-            "name": "maxValue",
-            "value": 21
-          },
-          {
-            "name": "vertical",
-            "value": true
-          },
-          {
-            "name": "show_text",
-            "value": true
-          },
-          {
-            "name": "show_borders",
-            "value": true
-          },
-          {
-            "name": "border_width",
-            "value": 2
-          },
-          {
-            "name": "bar_color",
-            "value": [
-              0,
-              255,
-              0
-            ]
-          },
-          {
-            "name": "background_color",
-            "value": [
-              40,
-              40,
-              40
-            ]
-          },
-          {
-            "name": "border_color",
-            "value": [
-              100,
-              100,
-              100
-            ]
-          },
-          {
-            "name": "smooth_factor",
-            "value": 0.15
-          },
-          {
-            "name": "font_name",
-            "value": "monospace"
-          },
-          {
-            "name": "font_size",
-            "value": 20
-          },
-          {
-            "name": "text_color",
-            "value": [
-              200,
-              255,
-              255
-            ]
-          },
-          {
-            "name": "max_bars",
-            "value": 8
-          }
-        ]
-      },
-      "id": "M_8acv9"
-    },
-    {
-      "type": "module",
-      "title": "Gauge Bar",
-      "x": 385,
-      "y": 883,
-      "width": 117,
-      "height": 117,
-      "grid_position": "BotL",
-      "grid_percentage_x": 1.3859375,
-      "grid_percentage_y": 1.2305555555555556,
-      "module": {
-        "name": "Gauge Bar",
-        "options": [
-          {
-            "name": "data_field",
-            "value": "fuel.FuelLevels"
-          },
-          {
-            "name": "minValue",
-            "value": 0
-          },
-          {
-            "name": "maxValue",
-            "value": 1000
-          },
-          {
-            "name": "vertical",
-            "value": true
-          },
-          {
-            "name": "show_text",
-            "value": false
-          },
-          {
-            "name": "show_borders",
-            "value": true
-          },
-          {
-            "name": "border_width",
-            "value": 2
-          },
-          {
-            "name": "bar_color",
-            "value": [
-              0,
-              255,
-              0
-            ]
-          },
-          {
-            "name": "background_color",
-            "value": [
-              40,
-              40,
-              40
-            ]
-          },
-          {
-            "name": "border_color",
-            "value": [
-              100,
-              100,
-              100
-            ]
-          },
-          {
-            "name": "smooth_factor",
-            "value": 0.15
-          },
-          {
-            "name": "font_name",
-            "value": "monospace"
-          },
-          {
-            "name": "font_size",
-            "value": 20
-          },
-          {
-            "name": "text_color",
-            "value": [
-              200,
-              255,
-              255
-            ]
-          },
-          {
-            "name": "max_bars",
-            "value": 8
-          }
-        ]
-      },
-      "id": "M_wqmau"
-    },
-    {
-      "type": "module",
-      "title": "Gauge Bar",
-      "x": 506,
-      "y": 895,
-      "width": 131,
-      "height": 104,
-      "grid_position": "BotL",
-      "grid_percentage_x": 1.7859375,
-      "grid_percentage_y": 1.261111111111111,
-      "module": {
-        "name": "Gauge Bar",
-        "options": [
-          {
-            "name": "data_field",
-            "value": "engine.CHT"
-          },
-          {
-            "name": "minValue",
-            "value": 0
-          },
-          {
-            "name": "maxValue",
-            "value": 1000
-          },
-          {
-            "name": "vertical",
-            "value": true
-          },
-          {
-            "name": "show_text",
-            "value": true
-          },
-          {
-            "name": "show_borders",
-            "value": true
-          },
-          {
-            "name": "border_width",
-            "value": 2
-          },
-          {
-            "name": "bar_color",
-            "value": [
-              0,
-              255,
-              0
-            ]
-          },
-          {
-            "name": "background_color",
-            "value": [
-              40,
-              40,
-              40
-            ]
-          },
-          {
-            "name": "border_color",
-            "value": [
-              100,
-              100,
-              100
-            ]
-          },
-          {
-            "name": "smooth_factor",
-            "value": 0.15
-          },
-          {
-            "name": "font_name",
-            "value": "monospace"
-          },
-          {
-            "name": "font_size",
-            "value": 20
-          },
-          {
-            "name": "text_color",
-            "value": [
-              200,
-              255,
-              255
-            ]
-          },
-          {
-            "name": "max_bars",
-            "value": 4
-          }
-        ]
-      },
-      "id": "M_6mril"
-    },
-    {
-      "type": "module",
-      "title": "Text",
-      "x": 518,
-      "y": 879,
-      "width": 55,
-      "height": 20,
-      "grid_position": "BotL",
-      "grid_percentage_x": 1.7046875,
-      "grid_percentage_y": 0.9388888888888889,
-      "module": {
-        "name": "Text",
-        "options": [
-          {
-            "name": "template",
-            "value": "traffic.src_alt"
-          },
-          {
-            "name": "text",
-            "value": "CHT"
-          },
-          {
-            "name": "font_name",
-            "value": "monospace"
-          },
-          {
-            "name": "font_size",
-            "value": 20
-          },
-          {
-            "name": "font_bold",
-            "value": false
-          },
-          {
-            "name": "text_color",
-            "value": [
-              200,
-              255,
-              255
-            ]
-          },
-          {
-            "name": "box_color",
-            "value": [
-              255,
-              255,
-              255
-            ]
-          },
-          {
-            "name": "box_weight",
-            "value": 0
-          },
-          {
-            "name": "box_radius",
-            "value": 0
-          }
-        ]
-      },
-      "id": "M_tsivb"
-    },
-    {
-      "type": "module",
-      "title": "Text",
-      "x": 388,
-      "y": 865,
-      "width": 123,
-      "height": 21,
-      "grid_position": "BotL",
-      "grid_percentage_x": 1.4046875,
-      "grid_percentage_y": 0.8638888888888889,
-      "module": {
-        "name": "Text",
-        "options": [
-          {
-            "name": "template",
-            "value": "traffic.src_alt"
-          },
-          {
-            "name": "text",
-            "value": "Fuel Level"
-          },
-          {
-            "name": "font_name",
-            "value": "monospace"
-          },
-          {
-            "name": "font_size",
-            "value": 20
-          },
-          {
-            "name": "font_bold",
-            "value": false
-          },
-          {
-            "name": "text_color",
-            "value": [
-              200,
-              255,
-              255
-            ]
-          },
-          {
-            "name": "box_color",
-            "value": [
-              255,
-              255,
-              255
-            ]
-          },
-          {
-            "name": "box_weight",
-            "value": 0
-          },
-          {
-            "name": "box_radius",
-            "value": 0
-          }
-        ]
-      },
-      "id": "M_qghgg"
-    },
-    {
-      "type": "module",
-      "title": "Gauge Bar",
-      "x": 631,
-      "y": 895,
-      "width": 132,
-      "height": 104,
-      "grid_position": "BotM",
-      "grid_percentage_x": 0.178125,
-      "grid_percentage_y": 1.261111111111111,
-      "module": {
-        "name": "Gauge Bar",
-        "options": [
-          {
-            "name": "data_field",
-            "value": "engine.EGT"
-          },
-          {
-            "name": "minValue",
-            "value": 0
-          },
-          {
-            "name": "maxValue",
-            "value": 1500
-          },
-          {
-            "name": "vertical",
-            "value": true
-          },
-          {
-            "name": "show_text",
-            "value": true
-          },
-          {
-            "name": "show_borders",
-            "value": true
-          },
-          {
-            "name": "border_width",
-            "value": 2
-          },
-          {
-            "name": "bar_color",
-            "value": [
-              0,
-              255,
-              0
-            ]
-          },
-          {
-            "name": "background_color",
-            "value": [
-              40,
-              40,
-              40
-            ]
-          },
-          {
-            "name": "border_color",
-            "value": [
-              100,
-              100,
-              100
-            ]
-          },
-          {
-            "name": "smooth_factor",
-            "value": 0.15
-          },
-          {
-            "name": "font_name",
-            "value": "monospace"
-          },
-          {
-            "name": "font_size",
-            "value": 20
-          },
-          {
-            "name": "text_color",
-            "value": [
-              200,
-              255,
-              255
-            ]
-          },
-          {
-            "name": "max_bars",
-            "value": 4
-          }
-        ]
-      },
-      "id": "M_8nevk"
-    },
-    {
-      "type": "module",
-      "title": "Text",
-      "x": 642,
-      "y": 885,
-      "width": 106,
-      "height": 22,
-      "grid_position": "BotM",
-      "grid_percentage_x": 0.171875,
-      "grid_percentage_y": 0.9777777777777777,
-      "module": {
-        "name": "Text",
-        "options": [
-          {
-            "name": "template",
-            "value": "traffic.src_alt"
-          },
-          {
-            "name": "text",
-            "value": "EGT"
-          },
-          {
-            "name": "font_name",
-            "value": "monospace"
-          },
-          {
-            "name": "font_size",
-            "value": 20
-          },
-          {
-            "name": "font_bold",
-            "value": false
-          },
-          {
-            "name": "text_color",
-            "value": [
-              200,
-              255,
-              255
-            ]
-          },
-          {
-            "name": "box_color",
-            "value": [
-              255,
-              255,
-              255
-            ]
-          },
-          {
-            "name": "box_weight",
-            "value": 0
-          },
-          {
-            "name": "box_radius",
-            "value": 0
-          }
-        ]
-      },
-      "id": "M_1z22e"
-    },
-    {
-      "type": "module",
-      "title": "Text",
-      "x": 338,
-      "y": 818,
-      "width": 43,
-      "height": 22,
-      "grid_position": "BotL",
-      "grid_percentage_x": 1.1234375,
-      "grid_percentage_y": 0.6055555555555555,
-      "module": {
-        "name": "Text",
-        "options": [
-          {
-            "name": "template",
-            "value": "traffic.src_alt"
-          },
-          {
-            "name": "text",
-            "value": "GPH"
-          },
-          {
-            "name": "font_name",
-            "value": "monospace"
-          },
-          {
-            "name": "font_size",
-            "value": 20
-          },
-          {
-            "name": "font_bold",
-            "value": false
-          },
-          {
-            "name": "text_color",
-            "value": [
-              200,
-              255,
-              255
-            ]
-          },
-          {
-            "name": "box_color",
-            "value": [
-              255,
-              255,
-              255
-            ]
-          },
-          {
-            "name": "box_weight",
-            "value": 0
-          },
-          {
-            "name": "box_radius",
-            "value": 0
-          }
-        ]
-      },
-      "id": "M_pnzbq"
-    },
-    {
-      "type": "module",
-      "title": "Gauge Arc",
-      "x": 1213,
-      "y": 813,
-      "width": 258,
-      "height": 235,
-      "grid_position": "BotR",
-      "grid_percentage_x": 0.19375,
-      "grid_percentage_y": 1.1694444444444445,
-      "module": {
-        "name": "Gauge Arc",
-        "options": [
-          {
-            "name": "data_field",
-            "value": "engine.RPM"
-          },
-          {
-            "name": "minValue",
-            "value": 0
-          },
-          {
-            "name": "maxValue",
-            "value": 3000
-          },
-          {
-            "name": "step",
-            "value": 500
-          },
-          {
-            "name": "show_text",
-            "value": true
-          },
-          {
-            "name": "text_offset",
-            "value": 6
-          },
-          {
-            "name": "value_color",
-            "value": [
-              255,
-              255,
-              0,
-              255
-            ]
-          },
-          {
-            "name": "font_name",
-            "value": "monospace"
-          },
-          {
-            "name": "font_size",
-            "value": 20
-          },
-          {
-            "name": "font_bold",
-            "value": false
-          },
-          {
-            "name": "text_color",
-            "value": [
-              200,
-              255,
-              255
-            ]
-          },
-          {
-            "name": "outline_color",
-            "value": [
-              255,
-              255,
-              255
-            ]
-          },
-          {
-            "name": "outline_weight",
-            "value": 0
-          },
-          {
-            "name": "pointer_distance",
-            "value": 15
-          },
-          {
-            "name": "smooth_factor",
-            "value": 0.15
-          }
-        ]
-      },
-      "id": "M_ciyfh"
-    },
-    {
-      "type": "module",
-      "title": "Text",
-      "x": 1324,
-      "y": 922,
-      "width": 106,
-      "height": 22,
-      "grid_position": "BotR",
-      "grid_percentage_x": 0.303125,
-      "grid_percentage_y": 1.1833333333333333,
-      "module": {
-        "name": "Text",
-        "options": [
-          {
-            "name": "template",
-            "value": "traffic.src_alt"
-          },
-          {
-            "name": "text",
-            "value": "RPM"
-          },
-          {
-            "name": "font_name",
-            "value": "monospace"
-          },
-          {
-            "name": "font_size",
-            "value": 20
-          },
-          {
-            "name": "font_bold",
-            "value": false
-          },
-          {
-            "name": "text_color",
-            "value": [
-              200,
-              255,
-              255
-            ]
-          },
-          {
-            "name": "box_color",
-            "value": [
-              255,
-              255,
-              255
-            ]
-          },
-          {
-            "name": "box_weight",
-            "value": 0
-          },
-          {
-            "name": "box_radius",
-            "value": 0
-          }
-        ]
-      },
-      "id": "M_oh2y8"
-    },
-    {
-      "type": "module",
-      "title": "Gauge Bar",
-      "x": 31,
-      "y": 350,
-      "width": 163,
-      "height": 46,
-      "grid_position": "MidL",
-      "grid_percentage_x": 0.3515625,
-      "grid_percentage_y": 0.07222222222222222,
-      "module": {
-        "name": "Gauge Bar",
-        "options": [
-          {
-            "name": "data_field",
-            "value": "engine.OilPress"
-          },
-          {
-            "name": "minValue",
-            "value": 0
-          },
-          {
-            "name": "maxValue",
-            "value": 108
-          },
-          {
-            "name": "vertical",
-            "value": false
-          },
-          {
-            "name": "show_text",
-            "value": true
-          },
-          {
-            "name": "show_borders",
-            "value": true
-          },
-          {
-            "name": "border_width",
-            "value": 2
-          },
-          {
-            "name": "bar_color",
-            "value": [
-              0,
-              255,
-              0
-            ]
-          },
-          {
-            "name": "background_color",
-            "value": [
-              40,
-              40,
-              40
-            ]
-          },
-          {
-            "name": "border_color",
-            "value": [
-              100,
-              100,
-              100
-            ]
-          },
-          {
-            "name": "smooth_factor",
-            "value": 0.15
-          },
-          {
-            "name": "font_name",
-            "value": "monospace"
-          },
-          {
-            "name": "font_size",
-            "value": 20
-          },
-          {
-            "name": "text_color",
-            "value": [
-              200,
-              255,
-              255
-            ]
-          },
-          {
-            "name": "max_bars",
-            "value": 8
-          }
-        ]
-      },
-      "id": "M_hbwcu"
-    },
-    {
-      "type": "module",
-      "title": "Text",
-      "x": 46,
-      "y": 336,
-      "width": 119,
-      "height": 20,
-      "grid_position": "TopL",
-      "grid_percentage_x": 0.3296875,
-      "grid_percentage_y": 1.9222222222222223,
-      "module": {
-        "name": "Text",
-        "options": [
-          {
-            "name": "template",
-            "value": "traffic.src_alt"
-          },
-          {
-            "name": "text",
-            "value": "Oil Press"
-          },
-          {
-            "name": "font_name",
-            "value": "monospace"
-          },
-          {
-            "name": "font_size",
-            "value": 20
-          },
-          {
-            "name": "font_bold",
-            "value": false
-          },
-          {
-            "name": "text_color",
-            "value": [
-              200,
-              255,
-              255
-            ]
-          },
-          {
-            "name": "box_color",
-            "value": [
-              255,
-              255,
-              255
-            ]
-          },
-          {
-            "name": "box_weight",
-            "value": 0
-          },
-          {
-            "name": "box_radius",
-            "value": 0
-          }
-        ]
-      },
-      "id": "M_si85q"
+      "id": "M_rgp5x"
     }
   ]
 }

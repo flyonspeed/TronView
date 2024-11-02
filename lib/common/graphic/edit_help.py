@@ -16,8 +16,8 @@ def show_help_dialog(pygame_gui_manager):
     C - Clone selected object(s)    
     DELETE or BACKSPACE - Delete selected object
     S - Save screen to JSON
-    L - Load last savedscreen from JSON
-    Cntrl L - Load default screen
+    L - Load last saved screen from JSON
+    Cntrl L - Load template screen
     F - Toggle FPS and draw time display
     R - Toggle ruler mode and grid display mode
     Arrow keys - Move selected object(s)

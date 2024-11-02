@@ -431,6 +431,7 @@ class TrafficData(object):
 
         self.targets = []
         self.buoyCount = 0
+        self.selected_target = None
 
         self.msg_count = 0
         self.msg_last = ""
@@ -439,6 +440,12 @@ class TrafficData(object):
         # check if we should ignore traffic beyond a certain distance (in miles.)
         self.ignore_traffic_beyond_distance = hud_utils.readConfigInt("Main", "ignore_traffic_beyond_distance", 0)
 
+    def get_selected_target(self):
+        # find the target that has the same address as the selected target.
+        for target in self.targets:
+            if target.callsign == self.selected_target:
+                return target
+        return None
 
     def contains(self, target): # search for callsign
         for x in self.targets:

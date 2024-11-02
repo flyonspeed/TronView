@@ -74,9 +74,24 @@ class text(Module):
 
                 try:
                     variable_value = get_nested_attr(aircraft, variable_name)
-                    
+                    # check if variable_name is a object if so get the object vars
+
+                    # check if its a string, int, float, list, tuple, dict. and if format_specifier is not None then format it.
                     if format_specifier:
                         variable_value = f"{variable_value:{format_specifier}}"
+                    elif isinstance(variable_value, (str, int, float, list, tuple, dict)):
+                        variable_value = f"{variable_value}"
+
+                    elif isinstance(variable_value, object):
+                        # check if None
+                        if variable_value is None:
+                            variable_value = "None"
+                        else:
+                            sub_vars = variable_value.__dict__
+                            final_value = ""
+                            for sub_var in sub_vars:
+                                final_value += f"{sub_var}: {sub_vars[sub_var]}\n"
+                            variable_value = final_value
                     else:
                         variable_value = str(variable_value)
                 except Exception as e:

@@ -411,7 +411,8 @@ class trafficscope(Module):
         # clear any selected targets from self.targetDetails
         for target in self.targetDetails:
             self.targetDetails[target]["selected"] = False
-        
+        aircraft.traffic.selected_target = None
+
         # # translate mx,my to same coordinate system as self.targetDetails.  which is based of the center of the surface is 0,0.
         # mx = mx - self.xCenter
         # my = my - self.yCenter
@@ -425,11 +426,10 @@ class trafficscope(Module):
                 #print("target: %s, x: %d, y: %d" % (target, self.targetDetails[target]["x"], self.targetDetails[target]["y"]))
             if mx >= self.targetDetails[target]["x"] - self.aircraft_icon_scale and mx <= self.targetDetails[target]["x"] + self.aircraft_icon_scale and my >= self.targetDetails[target]["y"] - self.aircraft_icon_scale and my <= self.targetDetails[target]["y"] + self.aircraft_icon_scale:
                 self.targetDetails[target]["selected"] = True
+                aircraft.traffic.selected_target = target # save the callsign of selected target in aircraft.traffic.selected_target
                 if shared.aircraft.debug_mode > 0:
                     print("selected target: %s" % target)
                 break
-
-        
 
     # handle events
     def processEvent(self,event,aircraft,smartdisplay):

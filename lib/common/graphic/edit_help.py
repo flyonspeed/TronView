@@ -9,15 +9,19 @@ def show_help_dialog(pygame_gui_manager):
     E - Exit Edit Mode (goto normal mode)
     Q - Quit
     ESC - unselect all objects
+    DELETE or BACKSPACE - Delete selected object
+    TAB - Cycle through selected objects
+    SHIFT - multiple select objects
+
     A - Add new screen object
     G - Group selected objects
     Ctrl G - Ungroup selected group
     B - Toggle boundary boxes
-    C - Clone selected object(s)    
-    DELETE or BACKSPACE - Delete selected object
+    C - Clone selected object(s) 
+       
     S - Save screen to JSON
-    L - Load last savedscreen from JSON
-    Cntrl L - Load default screen
+    L - Load last saved screen from JSON
+    Cntrl L - Load template screen
     F - Toggle FPS and draw time display
     R - Toggle ruler mode and grid display mode
     Arrow keys - Move selected object(s)
@@ -25,7 +29,6 @@ def show_help_dialog(pygame_gui_manager):
     PAGE UP - Move selected object up in draw order
     PAGE DOWN - Move selected object down in draw order
     Ctrl Z - Undo last change
-    TAB - Cycle through selected objects
     """
 
     window_width = 450

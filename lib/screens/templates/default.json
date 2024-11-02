@@ -11,13 +11,13 @@
     {
       "type": "module",
       "title": "HUD Horizon V2",
-      "x": 106,
-      "y": 36,
+      "x": 1,
+      "y": 1,
       "width": 1918,
       "height": 1077,
       "grid_position": "MidM",
-      "grid_percentage_x": 1.328125,
-      "grid_percentage_y": 1.1916666666666667,
+      "grid_percentage_x": 1.0,
+      "grid_percentage_y": 0.9972222222222222,
       "module": {
         "name": "HUD Horizon V2",
         "options": [
@@ -59,18 +59,18 @@
           }
         ]
       },
-      "id": "M_gmebg"
+      "id": "M_2lxik"
     },
     {
       "type": "module",
       "title": "Traffic Scope",
-      "x": 1452,
-      "y": 696,
+      "x": 1494,
+      "y": 636,
       "width": 397,
       "height": 337,
       "grid_position": "BotR",
-      "grid_percentage_x": 1.1578125,
-      "grid_percentage_y": 0.8027777777777778,
+      "grid_percentage_x": 1.2890625,
+      "grid_percentage_y": 0.46944444444444444,
       "module": {
         "name": "Traffic Scope",
         "options": [
@@ -104,7 +104,7 @@
           }
         ]
       },
-      "id": "M_ndaig"
+      "id": "M_mpspq"
     },
     {
       "type": "module",
@@ -165,18 +165,18 @@
           }
         ]
       },
-      "id": "M_xu6e5"
+      "id": "M_yrqof"
     },
     {
       "type": "module",
       "title": "HUD AOA",
-      "x": 24,
-      "y": 751,
+      "x": 28,
+      "y": 664,
       "width": 64,
       "height": 185,
       "grid_position": "BotL",
-      "grid_percentage_x": 0.175,
-      "grid_percentage_y": 0.6861111111111111,
+      "grid_percentage_x": 0.1875,
+      "grid_percentage_y": 0.20277777777777778,
       "module": {
         "name": "HUD AOA",
         "options": [
@@ -194,7 +194,7 @@
           }
         ]
       },
-      "id": "M_6wl5v"
+      "id": "M_08nib"
     },
     {
       "type": "module",
@@ -215,18 +215,18 @@
           }
         ]
       },
-      "id": "M_bbuag"
+      "id": "M_wug4l"
     },
     {
       "type": "module",
       "title": "Wind",
-      "x": 17,
-      "y": 939,
+      "x": 24,
+      "y": 870,
       "width": 108,
       "height": 113,
       "grid_position": "BotL",
-      "grid_percentage_x": 0.221875,
-      "grid_percentage_y": 1.5305555555555554,
+      "grid_percentage_x": 0.24375,
+      "grid_percentage_y": 1.1472222222222221,
       "module": {
         "name": "Wind",
         "options": [
@@ -236,18 +236,18 @@
           }
         ]
       },
-      "id": "M_ciude"
+      "id": "M_81nxe"
     },
     {
       "type": "module",
       "title": "Slip Skid",
-      "x": 835,
-      "y": 1003,
+      "x": 822,
+      "y": 985,
       "width": 247,
       "height": 50,
       "grid_position": "BotM",
-      "grid_percentage_x": 0.9953125,
-      "grid_percentage_y": 1.711111111111111,
+      "grid_percentage_x": 0.9546875,
+      "grid_percentage_y": 1.6111111111111112,
       "module": {
         "name": "Slip Skid",
         "options": [
@@ -269,18 +269,18 @@
           }
         ]
       },
-      "id": "M_4gff6"
+      "id": "M_6nv5x"
     },
     {
       "type": "module",
       "title": "Heading",
       "x": 577,
-      "y": 36,
+      "y": 35,
       "width": 706,
       "height": 113,
       "grid_position": "TopM",
       "grid_percentage_x": 0.90625,
-      "grid_percentage_y": 0.5138888888888888,
+      "grid_percentage_y": 0.5083333333333333,
       "module": {
         "name": "Heading",
         "options": [
@@ -318,7 +318,7 @@
           }
         ]
       },
-      "id": "M_3f1m2"
+      "id": "M_3zdx6"
     },
     {
       "type": "module",
@@ -343,7 +343,7 @@
           }
         ]
       },
-      "id": "M_50gkf"
+      "id": "M_lsf9p"
     },
     {
       "type": "module",
@@ -404,7 +404,7 @@
           }
         ]
       },
-      "id": "M_274bm"
+      "id": "M_3na8p"
     },
     {
       "type": "module",
@@ -465,7 +465,7 @@
           }
         ]
       },
-      "id": "M_ssgax"
+      "id": "M_g62lx"
     },
     {
       "type": "module",
@@ -494,7 +494,7 @@
           }
         ]
       },
-      "id": "M_6v7g1",
+      "id": "M_c0mmc",
       "event_handlers": [
         {
           "id": "test",
@@ -530,7 +530,7 @@
           }
         ]
       },
-      "id": "M_j313u"
+      "id": "M_tsn7g"
     },
     {
       "type": "module",
@@ -591,7 +591,7 @@
           }
         ]
       },
-      "id": "M_1s5z9"
+      "id": "M_1n30j"
     },
     {
       "type": "module",
@@ -652,7 +652,7 @@
           }
         ]
       },
-      "id": "M_cj060"
+      "id": "M_glvsq"
     },
     {
       "type": "module",
@@ -713,7 +713,7 @@
           }
         ]
       },
-      "id": "M_bg65k"
+      "id": "M_eol8s"
     },
     {
       "type": "module",
@@ -774,7 +774,7 @@
           }
         ]
       },
-      "id": "M_8apwn"
+      "id": "M_3s5p3"
     },
     {
       "type": "group",
@@ -846,7 +846,7 @@
               }
             ]
           },
-          "id": "M_kyrfm"
+          "id": "M_12e8f"
         },
         {
           "type": "module",
@@ -907,7 +907,7 @@
               }
             ]
           },
-          "id": "M_01s6s"
+          "id": "M_qyt2f"
         },
         {
           "type": "module",
@@ -968,7 +968,7 @@
               }
             ]
           },
-          "id": "M_u5no9"
+          "id": "M_wo9ut"
         },
         {
           "type": "module",
@@ -1029,7 +1029,7 @@
               }
             ]
           },
-          "id": "M_h6d09"
+          "id": "M_yvqxw"
         },
         {
           "type": "module",
@@ -1090,7 +1090,7 @@
               }
             ]
           },
-          "id": "M_54a1u"
+          "id": "M_pe7fw"
         },
         {
           "type": "module",
@@ -1151,10 +1151,10 @@
               }
             ]
           },
-          "id": "M_qbc3a"
+          "id": "M_3s2ba"
         }
       ],
-      "id": "M_982c5",
+      "id": "M_86zwo",
       "event_handlers": []
     },
     {
@@ -1216,18 +1216,18 @@
           }
         ]
       },
-      "id": "M_4gfe5"
+      "id": "M_chmbd"
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 1447,
-      "y": 1023,
+      "x": 1440,
+      "y": 981,
       "width": 161,
       "height": 22,
       "grid_position": "BotR",
-      "grid_percentage_x": 0.7734375,
-      "grid_percentage_y": 1.7444444444444445,
+      "grid_percentage_x": 0.7515625,
+      "grid_percentage_y": 1.511111111111111,
       "module": {
         "name": "Text",
         "options": [
@@ -1277,18 +1277,18 @@
           }
         ]
       },
-      "id": "M_cajte"
+      "id": "M_dydqf"
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 1634,
-      "y": 1003,
+      "x": 1627,
+      "y": 961,
       "width": 165,
       "height": 23,
       "grid_position": "BotR",
-      "grid_percentage_x": 1.3640625,
-      "grid_percentage_y": 1.636111111111111,
+      "grid_percentage_x": 1.3421875,
+      "grid_percentage_y": 1.4027777777777777,
       "module": {
         "name": "Text",
         "options": [
@@ -1338,18 +1338,18 @@
           }
         ]
       },
-      "id": "M_u9wad"
+      "id": "M_pus6r"
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 1632,
-      "y": 1049,
+      "x": 1625,
+      "y": 1007,
       "width": 225,
       "height": 23,
       "grid_position": "BotR",
-      "grid_percentage_x": 1.4515625,
-      "grid_percentage_y": 1.8916666666666666,
+      "grid_percentage_x": 1.4296875,
+      "grid_percentage_y": 1.6583333333333334,
       "module": {
         "name": "Text",
         "options": [
@@ -1399,18 +1399,18 @@
           }
         ]
       },
-      "id": "M_pwwoe"
+      "id": "M_6nwu8"
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 1446,
-      "y": 1001,
+      "x": 1439,
+      "y": 959,
       "width": 168,
       "height": 25,
       "grid_position": "BotR",
-      "grid_percentage_x": 0.78125,
-      "grid_percentage_y": 1.6305555555555555,
+      "grid_percentage_x": 0.759375,
+      "grid_percentage_y": 1.3972222222222221,
       "module": {
         "name": "Text",
         "options": [
@@ -1460,7 +1460,7 @@
           }
         ]
       },
-      "id": "M_wwumv"
+      "id": "M_2wrzj"
     },
     {
       "type": "module",
@@ -1521,7 +1521,7 @@
           }
         ]
       },
-      "id": "M_qm5e2"
+      "id": "M_xd05f"
     },
     {
       "type": "module",
@@ -1578,19 +1578,19 @@
           }
         ]
       },
-      "id": "M_wbfer",
+      "id": "M_y16l9",
       "event_handlers": []
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 1411,
-      "y": 1045,
+      "x": 1404,
+      "y": 1003,
       "width": 187,
       "height": 22,
       "grid_position": "BotR",
-      "grid_percentage_x": 0.7015625,
-      "grid_percentage_y": 1.8666666666666667,
+      "grid_percentage_x": 0.6796875,
+      "grid_percentage_y": 1.6333333333333333,
       "module": {
         "name": "Text",
         "options": [
@@ -1640,18 +1640,18 @@
           }
         ]
       },
-      "id": "M_i02hm"
+      "id": "M_vdpoh"
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 1633,
-      "y": 1025,
+      "x": 1626,
+      "y": 983,
       "width": 168,
       "height": 25,
       "grid_position": "BotR",
-      "grid_percentage_x": 1.365625,
-      "grid_percentage_y": 1.7638888888888888,
+      "grid_percentage_x": 1.34375,
+      "grid_percentage_y": 1.5305555555555554,
       "module": {
         "name": "Text",
         "options": [
@@ -1701,18 +1701,18 @@
           }
         ]
       },
-      "id": "M_m5hdc"
+      "id": "M_wrobw"
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 1815,
-      "y": 1025,
+      "x": 1808,
+      "y": 983,
       "width": 118,
       "height": 24,
       "grid_position": "BotR",
-      "grid_percentage_x": 1.85625,
-      "grid_percentage_y": 1.761111111111111,
+      "grid_percentage_x": 1.834375,
+      "grid_percentage_y": 1.5277777777777777,
       "module": {
         "name": "Text",
         "options": [
@@ -1762,18 +1762,18 @@
           }
         ]
       },
-      "id": "M_8r138"
+      "id": "M_w62eq"
     },
     {
       "type": "module",
       "title": "Gauge Bar",
-      "x": 402,
-      "y": 902,
+      "x": 331,
+      "y": 835,
       "width": 53,
       "height": 166,
       "grid_position": "BotL",
-      "grid_percentage_x": 1.3390625,
-      "grid_percentage_y": 1.4722222222222223,
+      "grid_percentage_x": 1.1171875,
+      "grid_percentage_y": 1.1,
       "module": {
         "name": "Gauge Bar",
         "options": [
@@ -1855,168 +1855,18 @@
           }
         ]
       },
-      "id": "M_9n8ws"
-    },
-    {
-      "type": "module",
-      "title": "Gauge Arc",
-      "x": 113,
-      "y": 825,
-      "width": 212,
-      "height": 248,
-      "grid_position": "BotL",
-      "grid_percentage_x": 0.684375,
-      "grid_percentage_y": 1.2722222222222221,
-      "module": {
-        "name": "Gauge Arc",
-        "options": [
-          {
-            "name": "data_field",
-            "value": "norm_wind_dir"
-          },
-          {
-            "name": "minValue",
-            "value": 0
-          },
-          {
-            "name": "maxValue",
-            "value": 362
-          },
-          {
-            "name": "step",
-            "value": 60
-          },
-          {
-            "name": "show_text",
-            "value": true
-          },
-          {
-            "name": "text_offset",
-            "value": 6
-          },
-          {
-            "name": "value_color",
-            "value": [
-              255,
-              255,
-              255
-            ]
-          },
-          {
-            "name": "font_name",
-            "value": "monospace"
-          },
-          {
-            "name": "font_size",
-            "value": 20
-          },
-          {
-            "name": "font_bold",
-            "value": false
-          },
-          {
-            "name": "text_color",
-            "value": [
-              200,
-              255,
-              255
-            ]
-          },
-          {
-            "name": "outline_color",
-            "value": [
-              255,
-              255,
-              255
-            ]
-          },
-          {
-            "name": "outline_weight",
-            "value": 0
-          },
-          {
-            "name": "pointer_distance",
-            "value": 15
-          },
-          {
-            "name": "smooth_factor",
-            "value": 0.15
-          }
-        ]
-      },
-      "id": "M_gs3ct"
-    },
-    {
-      "type": "module",
-      "title": "Text",
-      "x": 170,
-      "y": 1035,
-      "width": 106,
-      "height": 22,
-      "grid_position": "BotL",
-      "grid_percentage_x": 0.696875,
-      "grid_percentage_y": 1.8111111111111111,
-      "module": {
-        "name": "Text",
-        "options": [
-          {
-            "name": "template",
-            "value": "traffic.src_alt"
-          },
-          {
-            "name": "text",
-            "value": "Wind Dir"
-          },
-          {
-            "name": "font_name",
-            "value": "monospace"
-          },
-          {
-            "name": "font_size",
-            "value": 20
-          },
-          {
-            "name": "font_bold",
-            "value": false
-          },
-          {
-            "name": "text_color",
-            "value": [
-              200,
-              255,
-              255
-            ]
-          },
-          {
-            "name": "box_color",
-            "value": [
-              255,
-              255,
-              255
-            ]
-          },
-          {
-            "name": "box_weight",
-            "value": 0
-          },
-          {
-            "name": "box_radius",
-            "value": 0
-          }
-        ]
-      },
-      "id": "M_toe3q"
+      "id": "M_8acv9"
     },
     {
       "type": "module",
       "title": "Gauge Bar",
-      "x": 456,
-      "y": 950,
+      "x": 385,
+      "y": 883,
       "width": 117,
       "height": 117,
       "grid_position": "BotL",
-      "grid_percentage_x": 1.6078125,
-      "grid_percentage_y": 1.6027777777777779,
+      "grid_percentage_x": 1.3859375,
+      "grid_percentage_y": 1.2305555555555556,
       "module": {
         "name": "Gauge Bar",
         "options": [
@@ -2098,18 +1948,18 @@
           }
         ]
       },
-      "id": "M_6v2pk"
+      "id": "M_wqmau"
     },
     {
       "type": "module",
       "title": "Gauge Bar",
-      "x": 577,
-      "y": 962,
+      "x": 506,
+      "y": 895,
       "width": 131,
       "height": 104,
-      "grid_position": "BotM",
-      "grid_percentage_x": 0.0078125,
-      "grid_percentage_y": 1.6333333333333333,
+      "grid_position": "BotL",
+      "grid_percentage_x": 1.7859375,
+      "grid_percentage_y": 1.261111111111111,
       "module": {
         "name": "Gauge Bar",
         "options": [
@@ -2191,18 +2041,18 @@
           }
         ]
       },
-      "id": "M_8cnjt"
+      "id": "M_6mril"
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 589,
-      "y": 946,
+      "x": 518,
+      "y": 879,
       "width": 55,
       "height": 20,
       "grid_position": "BotL",
-      "grid_percentage_x": 1.9265625,
-      "grid_percentage_y": 1.3111111111111111,
+      "grid_percentage_x": 1.7046875,
+      "grid_percentage_y": 0.9388888888888889,
       "module": {
         "name": "Text",
         "options": [
@@ -2252,18 +2102,18 @@
           }
         ]
       },
-      "id": "M_nwxmp"
+      "id": "M_tsivb"
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 459,
-      "y": 932,
+      "x": 388,
+      "y": 865,
       "width": 123,
       "height": 21,
       "grid_position": "BotL",
-      "grid_percentage_x": 1.6265625,
-      "grid_percentage_y": 1.2361111111111112,
+      "grid_percentage_x": 1.4046875,
+      "grid_percentage_y": 0.8638888888888889,
       "module": {
         "name": "Text",
         "options": [
@@ -2313,18 +2163,18 @@
           }
         ]
       },
-      "id": "M_5smnv"
+      "id": "M_qghgg"
     },
     {
       "type": "module",
       "title": "Gauge Bar",
-      "x": 702,
-      "y": 962,
+      "x": 631,
+      "y": 895,
       "width": 132,
       "height": 104,
       "grid_position": "BotM",
-      "grid_percentage_x": 0.4,
-      "grid_percentage_y": 1.6333333333333333,
+      "grid_percentage_x": 0.178125,
+      "grid_percentage_y": 1.261111111111111,
       "module": {
         "name": "Gauge Bar",
         "options": [
@@ -2406,18 +2256,18 @@
           }
         ]
       },
-      "id": "M_evk8o"
+      "id": "M_8nevk"
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 713,
-      "y": 952,
+      "x": 642,
+      "y": 885,
       "width": 106,
       "height": 22,
       "grid_position": "BotM",
-      "grid_percentage_x": 0.39375,
-      "grid_percentage_y": 1.35,
+      "grid_percentage_x": 0.171875,
+      "grid_percentage_y": 0.9777777777777777,
       "module": {
         "name": "Text",
         "options": [
@@ -2467,18 +2317,18 @@
           }
         ]
       },
-      "id": "M_5i0o3"
+      "id": "M_1z22e"
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 409,
-      "y": 885,
+      "x": 338,
+      "y": 818,
       "width": 43,
       "height": 22,
       "grid_position": "BotL",
-      "grid_percentage_x": 1.3453125,
-      "grid_percentage_y": 0.9777777777777777,
+      "grid_percentage_x": 1.1234375,
+      "grid_percentage_y": 0.6055555555555555,
       "module": {
         "name": "Text",
         "options": [
@@ -2528,18 +2378,18 @@
           }
         ]
       },
-      "id": "M_eghhd"
+      "id": "M_pnzbq"
     },
     {
       "type": "module",
       "title": "Gauge Arc",
-      "x": 1192,
-      "y": 852,
+      "x": 1213,
+      "y": 813,
       "width": 258,
       "height": 235,
       "grid_position": "BotR",
-      "grid_percentage_x": 0.128125,
-      "grid_percentage_y": 1.386111111111111,
+      "grid_percentage_x": 0.19375,
+      "grid_percentage_y": 1.1694444444444445,
       "module": {
         "name": "Gauge Arc",
         "options": [
@@ -2618,18 +2468,18 @@
           }
         ]
       },
-      "id": "M_dru21"
+      "id": "M_ciyfh"
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 1335,
-      "y": 958,
+      "x": 1324,
+      "y": 922,
       "width": 106,
       "height": 22,
       "grid_position": "BotR",
-      "grid_percentage_x": 0.3375,
-      "grid_percentage_y": 1.3833333333333333,
+      "grid_percentage_x": 0.303125,
+      "grid_percentage_y": 1.1833333333333333,
       "module": {
         "name": "Text",
         "options": [
@@ -2679,7 +2529,7 @@
           }
         ]
       },
-      "id": "M_fmqtm"
+      "id": "M_oh2y8"
     },
     {
       "type": "module",
@@ -2772,7 +2622,7 @@
           }
         ]
       },
-      "id": "M_su8qj"
+      "id": "M_hbwcu"
     },
     {
       "type": "module",
@@ -2833,7 +2683,7 @@
           }
         ]
       },
-      "id": "M_6rx8n"
+      "id": "M_si85q"
     }
   ]
 }

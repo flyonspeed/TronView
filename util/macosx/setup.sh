@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# make sure they are on macos
+if [[ $(uname) != "Darwin" ]]; then
+    echo "This script is only supported on macOS."
+    exit 1
+fi
+
 echo "Setup mac osx for running software efis code"
 echo "-----------------------------------"
 

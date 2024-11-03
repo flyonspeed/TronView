@@ -69,6 +69,8 @@ class text(Module):
                 variable_name = word[1:-1]
                 if "%" in variable_name:
                     variable_name, format_specifier = variable_name.split("%")
+                elif ":" in variable_name:
+                    variable_name, format_specifier = variable_name.split(":")
                 else:
                     format_specifier = None
 

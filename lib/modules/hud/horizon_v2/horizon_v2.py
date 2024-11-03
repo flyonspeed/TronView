@@ -9,7 +9,7 @@ from lib.modules._module import Module
 from lib import hud_graphics
 from lib import hud_utils
 from lib import smartdisplay
-from lib import aircraft
+from lib.common.dataship import dataship
 import pygame
 import math
 
@@ -465,8 +465,8 @@ class horizon_v2(Module):
             return  # Target is outside the field of view, don't draw it
 
         # calculate position of this target above horizontal line using the following:
-        # shared.aircraft.pitch : my pitch above horizon
-        # shared.aircraft.roll : my roll around that axis.
+        # shared.Dataship.pitch : my pitch above horizon
+        # shared.Dataship.roll : my roll around that axis.
         # t.altDiff : height difference between us and the target.
         # t.brng : my heading to the target.
         # t.dist : distance to the target.

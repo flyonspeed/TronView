@@ -4,16 +4,16 @@ from enum import Enum
 import time
 from geographiclib.geodesic import Geodesic
 import math
-from . import hud_utils
+from ... import hud_utils
 import inspect
 from typing import List, Any
 
 #############################################
-## Class: Aircraft
+## Class: Dataship
 ## Store status and converted data from input modules into this class for use by screens.
 ## Data should be converted into a common format and store here.  Details for what is "standard" format is below.  If input data source is different then it should convert it before saving it here.
 ##
-class Aircraft(object):
+class Dataship(object):
     # measurment data formats (static vars)
     MPH = 0
     KNOTS = 1

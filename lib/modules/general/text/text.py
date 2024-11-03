@@ -10,7 +10,7 @@ from lib.modules._module import Module
 from lib import hud_graphics
 from lib import hud_utils
 from lib import smartdisplay
-from lib import aircraft
+from lib.common.dataship import dataship
 from lib.common import shared
 import pygame
 import math
@@ -40,7 +40,7 @@ class text(Module):
         Module.initMod(
             self, pygamescreen, width, height
         )  # call parent init screen.
-        if shared.aircraft.debug_mode > 0:
+        if shared.Dataship.debug_mode > 0:
             print(("Init Mod: %s %dx%d"%(self.name,self.width,self.height)))
         # does the self.font_name variable exist?
             
@@ -144,14 +144,14 @@ class text(Module):
     # return a dict of objects that are used to configure the module.
     def get_module_options(self):
 
-        aircraft_fields = shared.aircraft._get_all_fields()
-        #print(f"templates: {aircraft_fields}")
+        data_fields = shared.Dataship._get_all_fields()
+        #print(f"templates: {data_fields}")
 
         return {
             "template": {
                 "type": "dropdown",
                 "default": "template",
-                "options": aircraft_fields,
+                "options": data_fields,
                 "label": "Value",
                 "description": "Select a predefined value",
                 "post_change_function": "update_text"
@@ -221,29 +221,6 @@ class text(Module):
                 "description": "Radius of the box to use"
             }
         }
-
-    # def get_aircraft_fields(self,obj, prefix=''):
-    #     fields = []
-        
-    #     for name, value in inspect.getmembers(obj):
-    #         # Skip private and special methods
-    #         if name.startswith('__'):
-    #             continue
-            
-    #         full_name = f"{prefix}{name}" if prefix else name
-            
-    #         if isinstance(value, (str, int, float, list, tuple, dict)):
-    #             fields.append(full_name)
-    #         elif inspect.isfunction(value) or inspect.ismethod(value):
-    #             fields.append(f"{full_name}()")
-    #         elif inspect.isclass(value):
-    #             # Skip classes
-    #             continue
-    #         elif hasattr(value, '__dict__'):
-    #             # It's an object, recurse into it
-    #             fields.extend(self.get_aircraft_fields(value, f"{full_name}."))
-    
-    #     return fields
 
     def update_text(self):
         self.text = "{"+self.template+"}"

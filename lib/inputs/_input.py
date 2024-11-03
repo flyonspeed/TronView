@@ -213,7 +213,7 @@ class Input:
         if self.output_logFile == None:
             self.output_logFile,self.output_logFileName = Input.createLogFile(self,".dat",True)
             print("Creating log output: %s"%(self.output_logFileName))
-            shared.aircraft.inputs[self.inputNum].RecFile = self.output_logFile
+            shared.Dataship.inputs[self.inputNum].RecFile = self.output_logFile
         else:
             print("Already logging to: "+self.output_logFileName)
 
@@ -226,7 +226,7 @@ class Input:
         if self.output_logFile != None:
             Input.closeLogFile(self,self.output_logFile)
             self.output_logFile = None
-            shared.aircraft.inputs[self.inputNum].RecFile = None
+            shared.Dataship.inputs[self.inputNum].RecFile = None
             #if(rpi_hardware.is_raspberrypi()==True):
             #    if(rpi_hardware.is_server_available()==True):
             #        serverAvail = "FlyOnSpeed.org"

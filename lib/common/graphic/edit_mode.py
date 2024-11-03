@@ -80,12 +80,11 @@ def main_edit_loop():
     ############################################################################################
     ############################################################################################
     # Main edit draw loop
-    while not shared.aircraft.errorFoundNeedToExit and not exit_edit_mode:
-        clock.tick(maxframerate)
+    while not shared.Dataship.errorFoundNeedToExit and not exit_edit_mode:
         pygamescreen.fill((0, 0, 0)) # clear screen
         event_list = pygame.event.get() # get all events
         action_performed = False  # Flag to check if an action was performed
-        time_delta = clock.tick(maxframerate) / 1000.0
+        time_delta = clock.tick(maxframerate) / 1000.0 # get the time delta and limit the framerate.
 
         for event in event_list:
             pygame_gui_manager.process_events(event)
@@ -152,12 +151,12 @@ def main_edit_loop():
                         # do nothing
                         pass
                     elif event.key == pygame.K_q:
-                        shared.aircraft.errorFoundNeedToExit = True
+                        shared.Dataship.errorFoundNeedToExit = True
                     elif event.key == pygame.K_d:
-                        shared.aircraft.debug_mode += 1
-                        if shared.aircraft.debug_mode > 2:
-                            shared.aircraft.debug_mode = 0
-                        print("Debug mode: %d" % shared.aircraft.debug_mode)
+                        shared.Dataship.debug_mode += 1
+                        if shared.Dataship.debug_mode > 2:
+                            shared.Dataship.debug_mode = 0
+                        print("Debug mode: %d" % shared.Dataship.debug_mode)
                     elif event.key == pygame.K_ESCAPE:
                         # Unselect all selected objects
                         for sObject in shared.CurrentScreen.ScreenObjects:
@@ -207,7 +206,7 @@ def main_edit_loop():
 
                     # Exit Edit Mode
                     elif event.key == pygame.K_e:
-                        shared.aircraft.editMode = False  # exit edit mode
+                        shared.Dataship.editMode = False  # exit edit mode
                         exit_edit_mode = True
 
                     # UNGROUP
@@ -337,7 +336,7 @@ def main_edit_loop():
                     
                     # Toggle FPS display when 'F' is pressed
                     elif event.key == pygame.K_f:
-                        shared.aircraft.show_FPS = not shared.aircraft.show_FPS
+                        shared.Dataship.show_FPS = not shared.Dataship.show_FPS
 
                     # Toggle ruler when 'R' is pressed
                     elif event.key == pygame.K_r:
@@ -411,7 +410,7 @@ def main_edit_loop():
                         mx, my = event.pos
                     else:
                         mx, my = pygame.mouse.get_pos()
-                    if shared.aircraft.debug_mode > 0:
+                    if shared.Dataship.debug_mode > 0:
                         print("Click %d x %d" % (mx, my))
                     
                     # Check for GUI interactions first
@@ -499,7 +498,7 @@ def main_edit_loop():
                                     if sObject not in selected_screen_objects:
                                         selected_screen_objects.append(sObject)
                                         sObject.selected = True
-                                        if shared.aircraft.debug_mode > 0:
+                                        if shared.Dataship.debug_mode > 0:
                                             print("Selected module: %s (shift) current modules: %d" % (sObject.title, len(selected_screen_objects)))
                                     # update the mouse offset for all selected modules
                                     for sObject in selected_screen_objects:
@@ -508,7 +507,7 @@ def main_edit_loop():
                                         sObject.showOptions = False # hide the options bar when moving multiple objects
                                 else:
                                     if len(selected_screen_objects) > 1 and atLeastOneSelectedObjectIsClicked:
-                                        if shared.aircraft.debug_mode > 0:
+                                        if shared.Dataship.debug_mode > 0:
                                             print("Multiple modules selected, updating mouse offsets (moving objects)")
                                         for sObject in selected_screen_objects:
                                             sObject.mouse_offset_x = mx - sObject.x
@@ -520,7 +519,7 @@ def main_edit_loop():
 
                                         selected_screen_objects = [sObject]
                                         sObject.selected = True
-                                        if shared.aircraft.debug_mode > 0:
+                                        if shared.Dataship.debug_mode > 0:
                                             print("Selected module: %s" % sObject.title)
                                 #################
                                 # RESIZE MODULE
@@ -570,9 +569,9 @@ def main_edit_loop():
                             pass
                         else: # send the click event to the screen object. translate the mouse position to the screen object.
                             for sObject in selected_screen_objects:
-                                sObject.click(shared.aircraft, mx - sObject.x, my - sObject.y)
+                                sObject.click(shared.Dataship, mx - sObject.x, my - sObject.y)
                     elif resizing and selected_screen_object:
-                        if shared.aircraft.debug_mode > 0:
+                        if shared.Dataship.debug_mode > 0:
                             print("Resizing end")
                         handle_resize_end(selected_screen_object, resize_start_size)
                     dragging = False
@@ -623,7 +622,7 @@ def main_edit_loop():
             # if multiple objects are selected, don't show the toolbar or if shift is held (shift is for multiple selection)
             shift_held = pygame.key.get_mods() & pygame.KMOD_SHIFT
             shouldDrawToolbar = not len(selected_screen_objects) > 1 and not shift_held
-            sObject.draw(shared.aircraft, shared.smartdisplay, shouldDrawToolbar)
+            sObject.draw(shared.Dataship, shared.smartdisplay, shouldDrawToolbar)
 
             # draw Options Bar?
             if sObject.selected and sObject.showOptions:
@@ -656,7 +655,7 @@ def main_edit_loop():
         pygame_gui_manager.update(time_delta)
 
         # Draw FPS if enabled
-        if shared.aircraft.show_FPS:
+        if shared.Dataship.show_FPS:
             fps = clock.get_fps()
             fps_text = fps_font.render(f"FPS: {fps:.2f}", True, (255, 255, 255), (0, 0, 0, 0), pygame.SRCALPHA)
             fps_rect = fps_text.get_rect(topright=(shared.smartdisplay.x_end - 10, 10))
@@ -680,7 +679,6 @@ def main_edit_loop():
         pygame_gui_manager.draw_ui(pygamescreen)
         #now make pygame update display.
         pygame.display.update()
-        clock.tick(maxframerate)
 
 def handle_drag_end(selected_objects, start_positions):
     movesHappened = 0

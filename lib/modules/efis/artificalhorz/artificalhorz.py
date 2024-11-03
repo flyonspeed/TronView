@@ -31,7 +31,7 @@ class artificalhorz(Module):
         if height is not None:
             self.height = height
         Module.initMod(self, pygamescreen, self.width, self.height)
-        if shared.aircraft.debug_mode > 0:
+        if shared.Dataship.debug_mode > 0:
             print(f"Init Mod: {self.name} {self.width}x{self.height}")
 
         self.font = pygame.font.SysFont(None, self.font_size)

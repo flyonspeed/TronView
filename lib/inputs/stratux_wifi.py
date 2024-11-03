@@ -14,7 +14,7 @@ import socket
 import re
 import sys
 import traceback
-from lib.aircraft import Target
+from lib.common.dataship.dataship import Target
 import time
 import math
 from geographiclib.geodesic import Geodesic

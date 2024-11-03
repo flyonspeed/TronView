@@ -42,11 +42,11 @@
             "value": 22
           },
           {
-            "name": "draw_aircraft_icon",
+            "name": "draw_icon",
             "value": true
           },
           {
-            "name": "aircraft_icon_scale",
+            "name": "icon_scale",
             "value": 15
           }
         ]

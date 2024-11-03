@@ -18,7 +18,7 @@ import curses
 from lib import hud_graphics
 from lib import hud_utils
 from lib import hud_text
-from lib import aircraft
+from lib.common.dataship import dataship
 from lib import smartdisplay
 from lib.util.virtualKeyboard import VirtualKeyboard
 from lib.util import drawTimer
@@ -40,20 +40,20 @@ def main_graphical():
 
     ##########################################
     # Main graphics draw loop
-    while not shared.aircraft.errorFoundNeedToExit and not shared.aircraft.textMode and not exit_graphic_mode:
+    while not shared.Dataship.errorFoundNeedToExit and not shared.Dataship.textMode and not exit_graphic_mode:
         clock.tick(maxframerate)
         for event in pygame.event.get():  # check for event like keyboard input.
             if event.type == pygame.QUIT:
-                shared.aircraft.errorFoundNeedToExit = True
+                shared.Dataship.errorFoundNeedToExit = True
             # KEY MAPPINGS
             if event.type == pygame.KEYDOWN:
                 mods = pygame.key.get_mods()
                 if event.key == pygame.K_RIGHT and mods & pygame.KMOD_CTRL :
-                    shared.CurrentInput.fastForward(shared.aircraft,500)
-                    if(shared.CurrentInput2 != None): shared.CurrentInput2.fastForward(shared.aircraft,500)
+                    shared.CurrentInput.fastForward(shared.Dataship,500)
+                    if(shared.CurrentInput2 != None): shared.CurrentInput2.fastForward(shared.Dataship,500)
                 elif event.key == pygame.K_LEFT and mods & pygame.KMOD_CTRL :
-                    shared.CurrentInput.fastBackwards(shared.aircraft,500)
-                    if(shared.CurrentInput2 != None): shared.CurrentInput2.fastBackwards(shared.aircraft,500)
+                    shared.CurrentInput.fastBackwards(shared.Dataship,500)
+                    if(shared.CurrentInput2 != None): shared.CurrentInput2.fastBackwards(shared.Dataship,500)
                 elif event.key == pygame.K_p :
                     if(shared.CurrentInput.isPlaybackMode==True):
                         if(shared.CurrentInput.isPaused==False):
@@ -67,20 +67,20 @@ def main_graphical():
                 #### Press 1 - Start logging flight data
                 elif (event.key == pygame.K_w and mods & pygame.KMOD_CTRL) or event.key == pygame.K_1 or event.key == pygame.K_KP1 :
                     try:
-                        shared.CurrentInput.startLog(shared.aircraft)
+                        shared.CurrentInput.startLog(shared.Dataship)
                         drawTimer.addGrowlNotice("Log: %s"%(shared.CurrentInput.output_logFileName),3000,drawTimer.nerd_yellow,drawTimer.CENTER)
                         if(shared.CurrentInput2 != None): 
-                            shared.CurrentInput2.startLog(shared.aircraft)
+                            shared.CurrentInput2.startLog(shared.Dataship)
                             drawTimer.addGrowlNotice("Log2: %s"%(shared.CurrentInput2.output_logFileName),3000,drawTimer.nerd_yellow,drawTimer.BOTTOM_CENTER)
                     except :
                         drawTimer.addGrowlNotice("Unable to create log: "+shared.CurrentInput.name,3000,drawTimer.nerd_yellow,drawTimer.CENTER)
                 #### Press 2 - Stop log
                 elif (event.key == pygame.K_e and mods & pygame.KMOD_CTRL) or event.key == pygame.K_2 or event.key == pygame.K_KP2:
                     try:
-                        Saved,SendingTo = shared.CurrentInput.stopLog(shared.aircraft)
+                        Saved,SendingTo = shared.CurrentInput.stopLog(shared.Dataship)
                         drawTimer.addGrowlNotice("Log: %s"%(shared.CurrentInput.output_logFileName),3000,drawTimer.nerd_yellow,drawTimer.CENTER) 
                         if(shared.CurrentInput2 != None):
-                            Saved,SendingTo = shared.CurrentInput2.stopLog(shared.aircraft)
+                            Saved,SendingTo = shared.CurrentInput2.stopLog(shared.Dataship)
                             drawTimer.addGrowlNotice("Log2: %s"%(shared.CurrentInput2.output_logFileName),3000,drawTimer.nerd_yellow,drawTimer.BOTTOM_CENTER) 
                         if(SendingTo!=None):
                             drawTimer.addGrowlNotice("Uploading to %s"%(SendingTo),3000,drawTimer.nerd_yellow,drawTimer.TOP_LEFT) 
@@ -89,26 +89,26 @@ def main_graphical():
                 #### Press 3 - Cycle traffic modes.
                 elif event.key == pygame.K_3 or event.key == pygame.K_KP3:
                     obj = MyEvent("modechange","traffic",-1)
-                    shared.CurrentScreen.processEvent(obj,shared.aircraft,shared.smartdisplay)
+                    shared.CurrentScreen.processEvent(obj,shared.Dataship,shared.smartdisplay)
 
                 #### Press 4 - Drop target Buoy
                 elif event.key == pygame.K_4 or event.key == pygame.K_KP4:
-                    shared.aircraft.traffic.dropTargetBuoy(shared.aircraft,speed=-1)
+                    shared.Dataship.traffic.dropTargetBuoy(shared.Dataship,speed=-1)
 
                 #### Press 5 - Drop target Buoy ahead of us.
                 elif event.key == pygame.K_5 or event.key == pygame.K_KP5:
-                    shared.aircraft.traffic.dropTargetBuoy(shared.aircraft,speed=-1, direction="ahead")
+                    shared.Dataship.traffic.dropTargetBuoy(shared.Dataship,speed=-1, direction="ahead")
 
                 #### Press 6 - Clear all Buouy targets
                 elif event.key == pygame.K_6 or event.key == pygame.K_KP6 or (event.key == pygame.K_d and mods & pygame.KMOD_CTRL):
-                    shared.aircraft.traffic.clearBuoyTargets()
+                    shared.Dataship.traffic.clearBuoyTargets()
 
                 #### Enable debug graphics mode.
                 elif event.key == pygame.K_7 or event.key == pygame.K_KP7 or (event.key == pygame.K_d and mods & pygame.KMOD_CTRL):
                     debug_mode += 1
                     if(debug_mode>5): debug_mode = 0
                 elif event.key == pygame.K_q or event.key == pygame.K_ESCAPE:
-                    shared.aircraft.errorFoundNeedToExit = True
+                    shared.Dataship.errorFoundNeedToExit = True
                 elif event.key == pygame.K_PAGEUP:
                     loadScreen(hud_utils.findScreen("prev"))
                 elif event.key == pygame.K_PAGEDOWN:
@@ -116,17 +116,17 @@ def main_graphical():
                 elif event.key == pygame.K_HOME:
                     loadScreen(hud_utils.findScreen("current"))
                 elif event.key == pygame.K_t:
-                    shared.aircraft.textMode = True # switch to text mode?
+                    shared.Dataship.textMode = True # switch to text mode?
                 elif event.key == pygame.K_m:
                     pygame.mouse.set_visible(True)
                 elif event.key == pygame.K_e:
-                    shared.aircraft.editMode = True
+                    shared.Dataship.editMode = True
                     exit_graphic_mode = True
                 elif event.key == pygame.K_k:
                     vkey = VirtualKeyboard(pygamescreen) # create a virtual keyboard
                     #vkey.run("test")
                 else:
-                    shared.CurrentScreen.processEvent(event,shared.aircraft,shared.smartdisplay)  # send this key command to the hud screen object
+                    shared.CurrentScreen.processEvent(event,shared.Dataship,shared.smartdisplay)  # send this key command to the hud screen object
             # Mouse Mappings (not droppings)
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mx, my = pygame.mouse.get_pos()
@@ -138,26 +138,26 @@ def main_graphical():
                     #print("Touch %d x %d"%(mx,my))
                     drawTimer.addGrowlNotice("%dx%d"%(mx,my),3000,drawTimer.blue,drawTimer.BOTTOM_LEFT)
                     drawTimer.addCustomDraw(drawMouseBox,1000)
-                    shared.CurrentScreen.processEvent(event,shared.aircraft,shared.smartdisplay)
+                    shared.CurrentScreen.processEvent(event,shared.Dataship,shared.smartdisplay)
             # User event
             #if event.type == pygame.USEREVENT:
                 #print("user event")
                 
 
         # main draw loop.. clear screen then draw frame from current screen object.
-        shared.aircraft.fps = clock.get_fps();
+        shared.Dataship.fps = clock.get_fps();
         shared.CurrentScreen.clearScreen()
         shared.smartdisplay.draw_loop_start()
-        shared.CurrentScreen.draw(shared.aircraft,shared.smartdisplay)  # draw method for current screen object
+        shared.CurrentScreen.draw(shared.Dataship,shared.smartdisplay)  # draw method for current screen object
         drawTimer.processAllDrawTimers(pygamescreen) # process / remove / draw any active drawTimers...
-        if(shared.aircraft.inputs[1].PlayFile!=None):
-            shared.smartdisplay.draw_text(shared.smartdisplay.LEFT_MID_UP, None, "PLAYBACK log2: %s" % (shared.aircraft.inputs[1].PlayFile), (255, 255, 0))
-        if(shared.aircraft.inputs[0].PlayFile!=None):
-            shared.smartdisplay.draw_text(shared.smartdisplay.LEFT_MID_UP, None, "PLAYBACK log1: %s" % (shared.aircraft.inputs[0].PlayFile), (255, 255, 0))
+        if(shared.Dataship.inputs[1].PlayFile!=None):
+            shared.smartdisplay.draw_text(shared.smartdisplay.LEFT_MID_UP, None, "PLAYBACK log2: %s" % (shared.Dataship.inputs[1].PlayFile), (255, 255, 0))
+        if(shared.Dataship.inputs[0].PlayFile!=None):
+            shared.smartdisplay.draw_text(shared.smartdisplay.LEFT_MID_UP, None, "PLAYBACK log1: %s" % (shared.Dataship.inputs[0].PlayFile), (255, 255, 0))
         shared.smartdisplay.draw_loop_done()
 
         if(debug_mode>0):
-            draw_debug(debug_mode,shared.aircraft,shared.smartdisplay)
+            draw_debug(debug_mode,shared.Dataship,shared.smartdisplay)
 
         #now make pygame update display.
         pygame.display.update()

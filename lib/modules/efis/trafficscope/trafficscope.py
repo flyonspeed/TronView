@@ -9,7 +9,7 @@ from lib.modules._module import Module
 from lib import hud_graphics
 from lib import hud_utils
 from lib import smartdisplay
-from lib import aircraft
+from lib.common.dataship import dataship
 import pygame
 import math
 import time
@@ -27,8 +27,8 @@ class trafficscope(Module):
         self.scope_scale = 0
         self.scope_scale_miles = 10
         self.target_show_lat_lon = hud_utils.readConfigBool("TrafficScope", "target_show_lat_lon", False)
-        self.draw_aircraft_icon = hud_utils.readConfigBool("TrafficScope", "draw_aircraft_icon", True)
-        self.aircraft_icon_scale = hud_utils.readConfigInt("TrafficScope", "aircraft_icon_scale", 10)
+        self.draw_icon = hud_utils.readConfigBool("TrafficScope", "draw_icon", True)
+        self.icon_scale = hud_utils.readConfigInt("TrafficScope", "icon_scale", 10)
         self.details_offset = hud_utils.readConfigInt("TrafficScope", "details_offset", 5)
 
         self.targetDetails = {} # keep track of details about each target. like the x,y position on the screen. and if they are selected.
@@ -42,7 +42,7 @@ class trafficscope(Module):
         Module.initMod(
             self, pygamescreen, width, height
         )  # call parent init screen.
-        if shared.aircraft.debug_mode > 0:
+        if shared.Dataship.debug_mode > 0:
             print(("Init Mod: %s %dx%d"%(self.name,self.width,self.height)))
 
         self.xCenter = self.width/2
@@ -129,23 +129,23 @@ class trafficscope(Module):
         self.surface2.blit(self.surfaceBase, (0, 0))
 
         # Get aircraft heading or ground track
-        aircraft_heading = aircraft.mag_head if aircraft.mag_head is not None else aircraft.gps.GndTrack
+        target_heading = aircraft.mag_head if aircraft.mag_head is not None else aircraft.gps.GndTrack
 
         def draw_target(t):
             if t.dist is None or t.dist >= 100 or t.brng is None:
                 return
 
-            brngToUse = (t.brng - aircraft_heading) % 360
+            brngToUse = (t.brng - target_heading) % 360
             radianAngle = math.radians(brngToUse - 90)
             d = t.dist * self.scope_scale
             xx = self.xCenter + (d * math.cos(radianAngle)) # translate to screen coordinates.
             yy = self.yCenter + (d * math.sin(radianAngle)) # translate to screen coordinates.
 
             # Draw the target
-            if self.draw_aircraft_icon:
-                direction_of_aircraft = ((t.track or brngToUse) - aircraft_heading) % 360
-                t.targetDirection = math.radians(direction_of_aircraft - 90)
-                self.drawAircraftIcon(self.surface2, t, xx, yy, self.aircraft_icon_scale)
+            if self.draw_icon:
+                direction_target_facing = ((t.track or brngToUse) - target_heading) % 360
+                t.targetDirection = math.radians(direction_target_facing - 90)
+                self.drawAircraftIcon(self.surface2, t, xx, yy, self.icon_scale)
             else:
                 hud_graphics.hud_draw_circle(self.surface2, (0, 255, 129), (xx, yy), 4, 0)
 
@@ -160,12 +160,12 @@ class trafficscope(Module):
                 label_rect = pygame.Rect(0, 0, 0, 0)
 
             if self.show_details:
-                self.draw_target_details(t, xx, yy, x_text, y_text, label_rect, aircraft_heading, aircraft)
+                self.draw_target_details(t, xx, yy, x_text, y_text, label_rect, target_heading, aircraft)
 
             # store the x,y position of the target in the local targetDetails dictionary.
             if t.callsign not in self.targetDetails:
                 self.targetDetails[t.callsign] = {"x": xx, "y": yy, "selected": False}
-                if shared.aircraft.debug_mode > 0:
+                if shared.Dataship.debug_mode > 0:
                     print("Added target to targetDetails: %s" % t.callsign, "x: %d, y: %d" % (xx, yy))
             else: # else just update the x,y position.
                 self.targetDetails[t.callsign]["x"] = xx
@@ -176,9 +176,9 @@ class trafficscope(Module):
 
         self.pygamescreen.blit(self.surface2, pos)
 
-    def draw_target_details(self, t, xx, yy, x_text, y_text, label_rect, aircraft_heading, aircraft):
+    def draw_target_details(self, t, xx, yy, x_text, y_text, label_rect, target_heading, aircraft):
         if t.speed is not None and t.speed > -1 and t.track is not None:
-            t.targetBrngToUse = (t.track - aircraft_heading) % 360
+            t.targetBrngToUse = (t.track - target_heading) % 360
             radianTargetTrack = math.radians(t.targetBrngToUse - 90)
             d = min(t.speed / 3, 60)
             
@@ -211,8 +211,8 @@ class trafficscope(Module):
                 next_text_y_offset = labelUpdate.get_rect().height
 
             # # calculate position of this target above horizontal line using the following:
-            # # shared.aircraft.pitch : my pitch above horizon
-            # # shared.aircraft.roll : my roll around that axis.
+            # # shared.Dataship.pitch : my pitch above horizon
+            # # shared.Dataship.roll : my roll around that axis.
             # # t.altDiff : height difference between us and the target.
             # # t.brng : my heading to the target.
             # # t.dist : distance to the target.
@@ -265,7 +265,7 @@ class trafficscope(Module):
     # draw aircraft icon based on the type of aircraft
     def drawAircraftIcon(self, surface, target, xx, yy, scale):
 
-        direction_of_aircraft = target.targetDirection
+        direction_target_facing = target.targetDirection
         # types of aircraft
         # 0 = unkown
         # 1 = Light (ICAO) < 15 500 lbs
@@ -280,23 +280,23 @@ class trafficscope(Module):
         # 12 = ultra light
         # 14 = drone Unmanned aerial vehicle
         # 15 = space craft and aliens!
-        nose = (xx + scale * math.cos(direction_of_aircraft), 
-            yy + scale * math.sin(direction_of_aircraft))
-        tail = (xx - scale * math.cos(direction_of_aircraft), 
-                yy - scale * math.sin(direction_of_aircraft))
+        nose = (xx + scale * math.cos(direction_target_facing), 
+            yy + scale * math.sin(direction_target_facing))
+        tail = (xx - scale * math.cos(direction_target_facing), 
+                yy - scale * math.sin(direction_target_facing))
                 
         # if type is 0 through 5 then draw a simple aircraft icon
         if(target.type >= 0 and target.type <= 5):
             # Calculate points for the target aircraft outline
 
-            wing_left = (xx + scale * 0.7 * math.cos(direction_of_aircraft + math.pi/2), 
-                            yy + scale * 0.7 * math.sin(direction_of_aircraft + math.pi/2))
-            wing_right = (xx + scale * 0.7 * math.cos(direction_of_aircraft - math.pi/2), 
-                            yy + scale * 0.7 * math.sin(direction_of_aircraft - math.pi/2))
-            elevator_left = (tail[0] + scale * 0.3 * math.cos(direction_of_aircraft + math.pi/2), 
-                                tail[1] + scale * 0.3 * math.sin(direction_of_aircraft + math.pi/2))
-            elevator_right = (tail[0] + scale * 0.3 * math.cos(direction_of_aircraft - math.pi/2), 
-                                tail[1] + scale * 0.3 * math.sin(direction_of_aircraft - math.pi/2))
+            wing_left = (xx + scale * 0.7 * math.cos(direction_target_facing + math.pi/2), 
+                            yy + scale * 0.7 * math.sin(direction_target_facing + math.pi/2))
+            wing_right = (xx + scale * 0.7 * math.cos(direction_target_facing - math.pi/2), 
+                            yy + scale * 0.7 * math.sin(direction_target_facing - math.pi/2))
+            elevator_left = (tail[0] + scale * 0.3 * math.cos(direction_target_facing + math.pi/2), 
+                                tail[1] + scale * 0.3 * math.sin(direction_target_facing + math.pi/2))
+            elevator_right = (tail[0] + scale * 0.3 * math.cos(direction_target_facing - math.pi/2), 
+                                tail[1] + scale * 0.3 * math.sin(direction_target_facing - math.pi/2))
 
             # Draw the aircraft outline
             pygame.draw.line(surface, (0, 255, 129), nose, tail, 1)
@@ -339,7 +339,7 @@ class trafficscope(Module):
         # draw a circle around the target. if it is selected. check if the callsign is in the targetDetails dictionary. 
         # is self.targetDetails[t.callsign]["selected"] even exist?
         if target.callsign in self.targetDetails and self.targetDetails[target.callsign]["selected"]:
-            pygame.draw.circle(self.surface2, (120,255,120), (xx, yy), self.aircraft_icon_scale + 2, 2)
+            pygame.draw.circle(self.surface2, (120,255,120), (xx, yy), self.icon_scale + 2, 2)
 
 
 
@@ -389,13 +389,13 @@ class trafficscope(Module):
                 "description": "Set the scale of the scope in miles.",
                 "post_change_function": "setScaleInMiles"
             },
-            "draw_aircraft_icon": {
+            "draw_icon": {
                 "type": "bool",
                 "default": True,
-                "label": "Draw Aircraft Icon",
-                "description": "Draw a simple aircraft outline instead of a dot for targets."
+                "label": "Draw Target Icon",
+                "description": "Draw a symbol for targets."
             },
-            "aircraft_icon_scale": {
+            "icon_scale": {
                 "type": "int",
                 "default": 10,
                 "min": 10,
@@ -416,18 +416,18 @@ class trafficscope(Module):
         # # translate mx,my to same coordinate system as self.targetDetails.  which is based of the center of the surface is 0,0.
         # mx = mx - self.xCenter
         # my = my - self.yCenter
-        # if shared.aircraft.debug_mode > 0:
+        # if shared.Dataship.debug_mode > 0:
         #     print("mx: %d, my: %d" % (mx, my))
 
         # check if they clicked near the x,y postion of a target.
         for target in self.targetDetails:
             # translate target x,y to screen coordinates.
-            #if shared.aircraft.debug_mode > 0:
+            #if shared.Dataship.debug_mode > 0:
                 #print("target: %s, x: %d, y: %d" % (target, self.targetDetails[target]["x"], self.targetDetails[target]["y"]))
-            if mx >= self.targetDetails[target]["x"] - self.aircraft_icon_scale and mx <= self.targetDetails[target]["x"] + self.aircraft_icon_scale and my >= self.targetDetails[target]["y"] - self.aircraft_icon_scale and my <= self.targetDetails[target]["y"] + self.aircraft_icon_scale:
+            if mx >= self.targetDetails[target]["x"] - self.icon_scale and mx <= self.targetDetails[target]["x"] + self.icon_scale and my >= self.targetDetails[target]["y"] - self.icon_scale and my <= self.targetDetails[target]["y"] + self.icon_scale:
                 self.targetDetails[target]["selected"] = True
                 aircraft.traffic.selected_target = target # save the callsign of selected target in aircraft.traffic.selected_target
-                if shared.aircraft.debug_mode > 0:
+                if shared.Dataship.debug_mode > 0:
                     print("selected target: %s" % target)
                 break
 

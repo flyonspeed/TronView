@@ -15,7 +15,7 @@ from lib.modules._module import Module
 from lib import hud_graphics
 from lib import hud_utils
 from lib import smartdisplay
-from lib import aircraft
+from lib.common.dataship import dataship
 from lib.common import shared
 import pygame
 import math
@@ -264,14 +264,14 @@ class gauge_arc(Module):
     # return a dict of objects that are used to configure the module.
     def get_module_options(self):
 
-        aircraft_fields = shared.aircraft._get_all_fields()
-        #print(f"templates: {aircraft_fields}")
+        data_fields = shared.Dataship._get_all_fields()
+        #print(f"templates: {data_fields}")
 
         return {
             "data_field": {
                 "type": "dropdown",
                 "default": self.data_field,
-                "options": aircraft_fields,
+                "options": data_fields,
                 "label": "Data Field",
                 "description": "Select a data field to display",
             },

@@ -10,7 +10,7 @@ from lib.modules._module import Module
 from lib import hud_graphics
 from lib import hud_utils
 from lib import smartdisplay
-from lib import aircraft
+from lib.common.dataship import dataship
 import pygame
 import math
 import numpy as np
@@ -24,12 +24,12 @@ class aoa(Module):
         
      # called every redraw to adjust G3x AOA display using OnSpeed Profile
      # must adjust this array as needed for each Aircraft & AOA device
-    def adjust_aoa(self, aircraft_aoa):
+    def adjust_aoa(self, aoa_value):
         input_values = np.array([0, 50, 55, 60, 68, 79, 90, 99])
         output_values = np.array([0, 25, 39, 50, 59, 75, 85, 99])
          
     # Interpolate to find the output value for the given input
-        adjusted_value = np.interp(aircraft_aoa, input_values, output_values)
+        adjusted_value = np.interp(aoa_value, input_values, output_values)
         return adjusted_value
 
     # called once for setup

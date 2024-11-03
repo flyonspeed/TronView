@@ -9,7 +9,7 @@ from lib.modules._module import Module
 from lib import hud_graphics
 from lib import hud_utils
 from lib import smartdisplay
-from lib import aircraft
+from lib.common.dataship import dataship
 import pygame
 import math
 from lib.common import shared
@@ -35,7 +35,7 @@ class hsi(Module):
         Module.initMod(
             self, pygamescreen, width, height
         )  # call parent init screen.
-        if shared.aircraft.debug_mode > 0:
+        if shared.Dataship.debug_mode > 0:
             print(("Init Mod: %s %dx%d"%(self.name,self.width,self.height)))
 
         self.myfont1 = pygame.font.SysFont("arial", 30, bold=False)  # hsi font

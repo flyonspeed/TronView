@@ -8,7 +8,7 @@ from lib.modules._module import Module
 from lib import hud_graphics
 from lib import hud_utils
 from lib import smartdisplay
-from lib import aircraft
+from lib.common.dataship import dataship
 import pygame
 import math
 from lib.common import shared
@@ -37,7 +37,7 @@ class heading(Module):
         Module.initMod(
             self, pygamescreen, width, height
         )  # call parent init screen.
-        if shared.aircraft.debug_mode > 0:  # only print if debug mode is on.
+        if shared.Dataship.debug_mode > 0:  # only print if debug mode is on.
             print(("Init Mod: %s %dx%d"%(self.name,self.width,self.height)))
 
 

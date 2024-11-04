@@ -22,6 +22,9 @@ echo "5:  MGL - Gyro Test"
 echo "6:  Dynon D100"
 echo "7:  Dynon Skyview"
 echo "8:  Stratux 5 Demo - Shows traffic targets only, No AHRS data"
+echo "9:  MGL & Stratux RV6 Chase 1"
+echo "10: MGL & Stratux RV6 Chase 2"
+echo "11: MGL & Stratux RV6 Chase 3"
 echo "20: live i2c bno085 IMU data (linux/raspberry pi only)"
 echo "21: live i2c bno055 IMU data (linux/raspberry pi only)"
 read -p "Enter your choice: " choice
@@ -56,6 +59,18 @@ fi
 
 if [ $choice -eq 8 ]; then
     $RUN_PREFIX python3 main.py -i stratux_wifi -c stratux_5.dat -s F18_HUD
+fi
+
+if [ $choice -eq 9 ]; then
+    $RUN_PREFIX python3 main.py -i serial_mgl --playfile1 mgl_chase_rv6_1.dat --in2 stratux_wifi --playfile2 stratux_chase_rv6_1.dat -s F18_HUD
+fi
+
+if [ $choice -eq 10 ]; then
+    $RUN_PREFIX python3 main.py -i serial_mgl --playfile1 mgl_chase_rv6_2.dat --in2 stratux_wifi --playfile2 stratux_chase_rv6_2.dat -s F18_HUD
+fi
+
+if [ $choice -eq 11 ]; then
+    $RUN_PREFIX python3 main.py -i serial_mgl --playfile1 mgl_chase_rv6_3.dat --in2 stratux_wifi --playfile2 stratux_chase_rv6_3.dat -s F18_HUD
 fi
 
 if [ $choice -eq 20 ]; then

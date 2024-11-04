@@ -3,29 +3,19 @@
 #######################################################################################################################################
 #######################################################################################################################################
 # main.py
-#
-# Read multiple formats of EFIS data, Engine Data, Flight data, or play back existing flight data 
-# Display data on screen or HUD.
-# All data is feed in and formated to a common data format (into aircraft object).  Then screens read data from aircarft object to display.
+# 
+# TronView main entry point.
+# Configures and starts the main loop.
+# Starts the input thread.
+# Check which mode to run in (text, graphic, or edit)
 #
 # 1/23/2019 Refactor to make pretty.
-# 10/22/2021 Name Change.   
+# 10/22/2021 Name Change.
+# 11/04/2024 Update for pygame-ce 2.5.1. (new editor mode)
 #
 
-import math, os, sys, random
-import argparse, pygame
-import time
-import threading, getopt
-import configparser
-import importlib
-import curses
-import inspect
-from lib import hud_graphics
+import os, sys, time, threading, argparse, pygame, importlib
 from lib import hud_utils
-from lib import hud_text
-from lib.common.dataship import dataship
-from lib import smartdisplay
-from lib.util.virtualKeyboard import VirtualKeyboard
 from lib.util import drawTimer
 from lib.util import rpi_hardware
 from lib.util import mac_hardware

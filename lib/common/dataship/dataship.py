@@ -469,6 +469,10 @@ class TrafficData(object):
     def addTarget(self, target, aircraft):
         target.time = int(time.time()) # always update the time when this target was added/updated..
 
+        # check if the target.callsign is set.. if not then set it to the address.
+        if target.callsign == None or target.callsign == "":
+            target.callsign = str(target.address)
+
         # if dist&brng was not calculated... check distance and brng to target. if we know our location..
         # use geographiclib to solve this.
         # https://geographiclib.sourceforge.io/1.46/python/code.html#geographiclib.geodesic.Geodesic.Direct

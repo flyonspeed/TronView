@@ -37,7 +37,7 @@ echo "Install Python libraries requied by TronView?  (y or n)"
 read -p " " yn;
 case $yn in
 	[Yy]* )echo "Installing python libs"
-		python3 -m pip install -r /utils/macosx/requirements.txt
+		python3 -m pip install -r utils/macosx/requirements.txt
 		;;
 	[Nn]* )echo "..."; 
 esac

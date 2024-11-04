@@ -1,7 +1,6 @@
 MacTmp        == 0.0.9
 geographiclib == 2.0.0
 numpy         == 2.1.1
-pygame        == 2.6.0
 pygame-ce     == 2.5.1
-pygame_gui    == 0.6.9
+pygame_gui    == 0.6.10
 serial        == 0.0.97

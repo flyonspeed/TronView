@@ -73,6 +73,9 @@ class text(Module):
                 sub_vars = obj.__dict__
                 final_value = ""
                 for sub_var in sub_vars:
+                    # check if it starts with _ then skip it.
+                    if sub_var.startswith('_'):
+                        continue
                     final_value += f"{sub_var}: {sub_vars[sub_var]}\n"
                 obj = final_value
             return obj

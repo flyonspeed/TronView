@@ -149,6 +149,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.t:
+        print("Text mode")
         shared.Dataship.textMode = True
     if args.e:
         shared.Dataship.inputs[0].PlayFile = True
@@ -247,13 +248,13 @@ if __name__ == "__main__":
     thread1.start()
 
     # testing.. start in edit mode.
-    shared.Dataship.editMode = True
-    shared.Dataship.textMode = False
-    # check if /data/screens/screen.json exists.. if so load edit_save_load.load_screen_from_json()
-    if os.path.exists("data/screens/screen.json"):
-        edit_save_load.load_screen_from_json("screen.json")
-    else:
-        edit_save_load.load_screen_from_json("default.json",from_templates=True)
+    if shared.Dataship.textMode == False:
+        shared.Dataship.editMode = True
+        # check if /data/screens/screen.json exists.. if so load edit_save_load.load_screen_from_json()
+        if os.path.exists("data/screens/screen.json"):
+            edit_save_load.load_screen_from_json("screen.json")
+        else:
+            edit_save_load.load_screen_from_json("default.json",from_templates=True)
 
     # start main loop.
     while not shared.Dataship.errorFoundNeedToExit:

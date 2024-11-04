@@ -25,6 +25,8 @@ class hsi(Module):
         self.x_offset = 0
         self.label_positions = {}
         self.old_hsi_hdg = None
+        self.current_heading = None  # Initialize as None for first update
+        self.smoothing_factor = 0.15  # Default smoothing (0 = no smoothing, 1 = no movement)
 
     # called once for setup
     def initMod(self, pygamescreen, width=None, height=None):
@@ -42,12 +44,14 @@ class hsi(Module):
         self.MainColor = (0, 255, 0)  # main color 
 
     # setup must have default values for all parameters
-    def setup(self, hsi_size = -1 , gnd_trk_tick_size = -1, rose_color = (70,130,40), label_color = (255, 255, 0)):
+    def setup(self, hsi_size = -1 , gnd_trk_tick_size = -1, rose_color = (70,130,40), label_color = (255, 255, 0), smoothing_factor = 0.15):
         #print("HSI setup() %d %d %s %s" % (hsi_size, gnd_trk_tick_size, rose_color, label_color))
         if(hsi_size == -1):
             hsi_size = self.width
         if(gnd_trk_tick_size == -1):
             gnd_trk_tick_size = self.width / 10
+
+        self.smoothing_factor = max(0.0, min(1.0, smoothing_factor))  # Clamp between 0 and 1
 
         # HSI Setup
         self.hsi_size = hsi_size
@@ -262,9 +266,16 @@ class hsi(Module):
                                 int(points[2][0]), int(points[2][1]),
                                 self.label_color)
 
+    def smooth_value(self, current, target, smoothing):
+        if current is None:
+            return target
+        # Calculate the shortest angular distance
+        diff = ((target - current + 180) % 360) - 180
+        # Apply smoothing
+        return current + diff * smoothing
+
     # called every redraw for the mod
     def draw(self, aircraft, smartdisplay, pos=(None, None)):
-
         x_pos = smartdisplay.x_center
         y_pos = smartdisplay.y_center
         if pos[0] is not None:
@@ -272,24 +283,32 @@ class hsi(Module):
         if pos[1] is not None:
             y_pos = pos[1] + self.height / 2
 
-        hsi_hdg = aircraft.mag_head
+        target_heading = aircraft.mag_head
+        
+        # Initialize current_heading if None
+        if self.current_heading is None:
+            self.current_heading = target_heading
+
+        # Smooth the heading transition
+        self.current_heading = self.smooth_value(
+            self.current_heading, 
+            target_heading, 
+            self.smoothing_factor
+        )
+
         gnd_trk = aircraft.gndtrack
         turn_rate = aircraft.turn_rate
 
-        #hsi_hdg = (hsi_hdg + 90) % 360
-        #print("hsi_hdg %d" % hsi_hdg)
-        #gnd_trk = self.roint(hsi_hdg - gnd_trk - 90) % 360 #
-
-        # Draw Compass Rose Tick Marks
-        tick_rotated = pygame.transform.rotate(self.rose, hsi_hdg)
+        # Draw Compass Rose Tick Marks using smoothed heading
+        tick_rotated = pygame.transform.rotate(self.rose, self.current_heading)
         tick_rect = tick_rotated.get_rect()
         self.pygamescreen.blit(
             tick_rotated,
             (x_pos - tick_rect.center[0], y_pos - tick_rect.center[1]),
         )
 
-        # Draw Labels
-        self.labeler(hsi_hdg)
+        # Draw Labels using smoothed heading
+        self.labeler(self.current_heading)
         label_rect = self.labels.get_rect()
         self.pygamescreen.blit(
             self.labels,
@@ -297,27 +316,25 @@ class hsi(Module):
         )
 
         # Draw Heading Indicator Triangle (stationary)
-        self.pygamescreen.blit(self.heading_indicator, (x_pos - self.hsi_size / 2, y_pos+ 40  - self.hsi_size / 2))
+        self.pygamescreen.blit(self.heading_indicator, 
+                             (x_pos - self.hsi_size / 2, y_pos + 40 - self.hsi_size / 2))
 
-        # draw ground track label at top of screen
+        # Draw ground track and heading labels using target values
         gnd_trk_label = self.myfont1.render(f"trk:{gnd_trk:03d}", False, self.label_color)
+        hdg_label = self.myfont1.render(f"hdg:{target_heading:03.0f}", False, self.label_color)
+        
         self.pygamescreen.blit(
             gnd_trk_label,
             (x_pos - label_rect.center[0], y_pos - label_rect.center[1]),
         )
-
-        # draw heading label at bottom of screen
-        hdg_label = self.myfont1.render(f"hdg:{hsi_hdg:03.0f}", False, self.label_color)
         self.pygamescreen.blit(
             hdg_label,
-            (x_pos + self.width / 2 - (label_rect.center[0] / 2), y_pos - label_rect.center[1]),
+            (x_pos + self.width / 2 - (label_rect.center[0] / 2), 
+             y_pos - label_rect.center[1]),
         )
 
-        # Draw Ticks
-        #self.gnd_trk_tick(smartdisplay,gnd_trk)
-
         # Draw Turn Rate
-        self.turn_rate_disp(smartdisplay,turn_rate, pos)
+        self.turn_rate_disp(smartdisplay, turn_rate, pos)
 
 
     # called before screen draw.  To clear the screen to your favorite color.
@@ -338,6 +355,14 @@ class hsi(Module):
                 "max": 300,
                 "label": "HSI Size",
                 "description": "Size of the HSI.",
+            },
+            "smoothing_factor": {
+                "type": "float",
+                "default": 0.15,
+                "min": 0.0,
+                "max": 0.95,
+                "label": "Smoothing Factor",
+                "description": "Heading rotation smoothing (0=none, 0.95=max)",
             }
         }
 

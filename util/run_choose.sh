@@ -27,7 +27,19 @@ echo "10: MGL & Stratux RV6 Chase 2"
 echo "11: MGL & Stratux RV6 Chase 3"
 echo "20: live i2c bno085 IMU data (linux/raspberry pi only)"
 echo "21: live i2c bno055 IMU data (linux/raspberry pi only)"
+echo "Type 't' after number to run in text mode. Example: 3t"
 read -p "Enter your choice: " choice
+
+ADD_ARGS=""
+
+# check if the user typed 't' after the number
+if [[ $choice == *t ]]; then
+    choice=${choice%t}
+    ADD_ARGS="-t"
+else
+    # default to showing HUD
+    ADD_ARGS="-s F18_HUD"
+fi
 
 # if not a number, exit
 if ! [[ $choice =~ ^[0-9]+$ ]]; then
@@ -36,54 +48,55 @@ if ! [[ $choice =~ ^[0-9]+$ ]]; then
     choice=0
 fi
 
+
 if [ $choice -eq 1 ]; then
-    $RUN_PREFIX python3 main.py -i serial_g3x -s F18_HUD -e
+    $RUN_PREFIX python3 main.py -i serial_g3x -e $ADD_ARGS
 fi
 
 if [ $choice -eq 2 ]; then
-    $RUN_PREFIX python3 main.py -i serial_g3x -c g3x_aoa_10_99.dat -s F18_HUD
+    $RUN_PREFIX python3 main.py -i serial_g3x -c g3x_aoa_10_99.dat $ADD_ARGS
 fi
 
 if [ $choice -eq 3 ]; then
-    $RUN_PREFIX python3 main.py -i serial_mgl --playfile1 mgl_8.dat --in2 stratux_wifi --playfile2 stratux_8.dat -s F18_HUD
+    $RUN_PREFIX python3 main.py -i serial_mgl --playfile1 mgl_8.dat --in2 stratux_wifi --playfile2 stratux_8.dat $ADD_ARGS
 fi
 
 if [ $choice -eq 4 ]; then
-    $RUN_PREFIX python3 main.py -i serial_mgl -c MGL_G430_Data_3Feb19_v7_Horz_Vert_Nedl_come_to_center.bin -s F18_HUD
+    $RUN_PREFIX python3 main.py -i serial_mgl -c MGL_G430_Data_3Feb19_v7_Horz_Vert_Nedl_come_to_center.bin $ADD_ARGS
 fi
 
 if [ $choice -eq 5 ]; then
-    $RUN_PREFIX python3 main.py -i serial_mgl -c mgl_data1.bin -s F18_HUD
+    $RUN_PREFIX python3 main.py -i serial_mgl -c mgl_data1.bin $ADD_ARGS
 fi
 
 if [ $choice -eq 6 ]; then
-    $RUN_PREFIX python3 main.py -i serial_d100 -s F18_HUD -e
+    $RUN_PREFIX python3 main.py -i serial_d100 -e $ADD_ARGS
 fi
 
 if [ $choice -eq 7 ]; then
-    $RUN_PREFIX python3 main.py -i serial_skyview -s F18_HUD -e
+    $RUN_PREFIX python3 main.py -i serial_skyview -e $ADD_ARGS
 fi
 
 if [ $choice -eq 8 ]; then
-    $RUN_PREFIX python3 main.py -i stratux_wifi -c stratux_5.dat -s F18_HUD
+    $RUN_PREFIX python3 main.py -i stratux_wifi -c stratux_5.dat $ADD_ARGS
 fi
 
 if [ $choice -eq 9 ]; then
-    $RUN_PREFIX python3 main.py -i serial_mgl --playfile1 mgl_chase_rv6_1.dat --in2 stratux_wifi --playfile2 stratux_chase_rv6_1.dat -s F18_HUD
+    $RUN_PREFIX python3 main.py -i serial_mgl --playfile1 mgl_chase_rv6_1.dat --in2 stratux_wifi --playfile2 stratux_chase_rv6_1.dat $ADD_ARGS
 fi
 
 if [ $choice -eq 10 ]; then
-    $RUN_PREFIX python3 main.py -i serial_mgl --playfile1 mgl_chase_rv6_2.dat --in2 stratux_wifi --playfile2 stratux_chase_rv6_2.dat -s F18_HUD
+    $RUN_PREFIX python3 main.py -i serial_mgl --playfile1 mgl_chase_rv6_2.dat --in2 stratux_wifi --playfile2 stratux_chase_rv6_2.dat $ADD_ARGS
 fi
 
 if [ $choice -eq 11 ]; then
-    $RUN_PREFIX python3 main.py -i serial_mgl --playfile1 mgl_chase_rv6_3.dat --in2 stratux_wifi --playfile2 stratux_chase_rv6_3.dat -s F18_HUD
+    $RUN_PREFIX python3 main.py -i serial_mgl --playfile1 mgl_chase_rv6_3.dat --in2 stratux_wifi --playfile2 stratux_chase_rv6_3.dat $ADD_ARGS
 fi
 
 if [ $choice -eq 20 ]; then
     # linux/raspberry pi only
     if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-        $RUN_PREFIX python3 main.py -i gyro_i2c_bno085 -s F18_HUD
+        $RUN_PREFIX python3 main.py -i gyro_i2c_bno085 $ADD_ARGS
     else
         echo "Currently only supported on linux/raspberry pi"
     fi
@@ -92,7 +105,7 @@ fi
 if [ $choice -eq 21 ]; then
     # linux/raspberry pi only
     if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-        $RUN_PREFIX python3 main.py -i gyro_i2c_bno055 -s F18_HUD
+        $RUN_PREFIX python3 main.py -i gyro_i2c_bno055 $ADD_ARGS
     else
         echo "Currently only supported on linux/raspberry pi"
     fi

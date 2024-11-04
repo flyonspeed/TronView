@@ -29,6 +29,13 @@ echo "20: live i2c bno085 IMU data (linux/raspberry pi only)"
 echo "21: live i2c bno055 IMU data (linux/raspberry pi only)"
 read -p "Enter your choice: " choice
 
+# if not a number, exit
+if ! [[ $choice =~ ^[0-9]+$ ]]; then
+    echo "No choice... exiting"
+    # jump to end
+    choice=0
+fi
+
 if [ $choice -eq 1 ]; then
     $RUN_PREFIX python3 main.py -i serial_g3x -s F18_HUD -e
 fi
@@ -90,3 +97,6 @@ if [ $choice -eq 21 ]; then
         echo "Currently only supported on linux/raspberry pi"
     fi
 fi
+
+echo "To run again type: ./util/run_choose.sh"
+

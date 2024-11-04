@@ -2,7 +2,8 @@
 
 # wifi udp input source
 # Stratux UDP
-# 1/23/2019 Christopher Jones
+# 1/23/2019 Topher
+# 11/4/2024 - Adding debug, and working on AHRS message parsing.
 
 from ._input import Input
 from lib import hud_utils
@@ -126,7 +127,8 @@ class stratux_wifi(Input):
         msg = self.getNextChunck(aircraft)
         #count = msg.count(b'~~')
         #print("-----------------------------------------------\nNEW Chunk len:"+str(len(msg))+" seperator count:"+str(count))
-        #print("chunk:"+str(msg))
+        if(aircraft.debug_mode>1):
+            print("stratux: "+str(msg[1])+" "+str(msg[2])+" "+str(msg[3])+" "+str(len(msg))+" "+str(msg))
 
         for line in msg.split(b'~~'):
             theLen = len(line)
@@ -357,6 +359,11 @@ class stratux_wifi(Input):
                         aircraft.traffic.msg_len = len(msg)
 
                 elif(msg[1]==101): # Foreflight id?
+                    pass
+                
+                else: # unknown message id
+                    if(aircraft.debug_mode>0):
+                        print("stratuxmessage id:"+str(msg[1])+" "+str(msg[2])+" "+str(msg[3])+" len:"+str(len(msg)))
                     pass
 
                 if(self.textMode_showRaw==True): 

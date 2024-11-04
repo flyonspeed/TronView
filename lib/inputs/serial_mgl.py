@@ -2,7 +2,8 @@
 
 # Serial input source
 # MGL iEFIS
-# 1/23/2019 Christopher Jones
+# 1/23/2019 Topher
+# 11/4/2024 - optimize message parsing. round values. Added Yaw, fix for Mag_head.
 
 from ._input import Input
 from lib import hud_utils

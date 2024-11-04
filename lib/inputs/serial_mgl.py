@@ -86,14 +86,14 @@ class serial_mgl(Input):
                             HeadingMag, PitchAngle, BankAngle, YawAngle, TurnRate, Slip, GForce, LRForce, FRForce, BankRate, PitchRate, YawRate, SensorFlags, Padding1, Padding2, Padding3, Checksum = struct.unpack(
                                 "<HhhhhhhhhhhhBBBBi", Message
                             )
-                            aircraft.pitch = PitchAngle * 0.1  #
-                            aircraft.roll = BankAngle * 0.1  #
+                            aircraft.pitch = round(PitchAngle * 0.1, 1)  # truncate to 1 decimal place
+                            aircraft.roll = round(BankAngle * 0.1, 2)  #
                             aircraft.yaw = YawAngle
                             if HeadingMag != 0:
                                 aircraft.mag_head = int(HeadingMag * 0.1)
                             else:
                                 aircraft.mag_head = 0
-                            aircraft.turn_rate = int(TurnRate) * 0.1
+                            aircraft.turn_rate = round(TurnRate * 0.1, 1)
                             aircraft.slip_skid = (Slip * 0.01 * -1) * 2 # convert to aircraft format -100 to 100.  postive is to left. #LRForce * 0.01 
                             aircraft.vert_G = GForce * 0.01
                             aircraft.msg_count += 1
@@ -107,10 +107,10 @@ class serial_mgl(Input):
                                 "<iiiiiiiHHhBBBBBBBBBBi", Message
                             )
                             if GS > 0:
-                                aircraft.gndspeed = GS * 0.06213712 # convert to mph
+                                aircraft.gndspeed = round(GS * 0.06213712, 1) # convert to mph
                             aircraft.agl = AGL
                             aircraft.gndtrack = int((TrackTrue * 0.1) + 0.5)
-                            aircraft.mag_decl = Variation * 0.1 # Magnetic variation 10th/deg West = Neg
+                            aircraft.mag_decl = round(Variation * 0.1, 3) # Magnetic variation 10th/deg West = Neg
                             if (aircraft.mag_head == 0):  # if no mag heading use ground track
                                 aircraft.mag_head = aircraft.gndtrack
                             aircraft.gps.LatDeg = Latitude / 180000
@@ -131,16 +131,16 @@ class serial_mgl(Input):
                                 "<iiHHhhHHhBBBBBBBBBBi", Message
                             )
                             if ASI > 0:
-                                aircraft.ias = ASI * 0.06213712 #idicated airspeed in 10th of Km/h.  * 0.05399565 to knots. * 0.6213712 to mph
+                                aircraft.ias = round(ASI * 0.06213712, 1) #idicated airspeed in 10th of Km/h.  * 0.05399565 to knots. * 0.6213712 to mph
                             if TAS > 0:
-                                aircraft.tas = TAS * 0.06213712 # mph
+                                aircraft.tas = round(TAS * 0.06213712, 1) # mph
                             # efis_alt = BAltitude
                             aircraft.baro = (
-                                LocalBaro * 0.0029529983071445
+                                round(LocalBaro * 0.0029529983071445, 4)
                             )  # convert from mbar to inches of mercury.
                             aircraft.aoa = AOA
                             aircraft.vsi = VSI
-                            aircraft.baro_diff = 29.921 - aircraft.baro
+                            aircraft.baro_diff = round(29.921 - aircraft.baro, 4)
                             aircraft.PALT = PAltitude
                             aircraft.BALT = BAltitude
                             aircraft.alt = int(
@@ -156,14 +156,13 @@ class serial_mgl(Input):
                             if(self.textMode_showRaw==True): aircraft.msg_last = binascii.hexlify(Message) # save last message.
                             else: aircraft.msg_last = None
 
-
                             aircraft.wind_speed, aircraft.wind_dir, aircraft.norm_wind_dir = _utils.windSpdDir(
-                            aircraft.tas * 0.8689758, # back to knots.
-                            aircraft.gndspeed * 0.8689758, # convert back to knots
-                            aircraft.gndtrack,
-                            aircraft.mag_head,
-                            aircraft.mag_decl,
-                            )
+                                aircraft.tas * 0.8689758, # back to knots.
+                                aircraft.gndspeed * 0.8689758, # convert back to knots
+                                aircraft.gndtrack,
+                                aircraft.mag_head,
+                                aircraft.mag_decl,
+                                )
 
 
                     elif msgType == 5:  # Traffic message
@@ -200,7 +199,7 @@ class serial_mgl(Input):
                             aircraft.nav.HeadBug = HeadBug
                             aircraft.nav.AltBug = AltBug
 
-                            aircraft.nav.WPDist = WPDist * 0.0539957 # KM (tenths) to NM (0.0539957), Statue Mile (.0621371) Conversion
+                            aircraft.nav.WPDist = round(WPDist * 0.0539957, 2) # KM (tenths) to NM (0.0539957), Statue Mile (.0621371) Conversion
                             aircraft.nav.WPLat = WPLat / 180000
                             aircraft.nav.WPLon = WPLon / 180000
 
@@ -246,11 +245,11 @@ class serial_mgl(Input):
                             aircraft.engine.OilPress = round(OilPressure1 * 0.01450377,2) # In 10th of a millibar (Main oil pressure) convert to PSI
                             aircraft.engine.OilPress2 = round(OilPressure2 * 0.01450377,2)
                             aircraft.engine.FuelPress = round(FuelPressure * 0.01450377,2)
-                            aircraft.engine.CoolantTemp = round((CoolantTemp * 1.8) + 32)
-                            aircraft.engine.OilTemp = round((OilTemp1 * 1.8) + 32)  # convert from C to F
-                            aircraft.engine.OilTemp2 = round((OilTemp2 * 1.8) + 32) # convert from C to F
+                            aircraft.engine.CoolantTemp = round((CoolantTemp * 1.8) + 32,1) # C to F
+                            aircraft.engine.OilTemp = round((OilTemp1 * 1.8) + 32,1)  # convert from C to F
+                            aircraft.engine.OilTemp2 = round((OilTemp2 * 1.8) + 32,1) # convert from C to F
                             aircraft.engine.FuelFlow = round(FuelFlow * 0.002642,2) # In 10th liters/hour convert to Gallons/hr
-                            aircraft.engine.ManPress = ManiPressure * 0.0029529983071445 #In 10th of a millibar to inches of mercury
+                            aircraft.engine.ManPress = round(ManiPressure * 0.0029529983071445, 2) #In 10th of a millibar to inches of mercury to 
 
                             # Then read in a small int for each egt and cht.
                             for x in range(NumberOfEGT):

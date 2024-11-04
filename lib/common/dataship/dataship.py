@@ -25,6 +25,9 @@ class Dataship(object):
         self.sys_time_string = None 
         self.pitch = 0.0 # degrees
         self.roll = 0.0  # degrees
+        self.yaw = 0.0 # degrees
+        self.mag_head = 0 # 0 to 360
+        self.gndtrack = 0 #TODO: Move to GPSData class?
         self.ias = 0 # in mph
         self.tas = 0 # mph
         self.alt = None # in Ft
@@ -34,8 +37,6 @@ class Dataship(object):
         self.BALT = None # in ft
         self.DA = None # in ft
         self.aoa = None # percentage 0 to 100 (if available)
-        self.mag_head = 0 # 0 to 360
-        self.gndtrack = 0 #TODO: Move to GPSData class?
         self.baro = 0 # inches of mercury
         self.baro_diff = 0
         self.vsi = 0 # ft/min

@@ -26,16 +26,11 @@ then
 	brew install python3
 fi
 
-# check if python virtual environment is already created
-if [ ! -d "venv" ]; then
-    echo "Creating Python virtual environment..."
-    python3 -m venv venv
-    source venv/bin/activate
-fi
-
 # check if virtual environment is activated
 if ! [[ "$VIRTUAL_ENV" ]]; then
-    source venv/bin/activate
+	echo "Python Virtual environment is not activated. Creating venv..."
+	python3-m venv venv
+	source venv/bin/activate
 fi
 
 echo "Install Python libraries requied by TronView?  (y or n)"

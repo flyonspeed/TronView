@@ -4,6 +4,7 @@
 if [[ "$OSTYPE" == "darwin"* ]]; then
     # macOS
     RUN_PREFIX=""
+    source venv/bin/activate
 else
     # Assume Linux or other Unix-like OS
     RUN_PREFIX="sudo"

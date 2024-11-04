@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# make sure they are on linux
+if [[ $(uname) != "Linux" ]]; then
+    echo "This script is only supported on Linux."
+    exit 1
+fi
+
+
 printf "Raspberry Pi Setup script Version 0.1.1 \n\n"
 read -p "Setup Pi for running TronView software? (y or n)" yn;
 case $yn in

@@ -202,7 +202,7 @@ def getDataRecorderDir(exitOnFail=False):
     except Exception as e: 
         print(e)
         print("Error DataRecorder dir: "+fullpath)
-        shared.aircraft.errorFoundNeedToExit = True
+        shared.Dataship.errorFoundNeedToExit = True
         if(exitOnFail==True): sys.exit()
         return False
     if fullpath.endswith('/')==False: fullpath = fullpath + "/" # add a slash if needed.

@@ -5,20 +5,20 @@
 # Shared globals objects
 #
 
-from lib import aircraft
+from lib.common.dataship import dataship
 from lib import smartdisplay
 
 ####################################
-## Aircraft object
-## All input data is stuffed into this aircraft object in a "standard format"
-## Then aircraft object is passed on to different screens for displaying data.
-aircraft = aircraft.Aircraft()
+## DataShip object
+## All input data is stuffed into this dataship object in a "standard format"
+## Then dataship object is passed on to different screens for displaying data.
+Dataship = dataship.Dataship()
 
 
 ####################################
 ## Input objects
 ## Input objects take in external data, process it if needed then
-## stuff the data into the aircraft object for the screens to use.
+## stuff the data into the dataship object for the screens to use.
 ## Inputs can be from Serial, Files, wifi, etc...
 CurrentInput = None
 CurrentInput2 = None

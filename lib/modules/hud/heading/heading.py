@@ -8,7 +8,7 @@ from lib.modules._module import Module
 from lib import hud_graphics
 from lib import hud_utils
 from lib import smartdisplay
-from lib import aircraft
+from lib.common.dataship import dataship
 import pygame
 import math
 from lib.common import shared
@@ -27,6 +27,9 @@ class heading(Module):
         self.pixels_per_degree = 12  # Default value, can be adjusted
         self.show_track = True
         self.tick_color = (0, 255, 0)
+        self.smoothing_factor = 0.15  # Lower = smoother but slower
+        self.current_display_hdg = None  # For smooth transitions
+        self.target_hdg = None
 
     # called once for setup
     def initMod(self, pygamescreen, width=None, height=None):
@@ -37,7 +40,7 @@ class heading(Module):
         Module.initMod(
             self, pygamescreen, width, height
         )  # call parent init screen.
-        if shared.aircraft.debug_mode > 0:  # only print if debug mode is on.
+        if shared.Dataship.debug_mode > 0:  # only print if debug mode is on.
             print(("Init Mod: %s %dx%d"%(self.name,self.width,self.height)))
 
 
@@ -139,6 +142,13 @@ class heading(Module):
     def roint(self,num):
         return int(round(num))
 
+    def smooth_value(self, current, target, smoothing):
+        if current is None:
+            return target
+        # Calculate the shortest angular distance
+        diff = ((target - current + 180) % 360) - 180
+        # Apply smoothing
+        return current + diff * smoothing
 
     # called every redraw for the mod
     def draw(self, aircraft, smartdisplay, pos=(None, None)):
@@ -148,8 +158,21 @@ class heading(Module):
         hdg_hdg = aircraft.mag_head
         gnd_trk = self.roint(aircraft.gndtrack)
 
-        # Only redraw if the heading or track has changed
-        if self.old_hdg_hdg != hdg_hdg or self.old_gnd_trk != gnd_trk:
+        # Initialize current_display_hdg if None
+        if self.current_display_hdg is None:
+            self.current_display_hdg = hdg_hdg
+
+        # Smooth the heading transition
+        self.current_display_hdg = self.smooth_value(
+            self.current_display_hdg, 
+            hdg_hdg, 
+            self.smoothing_factor
+        )
+
+        # Only redraw if the heading or track has changed significantly
+        if (abs(self.current_display_hdg - (self.old_hdg_hdg or 0)) > 0.1 or 
+            self.old_gnd_trk != gnd_trk):
+            
             self.hdg = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
             self.trk = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
 
@@ -158,7 +181,7 @@ class heading(Module):
             # Draw ticks
             for tick in range(0, 72):  # Changed to cover all 360 degrees (72 * 5 = 360)
                 angle = tick * 5 % 360
-                x0 = self.roint(center_x + ((angle - hdg_hdg + 180) % 360 - 180) * self.pixels_per_degree)
+                x0 = self.roint(center_x + ((angle - self.current_display_hdg + 180) % 360 - 180) * self.pixels_per_degree)
                 
                 if tick % 2 == 0:  # Major ticks (every 10 degrees)
                     pygame.draw.line(self.hdg, self.tick_color , [x0, 30], [x0, 60], 3)
@@ -178,7 +201,7 @@ class heading(Module):
             }
 
             for angle, label in label_positions.items():
-                x2 = self.roint(center_x + ((angle - hdg_hdg + 180) % 360 - 180) * self.pixels_per_degree)
+                x2 = self.roint(center_x + ((angle - self.current_display_hdg + 180) % 360 - 180) * self.pixels_per_degree)
                 self.hdg.blit(label, (x2 - label.get_rect().center[0], 18))
 
             # Draw heading indicator (always at center)
@@ -186,7 +209,7 @@ class heading(Module):
             pygame.draw.line(self.hdg, self.tick_color , [center_x, 60], [center_x + 10, 80], 3)
 
             # Calculate track indicator offset
-            track_diff = (gnd_trk - hdg_hdg + 180) % 360 - 180
+            track_diff = (gnd_trk - self.current_display_hdg + 180) % 360 - 180
             track_offset = self.roint(track_diff * self.pixels_per_degree)
 
             # Draw track indicator marker
@@ -195,12 +218,12 @@ class heading(Module):
 
             # draw the hdg_hdg value under the heading indicator and center it.  pad it to always show 3 digits.
             if self.show_track:
-                hdg_hdg_text = self.myfont.render(f"{hdg_hdg:03.0f}", False, self.label_color)
+                hdg_hdg_text = self.myfont.render(f"{self.roint(self.current_display_hdg):03d}", False, self.label_color)
                 hdg_hdg_rect = hdg_hdg_text.get_rect()
                 hdg_hdg_rect.center = (center_x, 100)
                 self.hdg.blit(hdg_hdg_text, hdg_hdg_rect)
 
-            self.old_hdg_hdg = hdg_hdg
+            self.old_hdg_hdg = self.current_display_hdg
             self.old_gnd_trk = gnd_trk
 
         # Draw the heading and track surfaces at the specified position
@@ -264,6 +287,14 @@ class heading(Module):
                 "default": self.tick_color,
                 "label": "Tick Color",
                 "description": "Color of the tick marks.",
+            },
+            "smoothing_factor": {
+                "type": "float",
+                "default": self.smoothing_factor,
+                "label": "Smoothing Factor",
+                "description": "Heading smoothing factor (0.05-1.0). Lower values = smoother but slower transitions.",
+                "min": 0.05,
+                "max": 1.0,
             },
         }
 

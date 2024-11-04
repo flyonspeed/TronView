@@ -9,7 +9,7 @@ from lib.modules._module import Module
 from lib import hud_graphics
 from lib import hud_utils
 from lib import smartdisplay
-from lib import aircraft
+from lib.common.dataship import dataship
 import pygame
 import math
 
@@ -23,6 +23,8 @@ class horizon_v2(Module):
         self.show_targets = True
         self.target_distance_threshold = 10
         self.fov_x = hud_utils.readConfigInt("HUD", "fov_x", 13.942) # Field of View X in degrees
+        self.target_positions = {}  # Store smoothed positions for each target
+        self.target_smoothing = 0.2  # Default smoothing factor (0-1), lower = smoother
 
     # called once for setup
     def initMod(self, pygamescreen, width=None, height=None):
@@ -464,17 +466,10 @@ class horizon_v2(Module):
         if abs(relative_bearing) > self.fov_x / 2:
             return  # Target is outside the field of view, don't draw it
 
-        # calculate position of this target above horizontal line using the following:
-        # shared.aircraft.pitch : my pitch above horizon
-        # shared.aircraft.roll : my roll around that axis.
-        # t.altDiff : height difference between us and the target.
-        # t.brng : my heading to the target.
-        # t.dist : distance to the target.
-        # Calculate the target's position relative to the viewer's perspective
         if t.altDiff is not None and aircraft.pitch is not None and aircraft.roll is not None:
             # Convert distances to meters
-            alt_diff_meters = t.altDiff * 0.3048  # Convert feet to meters
-            dist_meters = t.dist * 1609.34  # Convert miles to meters
+            alt_diff_meters = t.altDiff * 0.3048
+            dist_meters = t.dist * 1609.34
             # Calculate the angle to the target relative to the horizon in radians
             angle_to_target = math.atan2(alt_diff_meters, dist_meters)
             # Adjust for aircraft pitch
@@ -484,20 +479,32 @@ class horizon_v2(Module):
             # Adjust for aircraft roll
             roll_radians = math.radians(aircraft.roll)
             
-            # Use relative_bearing instead of (t.brng - aircraft.mag_head)
             xx = self.xCenter + relative_bearing * (self.width / self.fov_x)
             
             rotated_x = (xx - self.xCenter) * math.cos(roll_radians) - (vertical_position - self.yCenter) * math.sin(roll_radians) + self.xCenter
             rotated_y = (xx - self.xCenter) * math.sin(roll_radians) + (vertical_position - self.yCenter) * math.cos(roll_radians) + self.yCenter
 
-            xx, yy = rotated_x, rotated_y
-            # draw a dot at the target's position
+            # Apply smoothing
+            target_key = t.callsign
+            current_pos = (rotated_x, rotated_y)
+            
+            if target_key not in self.target_positions:
+                self.target_positions[target_key] = current_pos
+            else:
+                # Interpolate between old and new positions
+                old_x, old_y = self.target_positions[target_key]
+                smooth_x = old_x + (rotated_x - old_x) * self.target_smoothing
+                smooth_y = old_y + (rotated_y - old_y) * self.target_smoothing
+                self.target_positions[target_key] = (smooth_x, smooth_y)
+
+            # Use smoothed position for drawing
+            xx, yy = self.target_positions[target_key]
+
+            # Draw target using smoothed positions
             pygame.draw.circle(self.surface, (200,255,255), (int(xx), int(yy)), 6, 0)
-            # draw the callsign at the target's position
             labelCallsign = self.font_target.render(t.callsign, False, (200,255,255), (0,0,0))
             labelCallsign_rect = labelCallsign.get_rect()
-            self.surface.blit(labelCallsign, (int(xx) + 10, int(yy)))  # 10 is a fudge factor to center the text.
-            # draw angle to target on the next line. 
+            self.surface.blit(labelCallsign, (int(xx) + 10, int(yy)))
             labelAngle = self.font_target.render(f"angle: {adjusted_angle:.2f}", False, (200,255,255), (0,0,0))
             self.surface.blit(labelAngle, (int(xx) + 10, int(yy) + labelCallsign_rect.height))
 
@@ -571,6 +578,14 @@ class horizon_v2(Module):
                 "max": 60,
                 "label": "FOV X",
                 "description": "Field of View X in degrees"
+            },
+            "target_smoothing": {
+                "type": "float",
+                "default": 0.2,
+                "min": 0.01,
+                "max": 1.0,
+                "label": "Target Smoothing",
+                "description": "Target position smoothing (0.01-1.0, lower = smoother)"
             }
         }
 

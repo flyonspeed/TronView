@@ -8,7 +8,7 @@ from lib.modules._module import Module
 from lib import hud_graphics
 from lib import hud_utils
 from lib import smartdisplay
-from lib import aircraft
+from lib.common.dataship import dataship
 import pygame
 import math
 from lib.common import shared
@@ -35,7 +35,7 @@ class buoy_manager(Module):
         Module.initMod(
             self, pygamescreen, width, height
         )  # call parent init screen.
-        if shared.aircraft.debug_mode > 0:
+        if shared.Dataship.debug_mode > 0:
             print(("Init Mod: %s %dx%d"%(self.name,self.width,self.height)))
 
         self.buttons = []
@@ -79,7 +79,7 @@ class buoy_manager(Module):
                 b["selected"] = True
 
     # called every redraw for the module
-    def draw(self, aircraft: aircraft, smartdisplay, pos=(0, 0)):
+    def draw(self, aircraft: dataship, smartdisplay, pos=(0, 0)):
         # Clear the surface with full transparency
         self.surface.fill((0, 0, 0, 0))
 
@@ -172,7 +172,7 @@ class buoy_manager(Module):
         print("clear")
 
     # handle mouse clicks
-    def processClick(self, aircraft: aircraft, mx, my):
+    def processClick(self, aircraft: dataship, mx, my):
         for button in self.buttons:
             if button["x"] <= mx <= button["x"] + button["width"] and button["y"] <= my <= button["y"] + button["height"]:
                 if button["function"]:

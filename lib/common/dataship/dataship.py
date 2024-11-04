@@ -4,16 +4,16 @@ from enum import Enum
 import time
 from geographiclib.geodesic import Geodesic
 import math
-from . import hud_utils
+from ... import hud_utils
 import inspect
 from typing import List, Any
 
 #############################################
-## Class: Aircraft
+## Class: Dataship
 ## Store status and converted data from input modules into this class for use by screens.
 ## Data should be converted into a common format and store here.  Details for what is "standard" format is below.  If input data source is different then it should convert it before saving it here.
 ##
-class Aircraft(object):
+class Dataship(object):
     # measurment data formats (static vars)
     MPH = 0
     KNOTS = 1
@@ -230,22 +230,40 @@ class Aircraft(object):
             full_name = f"{current_prefix}{name}" if current_prefix else name
             #print(f"Checking field: {full_name} with type: {type(value).__name__}", end=' ')
 
-            if isinstance(value, (str, int, float, bool, list, tuple, dict)):
+            if isinstance(value, str):
                 fields.append(full_name)
-                #print("(added)")
+            elif isinstance(value, int):
+                fields.append(full_name)
+            elif isinstance(value, float):
+                fields.append(full_name)
+            elif isinstance(value, complex):
+                fields.append(full_name)
+            elif isinstance(value, bool):
+                fields.append(full_name)
+            elif isinstance(value, list):
+                fields.append(full_name)
+            elif isinstance(value, tuple):
+                fields.append(full_name)
+            elif isinstance(value, dict):
+                fields.append(full_name)
+            elif value is None:
+                fields.append(full_name)
             elif inspect.ismethod(value) or inspect.isfunction(value):
                 fields.append(f"{full_name}()")
                 #print("(added as method)")
-            #elif inspect.isclass(value):
+            elif isinstance(value, object):
                 #print("(skipped class)")
-            elif hasattr(value, '__dict__'):
+                fields.append(f"{full_name}<obj>")
+
+            # if it has a __dict__ then recurse through it.
+            if hasattr(value, '__dict__'):
                 #print("(recursing)")
                 for attr, attr_value in inspect.getmembers(value):
                     if not attr.startswith('_'):
                         add_field(attr, attr_value, f"{full_name}.")
-            else:
-                fields.append(full_name)
-                #print("(added as unknown type)")
+            # else:
+            #     fields.append(full_name)
+            #     #print("(added as unknown type)")
 
         for name, value in inspect.getmembers(self):
             if not name.startswith('_'):
@@ -468,6 +486,10 @@ class TrafficData(object):
     # add or replace a target.
     def addTarget(self, target, aircraft):
         target.time = int(time.time()) # always update the time when this target was added/updated..
+
+        # check if the target.callsign is set.. if not then set it to the address.
+        if target.callsign == None or target.callsign == "":
+            target.callsign = str(target.address)
 
         # if dist&brng was not calculated... check distance and brng to target. if we know our location..
         # use geographiclib to solve this.

@@ -10,7 +10,7 @@ from lib.modules._module import Module
 from lib import hud_graphics
 from lib import hud_utils
 from lib import smartdisplay
-from lib import aircraft
+from lib.common.dataship import dataship
 from lib.common import shared
 import pygame
 import math
@@ -40,7 +40,7 @@ class text(Module):
         Module.initMod(
             self, pygamescreen, width, height
         )  # call parent init screen.
-        if shared.aircraft.debug_mode > 0:
+        if shared.Dataship.debug_mode > 0:
             print(("Init Mod: %s %dx%d"%(self.name,self.width,self.height)))
         # does the self.font_name variable exist?
             
@@ -58,8 +58,26 @@ class text(Module):
                     # It's a function call
                     func_name = part[:-2]
                     obj = getattr(obj, func_name)()
+                elif part.endswith('<obj>'):
+                    # It's an object
+                    obj = getattr(obj, part[:-5])
                 else:
                     obj = getattr(obj, part)
+            return obj
+    
+        def format_object(obj):
+            # check if None
+            if obj is None:
+                obj = "None"
+            else:
+                sub_vars = obj.__dict__
+                final_value = ""
+                for sub_var in sub_vars:
+                    # check if it starts with _ then skip it.
+                    if sub_var.startswith('_'):
+                        continue
+                    final_value += f"{sub_var}: {sub_vars[sub_var]}\n"
+                obj = final_value
             return obj
 
         words = self.text.split()
@@ -75,25 +93,27 @@ class text(Module):
                     format_specifier = None
 
                 try:
-                    variable_value = get_nested_attr(aircraft, variable_name)
+                    if variable_name == "self":
+                        variable_value = format_object(aircraft)
+                    else:
+                        variable_value = get_nested_attr(aircraft, variable_name)
                     # check if variable_name is a object if so get the object vars
 
                     # check if its a string, int, float, list, tuple, dict. and if format_specifier is not None then format it.
                     if format_specifier:
                         variable_value = f"{variable_value:{format_specifier}}"
-                    elif isinstance(variable_value, (str, int, float, list, tuple, dict)):
+                    elif isinstance(variable_value, (str, int, float, tuple, dict)):
                         variable_value = f"{variable_value}"
+                    
+                    elif isinstance(variable_value, list):
+                        # go through each item in the list and format it by calling this function recursively.
+                        final_value = ""
+                        for item in variable_value:
+                            final_value += f"\n{format_object(item)}\n======================="
+                        variable_value = final_value
 
                     elif isinstance(variable_value, object):
-                        # check if None
-                        if variable_value is None:
-                            variable_value = "None"
-                        else:
-                            sub_vars = variable_value.__dict__
-                            final_value = ""
-                            for sub_var in sub_vars:
-                                final_value += f"{sub_var}: {sub_vars[sub_var]}\n"
-                            variable_value = final_value
+                        variable_value = format_object(variable_value)
                     else:
                         variable_value = str(variable_value)
                 except Exception as e:
@@ -144,14 +164,14 @@ class text(Module):
     # return a dict of objects that are used to configure the module.
     def get_module_options(self):
 
-        aircraft_fields = shared.aircraft._get_all_fields()
-        #print(f"templates: {aircraft_fields}")
+        data_fields = shared.Dataship._get_all_fields()
+        #print(f"templates: {data_fields}")
 
         return {
             "template": {
                 "type": "dropdown",
                 "default": "template",
-                "options": aircraft_fields,
+                "options": data_fields,
                 "label": "Value",
                 "description": "Select a predefined value",
                 "post_change_function": "update_text"
@@ -221,29 +241,6 @@ class text(Module):
                 "description": "Radius of the box to use"
             }
         }
-
-    # def get_aircraft_fields(self,obj, prefix=''):
-    #     fields = []
-        
-    #     for name, value in inspect.getmembers(obj):
-    #         # Skip private and special methods
-    #         if name.startswith('__'):
-    #             continue
-            
-    #         full_name = f"{prefix}{name}" if prefix else name
-            
-    #         if isinstance(value, (str, int, float, list, tuple, dict)):
-    #             fields.append(full_name)
-    #         elif inspect.isfunction(value) or inspect.ismethod(value):
-    #             fields.append(f"{full_name}()")
-    #         elif inspect.isclass(value):
-    #             # Skip classes
-    #             continue
-    #         elif hasattr(value, '__dict__'):
-    #             # It's an object, recurse into it
-    #             fields.extend(self.get_aircraft_fields(value, f"{full_name}."))
-    
-    #     return fields
 
     def update_text(self):
         self.text = "{"+self.template+"}"

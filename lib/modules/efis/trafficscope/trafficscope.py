@@ -33,6 +33,13 @@ class trafficscope(Module):
 
         self.targetDetails = {} # keep track of details about each target. like the x,y position on the screen. and if they are selected.
 
+        # Add smoothing configuration
+        self.enable_smoothing = hud_utils.readConfigBool("TrafficScope", "enable_smoothing", True)
+        self.smoothing_factor = 0.15
+        
+        # Add tracking of previous positions
+        self.target_positions = {} # Store previous positions for smoothing
+
     # called once for setup
     def initMod(self, pygamescreen, width=None, height=None):
         if width is None:
@@ -138,19 +145,51 @@ class trafficscope(Module):
             brngToUse = (t.brng - target_heading) % 360
             radianAngle = math.radians(brngToUse - 90)
             d = t.dist * self.scope_scale
-            xx = self.xCenter + (d * math.cos(radianAngle)) # translate to screen coordinates.
-            yy = self.yCenter + (d * math.sin(radianAngle)) # translate to screen coordinates.
+            target_x = self.xCenter + (d * math.cos(radianAngle))
+            target_y = self.yCenter + (d * math.sin(radianAngle))
 
-            # Draw the target
+            # Apply position smoothing if enabled
+            if self.enable_smoothing:
+                current_time = time.time()
+                
+                if t.callsign not in self.target_positions:
+                    # Initialize position tracking for new target
+                    self.target_positions[t.callsign] = {
+                        'x': target_x,
+                        'y': target_y,
+                        'displayed_x': target_x,
+                        'displayed_y': target_y,
+                        'last_update': current_time
+                    }
+                else:
+                    # Get time elapsed since last update
+                    dt = current_time - self.target_positions[t.callsign]['last_update']
+                    
+                    # Update the actual position
+                    self.target_positions[t.callsign]['x'] = target_x
+                    self.target_positions[t.callsign]['y'] = target_y
+                    
+                    # Smoothly interpolate to new position
+                    self.target_positions[t.callsign]['displayed_x'] += (target_x - self.target_positions[t.callsign]['displayed_x']) * self.smoothing_factor * dt * 60
+                    self.target_positions[t.callsign]['displayed_y'] += (target_y - self.target_positions[t.callsign]['displayed_y']) * self.smoothing_factor * dt * 60
+                    
+                    # Update timestamp
+                    self.target_positions[t.callsign]['last_update'] = current_time
+                    
+                    # Use smoothed positions
+                    target_x = self.target_positions[t.callsign]['displayed_x']
+                    target_y = self.target_positions[t.callsign]['displayed_y']
+
+            # Draw the target using smoothed positions
             if self.draw_icon:
                 direction_target_facing = ((t.track or brngToUse) - target_heading) % 360
                 t.targetDirection = math.radians(direction_target_facing - 90)
-                self.drawAircraftIcon(self.surface2, t, xx, yy, self.icon_scale)
+                self.drawAircraftIcon(self.surface2, t, target_x, target_y, self.icon_scale)
             else:
-                hud_graphics.hud_draw_circle(self.surface2, (0, 255, 129), (xx, yy), 4, 0)
+                hud_graphics.hud_draw_circle(self.surface2, (0, 255, 129), (target_x, target_y), 4, 0)
 
-            x_text = xx + self.details_offset
-            y_text = yy + self.details_offset
+            x_text = target_x + self.details_offset
+            y_text = target_y + self.details_offset
 
             if self.show_callsign:
                 label = self.font_target.render(t.callsign, False, (200,255,255), (0,0,0))
@@ -160,16 +199,16 @@ class trafficscope(Module):
                 label_rect = pygame.Rect(0, 0, 0, 0)
 
             if self.show_details:
-                self.draw_target_details(t, xx, yy, x_text, y_text, label_rect, target_heading, aircraft)
+                self.draw_target_details(t, target_x, target_y, x_text, y_text, label_rect, target_heading, aircraft)
 
             # store the x,y position of the target in the local targetDetails dictionary.
             if t.callsign not in self.targetDetails:
-                self.targetDetails[t.callsign] = {"x": xx, "y": yy, "selected": False}
+                self.targetDetails[t.callsign] = {"x": target_x, "y": target_y, "selected": False}
                 if shared.Dataship.debug_mode > 0:
-                    print("Added target to targetDetails: %s" % t.callsign, "x: %d, y: %d" % (xx, yy))
+                    print("Added target to targetDetails: %s" % t.callsign, "x: %d, y: %d" % (target_x, target_y))
             else: # else just update the x,y position.
-                self.targetDetails[t.callsign]["x"] = xx
-                self.targetDetails[t.callsign]["y"] = yy
+                self.targetDetails[t.callsign]["x"] = target_x
+                self.targetDetails[t.callsign]["y"] = target_y
 
         # Use map() to apply draw_target to all targets
         list(map(draw_target, filter(lambda t: t.dist is not None and t.dist < 100 and t.brng is not None, aircraft.traffic.targets)))
@@ -403,6 +442,20 @@ class trafficscope(Module):
                 "label": "Aircraft Icon Scale",
                 "description": "Set the scale of the aircraft icon."
             },
+            "enable_smoothing": {
+                "type": "bool",
+                "default": True,
+                "label": "Enable Smoothing",
+                "description": "Enable smooth transitions for target movements"
+            },
+            "smoothing_factor": {
+                "type": "float",
+                "default": 0.15,
+                "min": 0.01,
+                "max": 1.0,
+                "label": "Smoothing Factor",
+                "description": "Amount of smoothing (0.01=most smooth, 1.0=no smoothing)"
+            }
         }
 
     def processClick(self, aircraft, mx, my):

@@ -1,37 +1,48 @@
 #!/bin/bash
 
-echo "Setup mac osx for running software efis code"
+# make sure they are on macos
+if [[ $(uname) != "Darwin" ]]; then
+    echo "This script is only supported on macOS."
+    exit 1
+fi
+
+echo "Setup mac osx for running TronView"
 echo "-----------------------------------"
 
+# check if homebrew is installed
+if ! command -v brew &> /dev/null
+then
+    echo "Homebrew could not be found. Installing..."
+	ruby -e '$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)'
+	echo export PATH='usr/local/bin:$PATH' >> ~/.bash_profile
+	brew update
+	brew doctor
+fi
 
-echo "Install Homebrew?.. it's required to install python3 and pygame ? (y or n)"
+# check if python3 is installed
+if ! command -v python3 &> /dev/null
+then
+	echo "Python3 could not be found. Installing..."
+	brew install python3
+fi
+
+# check if python virtual environment is already created
+if [ ! -d "venv" ]; then
+    echo "Creating Python virtual environment..."
+    python3 -m venv venv
+    source venv/bin/activate
+fi
+
+# check if virtual environment is activated
+if ! [[ "$VIRTUAL_ENV" ]]; then
+    source venv/bin/activate
+fi
+
+echo "Install Python libraries requied by TronView?  (y or n)"
 read -p " " yn;
 case $yn in
-	[Yy]* )echo "Installing homebrew"
-		ruby -e '$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)'
-		echo export PATH='usr/local/bin:$PATH' >> ~/.bash_profile
-		brew update
-		brew doctor
-		;;
-	[Nn]* )echo "..."; 
-esac
-
-
-echo "Install python3? (y or n)"
-read -p " " yn;
-case $yn in
-	[Yy]* )echo "Installing python3 via homebrew"
-		brew install python3
-		;;
-	[Nn]* )echo "..."; 
-esac
-
-
-echo "Install other python packages via pip3?  (y or n)"
-read -p " " yn;
-case $yn in
-	[Yy]* )echo "Installing pygame via pip3"
-		python3 -m pip install -r requirements.txt
+	[Yy]* )echo "Installing python libs"
+		python3 -m pip install -r /utils/macosx/requirements.txt
 		;;
 	[Nn]* )echo "..."; 
 esac

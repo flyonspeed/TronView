@@ -58,8 +58,23 @@ class text(Module):
                     # It's a function call
                     func_name = part[:-2]
                     obj = getattr(obj, func_name)()
+                elif part.endswith('<obj>'):
+                    # It's an object
+                    obj = getattr(obj, part[:-5])
                 else:
                     obj = getattr(obj, part)
+            return obj
+    
+        def format_object(obj):
+            # check if None
+            if obj is None:
+                obj = "None"
+            else:
+                sub_vars = obj.__dict__
+                final_value = ""
+                for sub_var in sub_vars:
+                    final_value += f"{sub_var}: {sub_vars[sub_var]}\n"
+                obj = final_value
             return obj
 
         words = self.text.split()
@@ -75,25 +90,27 @@ class text(Module):
                     format_specifier = None
 
                 try:
-                    variable_value = get_nested_attr(aircraft, variable_name)
+                    if variable_name == "self":
+                        variable_value = format_object(aircraft)
+                    else:
+                        variable_value = get_nested_attr(aircraft, variable_name)
                     # check if variable_name is a object if so get the object vars
 
                     # check if its a string, int, float, list, tuple, dict. and if format_specifier is not None then format it.
                     if format_specifier:
                         variable_value = f"{variable_value:{format_specifier}}"
-                    elif isinstance(variable_value, (str, int, float, list, tuple, dict)):
+                    elif isinstance(variable_value, (str, int, float, tuple, dict)):
                         variable_value = f"{variable_value}"
+                    
+                    elif isinstance(variable_value, list):
+                        # go through each item in the list and format it by calling this function recursively.
+                        final_value = ""
+                        for item in variable_value:
+                            final_value += f"\n{format_object(item)}\n======================="
+                        variable_value = final_value
 
                     elif isinstance(variable_value, object):
-                        # check if None
-                        if variable_value is None:
-                            variable_value = "None"
-                        else:
-                            sub_vars = variable_value.__dict__
-                            final_value = ""
-                            for sub_var in sub_vars:
-                                final_value += f"{sub_var}: {sub_vars[sub_var]}\n"
-                            variable_value = final_value
+                        variable_value = format_object(variable_value)
                     else:
                         variable_value = str(variable_value)
                 except Exception as e:

@@ -230,22 +230,40 @@ class Dataship(object):
             full_name = f"{current_prefix}{name}" if current_prefix else name
             #print(f"Checking field: {full_name} with type: {type(value).__name__}", end=' ')
 
-            if isinstance(value, (str, int, float, bool, list, tuple, dict)):
+            if isinstance(value, str):
                 fields.append(full_name)
-                #print("(added)")
+            elif isinstance(value, int):
+                fields.append(full_name)
+            elif isinstance(value, float):
+                fields.append(full_name)
+            elif isinstance(value, complex):
+                fields.append(full_name)
+            elif isinstance(value, bool):
+                fields.append(full_name)
+            elif isinstance(value, list):
+                fields.append(full_name)
+            elif isinstance(value, tuple):
+                fields.append(full_name)
+            elif isinstance(value, dict):
+                fields.append(full_name)
+            elif value is None:
+                fields.append(full_name)
             elif inspect.ismethod(value) or inspect.isfunction(value):
                 fields.append(f"{full_name}()")
                 #print("(added as method)")
-            #elif inspect.isclass(value):
+            elif isinstance(value, object):
                 #print("(skipped class)")
-            elif hasattr(value, '__dict__'):
+                fields.append(f"{full_name}<obj>")
+
+            # if it has a __dict__ then recurse through it.
+            if hasattr(value, '__dict__'):
                 #print("(recursing)")
                 for attr, attr_value in inspect.getmembers(value):
                     if not attr.startswith('_'):
                         add_field(attr, attr_value, f"{full_name}.")
-            else:
-                fields.append(full_name)
-                #print("(added as unknown type)")
+            # else:
+            #     fields.append(full_name)
+            #     #print("(added as unknown type)")
 
         for name, value in inspect.getmembers(self):
             if not name.startswith('_'):

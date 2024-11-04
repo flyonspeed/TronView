@@ -31,14 +31,7 @@ echo "Install other python packages via pip3?  (y or n)"
 read -p " " yn;
 case $yn in
 	[Yy]* )echo "Installing pygame via pip3"
-		python3 -m pip install pygame --break-system-packages
-		echo "Installing python serial via pip3"
-		python3 -m pip install serial --break-system-packages
-		python3 -m pip install pygame_menu --break-system-packages
-		python3 -m pip install MacTmp --break-system-packages
-		python3 -m pip install geographiclib --break-system-packages
-		python3 -m pip install numpy --break-system-packages
-		python3 -m pip install pygame_gui --break-system-packages
+		python3 -m pip install -r requirements.txt
 		;;
 	[Nn]* )echo "..."; 
 esac

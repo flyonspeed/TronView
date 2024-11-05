@@ -56,7 +56,7 @@ class gyro_i2c_bno055(Input):
         self.imuData.name = self.name
         self.imuData.address = self.address
 
-        # create imu in aircraft object. append to dict with key as num_imus.
+        # create imu in dataship object. append to dict with key as num_imus.
         aircraft.imus[self.num_imus] = self.imuData
 
         self.last_read_time = time.time()

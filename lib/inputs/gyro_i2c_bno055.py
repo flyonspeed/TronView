@@ -40,8 +40,11 @@ class gyro_i2c_bno055(Input):
 
         # read address from config.
         self.id = hud_utils.readConfig("bno055", "device"+str(self.num_bno055)+"_id", "bno055_"+str(self.num_bno055))
+        self.address = hud_utils.readConfigInt("bno055", "device"+str(self.num_bno055)+"_address", 40)
 
-        self.address = hud_utils.readConfig("bno055", "device"+str(self.num_bno055)+"_address", 40)
+        # should this imu feed into aircraft roll/pitch/yaw?
+        self.feed_into_aircraft = hud_utils.readConfigBool("bno055", "device"+str(self.num_bno055)+"_aircraft", False)
+
         print("init bno055("+str(self.num_bno055)+") id: "+str(self.id)+" address: "+str(self.address))
 
         self.i2c = busio.I2C(board.SCL, board.SDA)
@@ -68,7 +71,6 @@ class gyro_i2c_bno055(Input):
         if aircraft.errorFoundNeedToExit: return aircraft
         if self.skipReadInput == True: return aircraft
 
-
         try:
             current_time = time.time()
             # calculate hz.
@@ -93,6 +95,12 @@ class gyro_i2c_bno055(Input):
 
             # update aircraft object.
             aircraft.imus[self.num_imus] = self.imuData
+
+            if self.feed_into_aircraft:
+                aircraft.pitch = self.imuData.pitch
+                aircraft.roll = self.imuData.roll
+                aircraft.mag_head = self.imuData.yaw
+                aircraft.yaw = self.imuData.yaw
 
         except Exception as e:
             aircraft.errorFoundNeedToExit = True

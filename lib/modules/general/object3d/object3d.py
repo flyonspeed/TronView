@@ -10,8 +10,7 @@ from lib import hud_utils
 from lib import smartdisplay
 import pygame
 import math
-
-
+from lib.common import shared
 class object3d(Module):
     # called only when object is first created.
     def __init__(self):
@@ -19,6 +18,8 @@ class object3d(Module):
         self.name = "object 3D"  # set name
         self.MainColor = (255,255,255)
         self.font_size = 16
+
+        self.source_imu = "Aircraft"
 
     # called once for setup
     def initMod(self, pygamescreen, width=None, height=None):
@@ -144,7 +145,18 @@ class object3d(Module):
         print("processEvent")
     
     def get_module_options(self):
+        # get the imu list.
+        imu_list = shared.Dataship.imus
+        imu_ids = [imu.id for imu in imu_list]
+
         return {
+            "source_imu": {
+                "type": "dropdown",
+                "label": "Source IMU",
+                "description": "IMU to use for the 3D object.",
+                "options": imu_ids,
+                "default": "Aircraft",
+            },
             "MainColor": {
                 "type": "color",
                 "default": (255,255,255),

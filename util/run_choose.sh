@@ -19,12 +19,18 @@ echo "Choose which demo/test to run:"
 echo "3:  MGL & Stratux - chasing traffic"
 echo "4:  MGL - G430 CDI"
 echo "5:  MGL - Gyro Test"
+
 echo "6:  Dynon D100"
 echo "7:  Dynon Skyview"
-echo "8:  Stratux 5 Demo - Shows traffic targets only, No AHRS data"
+
 echo "9:  MGL & Stratux RV6 Chase 1"
 echo "10: MGL & Stratux RV6 Chase 2"
 echo "11: MGL & Stratux RV6 Chase 3"
+
+echo "12: Stratux ONLY Demo 54"
+echo "13: Stratux ONLY Demo 57 (Bad pitch/roll)"
+echo "14:  Stratux ONLY Demo 5 - Shows traffic targets only, No AHRS data"
+
 echo "20: live i2c bno085 IMU data (linux/raspberry pi only)"
 echo "21: live i2c bno055 IMU data (linux/raspberry pi only)"
 echo "Type 't' after number to run in text mode. Example: 3t"
@@ -48,6 +54,9 @@ if ! [[ $choice =~ ^[0-9]+$ ]]; then
     choice=0
 fi
 
+########################################################
+# G3x demos
+########################################################
 
 if [ $choice -eq 1 ]; then
     $RUN_PREFIX python3 main.py -i serial_g3x -e $ADD_ARGS
@@ -56,6 +65,10 @@ fi
 if [ $choice -eq 2 ]; then
     $RUN_PREFIX python3 main.py -i serial_g3x -c g3x_aoa_10_99.dat $ADD_ARGS
 fi
+
+########################################################
+# MGL demos
+########################################################
 
 if [ $choice -eq 3 ]; then
     $RUN_PREFIX python3 main.py -i serial_mgl --playfile1 mgl_8.dat --in2 stratux_wifi --playfile2 stratux_8.dat $ADD_ARGS
@@ -69,6 +82,10 @@ if [ $choice -eq 5 ]; then
     $RUN_PREFIX python3 main.py -i serial_mgl -c mgl_data1.bin $ADD_ARGS
 fi
 
+########################################################
+# Dynon demos
+########################################################
+
 if [ $choice -eq 6 ]; then
     $RUN_PREFIX python3 main.py -i serial_d100 -e $ADD_ARGS
 fi
@@ -77,9 +94,9 @@ if [ $choice -eq 7 ]; then
     $RUN_PREFIX python3 main.py -i serial_skyview -e $ADD_ARGS
 fi
 
-if [ $choice -eq 8 ]; then
-    $RUN_PREFIX python3 main.py -i stratux_wifi -c stratux_5.dat $ADD_ARGS
-fi
+########################################################
+# MGL & Stratux RV6 Chase demos
+########################################################
 
 if [ $choice -eq 9 ]; then
     $RUN_PREFIX python3 main.py -i serial_mgl --playfile1 mgl_chase_rv6_1.dat --in2 stratux_wifi --playfile2 stratux_chase_rv6_1.dat $ADD_ARGS
@@ -92,6 +109,27 @@ fi
 if [ $choice -eq 11 ]; then
     $RUN_PREFIX python3 main.py -i serial_mgl --playfile1 mgl_chase_rv6_3.dat --in2 stratux_wifi --playfile2 stratux_chase_rv6_3.dat $ADD_ARGS
 fi
+
+########################################################
+# Stratux ONLY demos
+########################################################
+
+if [ $choice -eq 12 ]; then
+    $RUN_PREFIX python3 main.py -i stratux_wifi -c stratux_54.dat $ADD_ARGS
+fi
+
+if [ $choice -eq 13 ]; then
+    $RUN_PREFIX python3 main.py -i stratux_wifi -c stratux_57.dat $ADD_ARGS
+fi
+
+if [ $choice -eq 14 ]; then
+    $RUN_PREFIX python3 main.py -i stratux_wifi $ADD_ARGS
+fi
+
+
+########################################################
+# IMU test Pi only
+########################################################
 
 if [ $choice -eq 20 ]; then
     # linux/raspberry pi only
@@ -110,6 +148,10 @@ if [ $choice -eq 21 ]; then
         echo "Currently only supported on linux/raspberry pi"
     fi
 fi
+
+########################################################
+# End of script
+########################################################
 
 echo "To run again type: ./util/run_choose.sh"
 

@@ -43,6 +43,13 @@ class object3d(Module):
         # Clear the surface
         self.surface.fill((0, 0, 0, 0))
 
+        if aircraft.roll is None or aircraft.pitch is None:
+            # draw a red X on the screen.
+            pygame.draw.line(self.surface, (255,0,0), (0,0), (self.width,self.height), 4)
+            pygame.draw.line(self.surface, (255,0,0), (self.width,0), (0,self.height), 4)
+            smartdisplay.pygamescreen.blit(self.surface, pos)
+            return
+
         # Calculate the cube size based on the smaller dimension of the surface
         cube_size = min(self.width, self.height) * 1  # Use % of the smaller dimension
 

@@ -72,6 +72,14 @@ class artificalhorz(Module):
             x, y = 0, 0
         else:
             x, y = pos
+        
+        # if aircraft.roll is None or aircraft.pitch is None then don't draw the horizon lines.
+        if aircraft.roll is None or aircraft.pitch is None:
+            # draw a red X on the screen.
+            pygame.draw.line(self.surface, (255,0,0), (0,0), (self.width,self.height), 4)
+            pygame.draw.line(self.surface, (255,0,0), (self.width,0), (0,self.height), 4)
+            smartdisplay.pygamescreen.blit(self.surface, pos)
+            return
 
         # Create a temporary surface for drawing
         larger_width = int(self.width * 1.5)

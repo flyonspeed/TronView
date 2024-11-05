@@ -3,7 +3,7 @@
 # wifi udp input source
 # Stratux UDP
 # 1/23/2019 Topher
-# 11/4/2024 - Adding debug, and working on AHRS message parsing.
+# 11/4/2024 - Adding debug, and working on AHRS message parsing. 
 
 from ._input import Input
 from lib import hud_utils
@@ -161,7 +161,8 @@ class stratux_wifi(Input):
             elif(msg[0]==126 and msg[1]==ord('L') and msg[2]==ord('E')):  # Check for Levil specific messages ~LE
                 #print(msg)
                 #print("Len:"+str(len(msg)))
-                #print("Message ID "+format(msg[3]));
+                if(aircraft.debug_mode>0):
+                    print("Message ID "+format(msg[3]));
                 # check if we want to read in ahrs data input.
                 if(self.use_ahrs == False):
                     return aircraft
@@ -181,15 +182,24 @@ class stratux_wifi(Input):
 
 
                 elif(msg[3]==1): # ahrs and air data.
-                    #print("len:"+str(len(msg))+" "+str(msg[len(msg)-1]))
+                    if(aircraft.debug_mode>0):
+                        print("ahrs levil :"+str(len(msg))+" "+str(msg[len(msg)-1]))
                     if(len(msg)==28):
+                        # //###########################################################################################################################
+                        # //                 Stratux AHRS message
+                        # //  -------------------------------------------------------------------------------------------------------------------------
+                        # //  BOM  |ID/TYP|resvd|roll  |  pitch  |   hdg   |slip |  yaw    |  G's | airspd  | palt   | vspd    | resvd   | chksm | EOM  
+                        # //  -------------------------------------------------------------------------------------------------------------------------                   
+                        # //  [126, 76, 69, 1, 1, 0, 0, 255, 255, 127, 255, 0, 0, 127, 255, 0, 10, 127, 255, 24, 162, 255, 255, 127, 255, 42, 249, 126]
+                        # //############################################################################################################################
+
                         # h   h     h   h      h         h,    h   H        h     B   B
                         Roll,Pitch,Yaw,Inclin,TurnCoord,GLoad,ias,pressAlt,vSpeed,AOA,OAT = struct.unpack(">hhhhhhhHhBB",msg[5:25]) 
-                        aircraft.roll = Roll * 0.1
-                        aircraft.pitch = Pitch * 0.1
-                        aircraft.mag_head = Yaw * 0.1
-                        aircraft.slip_skid = TurnCoord * 0.01
-                        aircraft.vert_G = GLoad * 0.1
+                        aircraft.roll = None if Roll == 32767 else Roll / 10
+                        aircraft.pitch = None if Pitch == 32767 else Pitch / 10
+                        aircraft.mag_head = 0 if Yaw == 32767 else Yaw / 10
+                        aircraft.slip_skid = None if TurnCoord == 32767 else TurnCoord / 100
+                        aircraft.vert_G = None if GLoad == 32767 else GLoad / 10
                         #aircraft.ias = ias # if ias is 32767 then no airspeed given?
                         aircraft.PALT = pressAlt -5000 # 5000 is sea level.
                         aircraft.vsi = vSpeed

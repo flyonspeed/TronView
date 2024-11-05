@@ -12,13 +12,15 @@ import statistics
 import board
 import busio
 import adafruit_bno055
+from lib.common.dataship.dataship_imu import IMU
 
 class gyro_i2c_bno055(Input):
     def __init__(self):
-        self.name = "bno055 IMU 9dof"
+        self.name = "bno055"
         self.version = 1.0
         self.inputtype = "gyro"
         self.values = []
+        self.num_bno055 = 1
 
     def initInput(self,num,aircraft):
         Input.initInput( self,num, aircraft )  # call parent init Input.
@@ -26,16 +28,38 @@ class gyro_i2c_bno055(Input):
             self.isPlaybackMode = True
         else:
             self.isPlaybackMode = False
+        
+        # check how many imus are already in aircraft.imus. this is number of imus + 1.
+        self.num_imus = len(aircraft.imus) + 1
+
+        # check how many imus are named the same as this one. get next number for this one.
+        self.num_bno055 = 1
+        for imu in aircraft.imus:
+            if imu.id == self.id:   
+                self.num_bno055 += 1
+
+        # read address from config.
+        self.id = hud_utils.readConfig("bno055", "device"+str(self.num_bno055)+"_id", "bno055_"+str(self.num_bno055))
+
+        self.address = hud_utils.readConfig("bno055", "device"+str(self.num_bno055)+"_address", 40)
+        print("init bno055("+str(self.num_bno055)+") id: "+str(self.id)+" address: "+str(self.address))
 
         self.i2c = busio.I2C(board.SCL, board.SDA)
-        self.bno = adafruit_bno055.BNO055_I2C(self.i2c)
+        self.bno = adafruit_bno055.BNO055_I2C(self.i2c, address=self.address)
 
-        # create gyro in aircraft object.
-        #aircraft.imus.append()
+        # create a empty imu object.
+        self.imuData = IMU()
+        self.imuData.id = self.id
+        self.imuData.name = self.name
+        self.imuData.address = self.address
 
+        # create imu in aircraft object. append to dict with key as num_imus.
+        aircraft.imus[self.num_imus] = self.imuData
 
+        self.last_read_time = time.time()
+        
     def closeInput(self,aircraft):
-        print("bno055 close")
+        print("bno055("+str(self.inputNum)+") close")
 
     #############################################
     ## Function: readMessage
@@ -44,20 +68,31 @@ class gyro_i2c_bno055(Input):
         if aircraft.errorFoundNeedToExit: return aircraft
         if self.skipReadInput == True: return aircraft
 
+
         try:
-            
+            current_time = time.time()
+            # calculate hz.
+            self.imuData.hz = 1 / (current_time - self.last_read_time)
+            self.last_read_time = current_time
+
             #print("Rotation Vector Quaternion:")
             quat_i, quat_j, quat_k, quat_real = self.bno.quaternion
-            print( "I: %0.6f  J: %0.6f K: %0.6f  Real: %0.6f" % (quat_i, quat_j, quat_k, quat_real))
+            #print( "I: %0.6f  J: %0.6f K: %0.6f  Real: %0.6f" % (quat_i, quat_j, quat_k, quat_real))
             gyro_x, gyro_y, gyro_z = self.bno.gyro
             #print("X: %0.6f  Y: %0.6f Z: %0.6f rads/s" % (gyro_x, gyro_y, gyro_z))
 
             #aircraft.pitch = gyro_x * 180
             #aircraft.roll = gyro_y * 180
 
-            aircraft.pitch = quat_j * 180
-            aircraft.roll = quat_i * 180
-            aircraft.mag_head = quat_k * 360
+            # update imuData object.
+            self.imuData.quat = [quat_i * 180, quat_j * 180, quat_k * 180, quat_real * 180]
+            self.imuData.gyro = [gyro_x * 180, gyro_y * 180, gyro_z * 180]
+            self.imuData.pitch = self.imuData.quat[1]
+            self.imuData.roll = self.imuData.quat[0]
+            self.imuData.yaw = self.imuData.quat[2]
+
+            # update aircraft object.
+            aircraft.imus[self.num_imus] = self.imuData
 
         except Exception as e:
             aircraft.errorFoundNeedToExit = True

@@ -7,6 +7,7 @@ import math
 from ... import hud_utils
 import inspect
 from typing import List, Any
+from lib.common.dataship.dataship_imu import IMU
 
 #############################################
 ## Class: Dataship
@@ -59,7 +60,7 @@ class Dataship(object):
         self.inputs = [InputDetails(),InputDetails(),InputDetails()]
         self.alerts = []
         self.analog = AnalogData()
-        self.imus = []
+        self.imus = {}
         self.debug1 = ""
         self.debug2 = ""
         self.debug3 = ""

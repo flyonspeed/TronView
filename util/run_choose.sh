@@ -14,26 +14,31 @@ $RUN_PREFIX pkill -f 'python3'
 
 # ask user to choose which demo to run
 echo "Choose which demo/test to run:"
-#echo "1:  G3X - EFIS"
-#echo "2:  G3X - AOA Test data"
-echo "3:  MGL & Stratux - chasing traffic"
-echo "4:  MGL - G430 CDI"
-echo "5:  MGL - Gyro Test"
+#echo "1:   G3X - EFIS"
+#echo "2:   G3X - AOA Test data"
+echo "3:   MGL & Stratux - chasing traffic"
+echo "4:   MGL - G430 CDI"
+echo "5:   MGL - Gyro Test"
 
-echo "6:  Dynon D100"
-echo "7:  Dynon Skyview"
+echo "6:   Dynon D100"
+echo "7:   Dynon Skyview"
 
-echo "9:  MGL & Stratux RV6 Chase 1"
-echo "10: MGL & Stratux RV6 Chase 2"
-echo "11: MGL & Stratux RV6 Chase 3"
+echo "9:   MGL & Stratux RV6 Chase 1"
+echo "10:  MGL & Stratux RV6 Chase 2"
+echo "11:  MGL & Stratux RV6 Chase 3"
 
-echo "12: Stratux ONLY Demo 54"
-echo "13: Stratux ONLY Demo 57 (Bad pitch/roll)"
+echo "12:  Stratux ONLY Demo 54"
+echo "13:  Stratux ONLY Demo 57 (Bad pitch/roll)"
 echo "14:  Stratux ONLY Demo 5 - Shows traffic targets only, No AHRS data"
 
-echo "20: live i2c bno085 IMU data (pi only)"
-echo "21: live i2c bno055 IMU data (pi only)"
-echo "22: live i2c bno055 & MGL ( pi only)"
+echo "21:  live i2c bno055 IMU data (pi only)"
+echo "22:  live i2c bno055 & MGL ( pi only)"
+echo "23:  live i2c bno055 + MGL + Stratux (pi only)"
+
+echo "200: live bno085 IMU data (pi only)"
+echo "201: live bno085 + MGL + Stratux (pi only)"
+
+
 echo "Type 't' after number to run in text mode. Example: 3t"
 read -p "Enter your choice: " choice
 
@@ -132,15 +137,6 @@ fi
 # IMU test Pi only
 ########################################################
 
-if [ $choice -eq 20 ]; then
-    # linux/raspberry pi only
-    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-        $RUN_PREFIX python3 main.py -i gyro_i2c_bno085 $ADD_ARGS
-    else
-        echo "Currently only supported on linux/raspberry pi"
-    fi
-fi
-
 if [ $choice -eq 21 ]; then
     # linux/raspberry pi only
     if [[ "$OSTYPE" == "linux-gnu"* ]]; then
@@ -152,8 +148,40 @@ fi
 
 if [ $choice -eq 22 ]; then
     # linux/raspberry pi only
-    $RUN_PREFIX python3 main.py --in1 gyro_i2c_bno055 --in1 serial_mgl --playfile1 mgl_data1.bin $ADD_ARGS
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        $RUN_PREFIX python3 main.py --in1 gyro_i2c_bno055 --in1 serial_mgl --playfile1 mgl_data1.bin $ADD_ARGS
+    else
+        echo "only supported on pi"
+    fi
 fi
+
+if [ $choice -eq 23 ]; then
+    # linux/raspberry pi only
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        $RUN_PREFIX python3 main.py -i serial_mgl --playfile1 mgl_chase_rv6_1.dat --in2 stratux_wifi --playfile2 stratux_chase_rv6_1.dat -s F18_HUD --in3 gyro_i2c_bno055 $ADD_ARGS
+    else
+        echo "only supported on pi"
+    fi
+fi
+
+if [ $choice -eq 200 ]; then
+    # linux/raspberry pi only
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        $RUN_PREFIX python3 main.py -i gyro_i2c_bno085 $ADD_ARGS
+    else
+        echo "Currently only supported on linux/raspberry pi"
+    fi
+fi
+
+if [ $choice -eq 201 ]; then
+    # linux/raspberry pi only
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        $RUN_PREFIX python3 main.py -i serial_mgl --playfile1 mgl_chase_rv6_1.dat --in2 stratux_wifi --playfile2 stratux_chase_rv6_1.dat -s F18_HUD --in3 gyro_i2c_bno085 $ADD_ARGS
+    else
+        echo "only supported on pi"
+    fi
+fi
+
 
 ########################################################
 # End of script

@@ -44,12 +44,6 @@ class object3d(Module):
         # Clear the surface
         self.surface.fill((0, 0, 0, 0))
 
-        if aircraft.roll is None or aircraft.pitch is None:
-            # draw a red X on the screen.
-            pygame.draw.line(self.surface, (255,0,0), (0,0), (self.width,self.height), 4)
-            pygame.draw.line(self.surface, (255,0,0), (self.width,0), (0,self.height), 4)
-            smartdisplay.pygamescreen.blit(self.surface, pos)
-            return
 
         # Calculate the cube size based on the smaller dimension of the surface
         cube_size = min(self.width, self.height) * 1  # Use % of the smaller dimension
@@ -69,6 +63,22 @@ class object3d(Module):
             [1, 1, 1], # back right top
             [-1, 1, 1] # back left top
         ]
+
+        if self.source_imu == 'Aircraft':
+            roll = aircraft.roll
+            pitch = aircraft.pitch
+            yaw = aircraft.mag_head
+        else:
+            index = int(self.source_imu)
+            roll = aircraft.imus[index].roll
+            pitch = aircraft.imus[index].pitch
+
+        if roll is None or pitch is None:
+            # draw a red X on the screen.
+            pygame.draw.line(self.surface, (255,0,0), (0,0), (self.width,self.height), 4)
+            pygame.draw.line(self.surface, (255,0,0), (self.width,0), (0,self.height), 4)
+            smartdisplay.pygamescreen.blit(self.surface, pos)
+            return
 
         # Convert degrees to radians
         pitch = math.radians(aircraft.pitch)

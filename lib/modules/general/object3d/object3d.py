@@ -160,18 +160,14 @@ class object3d(Module):
     def get_module_options(self):
         # get the imu list of imu objects
         imu_list = shared.Dataship.imus
-        # Debug print to see what we're getting
-        print("IMU List type:", type(imu_list))
-        print("IMU List contents:", imu_list)
-        
         # go through imu list and get the id and name.
         self.imu_ids = []
         if isinstance(imu_list, dict):
             # If it's a dictionary, iterate through values
             for imu_id, imu in imu_list.items():
-                print(f"IMU {imu_id}:", imu.id)
+                #print(f"IMU {imu_id}:", imu.id)
                 self.imu_ids.append(str(imu.id))
-        if len(self.source_imu_index_name) == 0:
+        if len(self.source_imu_index_name) == 0: # if no name.
             self.source_imu_index_name = self.imu_ids[self.source_imu_index]  # select first one.
 
         return {

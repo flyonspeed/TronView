@@ -41,6 +41,8 @@ class object3d(Module):
         self.surface = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
         self.imu_ids = []
 
+        self.draw_arrows = True
+
     # called every redraw for the mod
     def draw(self, aircraft, smartdisplay, pos=(None, None)):
         # Clear the surface
@@ -77,14 +79,27 @@ class object3d(Module):
             pitch = None
             yaw = None
 
+        # error with IMU data..
         if roll is None or pitch is None:
             # draw a red X on the screen.
             pygame.draw.line(self.surface, (255,0,0), (0,0), (self.width,self.height), 4)
             pygame.draw.line(self.surface, (255,0,0), (self.width,0), (0,self.height), 4)
-            if len(self.source_imu_index_name) > 0:
-                text = self.font.render("No IMU-"+str(self.source_imu_index+1)+" "+self.source_imu_index_name, True, (255,0,0))
-                text_rect = text.get_rect(center=(self.width//2, self.height//2))
-                self.surface.blit(text, text_rect)
+            text = self.font.render("IMU-"+str(self.source_imu_index+1) +" ERROR", True, (255,0,0))
+            text_rect = text.get_rect(center=(self.width//2, self.height//2-20))
+            self.surface.blit(text, text_rect)
+            next_line = 30
+            # check if index is bigger then size
+            if self.source_imu_index >= len(aircraft.imus):
+                if len(self.source_imu_index_name) > 0:
+                    text = self.font.render("NotFound\n"+self.source_imu_index_name, True, (255,0,0))
+                    text_rect = text.get_rect(center=(self.width//2, self.height//2+next_line))
+                    self.surface.blit(text, text_rect)
+                    next_line += 20
+                else:
+                    text = self.font.render("NotFound", True, (255,0,0))
+                    text_rect = text.get_rect(center=(self.width//2, self.height//2+next_line))
+                    self.surface.blit(text, text_rect)
+                    next_line += 20
             smartdisplay.pygamescreen.blit(self.surface, pos)
             # if self.source_imu_index_name is not empty then print the name in pygame font to self.surface.
             return
@@ -92,7 +107,14 @@ class object3d(Module):
         # Convert degrees to radians
         pitch = math.radians(pitch)
         roll = math.radians(roll)
-        yaw = math.radians(yaw)
+        if yaw is not None:
+            yaw = math.radians(yaw)
+        else:
+            #draw NO YAW text on the screen.
+            text = self.font.render("NO YAW", True, (255,0,0))
+            text_rect = text.get_rect(center=(self.width//2, self.height-15))
+            self.surface.blit(text, text_rect)
+            yaw = 0
 
         # Define rotation matrices
         def rotate_x(v, angle):
@@ -186,7 +208,7 @@ class object3d(Module):
             },
             "source_imu_index": {
                 "type": "int",
-                "hidden": True,
+                "hidden": True,  # hide from the UI, but save to json screen file.
                 "default": 0
             },
             "MainColor": {
@@ -200,7 +222,7 @@ class object3d(Module):
     def changeSourceIMU(self):
         # source_imu_index_name got changed. find the index of the imu id in the imu list.
         self.source_imu_index = self.imu_ids.index(self.source_imu_index_name)
-        print("source_imu_index==", self.source_imu_index)
+        #print("source_imu_index==", self.source_imu_index)
 
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

@@ -79,11 +79,14 @@ class Dataship(object):
         self.data_format = 0 # 0 is ft/in
         self.data_format_temp = 0 # 0 is F, 1 is C
 
-    def get_imu0(self):
+    def get_imu1(self):
         return self.imus[0]
 
-    def get_imu1(self):
+    def get_imu2(self):
         return self.imus[1]
+
+    def get_imu3(self):
+        return self.imus[2]
 
     # set set measurement to use for data.
     # 0 is US standard. (mph, ft)

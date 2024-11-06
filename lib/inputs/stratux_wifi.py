@@ -71,7 +71,7 @@ class stratux_wifi(Input):
         self.imuData.id = "stratux_imu"
         self.imuData.name = self.name
         self.imu_index = len(aircraft.imus)  # Start at 0
-        print("new imu "+str(self.imu_index)+": "+str(self.imuData))
+        print("new stratux imu "+str(self.imu_index)+": "+str(self.imuData))
         aircraft.imus[self.imu_index] = self.imuData
         self.last_read_time = time.time()
 
@@ -207,34 +207,37 @@ class stratux_wifi(Input):
 
                         # h   h     h   h      h         h,    h   H        h     B   B
                         Roll,Pitch,Yaw,Inclin,TurnCoord,GLoad,ias,pressAlt,vSpeed,AOA,OAT = struct.unpack(">hhhhhhhHhBB",msg[5:25]) 
-                        aircraft.roll = None if Roll == 32767 else Roll / 10
-                        aircraft.pitch = None if Pitch == 32767 else Pitch / 10
-                        aircraft.mag_head = 0 if Yaw == 32767 else Yaw / 10
-                        aircraft.slip_skid = None if TurnCoord == 32767 else TurnCoord / 100
-                        aircraft.vert_G = None if GLoad == 32767 else GLoad / 10
-                        #aircraft.ias = ias # if ias is 32767 then no airspeed given?
-                        aircraft.PALT = pressAlt -5000 # 5000 is sea level.
-                        aircraft.vsi = vSpeed
-                        if(msg[4]==2): # if version is 2 then read AOA and OAT
-                            aircraft.aoa = AOA
-                            aircraft.oat = OAT
-                        if(self.textMode_showRaw==True): aircraft.msg_last = msg
-                        aircraft.msg_count += 1
 
                         # Update IMU data
-                        self.imuData.roll = aircraft.roll
-                        self.imuData.pitch = aircraft.pitch
-                        self.imuData.yaw = aircraft.yaw
-                        self.imuData.heading = aircraft.mag_head
-                        self.imuData.turn_rate = aircraft.turn_rate
-                        self.imuData.slip_skid = aircraft.slip_skid
-                        self.imuData.g_force = aircraft.vert_G
+                        self.imuData.roll = None if Roll == 32767 else Roll / 10
+                        self.imuData.pitch = None if Pitch == 32767 else Pitch / 10
+                        self.imuData.yaw = None if Yaw == 32767 else Yaw / 10
+                        self.imuData.heading = self.imuData.yaw
+
+                        self.imuData.slip_skid = None if TurnCoord == 32767 else TurnCoord / 100
+                        self.imuData.vert_G = None if GLoad == 32767 else GLoad / 10
+
                         if aircraft.debug_mode > 0:
                             current_time = time.time() # calculate hz.
                             self.imuData.hz = round(1 / (current_time - self.last_read_time), 1)
                             self.last_read_time = current_time
                         # Update the IMU in the aircraft's imus dictionary
                         aircraft.imus[self.imu_index] = self.imuData                        
+
+                        if self.use_ahrs or self.imu_index == 0:
+                            aircraft.roll = self.imuData.roll
+                            aircraft.pitch = self.imuData.pitch
+                            aircraft.mag_head = self.imuData.heading
+                            aircraft.slip_skid = self.imuData.slip_skid
+                            aircraft.vert_G = self.imuData.vert_G
+                            aircraft.ias = ias # if ias is 32767 then no airspeed given?
+                            aircraft.PALT = pressAlt -5000 # 5000 is sea level.
+                            aircraft.vsi = vSpeed
+                            if(msg[4]==2): # if version is 2 then read AOA and OAT
+                                aircraft.aoa = AOA
+                                aircraft.oat = OAT
+                        if(self.textMode_showRaw==True): aircraft.msg_last = msg
+                        aircraft.msg_count += 1
 
                     else:
                         aircraft.msg_bad +=1

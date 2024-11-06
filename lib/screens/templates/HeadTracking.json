@@ -1,0 +1,810 @@
+{
+  "ver": {
+    "version": "1.0"
+  },
+  "screen": {
+    "title": "No Name",
+    "width": 1920,
+    "height": 1080
+  },
+  "screenObjects": [
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 4,
+      "y": 72,
+      "width": 233,
+      "height": 909,
+      "grid_position": "MidL",
+      "grid_percentage_x": 0.3765625,
+      "grid_percentage_y": 0.925,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "template",
+            "value": ""
+          },
+          {
+            "name": "text",
+            "value": "{self}"
+          },
+          {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 20
+          },
+          {
+            "name": "font_bold",
+            "value": false
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              0,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 0
+          },
+          {
+            "name": "box_radius",
+            "value": 0
+          }
+        ]
+      },
+      "id": "M_21qs4"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 256,
+      "y": 775,
+      "width": 334,
+      "height": 176,
+      "grid_position": "BotL",
+      "grid_percentage_x": 1.321875,
+      "grid_percentage_y": 0.7944444444444444,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "template",
+            "value": "internal<obj>"
+          },
+          {
+            "name": "text",
+            "value": "{internal<obj>}"
+          },
+          {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 20
+          },
+          {
+            "name": "font_bold",
+            "value": false
+          },
+          {
+            "name": "text_color",
+            "value": [
+              255,
+              0,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 0
+          },
+          {
+            "name": "box_radius",
+            "value": 0
+          }
+        ]
+      },
+      "id": "M_p8t12"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 253,
+      "y": 134,
+      "width": 290,
+      "height": 619,
+      "grid_position": "MidL",
+      "grid_percentage_x": 1.24375,
+      "grid_percentage_y": 0.4638888888888889,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "template",
+            "value": "inputs"
+          },
+          {
+            "name": "text",
+            "value": "{inputs}"
+          },
+          {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 20
+          },
+          {
+            "name": "font_bold",
+            "value": false
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              0,
+              255
+            ]
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 0
+          },
+          {
+            "name": "box_radius",
+            "value": 0
+          }
+        ]
+      },
+      "id": "M_ulwwd"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 419,
+      "y": 10,
+      "width": 878,
+      "height": 110,
+      "grid_position": "TopM",
+      "grid_percentage_x": 0.68125,
+      "grid_percentage_y": 0.3611111111111111,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "template",
+            "value": ""
+          },
+          {
+            "name": "text",
+            "value": "HeadHunter Tracking"
+          },
+          {
+            "name": "font_name",
+            "value": "arial"
+          },
+          {
+            "name": "font_size",
+            "value": 91
+          },
+          {
+            "name": "font_bold",
+            "value": false
+          },
+          {
+            "name": "text_color",
+            "value": [
+              81,
+              81,
+              81,
+              255
+            ]
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 0
+          },
+          {
+            "name": "box_radius",
+            "value": 0
+          }
+        ]
+      },
+      "id": "M_rvd5n"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 254,
+      "y": 117,
+      "width": 194,
+      "height": 29,
+      "grid_position": "TopL",
+      "grid_percentage_x": 1.096875,
+      "grid_percentage_y": 0.7305555555555555,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "template",
+            "value": ""
+          },
+          {
+            "name": "text",
+            "value": "Inputs"
+          },
+          {
+            "name": "font_name",
+            "value": "arial"
+          },
+          {
+            "name": "font_size",
+            "value": 20
+          },
+          {
+            "name": "font_bold",
+            "value": true
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 1
+          },
+          {
+            "name": "box_radius",
+            "value": 4
+          }
+        ]
+      },
+      "id": "M_rugmk"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 253,
+      "y": 746,
+      "width": 194,
+      "height": 29,
+      "grid_position": "BotL",
+      "grid_percentage_x": 1.09375,
+      "grid_percentage_y": 0.225,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "template",
+            "value": ""
+          },
+          {
+            "name": "text",
+            "value": "INTERNAL"
+          },
+          {
+            "name": "font_name",
+            "value": "arial"
+          },
+          {
+            "name": "font_size",
+            "value": 20
+          },
+          {
+            "name": "font_bold",
+            "value": true
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 1
+          },
+          {
+            "name": "box_radius",
+            "value": 4
+          }
+        ]
+      },
+      "id": "M_e6y5o"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 585,
+      "y": 172,
+      "width": 270,
+      "height": 327,
+      "grid_position": "TopM",
+      "grid_percentage_x": 0.25,
+      "grid_percentage_y": 1.863888888888889,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "template",
+            "value": ""
+          },
+          {
+            "name": "text",
+            "value": "{get_imu1()}"
+          },
+          {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 20
+          },
+          {
+            "name": "font_bold",
+            "value": false
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 0
+          },
+          {
+            "name": "box_radius",
+            "value": 0
+          }
+        ]
+      },
+      "id": "M_95hls"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 586,
+      "y": 565,
+      "width": 288,
+      "height": 397,
+      "grid_position": "BotM",
+      "grid_percentage_x": 0.28125,
+      "grid_percentage_y": 0.24166666666666667,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "template",
+            "value": ""
+          },
+          {
+            "name": "text",
+            "value": "{get_imu2()}"
+          },
+          {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 20
+          },
+          {
+            "name": "font_bold",
+            "value": false
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 0
+          },
+          {
+            "name": "box_radius",
+            "value": 0
+          }
+        ]
+      },
+      "id": "M_kvfqe"
+    },
+    {
+      "type": "module",
+      "title": "object 3D",
+      "x": 848,
+      "y": 132,
+      "width": 458,
+      "height": 393,
+      "grid_position": "TopM",
+      "grid_percentage_x": 1.365625,
+      "grid_percentage_y": 1.825,
+      "module": {
+        "name": "object 3D",
+        "options": [
+          {
+            "name": "source_imu_index_name",
+            "value": "mgl_imu"
+          },
+          {
+            "name": "source_imu_index",
+            "value": 0
+          },
+          {
+            "name": "MainColor",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          }
+        ]
+      },
+      "id": "M_18g34"
+    },
+    {
+      "type": "module",
+      "title": "object 3D",
+      "x": 808,
+      "y": 497,
+      "width": 495,
+      "height": 415,
+      "grid_position": "MidM",
+      "grid_percentage_x": 1.2984375,
+      "grid_percentage_y": 1.913888888888889,
+      "module": {
+        "name": "object 3D",
+        "options": [
+          {
+            "name": "source_imu_index_name",
+            "value": "stratux_imu"
+          },
+          {
+            "name": "source_imu_index",
+            "value": 1
+          },
+          {
+            "name": "MainColor",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          }
+        ]
+      },
+      "id": "M_8njl3"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 584,
+      "y": 140,
+      "width": 194,
+      "height": 29,
+      "grid_position": "TopM",
+      "grid_percentage_x": 0.128125,
+      "grid_percentage_y": 0.8583333333333333,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "template",
+            "value": ""
+          },
+          {
+            "name": "text",
+            "value": "IMU-1"
+          },
+          {
+            "name": "font_name",
+            "value": "arial"
+          },
+          {
+            "name": "font_size",
+            "value": 20
+          },
+          {
+            "name": "font_bold",
+            "value": true
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 1
+          },
+          {
+            "name": "box_radius",
+            "value": 4
+          }
+        ]
+      },
+      "id": "M_9d5p3"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 584,
+      "y": 529,
+      "width": 194,
+      "height": 29,
+      "grid_position": "MidM",
+      "grid_percentage_x": 0.128125,
+      "grid_percentage_y": 1.0194444444444444,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "template",
+            "value": ""
+          },
+          {
+            "name": "text",
+            "value": "IMU-2"
+          },
+          {
+            "name": "font_name",
+            "value": "arial"
+          },
+          {
+            "name": "font_size",
+            "value": 20
+          },
+          {
+            "name": "font_bold",
+            "value": true
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 1
+          },
+          {
+            "name": "box_radius",
+            "value": 4
+          }
+        ]
+      },
+      "id": "M_hih2t"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 5,
+      "y": 49,
+      "width": 113,
+      "height": 25,
+      "grid_position": "TopL",
+      "grid_percentage_x": 0.1921875,
+      "grid_percentage_y": 0.3416666666666667,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "template",
+            "value": ""
+          },
+          {
+            "name": "text",
+            "value": "AIRCRAFT"
+          },
+          {
+            "name": "font_name",
+            "value": "arial"
+          },
+          {
+            "name": "font_size",
+            "value": 20
+          },
+          {
+            "name": "font_bold",
+            "value": true
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 1
+          },
+          {
+            "name": "box_radius",
+            "value": 4
+          }
+        ]
+      },
+      "id": "M_0b056"
+    },
+    {
+      "type": "module",
+      "title": "ArtificalHorz",
+      "x": 1352,
+      "y": 229,
+      "width": 241,
+      "height": 201,
+      "grid_position": "TopR",
+      "grid_percentage_x": 0.6015625,
+      "grid_percentage_y": 1.8305555555555555,
+      "module": {
+        "name": "ArtificalHorz",
+        "options": [
+          {
+            "name": "LineColor",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "SkyColorBottom",
+            "value": [
+              0,
+              153,
+              204
+            ]
+          },
+          {
+            "name": "SkyColorTop",
+            "value": [
+              0,
+              102,
+              204
+            ]
+          },
+          {
+            "name": "GroundColorTop",
+            "value": [
+              153,
+              102,
+              51
+            ]
+          },
+          {
+            "name": "GroundColorBottom",
+            "value": [
+              102,
+              51,
+              0
+            ]
+          }
+        ]
+      },
+      "id": "M_3nx4s"
+    }
+  ]
+}

@@ -11,6 +11,8 @@ from lib import smartdisplay
 import pygame
 import math
 from lib.common import shared
+from lib.common.dataship.dataship import Dataship
+
 class object3d(Module):
     # called only when object is first created.
     def __init__(self):
@@ -42,6 +44,7 @@ class object3d(Module):
         self.imu_ids = []
 
         self.draw_arrows = True
+        self.zero_position = None
 
     # called every redraw for the mod
     def draw(self, aircraft, smartdisplay, pos=(None, None)):
@@ -71,9 +74,10 @@ class object3d(Module):
         # if imu is available and the self.source_imu_index is not larger than the number of imus.
         if aircraft.imus and self.source_imu_index < len(aircraft.imus):
             source_imu = aircraft.imus[self.source_imu_index]
-            roll = source_imu.roll
-            pitch = source_imu.pitch
-            yaw = source_imu.yaw
+            new_position = self.getUpdatedPostion(source_imu.pitch, source_imu.roll, source_imu.yaw)
+            pitch = new_position[0]
+            roll = new_position[1]
+            yaw = new_position[2]
         else:
             roll = None
             pitch = None
@@ -224,5 +228,36 @@ class object3d(Module):
         self.source_imu_index = self.imu_ids.index(self.source_imu_index_name)
         #print("source_imu_index==", self.source_imu_index)
 
+    def processClick(self, aircraft: Dataship, mx, my):
+        # When clicked, set the current position as the new zero reference point
+        if aircraft.imus and self.source_imu_index < len(aircraft.imus):
+            source_imu = aircraft.imus[self.source_imu_index]
+            self.zero_position = [
+                source_imu.pitch,
+                source_imu.roll,
+                source_imu.yaw
+            ]
+            print("New zero position set:", self.zero_position)
+
+    def getUpdatedPostion(self, pitch, roll, yaw):
+        # If we have a zero position set, return values relative to that position
+        if self.zero_position is not None:
+            # Calculate the relative angles
+            rel_pitch = pitch - self.zero_position[0]
+            rel_roll = roll - self.zero_position[1]
+            if yaw is not None: 
+                rel_yaw = yaw - self.zero_position[2]
+            else:
+                rel_yaw = None  
+            
+            # Normalize angles to -180 to +180 range
+            rel_pitch = (rel_pitch + 180) % 360 - 180
+            rel_roll = (rel_roll + 180) % 360 - 180
+            if rel_yaw is not None:
+                rel_yaw = (rel_yaw + 180) % 360 - 180
+            
+            return [rel_pitch, rel_roll, rel_yaw]
+        else:
+            return [pitch, roll, yaw]
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

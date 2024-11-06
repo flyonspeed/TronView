@@ -31,8 +31,9 @@ echo "12: Stratux ONLY Demo 54"
 echo "13: Stratux ONLY Demo 57 (Bad pitch/roll)"
 echo "14:  Stratux ONLY Demo 5 - Shows traffic targets only, No AHRS data"
 
-echo "20: live i2c bno085 IMU data (linux/raspberry pi only)"
-echo "21: live i2c bno055 IMU data (linux/raspberry pi only)"
+echo "20: live i2c bno085 IMU data (pi only)"
+echo "21: live i2c bno055 IMU data (pi only)"
+echo "22: live i2c bno055 & MGL ( pi only)"
 echo "Type 't' after number to run in text mode. Example: 3t"
 read -p "Enter your choice: " choice
 
@@ -147,6 +148,11 @@ if [ $choice -eq 21 ]; then
     else
         echo "Currently only supported on linux/raspberry pi"
     fi
+fi
+
+if [ $choice -eq 22 ]; then
+    # linux/raspberry pi only
+    $RUN_PREFIX python3 main.py --in1 gyro_i2c_bno055 --in1 serial_mgl --playfile1 mgl_data1.bin $ADD_ARGS
 fi
 
 ########################################################

@@ -19,7 +19,8 @@ class object3d(Module):
         self.MainColor = (255,255,255)
         self.font_size = 16
 
-        self.source_imu = "Aircraft"
+        self.source_imu_index_name = ""
+        self.source_imu_index = 0
 
     # called once for setup
     def initMod(self, pygamescreen, width=None, height=None):
@@ -38,6 +39,7 @@ class object3d(Module):
         )
         # Create a surface with per-pixel alpha
         self.surface = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
+        self.imu_ids = []
 
     # called every redraw for the mod
     def draw(self, aircraft, smartdisplay, pos=(None, None)):
@@ -64,14 +66,15 @@ class object3d(Module):
             [-1, 1, 1] # back left top
         ]
 
-        if self.source_imu == 'Aircraft':
-            roll = aircraft.roll
-            pitch = aircraft.pitch
-            yaw = aircraft.mag_head
+        if aircraft.imus:
+            source_imu = aircraft.imus[self.source_imu_index]
+            roll = source_imu.roll
+            pitch = source_imu.pitch
+            yaw = source_imu.yaw
         else:
-            index = int(self.source_imu)
-            roll = aircraft.imus[index].roll
-            pitch = aircraft.imus[index].pitch
+            roll = None
+            pitch = None
+            yaw = None
 
         if roll is None or pitch is None:
             # draw a red X on the screen.
@@ -81,9 +84,9 @@ class object3d(Module):
             return
 
         # Convert degrees to radians
-        pitch = math.radians(aircraft.pitch)
-        roll = math.radians(aircraft.roll)
-        yaw = math.radians(aircraft.mag_head)
+        pitch = math.radians(pitch)
+        roll = math.radians(roll)
+        yaw = math.radians(yaw)
 
         # Define rotation matrices
         def rotate_x(v, angle):
@@ -162,23 +165,22 @@ class object3d(Module):
         print("IMU List contents:", imu_list)
         
         # go through imu list and get the id and name.
-        imu_ids = []
+        self.imu_ids = []
         if isinstance(imu_list, dict):
             # If it's a dictionary, iterate through values
             for imu_id, imu in imu_list.items():
-                print(f"IMU {imu_id}:", imu)
-                imu_ids.append(str(imu_id))
-        else:
-            # Fallback to default option
-            imu_ids = ["Aircraft"]
+                print(f"IMU {imu_id}:", imu.id)
+                self.imu_ids.append(str(imu.id))
+        if len(self.imu_ids) > 0:
+            self.source_imu_index_name = self.imu_ids[self.source_imu_index]  # select first one.
 
         return {
-            "source_imu": {
+            "source_imu_index_name": {
                 "type": "dropdown",
                 "label": "Source IMU",
                 "description": "IMU to use for the 3D object.",
-                "options": imu_ids,
-                "default": "Aircraft",
+                "options": self.imu_ids,
+                "post_change_function": "changeSourceIMU"
             },
             "MainColor": {
                 "type": "color",
@@ -187,6 +189,11 @@ class object3d(Module):
                 "description": "Color of the main line.",
             }
         }
+    
+    def changeSourceIMU(self):
+        # source_imu_index_name got changed. find the index of the imu id in the imu list.
+        self.source_imu_index = self.imu_ids.index(self.source_imu_index_name)
+        print("source_imu_index==", self.source_imu_index)
 
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

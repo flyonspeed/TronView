@@ -20,6 +20,7 @@ import time
 import math
 from geographiclib.geodesic import Geodesic
 import datetime
+from lib.common.dataship.dataship import IMU
 
 class stratux_wifi(Input):
     def __init__(self):
@@ -63,6 +64,17 @@ class stratux_wifi(Input):
         self.use_ahrs = hud_utils.readConfigBool("Stratux", "use_ahrs", defaultUseAHRS)
         if(self.use_ahrs==False):
             print("Skipping AHRS data from Stratux")
+
+        if(self.use_ahrs):
+            # create a empty imu object.
+            self.imuData = IMU()
+            self.imuData.id = "stratux_imu"
+            self.imuData.name = self.name
+            self.imu_index = len(aircraft.imus)  # Start at 0
+            print("new imu "+str(self.imu_index)+": "+str(self.imuData))
+            aircraft.imus[self.imu_index] = self.imuData
+            self.last_read_time = time.time()
+
 
     def closeInput(self,aircraft):
         if self.isPlaybackMode:
@@ -164,8 +176,8 @@ class stratux_wifi(Input):
                 if(aircraft.debug_mode>0):
                     print("Message ID "+format(msg[3]));
                 # check if we want to read in ahrs data input.
-                if(self.use_ahrs == False):
-                    return aircraft
+                # if(self.use_ahrs == False):
+                #     return aircraft
 
                 if(msg[3]==0): # status message
                     #print(msg)
@@ -208,6 +220,23 @@ class stratux_wifi(Input):
                             aircraft.oat = OAT
                         if(self.textMode_showRaw==True): aircraft.msg_last = msg
                         aircraft.msg_count += 1
+
+                        # Update IMU data
+                        self.imuData.roll = aircraft.roll
+                        self.imuData.pitch = aircraft.pitch
+                        self.imuData.yaw = aircraft.yaw
+                        self.imuData.heading = aircraft.mag_head
+                        self.imuData.turn_rate = aircraft.turn_rate
+                        self.imuData.slip_skid = aircraft.slip_skid
+                        self.imuData.g_force = aircraft.vert_G
+                        #self.imuData.timestamp = time.time()
+                        current_time = time.time()
+                        # calculate hz.
+                        self.imuData.hz = round(1 / (current_time - self.last_read_time), 1)
+                        self.last_read_time = current_time
+                        # Update the IMU in the aircraft's imus dictionary
+                        aircraft.imus[self.imu_index] = self.imuData                        
+
                     else:
                         aircraft.msg_bad +=1
                         #aircraft.msg_len = len(msg)

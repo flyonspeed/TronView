@@ -13,8 +13,7 @@ import board
 import busio
 import adafruit_bno08x
 from adafruit_bno08x.i2c import BNO08X_I2C
-from lib.common.dataship import dataship
-from lib.common.dataship import IMU
+from lib.common.dataship.dataship_imu import IMU
 
 class gyro_i2c_bno085(Input):
     def __init__(self):
@@ -89,7 +88,7 @@ class gyro_i2c_bno085(Input):
             
             #print("Rotation Vector Quaternion:")
             quat_i, quat_j, quat_k, quat_real = self.bno.quaternion  # pylint:disable=no-member
-            print( "I: %0.6f  J: %0.6f K: %0.6f  Real: %0.6f" % (quat_i, quat_j, quat_k, quat_real))
+            #print( "I: %0.6f  J: %0.6f K: %0.6f  Real: %0.6f" % (quat_i, quat_j, quat_k, quat_real))
             gyro_x, gyro_y, gyro_z = self.bno.gyro
             #print("X: %0.6f  Y: %0.6f Z: %0.6f rads/s" % (gyro_x, gyro_y, gyro_z))
 

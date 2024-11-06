@@ -13,6 +13,7 @@ import struct
 from lib import hud_text
 import binascii
 import time
+from lib.common.dataship.dataship_imu import IMU
 
 class serial_mgl(Input):
     def __init__(self):
@@ -45,6 +46,14 @@ class serial_mgl(Input):
                 bytesize=serial.EIGHTBITS,
                 timeout=1,
             )
+
+        # create a empty imu object.
+        self.imuData = IMU()
+        self.imuData.id = "mgl_imu"
+        self.imuData.name = self.name
+        self.imu_index = len(aircraft.imus)  # Start at 0
+        print("new imu "+str(self.imu_index)+": "+str(self.imuData))
+        aircraft.imus[self.imu_index] = self.imuData
 
 
     def closeInput(self,aircraft):
@@ -100,6 +109,20 @@ class serial_mgl(Input):
                             aircraft.msg_count += 1
                             if(self.textMode_showRaw==True): aircraft.msg_last = binascii.hexlify(Message) # save last message.
                             else: aircraft.msg_last = None
+
+                            # Update IMU data
+                            self.imuData.roll = aircraft.roll
+                            self.imuData.pitch = aircraft.pitch
+                            self.imuData.yaw = aircraft.yaw
+                            self.imuData.heading = aircraft.mag_head
+                            self.imuData.turn_rate = aircraft.turn_rate
+                            self.imuData.slip_skid = aircraft.slip_skid
+                            self.imuData.g_force = aircraft.vert_G
+                            #self.imuData.timestamp = time.time()
+                            #self.imuData.msg_count += 1
+
+                            # Update the IMU in the aircraft's imus dictionary
+                            aircraft.imus[self.imu_index] = self.imuData
 
                     elif msgType == 2:  # GPS Message
                         Message = self.ser.read(48)

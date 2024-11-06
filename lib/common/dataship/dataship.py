@@ -79,6 +79,9 @@ class Dataship(object):
         self.data_format = 0 # 0 is ft/in
         self.data_format_temp = 0 # 0 is F, 1 is C
 
+    def get_imu(self,id):
+        return self.imus[id]
+
     # set set measurement to use for data.
     # 0 is US standard. (mph, ft)
     # 1 is knots

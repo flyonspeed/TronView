@@ -145,9 +145,22 @@ class object3d(Module):
         print("processEvent")
     
     def get_module_options(self):
-        # get the imu list.
+        # get the imu list of imu objects
         imu_list = shared.Dataship.imus
-        imu_ids = [imu.id for imu in imu_list]
+        # Debug print to see what we're getting
+        print("IMU List type:", type(imu_list))
+        print("IMU List contents:", imu_list)
+        
+        # go through imu list and get the id and name.
+        imu_ids = []
+        if isinstance(imu_list, dict):
+            # If it's a dictionary, iterate through values
+            for imu_id, imu in imu_list.items():
+                print(f"IMU {imu_id}:", imu)
+                imu_ids.append(str(imu_id))
+        else:
+            # Fallback to default option
+            imu_ids = ["Aircraft"]
 
         return {
             "source_imu": {

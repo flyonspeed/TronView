@@ -29,13 +29,13 @@ class gyro_i2c_bno085(Input):
         else:
             self.isPlaybackMode = False
 
-        # check how many imus are already in aircraft.imus. this is number of imus + 1.
-        self.num_imus = len(aircraft.imus) + 1
+        # get this num of imu
+        self.num_imus = len(aircraft.imus)
 
         # check how many imus are named the same as this one. get next number for this one.
         self.num_bno085 = 1
-        for imu in aircraft.imus:
-            if imu.id == self.id:   
+        for index, imu in aircraft.imus.items():
+            if imu.name == self.name:   
                 self.num_bno085 += 1
 
         # read address from config.

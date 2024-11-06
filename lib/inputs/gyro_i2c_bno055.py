@@ -29,8 +29,8 @@ class gyro_i2c_bno055(Input):
         else:
             self.isPlaybackMode = False
         
-        # check how many imus are already in aircraft.imus. this is number of imus + 1.
-        self.num_imus = len(aircraft.imus) + 1
+        # check how many imus are already in aircraft.imus. 
+        self.num_imus = len(aircraft.imus)
 
         # check how many imus are named the same as this one. get next number for this one.
         self.num_bno055 = 1

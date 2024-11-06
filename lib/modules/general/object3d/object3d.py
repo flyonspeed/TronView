@@ -171,7 +171,7 @@ class object3d(Module):
             for imu_id, imu in imu_list.items():
                 print(f"IMU {imu_id}:", imu.id)
                 self.imu_ids.append(str(imu.id))
-        if len(self.imu_ids) > 0:
+        if len(self.source_imu_index_name) == 0:
             self.source_imu_index_name = self.imu_ids[self.source_imu_index]  # select first one.
 
         return {

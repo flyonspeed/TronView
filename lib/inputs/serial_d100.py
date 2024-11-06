@@ -2,7 +2,8 @@
 
 # Serial input source
 # Dynon D10 and D100
-# 2/2/2019 Christopher Jones
+# 2/2/2019  Topher
+# 11/6/2024  Added IMU data.
 
 from ._input import Input
 from lib import hud_utils
@@ -10,6 +11,7 @@ import serial
 import struct
 from lib import hud_text
 import time
+from lib.common.dataship.dataship import IMU
 
 class serial_d100(Input):
     def __init__(self):
@@ -42,6 +44,15 @@ class serial_d100(Input):
                 bytesize=serial.EIGHTBITS,
                 timeout=1,
             )
+
+        # create a empty imu object.
+        self.imuData = IMU()
+        self.imuData.id = "d100_imu"
+        self.imuData.name = self.name
+        self.imu_index = len(aircraft.imus)  # Start at 0
+        aircraft.imus[self.imu_index] = self.imuData
+        self.last_read_time = time.time()
+
 
     # close this data input 
     def closeInput(self,aircraft):
@@ -80,9 +91,9 @@ class serial_d100(Input):
                     self.time_stamp_min = int(MM)
                     self.time_stamp_sec = int(SS)
 
-                    aircraft.roll = int(roll) * 0.1
-                    aircraft.pitch = int(pitch) * 0.1
-                    aircraft.ias = int(IAS) * 0.224  # airspeed in units of 1/10 m/s (1555 = 155.5 m/s) convert to MPH
+                    aircraft.roll = int(roll) / 10
+                    aircraft.pitch = int(pitch) / 10
+                    aircraft.ias = round(int(IAS) * 0.224,1)  # airspeed in units of 1/10 m/s (1555 = 155.5 m/s) convert to MPH
 
                     aircraft.aoa = int(AOA)
                     aircraft.mag_head = int(yaw)
@@ -98,7 +109,20 @@ class serial_d100(Input):
                     else:
                         aircraft.alt = int(Alt) * 3.28084 # convert meters to feet.
                         aircraft.vsi = int(TurnRate)  # vert speed for D100 data
-                    
+
+
+                    # Update IMU data
+                    self.imuData.roll = aircraft.roll
+                    self.imuData.pitch = aircraft.pitch
+                    self.imuData.yaw = aircraft.mag_head
+                    self.imuData.heading = aircraft.mag_head
+                    if aircraft.debug_mode > 0:
+                        current_time = time.time() # calculate hz.
+                        self.imuData.hz = round(1 / (current_time - self.last_read_time), 1)
+                        self.last_read_time = current_time
+                    # Update the IMU in the aircraft's imu list
+                    aircraft.imus[self.imu_index] = self.imuData
+
 
                     aircraft.msg_count += 1
 

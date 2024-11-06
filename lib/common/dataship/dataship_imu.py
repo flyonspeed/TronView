@@ -9,9 +9,9 @@ class IMU(object):
         self.address = 0
         self.hz = 0
 
-        self.pitch = 0
-        self.roll = 0
-        self.yaw = 0
+        self.pitch = None
+        self.roll = None
+        self.yaw = None
 
         self.quat = [0,0,0,0]
         self.gyro = [0,0,0]

@@ -2,7 +2,8 @@
 
 # wifi udp input source
 # levil (ilevil and B.O.M)
-# 1/23/2019 Christopher Jones
+# 1/23/2019  Topher
+# 11/6/2024  Added IMU data.
 
 from ._input import Input
 from lib import hud_utils
@@ -11,7 +12,7 @@ from lib import hud_text
 import binascii
 import time
 import socket
-
+from lib.common.dataship.dataship import IMU
 class levil_wifi(Input):
     def __init__(self):
         self.name = "levil"
@@ -45,6 +46,14 @@ class levil_wifi(Input):
             #doesn't get any data
             #self.ser.settimeout(.1)
             self.ser.setblocking(0)
+
+        # create a empty imu object.
+        self.imuData = IMU()
+        self.imuData.id = "levil_imu"
+        self.imuData.name = self.name
+        self.imu_index = len(aircraft.imus)  # Start at 0
+        aircraft.imus[self.imu_index] = self.imuData
+        self.last_read_time = time.time()
 
     def closeInput(self,aircraft):
         if self.isPlaybackMode:
@@ -150,6 +159,18 @@ class levil_wifi(Input):
                             aircraft.oat = OAT
                         aircraft.msg_last = msg
                         aircraft.msg_count += 1
+
+                        # Update IMU data
+                        self.imuData.roll = aircraft.roll
+                        self.imuData.pitch = aircraft.pitch
+                        self.imuData.yaw = aircraft.mag_head
+                        if aircraft.debug_mode > 0:
+                            current_time = time.time() # calculate hz.
+                            self.imuData.hz = round(1 / (current_time - self.last_read_time), 1)
+                            self.last_read_time = current_time
+                        # Update the IMU in the aircraft's imu list
+                        aircraft.imus[self.imu_index] = self.imuData
+
                     else:
                         aircraft.msg_bad +=1
 

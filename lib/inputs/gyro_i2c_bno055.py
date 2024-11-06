@@ -72,10 +72,10 @@ class gyro_i2c_bno055(Input):
         if self.skipReadInput == True: return aircraft
 
         try:
-            current_time = time.time()
-            # calculate hz.
-            self.imuData.hz = 1 / (current_time - self.last_read_time)
-            self.last_read_time = current_time
+            if aircraft.debug_mode > 0:  # calculate hz.
+                current_time = time.time()
+                self.imuData.hz = round(1 / (current_time - self.last_read_time), 1)
+                self.last_read_time = current_time
 
             #print("Rotation Vector Quaternion:")
             quat_i, quat_j, quat_k, quat_real = self.bno.quaternion

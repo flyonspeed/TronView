@@ -4,6 +4,7 @@
 # Stratux UDP
 # 1/23/2019 Topher
 # 11/4/2024 - Adding debug, and working on AHRS message parsing. 
+# 11/6/2024  Added IMU data.
 
 from ._input import Input
 from lib import hud_utils
@@ -65,15 +66,14 @@ class stratux_wifi(Input):
         if(self.use_ahrs==False):
             print("Skipping AHRS data from Stratux")
 
-        if(self.use_ahrs):
-            # create a empty imu object.
-            self.imuData = IMU()
-            self.imuData.id = "stratux_imu"
-            self.imuData.name = self.name
-            self.imu_index = len(aircraft.imus)  # Start at 0
-            print("new imu "+str(self.imu_index)+": "+str(self.imuData))
-            aircraft.imus[self.imu_index] = self.imuData
-            self.last_read_time = time.time()
+        # create a empty imu object.
+        self.imuData = IMU()
+        self.imuData.id = "stratux_imu"
+        self.imuData.name = self.name
+        self.imu_index = len(aircraft.imus)  # Start at 0
+        print("new imu "+str(self.imu_index)+": "+str(self.imuData))
+        aircraft.imus[self.imu_index] = self.imuData
+        self.last_read_time = time.time()
 
 
     def closeInput(self,aircraft):
@@ -229,11 +229,10 @@ class stratux_wifi(Input):
                         self.imuData.turn_rate = aircraft.turn_rate
                         self.imuData.slip_skid = aircraft.slip_skid
                         self.imuData.g_force = aircraft.vert_G
-                        #self.imuData.timestamp = time.time()
-                        current_time = time.time()
-                        # calculate hz.
-                        self.imuData.hz = round(1 / (current_time - self.last_read_time), 1)
-                        self.last_read_time = current_time
+                        if aircraft.debug_mode > 0:
+                            current_time = time.time() # calculate hz.
+                            self.imuData.hz = round(1 / (current_time - self.last_read_time), 1)
+                            self.last_read_time = current_time
                         # Update the IMU in the aircraft's imus dictionary
                         aircraft.imus[self.imu_index] = self.imuData                        
 

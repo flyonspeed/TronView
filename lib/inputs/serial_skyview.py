@@ -2,7 +2,8 @@
 
 # Serial input source
 # Skyview
-# 1/23/2019 Christopher Jones
+# 1/23/2019  Topher
+# 11/6/2024  Added IMU data.
 
 from ._input import Input
 from lib import hud_utils
@@ -11,6 +12,7 @@ import serial
 import struct
 from lib import hud_text
 import time
+from lib.common.dataship.dataship import IMU
 
 
 class serial_skyview(Input):
@@ -46,6 +48,14 @@ class serial_skyview(Input):
                 bytesize=serial.EIGHTBITS,
                 timeout=1
             )
+
+        # create a empty imu object.
+        self.imuData = IMU()
+        self.imuData.id = "skyview_imu"
+        self.imuData.name = self.name
+        self.imu_index = len(aircraft.imus)  # Start at 0
+        aircraft.imus[self.imu_index] = self.imuData
+        self.last_read_time = time.time()
 
     # close this data input 
     def closeInput(self,aircraft):
@@ -93,11 +103,24 @@ class serial_skyview(Input):
                     
                     #print("time: "+aircraft.sys_time_string)
                     #print("pitch:"+str(pitch))
-                    aircraft.pitch = Input.cleanInt(self,pitch) * 0.1
+                    aircraft.pitch = Input.cleanInt(self,pitch) / 10
                     #print("roll:"+str(roll))
-                    aircraft.roll = Input.cleanInt(self,roll) * 0.1
+                    aircraft.roll = Input.cleanInt(self,roll) / 10
                     #print("HeadingMAG:"+str(HeadingMAG))
                     aircraft.mag_head = Input.cleanInt(self,HeadingMAG)
+
+                    # Update IMU data
+                    self.imuData.roll = aircraft.roll
+                    self.imuData.pitch = aircraft.pitch
+                    self.imuData.yaw = aircraft.yaw
+                    self.imuData.heading = aircraft.mag_head
+                    if aircraft.debug_mode > 0:
+                        current_time = time.time() # calculate hz.
+                        self.imuData.hz = round(1 / (current_time - self.last_read_time), 1)
+                        self.last_read_time = current_time
+                    # Update the IMU in the aircraft's imu list
+                    aircraft.imus[self.imu_index] = self.imuData
+
                     #print("IAS:"+str(IAS))
                     aircraft.ias = Input.cleanInt(self,IAS) * 0.1
                     #print("PALT:"+str(PresAlt))

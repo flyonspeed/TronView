@@ -6,7 +6,7 @@
 # 06/18/2023 C.Jones fix for live serial data input.
 # 07/28/2024 A.O. grab DA and TAS from G3X Sentence ID 2 versus calculating from SID 1
 # 08/06/2024 A.O. Fix SentID parsing, GPS AGL Parsing, LatLongHemi Parsing
-
+# 11/6/2024  Added IMU data.
 from ._input import Input
 from lib import hud_utils
 from lib import hud_text
@@ -17,7 +17,7 @@ import struct
 import math, sys
 import time
 from contextlib import suppress
-
+from lib.common.dataship.dataship import IMU
 class serial_g3x(Input):
     def __init__(self):
         self.name = "g3x"
@@ -66,6 +66,14 @@ class serial_g3x(Input):
         #else:
         #    self.EOL = 13
         #self.EOL = 13
+
+        # create a empty imu object.
+        self.imuData = IMU()
+        self.imuData.id = "g3x_imu"
+        self.imuData.name = self.name
+        self.imu_index = len(aircraft.imus)  # Start at 0
+        aircraft.imus[self.imu_index] = self.imuData
+        self.last_read_time = time.time()
 
     # close this input source
     def closeInput(self, aircraft):
@@ -161,8 +169,8 @@ class serial_g3x(Input):
                     )
                     if int(SentVer) == 1 and CRLF[0] == self.EOL:
                         while suppress(ValueError):
-                            aircraft.roll = int(Roll) * 0.1
-                            aircraft.pitch = int(Pitch) * 0.1
+                            aircraft.roll = int(Roll) / 10
+                            aircraft.pitch = int(Pitch) / 10
                             aircraft.ias = int(Airspeed) * 0.115078 # convert knots to mph * 0.1
                             aircraft.PALT = int(PressAlt)
                             aircraft.oat = (int(OAT) * 1.8) + 32 # c to f
@@ -199,6 +207,16 @@ class serial_g3x(Input):
                             if self.output_logFile != None:
                                 Input.addToLog(self,self.output_logFile,bytes([61,ord(SentID)]))
                                 Input.addToLog(self,self.output_logFile,msg)
+                            # Update IMU data
+                            self.imuData.roll = aircraft.roll
+                            self.imuData.pitch = aircraft.pitch
+                            self.imuData.yaw = aircraft.mag_head
+                            if aircraft.debug_mode > 0:
+                                current_time = time.time() # calculate hz.
+                                self.imuData.hz = round(1 / (current_time - self.last_read_time), 1)
+                                self.last_read_time = current_time
+                            # Update the IMU in the aircraft's imu list
+                            aircraft.imus[self.imu_index] = self.imuData
                             return aircraft
                     else:
                         aircraft.msg_bad += 1

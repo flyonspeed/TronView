@@ -17,7 +17,7 @@ class object3d(Module):
         Module.__init__(self)
         self.name = "object 3D"  # set name
         self.MainColor = (255,255,255)
-        self.font_size = 16
+        self.font_size = 30
 
         self.source_imu_index_name = ""
         self.source_imu_index = 0
@@ -66,7 +66,8 @@ class object3d(Module):
             [-1, 1, 1] # back left top
         ]
 
-        if aircraft.imus:
+        # if imu is available and the self.source_imu_index is not larger than the number of imus.
+        if aircraft.imus and self.source_imu_index < len(aircraft.imus):
             source_imu = aircraft.imus[self.source_imu_index]
             roll = source_imu.roll
             pitch = source_imu.pitch
@@ -80,7 +81,12 @@ class object3d(Module):
             # draw a red X on the screen.
             pygame.draw.line(self.surface, (255,0,0), (0,0), (self.width,self.height), 4)
             pygame.draw.line(self.surface, (255,0,0), (self.width,0), (0,self.height), 4)
+            if len(self.source_imu_index_name) > 0:
+                text = self.font.render("No IMU-"+str(self.source_imu_index+1)+" "+self.source_imu_index_name, True, (255,0,0))
+                text_rect = text.get_rect(center=(self.width//2, self.height//2))
+                self.surface.blit(text, text_rect)
             smartdisplay.pygamescreen.blit(self.surface, pos)
+            # if self.source_imu_index_name is not empty then print the name in pygame font to self.surface.
             return
 
         # Convert degrees to radians
@@ -177,6 +183,11 @@ class object3d(Module):
                 "description": "IMU to use for the 3D object.",
                 "options": self.imu_ids,
                 "post_change_function": "changeSourceIMU"
+            },
+            "source_imu_index": {
+                "type": "int",
+                "hidden": True,
+                "default": 0
             },
             "MainColor": {
                 "type": "color",

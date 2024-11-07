@@ -56,10 +56,14 @@
           {
             "name": "fov_x",
             "value": 20
+          },
+          {
+            "name": "target_smoothing",
+            "value": 0.2
           }
         ]
       },
-      "id": "M_2lxik"
+      "id": "M_96n1v"
     },
     {
       "type": "module",
@@ -92,7 +96,7 @@
           },
           {
             "name": "scope_scale_miles",
-            "value": 4
+            "value": 14
           },
           {
             "name": "draw_icon",
@@ -101,10 +105,18 @@
           {
             "name": "icon_scale",
             "value": 10
+          },
+          {
+            "name": "enable_smoothing",
+            "value": true
+          },
+          {
+            "name": "smoothing_factor",
+            "value": 0.15
           }
         ]
       },
-      "id": "M_mpspq"
+      "id": "M_71c90"
     },
     {
       "type": "module",
@@ -165,7 +177,7 @@
           }
         ]
       },
-      "id": "M_yrqof"
+      "id": "M_qcis5"
     },
     {
       "type": "module",
@@ -194,7 +206,7 @@
           }
         ]
       },
-      "id": "M_08nib"
+      "id": "M_6wr29"
     },
     {
       "type": "module",
@@ -212,10 +224,14 @@
           {
             "name": "hsi_size",
             "value": 445
+          },
+          {
+            "name": "smoothing_factor",
+            "value": 0.15
           }
         ]
       },
-      "id": "M_wug4l"
+      "id": "M_dqqqd"
     },
     {
       "type": "module",
@@ -236,7 +252,7 @@
           }
         ]
       },
-      "id": "M_81nxe"
+      "id": "M_z1nw8"
     },
     {
       "type": "module",
@@ -269,7 +285,7 @@
           }
         ]
       },
-      "id": "M_6nv5x"
+      "id": "M_33nzc"
     },
     {
       "type": "module",
@@ -315,10 +331,14 @@
               255,
               0
             ]
+          },
+          {
+            "name": "smoothing_factor",
+            "value": 0.15
           }
         ]
       },
-      "id": "M_3zdx6"
+      "id": "M_4a4vg"
     },
     {
       "type": "module",
@@ -343,7 +363,7 @@
           }
         ]
       },
-      "id": "M_lsf9p"
+      "id": "M_g1otb"
     },
     {
       "type": "module",
@@ -404,7 +424,7 @@
           }
         ]
       },
-      "id": "M_3na8p"
+      "id": "M_m3fko"
     },
     {
       "type": "module",
@@ -465,7 +485,7 @@
           }
         ]
       },
-      "id": "M_g62lx"
+      "id": "M_suq7a"
     },
     {
       "type": "module",
@@ -481,7 +501,7 @@
         "name": "Buoy Manager",
         "options": [
           {
-            "name": "target_font_size",
+            "name": "button_font_size",
             "value": 20
           },
           {
@@ -494,7 +514,7 @@
           }
         ]
       },
-      "id": "M_c0mmc",
+      "id": "M_mnxvm",
       "event_handlers": [
         {
           "id": "test",
@@ -509,16 +529,24 @@
     {
       "type": "module",
       "title": "object 3D",
-      "x": 1562,
-      "y": 9,
+      "x": 1547,
+      "y": 0,
       "width": 288,
       "height": 282,
       "grid_position": "TopR",
-      "grid_percentage_x": 1.33125,
-      "grid_percentage_y": 0.8333333333333334,
+      "grid_percentage_x": 1.284375,
+      "grid_percentage_y": 0.7833333333333333,
       "module": {
         "name": "object 3D",
         "options": [
+          {
+            "name": "source_imu_index_name",
+            "value": "stratux_imu"
+          },
+          {
+            "name": "source_imu_index",
+            "value": 1
+          },
           {
             "name": "MainColor",
             "value": [
@@ -530,7 +558,7 @@
           }
         ]
       },
-      "id": "M_tsn7g"
+      "id": "M_q0r4z"
     },
     {
       "type": "module",
@@ -591,18 +619,18 @@
           }
         ]
       },
-      "id": "M_1n30j"
+      "id": "M_z63qn"
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 1576,
-      "y": 311,
+      "x": 1579,
+      "y": 225,
       "width": 217,
       "height": 40,
       "grid_position": "TopR",
-      "grid_percentage_x": 1.2640625,
-      "grid_percentage_y": 1.8388888888888888,
+      "grid_percentage_x": 1.2734375,
+      "grid_percentage_y": 1.3611111111111112,
       "module": {
         "name": "Text",
         "options": [
@@ -652,18 +680,18 @@
           }
         ]
       },
-      "id": "M_glvsq"
+      "id": "M_y2m6z"
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 1593,
-      "y": 347,
+      "x": 1596,
+      "y": 261,
       "width": 197,
       "height": 40,
-      "grid_position": "MidR",
-      "grid_percentage_x": 1.2859375,
-      "grid_percentage_y": 0.03888888888888889,
+      "grid_position": "TopR",
+      "grid_percentage_x": 1.2953125,
+      "grid_percentage_y": 1.5611111111111111,
       "module": {
         "name": "Text",
         "options": [
@@ -713,18 +741,18 @@
           }
         ]
       },
-      "id": "M_eol8s"
+      "id": "M_yw1cx"
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 1611,
-      "y": 380,
+      "x": 1614,
+      "y": 294,
       "width": 200,
       "height": 50,
-      "grid_position": "MidR",
-      "grid_percentage_x": 1.346875,
-      "grid_percentage_y": 0.25,
+      "grid_position": "TopR",
+      "grid_percentage_x": 1.35625,
+      "grid_percentage_y": 1.7722222222222221,
       "module": {
         "name": "Text",
         "options": [
@@ -774,7 +802,7 @@
           }
         ]
       },
-      "id": "M_3s5p3"
+      "id": "M_zxwe8"
     },
     {
       "type": "group",
@@ -846,7 +874,7 @@
               }
             ]
           },
-          "id": "M_12e8f"
+          "id": "M_4tmjk"
         },
         {
           "type": "module",
@@ -907,7 +935,7 @@
               }
             ]
           },
-          "id": "M_qyt2f"
+          "id": "M_se40z"
         },
         {
           "type": "module",
@@ -968,7 +996,7 @@
               }
             ]
           },
-          "id": "M_wo9ut"
+          "id": "M_y37zp"
         },
         {
           "type": "module",
@@ -1029,7 +1057,7 @@
               }
             ]
           },
-          "id": "M_yvqxw"
+          "id": "M_nc7eo"
         },
         {
           "type": "module",
@@ -1090,7 +1118,7 @@
               }
             ]
           },
-          "id": "M_pe7fw"
+          "id": "M_zpgk7"
         },
         {
           "type": "module",
@@ -1151,10 +1179,10 @@
               }
             ]
           },
-          "id": "M_3s2ba"
+          "id": "M_6249f"
         }
       ],
-      "id": "M_86zwo",
+      "id": "M_v80vv",
       "event_handlers": []
     },
     {
@@ -1216,7 +1244,7 @@
           }
         ]
       },
-      "id": "M_chmbd"
+      "id": "M_36143"
     },
     {
       "type": "module",
@@ -1277,7 +1305,7 @@
           }
         ]
       },
-      "id": "M_dydqf"
+      "id": "M_n1sv0"
     },
     {
       "type": "module",
@@ -1338,7 +1366,7 @@
           }
         ]
       },
-      "id": "M_pus6r"
+      "id": "M_7jydg"
     },
     {
       "type": "module",
@@ -1399,7 +1427,7 @@
           }
         ]
       },
-      "id": "M_6nwu8"
+      "id": "M_4o9cf"
     },
     {
       "type": "module",
@@ -1460,7 +1488,7 @@
           }
         ]
       },
-      "id": "M_2wrzj"
+      "id": "M_uxggd"
     },
     {
       "type": "module",
@@ -1521,7 +1549,7 @@
           }
         ]
       },
-      "id": "M_xd05f"
+      "id": "M_hlfqc"
     },
     {
       "type": "module",
@@ -1578,7 +1606,7 @@
           }
         ]
       },
-      "id": "M_y16l9",
+      "id": "M_7lbyc",
       "event_handlers": []
     },
     {
@@ -1640,7 +1668,7 @@
           }
         ]
       },
-      "id": "M_vdpoh"
+      "id": "M_vomi9"
     },
     {
       "type": "module",
@@ -1701,7 +1729,7 @@
           }
         ]
       },
-      "id": "M_wrobw"
+      "id": "M_qh88d"
     },
     {
       "type": "module",
@@ -1762,7 +1790,7 @@
           }
         ]
       },
-      "id": "M_w62eq"
+      "id": "M_t4398"
     },
     {
       "type": "module",
@@ -1855,7 +1883,7 @@
           }
         ]
       },
-      "id": "M_8acv9"
+      "id": "M_n38p4"
     },
     {
       "type": "module",
@@ -1948,7 +1976,7 @@
           }
         ]
       },
-      "id": "M_wqmau"
+      "id": "M_7k8i8"
     },
     {
       "type": "module",
@@ -2041,7 +2069,7 @@
           }
         ]
       },
-      "id": "M_6mril"
+      "id": "M_cr0br"
     },
     {
       "type": "module",
@@ -2102,7 +2130,7 @@
           }
         ]
       },
-      "id": "M_tsivb"
+      "id": "M_kmmzx"
     },
     {
       "type": "module",
@@ -2163,7 +2191,7 @@
           }
         ]
       },
-      "id": "M_qghgg"
+      "id": "M_hz0s0"
     },
     {
       "type": "module",
@@ -2256,7 +2284,7 @@
           }
         ]
       },
-      "id": "M_8nevk"
+      "id": "M_bbetl"
     },
     {
       "type": "module",
@@ -2317,7 +2345,7 @@
           }
         ]
       },
-      "id": "M_1z22e"
+      "id": "M_iqivn"
     },
     {
       "type": "module",
@@ -2378,18 +2406,18 @@
           }
         ]
       },
-      "id": "M_pnzbq"
+      "id": "M_al6pi"
     },
     {
       "type": "module",
       "title": "Gauge Arc",
-      "x": 1213,
-      "y": 813,
+      "x": 1128,
+      "y": 820,
       "width": 258,
       "height": 235,
-      "grid_position": "BotR",
-      "grid_percentage_x": 0.19375,
-      "grid_percentage_y": 1.1694444444444445,
+      "grid_position": "BotM",
+      "grid_percentage_x": 1.928125,
+      "grid_percentage_y": 1.2083333333333333,
       "module": {
         "name": "Gauge Arc",
         "options": [
@@ -2468,18 +2496,18 @@
           }
         ]
       },
-      "id": "M_ciyfh"
+      "id": "M_gehco"
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 1324,
-      "y": 922,
+      "x": 1239,
+      "y": 929,
       "width": 106,
       "height": 22,
       "grid_position": "BotR",
-      "grid_percentage_x": 0.303125,
-      "grid_percentage_y": 1.1833333333333333,
+      "grid_percentage_x": 0.0375,
+      "grid_percentage_y": 1.2222222222222223,
       "module": {
         "name": "Text",
         "options": [
@@ -2529,7 +2557,7 @@
           }
         ]
       },
-      "id": "M_oh2y8"
+      "id": "M_cx7zb"
     },
     {
       "type": "module",
@@ -2622,7 +2650,7 @@
           }
         ]
       },
-      "id": "M_hbwcu"
+      "id": "M_riz5o"
     },
     {
       "type": "module",
@@ -2683,7 +2711,28 @@
           }
         ]
       },
-      "id": "M_si85q"
+      "id": "M_a3lzf"
+    },
+    {
+      "type": "module",
+      "title": "Play Controls",
+      "x": 1578,
+      "y": 376,
+      "width": 289,
+      "height": 55,
+      "grid_position": "MidR",
+      "grid_percentage_x": 1.3828125,
+      "grid_percentage_y": 0.24166666666666667,
+      "module": {
+        "name": "Play Controls",
+        "options": [
+          {
+            "name": "button_font_size",
+            "value": 20
+          }
+        ]
+      },
+      "id": "M_58g5t"
     }
   ]
 }

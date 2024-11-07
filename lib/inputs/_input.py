@@ -7,6 +7,7 @@ from lib import hud_text
 from lib import hud_utils
 from lib.util import rpi_hardware
 import re
+import os
 from lib.common import shared # global shared objects stored here.
 
 class Input:
@@ -33,6 +34,8 @@ class Input:
         self.output_logFile = None
         self.output_logFileName = ""
         self.input_logFileName = None
+        self.input_logFileSize = 0
+        self.input_logFilePercent = 0 # percentage of file that has been read.
         self.inputNum = num
         self.isPlaybackMode = False
         self.isPaused = False
@@ -55,7 +58,10 @@ class Input:
             if rpi_hardware.mount_usb_drive() == True:
                 openFileName = "/mnt/usb/"+filename
                 logFile = open(openFileName, attribs)
-                print("Opening USB Logfile: "+openFileName)
+                # get file size
+                self.input_logFileSize = os.path.getsize(openFileName)
+                self.input_logFilePercent = 0
+                print("Opening USB Logfile: "+openFileName+" size="+str(self.input_logFileSize))
                 return logFile,openFileName
         except :
             pass
@@ -64,7 +70,10 @@ class Input:
         try:
             openFileName = self.path_datarecorder+filename
             logFile = open(openFileName, attribs)
-            print("Opening Logfile: "+openFileName)
+            # get file size
+            self.input_logFileSize = os.path.getsize(openFileName)
+            self.input_logFilePercent = 0
+            print("Opening Logfile: "+openFileName+" size="+str(self.input_logFileSize))
             return logFile,openFileName
         except :
             pass
@@ -74,6 +83,8 @@ class Input:
             openFileName = "lib/inputs/_example_data/"+filename
             print("Opening Logfile: "+openFileName)
             logFile = open(openFileName, attribs)
+            self.input_logFileSize = os.path.getsize(openFileName)
+            self.input_logFilePercent = 0
             return logFile,openFileName
         except :
             pass
@@ -221,15 +232,11 @@ class Input:
     ## Function: stopLog
     ## if currently ouputing to log file to stop and save it.
     def stopLog(self,aircraft):
-        from lib.util import rpi_hardware
         serverAvail = None
         if self.output_logFile != None:
             Input.closeLogFile(self,self.output_logFile)
             self.output_logFile = None
             shared.Dataship.inputs[self.inputNum].RecFile = None
-            #if(rpi_hardware.is_raspberrypi()==True):
-            #    if(rpi_hardware.is_server_available()==True):
-            #        serverAvail = "FlyOnSpeed.org"
             return True, serverAvail
 
         return False,None

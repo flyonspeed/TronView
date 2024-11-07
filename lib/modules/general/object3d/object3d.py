@@ -272,6 +272,7 @@ class object3d(Module):
         # source_imu_index_name got changed. find the index of the imu id in the imu list.
         self.source_imu_index = self.imu_ids.index(self.source_imu_index_name)
         #print("source_imu_index==", self.source_imu_index)
+        self.zero_position = None
 
     def processClick(self, aircraft: Dataship, mx, my):
         # When clicked, set the current position as the new zero reference point
@@ -303,6 +304,7 @@ class object3d(Module):
             rel_roll = (rel_roll + 180) % 360 - 180
             if rel_yaw is not None:
                 rel_yaw = (rel_yaw + 180) % 360 - 180
+
             
             return [rel_pitch, rel_roll, rel_yaw]
         else:

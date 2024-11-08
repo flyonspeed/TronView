@@ -14,7 +14,7 @@ import busio
 import adafruit_bno08x
 from adafruit_bno08x.i2c import BNO08X_I2C
 from lib.common.dataship.dataship_imu import IMU
-
+import math
 class gyro_i2c_bno085(Input):
     def __init__(self):
         self.name = "bno085 IMU 9dof"
@@ -72,6 +72,24 @@ class gyro_i2c_bno085(Input):
     def closeInput(self,aircraft):
         print("bno085 close")
 
+    def quaternion_to_euler(self, w, x, y, z):
+        roll = math.atan2(2.0 * (w * x + y * z), 1.0 - 2.0 * (x * x + y * y))
+        roll = math.degrees(roll)
+
+        pitch_raw = 2.0 * (w * y - z * x)
+        pitch = math.asin(max(-1.0, min(1.0, pitch_raw)))  # Clamp value within -1 and 1
+        pitch = math.degrees(pitch)
+
+        yaw = -math.atan2(2.0 * (w * z + x * y), 1.0 - 2.0 * (y * y + z * z))
+        yaw = math.degrees(yaw)
+
+        if yaw > 180:
+            yaw -= 360
+        elif yaw < -180:
+            yaw += 360
+
+        return roll, pitch, yaw
+
     #############################################
     ## Function: readMessage
     def readMessage(self, aircraft):
@@ -86,17 +104,19 @@ class gyro_i2c_bno085(Input):
                 self.last_read_time = current_time
             
             #print("Rotation Vector Quaternion:")
-            quat_i, quat_j, quat_k, quat_real = self.bno.quaternion  # pylint:disable=no-member
+            #quat_i, quat_j, quat_k, quat_real = self.bno.quaternion  # pylint:disable=no-member
+            roll_offset, pitch_offset, yaw_offset = self.quaternion_to_euler(*self.bno.quaternion)
+
             #print( "I: %0.6f  J: %0.6f K: %0.6f  Real: %0.6f" % (quat_i, quat_j, quat_k, quat_real))
             gyro_x, gyro_y, gyro_z = self.bno.gyro
             #print("X: %0.6f  Y: %0.6f Z: %0.6f rads/s" % (gyro_x, gyro_y, gyro_z))
 
             # update imuData object.
-            self.imuData.quat = [quat_i * 180, quat_j * 180, quat_k * 180, quat_real * 180]
-            self.imuData.gyro = [gyro_x * 180, gyro_y * 180, gyro_z * 180]
-            self.imuData.pitch = self.imuData.quat[1]
-            self.imuData.roll = self.imuData.quat[0]
-            self.imuData.yaw = self.imuData.quat[2]
+            self.imuData.quat = [roll_offset, pitch_offset, yaw_offset]
+            self.imuData.gyro = [gyro_x , gyro_y , gyro_z ]
+            self.imuData.pitch = pitch_offset
+            self.imuData.roll = roll_offset
+            self.imuData.yaw = yaw_offset
 
             # update aircraft object.
             aircraft.imus[self.num_imus] = self.imuData

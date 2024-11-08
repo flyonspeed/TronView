@@ -217,16 +217,16 @@ if __name__ == "__main__":
         sys.exit()
     shared.CurrentInput = loadInput(0,DataInputToLoad)
     if DataInputToLoad2 != "none":
-        if(DataInputToLoad2==DataInputToLoad): print("Skipping 2nd Input source : same as input 1")
-        else:
+        #if(DataInputToLoad2==DataInputToLoad): print("Skipping 2nd Input source : same as input 1")
+        #else:
             if hud_utils.findInput(DataInputToLoad2) == False:
                 print(("Input source 2 not found: %s"%(DataInputToLoad2)))
                 hud_utils.findInput() # show available inputs
                 sys.exit()
             shared.CurrentInput2 = loadInput(1,DataInputToLoad2)
     if DataInputToLoad3 != "none":
-        if(DataInputToLoad3==DataInputToLoad): print("Skipping 3rd Input source : same as input 1")
-        else:
+        #if(DataInputToLoad3==DataInputToLoad): print("Skipping 3rd Input source : same as input 1")
+        #else:
             if hud_utils.findInput(DataInputToLoad3) == False:
                 print(("Input source 3 not found: %s"%(DataInputToLoad2)))
                 hud_utils.findInput() # show available inputs

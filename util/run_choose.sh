@@ -34,6 +34,8 @@ echo "14:  Stratux ONLY Demo 5 - Shows traffic targets only, No AHRS data"
 echo "21:  live i2c bno055 IMU data (pi only)"
 echo "22:  live i2c bno055 & MGL ( pi only)"
 echo "23:  live i2c bno055 + MGL + Stratux (pi only)"
+echo "23:  live dual bno055 + bno055 (pi only)"
+
 
 echo "200: live bno085 IMU data (pi only)"
 echo "201: live bno085 + MGL + Stratux (pi only)"
@@ -182,6 +184,14 @@ if [ $choice -eq 201 ]; then
     fi
 fi
 
+if [ $choice -eq 202 ]; then
+    # linux/raspberry pi only
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        $RUN_PREFIX python3 main.py -i gyro_i2c_bno055 --in2 gyro_i2c_bno055 $ADD_ARGS
+    else
+        echo "only supported on pi"
+    fi
+fi
 
 ########################################################
 # End of script

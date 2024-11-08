@@ -16,6 +16,7 @@ class Input:
         self.version = 1.0
         self.inputtype = ""
         self.path_datarecorder = ""
+        self.PlayFile = None  # filename to play back.
 
 
     def initInput(self, num, aircraft):

@@ -24,12 +24,11 @@ class serial_mgl(Input):
 
     def initInput(self,num,aircraft):
         Input.initInput( self,num, aircraft )  # call parent init Input.
-        if(aircraft.inputs[self.inputNum].PlayFile!=None):
+        if(self.PlayFile!=None):
             # Get playback file.
-            if aircraft.inputs[self.inputNum].PlayFile==True:
-                defaultTo = "MGL_Flight1.bin"
-                aircraft.inputs[self.inputNum].PlayFile = hud_utils.readConfig(self.name, "playback_file", defaultTo)
-            self.ser,self.input_logFileName = Input.openLogFile(self,aircraft.inputs[self.inputNum].PlayFile,"rb")
+            if self.PlayFile==True: # if true then use default file.
+                self.PlayFile = "MGL_Flight1.bin"
+            self.ser,self.input_logFileName = Input.openLogFile(self,self.PlayFile,"rb")
             self.isPlaybackMode = True
         else:
             self.efis_data_format = hud_utils.readConfig("DataInput", "format", "none")
@@ -53,7 +52,7 @@ class serial_mgl(Input):
         self.imuData.id = "mgl_imu"
         self.imuData.name = self.name
         self.imu_index = len(aircraft.imus)  # Start at 0
-        print("new imu "+str(self.imu_index)+": "+str(self.imuData))
+        print("new MGL imu "+str(self.imu_index)+": "+str(self.imuData))
         aircraft.imus[self.imu_index] = self.imuData
         self.last_read_time = time.time()
 
@@ -69,6 +68,7 @@ class serial_mgl(Input):
         if self.shouldExit == True: aircraft.errorFoundNeedToExit = True
         if aircraft.errorFoundNeedToExit: return aircraft
         if self.skipReadInput == True: return aircraft
+        if aircraft.debug_mode > 0: print("MGL: readMessage start")
         try:
             x = 0
             while x != 5:
@@ -85,6 +85,7 @@ class serial_mgl(Input):
             if stx == 2:
                 MessageHeader = self.ser.read(6)
                 Message = 0
+                if aircraft.debug_mode > 0: print("MGL: readMessage MessageHeader: "+str(MessageHeader))
                 if len(MessageHeader) == 6:
                     msgLength, msgLengthXOR, msgType, msgRate, msgCount, msgVerion = struct.unpack(
                         "!BBBBBB", MessageHeader
@@ -314,9 +315,11 @@ class serial_mgl(Input):
 
                 else: # bad message header found.
                     aircraft.msg_bad += 1
+                    if aircraft.debug_mode > 0: print("MGL: readMessage bad message header found.")
 
             else:
                 aircraft.msg_bad += 1 #bad message found.
+                if aircraft.debug_mode > 0: print("MGL readMessage bad message found.")
 
                 return aircraft
         except serial.serialutil.SerialException as e:

@@ -26,43 +26,32 @@ from lib.common import shared # global shared objects stored here.
 from lib.common.graphic import edit_save_load
 
 #############################################
-## Class: myThreadEfisInputReader
+## Class: InputReader
 ## Read input data on seperate thread.
-class myThreadEfisInputReader(threading.Thread):
-    def __init__(self):
+class InputReader(threading.Thread):
+    def __init__(self, input_source, input_index):
         threading.Thread.__init__(self)
-
+        self.input_source = input_source
+        self.input_index = input_index
+        
     def run(self):
-        #global CurrentInput, CurrentInput2,CurrentInput3, aircraft
-        internalLoopCounter = 1
-        while shared.Dataship.errorFoundNeedToExit == False:
-            if(shared.CurrentInput.isPaused==True):
-                pass
-            else:
-                shared.Dataship = shared.CurrentInput.readMessage(shared.Dataship)
-                shared.Dataship.inputs[0].time_stamp = shared.CurrentInput.time_stamp_string
-                if(shared.CurrentInput2 != None): # if there is a 2nd input then read message from that too.
-                    shared.Dataship = shared.CurrentInput2.readMessage(shared.Dataship)
-                    shared.Dataship.inputs[1].time_stamp = shared.CurrentInput2.time_stamp_string
-                    # show diff between time stamps if we have them.
-                    if(shared.CurrentInput2.time_stamp_string != None and shared.CurrentInput.time_stamp_string != None):
-                        time1Secs =  (shared.CurrentInput.time_stamp_min * 60) + shared.CurrentInput.time_stamp_sec
-                        time2Secs =  (shared.CurrentInput2.time_stamp_min * 60) + shared.CurrentInput2.time_stamp_sec
-                        shared.Dataship.inputs[0].time_diff_secs = abs(time2Secs - time1Secs)
-                if(shared.CurrentInput3 != None): # if there is a 3rd input then read message from that too.
-                    shared.Dataship = shared.CurrentInput3.readMessage(shared.Dataship)
-                    shared.Dataship.inputs[2].time_stamp = shared.CurrentInput3.time_stamp_string
-                internalLoopCounter = internalLoopCounter - 1
-                if internalLoopCounter < 0:
-                    internalLoopCounter = 100
-                    checkInternals()
-                    shared.Dataship.traffic.cleanUp(shared.Dataship) # check if old traffic targets should be cleared up.
+        internal_loop_counter = 1
+        while not shared.Dataship.errorFoundNeedToExit:
+            if not self.input_source.isPaused:
+                shared.Dataship = self.input_source.readMessage(shared.Dataship)
+                shared.Dataship.inputs[self.input_index].time_stamp = self.input_source.time_stamp_string
+                
+                internal_loop_counter -= 1
+                if internal_loop_counter < 0:
+                    internal_loop_counter = 100
+                    if self.input_index == 0:  # Only check internals on primary input thread
+                        checkInternals()
+                        shared.Dataship.traffic.cleanUp(shared.Dataship)
 
-            if (shared.Dataship.inputs[0].PlayFile != None): # if playing back a file.. add a little delay so it's closer to real world time.
+            if self.input_source.input_logFileName != None:
                 time.sleep(.04)
-            if shared.Dataship.textMode == True: # if in text mode.. lets delay a bit.. this keeps the cpu from heating up on my mac.
+            if shared.Dataship.textMode:
                 time.sleep(.01)
-
 
 #############################################
 ## Function: checkInternals
@@ -244,8 +233,21 @@ if __name__ == "__main__":
         graphic_mode.loadScreen(ScreenNameToLoad) # load and init screen
         drawTimer.addGrowlNotice("1: %s"%(DataInputToLoad),3000,drawTimer.green,drawTimer.TOP_RIGHT)
 
-    thread1 = myThreadEfisInputReader()  # start thread for reading efis input.
-    thread1.start()
+    threads = []
+    if shared.CurrentInput:
+        thread1 = InputReader(shared.CurrentInput, 0)
+        thread1.start()
+        threads.append(thread1)
+
+    if shared.CurrentInput2:
+        thread2 = InputReader(shared.CurrentInput2, 1) 
+        thread2.start()
+        threads.append(thread2)
+
+    if shared.CurrentInput3:
+        thread3 = InputReader(shared.CurrentInput3, 2)
+        thread3.start()
+        threads.append(thread3)
 
     # testing.. start in edit mode.
     if shared.Dataship.textMode == False:

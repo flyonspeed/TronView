@@ -41,8 +41,8 @@ class gyro_i2c_bno055(Input):
         self.id = hud_utils.readConfig("bno055", "device"+str(self.num_bno055)+"_id", "bno055_"+str(self.num_bno055))
         self.address = hud_utils.readConfigInt("bno055", "device"+str(self.num_bno055)+"_address", 40)
 
-        # should this imu feed into aircraft roll/pitch/yaw?
-        self.feed_into_aircraft = hud_utils.readConfigBool("bno055", "device"+str(self.num_bno055)+"_aircraft", False)
+        # should this imu feed into aircraft roll/pitch/yaw? if num is 0 then default is true.
+        self.feed_into_aircraft = hud_utils.readConfigBool("bno055", "device"+str(self.num_bno055)+"_aircraft", self.num_imus == 0)
 
         print("init bno055("+str(self.num_bno055)+") id: "+str(self.id)+" address: "+str(self.address))
 
@@ -108,6 +108,7 @@ class gyro_i2c_bno055(Input):
             #print( "I: %0.6f  J: %0.6f K: %0.6f  Real: %0.6f" % (quat_i, quat_j, quat_k, quat_real))
             gyro_x, gyro_y, gyro_z = self.bno.gyro
             #print("X: %0.6f  Y: %0.6f Z: %0.6f rads/s" % (gyro_x, gyro_y, gyro_z))
+            accel_x, accel_y, accel_z = self.bno.linear_acceleration
 
             #aircraft.pitch = gyro_x * 180
             #aircraft.roll = gyro_y * 180
@@ -115,6 +116,7 @@ class gyro_i2c_bno055(Input):
             # update imuData object.
             self.imuData.quat = [roll_offset, pitch_offset, yaw_offset]
             self.imuData.gyro = [gyro_x , gyro_y , gyro_z ]
+            self.imuData.accel = [accel_x, accel_y, accel_z]
             self.imuData.pitch = pitch_offset
             self.imuData.roll = roll_offset
             self.imuData.yaw = yaw_offset

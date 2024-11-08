@@ -72,7 +72,7 @@ class gyro_i2c_bno085(Input):
     def closeInput(self,aircraft):
         print("bno085 close")
 
-    def quaternion_to_euler(self, w, x, y, z):
+    def quaternion_to_euler(self, x, y, z, w):
         roll = math.atan2(2.0 * (w * x + y * z), 1.0 - 2.0 * (x * x + y * y))
         roll = math.degrees(roll)
 

@@ -50,7 +50,7 @@ class gyro_i2c_bno085(Input):
         self.i2c = busio.I2C(board.SCL, board.SDA)
         self.bno = BNO08X_I2C(self.i2c, address=self.address)
 
-        #self.bno.enable_feature(BNO_REPORT_ACCELEROMETER)
+        self.bno.enable_feature(adafruit_bno08x.BNO_REPORT_ACCELEROMETER)
         self.bno.enable_feature(adafruit_bno08x.BNO_REPORT_GYROSCOPE)
         #self.bno.enable_feature(BNO_REPORT_MAGNETOMETER)
         self.bno.enable_feature(adafruit_bno08x.BNO_REPORT_ROTATION_VECTOR)

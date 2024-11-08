@@ -18,3 +18,7 @@ class IMU(object):
         self.accel = [0,0,0]
         self.mag = [0,0,0]
         self.temp = 0
+
+        self.cali_mag = None
+        self.cali_accel = None
+        self.cali_gyro = None

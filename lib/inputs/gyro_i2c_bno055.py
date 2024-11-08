@@ -35,7 +35,7 @@ class gyro_i2c_bno055(Input):
         # check how many imus are named the same as this one. get next number for this one.
         self.num_bno055 = 1
         for imu in aircraft.imus:
-            if imu.id == self.id:   
+            if imu.name == self.name:
                 self.num_bno055 += 1
 
         # read address from config.

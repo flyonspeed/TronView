@@ -117,7 +117,7 @@ class gyro_i2c_bno085(Input):
             # update imuData object.
             self.imuData.quat = [roll_offset, pitch_offset, yaw_offset]
             self.imuData.gyro = [gyro_x , gyro_y , gyro_z ]
-            self.imuData.accel = [accel_x, accel_y, accel_z]
+            self.imuData.accel = [round(accel_x,2), round(accel_y,2), round(accel_z,2)]
             self.imuData.pitch = pitch_offset
             self.imuData.roll = roll_offset
             self.imuData.yaw = yaw_offset

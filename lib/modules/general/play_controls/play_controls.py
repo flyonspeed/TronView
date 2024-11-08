@@ -48,6 +48,7 @@ class play_controls(Module):
         #self.buttonAdd("test",  "Test", self.buttonPlay, newRow=True)
 
         self.buttonSelected("btnPlay",not shared.CurrentInput.isPaused) # set the button to selected
+        self.buttonSelected("btnRecord",shared.CurrentInput.output_logFile != None)
 
     # called every redraw for the module
     def draw(self, aircraft: dataship, smartdisplay, pos=(0, 0)):

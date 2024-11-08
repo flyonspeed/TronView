@@ -68,7 +68,7 @@
           }
         ]
       },
-      "id": "M_21qs4"
+      "id": "M_usqto"
     },
     {
       "type": "module",
@@ -130,7 +130,7 @@
           }
         ]
       },
-      "id": "M_0v6yn"
+      "id": "M_htz6d"
     },
     {
       "type": "module",
@@ -192,7 +192,7 @@
           }
         ]
       },
-      "id": "M_p8t12"
+      "id": "M_yu4fl"
     },
     {
       "type": "module",
@@ -254,7 +254,7 @@
           }
         ]
       },
-      "id": "M_mxahi"
+      "id": "M_fis0k"
     },
     {
       "type": "module",
@@ -316,7 +316,7 @@
           }
         ]
       },
-      "id": "M_ulwwd"
+      "id": "M_acnae"
     },
     {
       "type": "module",
@@ -378,7 +378,7 @@
           }
         ]
       },
-      "id": "M_dvqvp"
+      "id": "M_md297"
     },
     {
       "type": "module",
@@ -440,7 +440,7 @@
           }
         ]
       },
-      "id": "M_6l6rg"
+      "id": "M_4028q"
     },
     {
       "type": "module",
@@ -502,7 +502,7 @@
           }
         ]
       },
-      "id": "M_8stuu"
+      "id": "M_rblbk"
     },
     {
       "type": "module",
@@ -564,7 +564,7 @@
           }
         ]
       },
-      "id": "M_rvd5n"
+      "id": "M_vjhb7"
     },
     {
       "type": "module",
@@ -625,7 +625,7 @@
           }
         ]
       },
-      "id": "M_rom1y"
+      "id": "M_xx6oy"
     },
     {
       "type": "module",
@@ -686,7 +686,7 @@
           }
         ]
       },
-      "id": "M_6wvp2"
+      "id": "M_0fayl"
     },
     {
       "type": "module",
@@ -747,7 +747,7 @@
           }
         ]
       },
-      "id": "M_qiu84"
+      "id": "M_hc37r"
     },
     {
       "type": "module",
@@ -808,7 +808,7 @@
           }
         ]
       },
-      "id": "M_rugmk"
+      "id": "M_zmp14"
     },
     {
       "type": "module",
@@ -869,7 +869,7 @@
           }
         ]
       },
-      "id": "M_e6y5o"
+      "id": "M_ox57n"
     },
     {
       "type": "module",
@@ -930,7 +930,7 @@
           }
         ]
       },
-      "id": "M_4vljx"
+      "id": "M_dtboi"
     },
     {
       "type": "module",
@@ -991,18 +991,18 @@
           }
         ]
       },
-      "id": "M_i6hzt"
+      "id": "M_0nck7"
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 1356,
-      "y": 220,
+      "x": 1332,
+      "y": 136,
       "width": 270,
       "height": 327,
-      "grid_position": "MidR",
-      "grid_percentage_x": 0.659375,
-      "grid_percentage_y": 0.13055555555555556,
+      "grid_position": "TopR",
+      "grid_percentage_x": 0.584375,
+      "grid_percentage_y": 1.663888888888889,
       "module": {
         "name": "Text",
         "options": [
@@ -1052,18 +1052,18 @@
           }
         ]
       },
-      "id": "M_95hls"
+      "id": "M_hg4cc"
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 1357,
-      "y": 613,
+      "x": 1332,
+      "y": 500,
       "width": 288,
       "height": 397,
-      "grid_position": "BotR",
-      "grid_percentage_x": 0.690625,
-      "grid_percentage_y": 0.5083333333333333,
+      "grid_position": "MidR",
+      "grid_percentage_x": 0.6125,
+      "grid_percentage_y": 1.8805555555555555,
       "module": {
         "name": "Text",
         "options": [
@@ -1113,18 +1113,18 @@
           }
         ]
       },
-      "id": "M_kvfqe"
+      "id": "M_9yexx"
     },
     {
       "type": "module",
       "title": "object 3D",
-      "x": 1545,
-      "y": 268,
+      "x": 1521,
+      "y": 184,
       "width": 155,
       "height": 163,
       "grid_position": "TopR",
-      "grid_percentage_x": 1.0703125,
-      "grid_percentage_y": 1.9416666666666667,
+      "grid_percentage_x": 0.9953125,
+      "grid_percentage_y": 1.475,
       "module": {
         "name": "object 3D",
         "options": [
@@ -1146,18 +1146,18 @@
           }
         ]
       },
-      "id": "M_18g34"
+      "id": "M_4h8i6"
     },
     {
       "type": "module",
       "title": "object 3D",
-      "x": 1545,
-      "y": 656,
+      "x": 1520,
+      "y": 543,
       "width": 164,
       "height": 143,
-      "grid_position": "BotR",
-      "grid_percentage_x": 1.084375,
-      "grid_percentage_y": 0.041666666666666664,
+      "grid_position": "MidR",
+      "grid_percentage_x": 1.00625,
+      "grid_percentage_y": 1.413888888888889,
       "module": {
         "name": "object 3D",
         "options": [
@@ -1179,18 +1179,18 @@
           }
         ]
       },
-      "id": "M_8njl3"
+      "id": "M_j6ndl"
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 1355,
-      "y": 188,
+      "x": 1331,
+      "y": 104,
       "width": 194,
       "height": 29,
       "grid_position": "TopR",
-      "grid_percentage_x": 0.5375,
-      "grid_percentage_y": 1.125,
+      "grid_percentage_x": 0.4625,
+      "grid_percentage_y": 0.6583333333333333,
       "module": {
         "name": "Text",
         "options": [
@@ -1240,18 +1240,18 @@
           }
         ]
       },
-      "id": "M_9d5p3"
+      "id": "M_j2qvx"
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 1355,
-      "y": 577,
+      "x": 1330,
+      "y": 464,
       "width": 194,
       "height": 29,
       "grid_position": "MidR",
-      "grid_percentage_x": 0.5375,
-      "grid_percentage_y": 1.2861111111111112,
+      "grid_percentage_x": 0.459375,
+      "grid_percentage_y": 0.6583333333333333,
       "module": {
         "name": "Text",
         "options": [
@@ -1301,7 +1301,7 @@
           }
         ]
       },
-      "id": "M_hih2t"
+      "id": "M_etua7"
     },
     {
       "type": "module",
@@ -1362,161 +1362,28 @@
           }
         ]
       },
-      "id": "M_0b056"
+      "id": "M_b8jua"
     },
     {
       "type": "module",
-      "title": "Gauge Bar",
-      "x": 1387,
-      "y": 75,
-      "width": 200,
-      "height": 50,
+      "title": "Play Controls",
+      "x": 1245,
+      "y": 35,
+      "width": 382,
+      "height": 132,
       "grid_position": "TopR",
-      "grid_percentage_x": 0.646875,
-      "grid_percentage_y": 0.5555555555555556,
+      "grid_percentage_x": 0.4875,
+      "grid_percentage_y": 0.5611111111111111,
       "module": {
-        "name": "Gauge Bar",
+        "name": "Play Controls",
         "options": [
           {
-            "name": "data_field",
-            "value": "oat"
-          },
-          {
-            "name": "minValue",
-            "value": 0
-          },
-          {
-            "name": "maxValue",
-            "value": 100
-          },
-          {
-            "name": "vertical",
-            "value": false
-          },
-          {
-            "name": "show_text",
-            "value": true
-          },
-          {
-            "name": "show_borders",
-            "value": true
-          },
-          {
-            "name": "border_width",
-            "value": 2
-          },
-          {
-            "name": "bar_color",
-            "value": [
-              0,
-              255,
-              0
-            ]
-          },
-          {
-            "name": "background_color",
-            "value": [
-              40,
-              40,
-              40
-            ]
-          },
-          {
-            "name": "border_color",
-            "value": [
-              100,
-              100,
-              100
-            ]
-          },
-          {
-            "name": "smooth_factor",
-            "value": 0.15
-          },
-          {
-            "name": "font_name",
-            "value": "monospace"
-          },
-          {
-            "name": "font_size",
+            "name": "button_font_size",
             "value": 20
-          },
-          {
-            "name": "text_color",
-            "value": [
-              200,
-              255,
-              255
-            ]
-          },
-          {
-            "name": "max_bars",
-            "value": 8
           }
         ]
       },
-      "id": "M_jip82"
-    },
-    {
-      "type": "module",
-      "title": "Text",
-      "x": 1396,
-      "y": 60,
-      "width": 200,
-      "height": 50,
-      "grid_position": "TopR",
-      "grid_percentage_x": 0.675,
-      "grid_percentage_y": 0.4722222222222222,
-      "module": {
-        "name": "Text",
-        "options": [
-          {
-            "name": "template",
-            "value": ""
-          },
-          {
-            "name": "text",
-            "value": "OAT"
-          },
-          {
-            "name": "font_name",
-            "value": "monospace"
-          },
-          {
-            "name": "font_size",
-            "value": 20
-          },
-          {
-            "name": "font_bold",
-            "value": false
-          },
-          {
-            "name": "text_color",
-            "value": [
-              200,
-              255,
-              255
-            ]
-          },
-          {
-            "name": "box_color",
-            "value": [
-              255,
-              255,
-              255
-            ]
-          },
-          {
-            "name": "box_weight",
-            "value": 0
-          },
-          {
-            "name": "box_radius",
-            "value": 0
-          }
-        ]
-      },
-      "id": "M_reqw5"
+      "id": "M_nk5xn"
     }
   ]
 }

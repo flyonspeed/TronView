@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python
 
 # BNO 055 IMU 9 DOF gyro
@@ -34,8 +33,8 @@ class gyro_i2c_bno055(Input):
 
         # check how many imus are named the same as this one. get next number for this one.
         self.num_bno055 = 1
-        for imu in aircraft.imus:
-            if imu.name == self.name:
+        for index, imu_obj in aircraft.imus.items():
+            if imu_obj.name == self.name:
                 self.num_bno055 += 1
 
         # read address from config.

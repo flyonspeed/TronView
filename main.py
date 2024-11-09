@@ -27,7 +27,7 @@ from lib.common.graphic import edit_save_load
 
 #############################################
 ## Class: myThreadEfisInputReader
-## Read input data on seperate thread.
+## Read input data on separate thread.
 class myThreadEfisInputReader(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
@@ -35,29 +35,56 @@ class myThreadEfisInputReader(threading.Thread):
     def run(self):
         internalLoopCounter = 1
         while shared.Dataship.errorFoundNeedToExit == False:
-            if(shared.Inputs[0].isPaused==True):
-                pass
-            else:
-                shared.Dataship = shared.Inputs[0].readMessage(shared.Dataship)
-                shared.Inputs[0].time_stamp = shared.Inputs[0].time_stamp_string
-                if(len(shared.Inputs) > 1 and shared.Inputs[1] != None): # if there is a 2nd input then read message from that too.
-                    shared.Dataship = shared.Inputs[1].readMessage(shared.Dataship)
-                    shared.Inputs[1].time_stamp = shared.Inputs[1].time_stamp_string
-                    # show diff between time stamps if we have them.
-                if(len(shared.Inputs) > 2 and shared.Inputs[2] != None): # if there is a 3rd input then read message from that too.
-                    shared.Dataship = shared.Inputs[2].readMessage(shared.Dataship)
-                    shared.Inputs[2].time_stamp = shared.Inputs[2].time_stamp_string
-                internalLoopCounter = internalLoopCounter - 1
-                if internalLoopCounter < 0:
-                    internalLoopCounter = 100
-                    checkInternals()
-                    shared.Dataship.traffic.cleanUp(shared.Dataship) # check if old traffic targets should be cleared up.
+            # loop through all inputs and read messages from them.
+            for i in range(len(shared.Inputs)):
+                input = shared.Inputs[i]
+                if(input.isPaused==True):
+                    pass
+                else:
+                    shared.Dataship = input.readMessage(shared.Dataship)
+                    input.time_stamp = input.time_stamp_string
 
-            #if (shared.Inputs[0].PlayFile != None): # if playing back a file.. add a little delay so it's closer to real world time.
-            #    time.sleep(.04)
+            internalLoopCounter = internalLoopCounter - 1
+            if internalLoopCounter < 0:
+                internalLoopCounter = 100
+                checkInternals()
+                shared.Dataship.traffic.cleanUp(shared.Dataship) # check if old traffic targets should be cleared up.
+
+            if (shared.Inputs[0].PlayFile != None): # if playing back a file.. add a little delay so it's closer to real world time.
+               time.sleep(.04)
             if shared.Dataship.textMode == True: # if in text mode.. lets delay a bit.. this keeps the cpu from heating up on my mac.
                 time.sleep(.01)
 
+#############################################
+## Class: SingleInputReader
+## Read input data on separate thread.
+class SingleInputReader(threading.Thread):
+    def __init__(self, input_index):
+        threading.Thread.__init__(self)
+        self.input_index = input_index
+        
+    def run(self):
+        internalLoopCounter = 1
+        print(f"Input Thread {self.input_index}: {shared.Inputs[self.input_index].name} started")
+        while shared.Dataship.errorFoundNeedToExit == False:
+            if shared.Inputs[self.input_index].isPaused == True:
+                pass
+            else:
+                shared.Dataship = shared.Inputs[self.input_index].readMessage(shared.Dataship)
+                shared.Inputs[self.input_index].time_stamp = shared.Inputs[self.input_index].time_stamp_string
+                
+                internalLoopCounter = internalLoopCounter - 1
+                if self.input_index == 0:  # Only do cleanup on one thread
+                    if internalLoopCounter < 0:
+                        internalLoopCounter = 100
+                        checkInternals()
+                        shared.Dataship.traffic.cleanUp(shared.Dataship)
+                        #print(f"Input Thread: {self.input_index} {shared.Inputs[self.input_index].name} looped")
+
+            if shared.Inputs[self.input_index].PlayFile != None: # if playing back a file.. add a little delay so it's closer to real world time.
+                time.sleep(.04)
+            if shared.Dataship.textMode == True:
+                time.sleep(.01)
 
 #############################################
 ## Function: checkInternals
@@ -145,6 +172,7 @@ if __name__ == "__main__":
     parser.add_argument('-s', '--screen', type=str, help='Screen to load')
     parser.add_argument('-l', action='store_true', help='List serial ports')
     parser.add_argument('--load-screen', type=str, help='Load screen from JSON file')
+    parser.add_argument('--input-threads', action='store_true', help='Run each input on a separate thread (default is all on one input thread)')
     args = parser.parse_args()
 
     if args.t:
@@ -218,8 +246,18 @@ if __name__ == "__main__":
         graphic_mode.loadScreen(ScreenNameToLoad) # load and init screen
         #drawTimer.addGrowlNotice("1: %s"%(DataInputToLoad),3000,drawTimer.green,drawTimer.TOP_RIGHT)
 
-    thread1 = myThreadEfisInputReader()  # start thread for reading efis input.
-    thread1.start()
+    if args.input_threads:
+        input_threads = []
+        for i in range(len(shared.Inputs)):
+            if shared.Inputs[i] is not None:
+                thread = SingleInputReader(i)
+                thread.start()
+                input_threads.append(thread)
+        print("Running each input on separate thread")
+    else:
+        thread1 = myThreadEfisInputReader()  # start thread for reading efis input.
+        thread1.start()
+        print("Running all inputs on single thread")
 
     # testing.. start in edit mode.
     if shared.Dataship.textMode == False:

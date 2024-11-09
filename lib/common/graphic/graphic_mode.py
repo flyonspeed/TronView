@@ -338,11 +338,12 @@ def draw_debug(debug_mode,aircraft,smartdisplay):
         draw_debug_object(aircraft.fuel)
 
     if(debug_mode==5):
-        draw_label_debug_title("Input1")
-        draw_debug_object(aircraft.inputs[0])
-        draw_label_debug_title("Input2")
-        draw_debug_object(aircraft.inputs[1])
-        draw_label_debug_title("Internatl")
+        draw_label_debug_title("Input 1")
+        draw_debug_object(shared.Inputs[0])
+        if(len(shared.Inputs) > 1):
+            draw_label_debug_title("Input 2")
+            draw_debug_object(shared.Inputs[1])
+        draw_label_debug_title("Internal")
         draw_debug_object(aircraft.internal)
 
     smartdisplay.draw_text(smartdisplay.BOTTOM_RIGHT, debug_font, "%0.2f FPS" % (aircraft.fps), (255, 255, 0))

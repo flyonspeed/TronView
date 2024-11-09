@@ -33,13 +33,13 @@ class serial_g3x(Input):
 
     def initInput(self,num, aircraft):
         Input.initInput(self,num, aircraft)  # call parent init Input.
-        if(aircraft.inputs[self.inputNum].PlayFile!=None):
+        if(self.PlayFile!=None):
             # play a log file?
             self.EOL = 10 # if log file then change the EOL
-            if aircraft.inputs[self.inputNum].PlayFile==True:
+            if self.PlayFile==True:
                 defaultTo = "garmin_g3x_data1.txt"
-                aircraft.inputs[self.inputNum].PlayFile = hud_utils.readConfig(self.name, "playback_file", defaultTo)
-            self.ser,self.input_logFileName = Input.openLogFile(self,aircraft.inputs[self.inputNum].PlayFile,"r")
+                self.PlayFile = hud_utils.readConfig(self.name, "playback_file", defaultTo)
+            self.ser,self.input_logFileName = Input.openLogFile(self,self.PlayFile,"r")
             self.isPlaybackMode = True
         else:
             self.EOL = 13

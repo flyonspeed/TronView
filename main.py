@@ -44,10 +44,6 @@ class myThreadEfisInputReader(threading.Thread):
                     shared.Dataship = shared.Inputs[1].readMessage(shared.Dataship)
                     shared.Inputs[1].time_stamp = shared.Inputs[1].time_stamp_string
                     # show diff between time stamps if we have them.
-                    if(shared.Inputs[1].time_stamp_string != None and shared.Inputs[0].time_stamp_string != None):
-                        time1Secs =  (shared.Inputs[0].time_stamp_min * 60) + shared.Inputs[0].time_stamp_sec
-                        time2Secs =  (shared.Inputs[1].time_stamp_min * 60) + shared.Inputs[1].time_stamp_sec
-                        shared.Dataship.inputs[0].time_diff_secs = abs(time2Secs - time1Secs)
                 if(len(shared.Inputs) > 2 and shared.Inputs[2] != None): # if there is a 3rd input then read message from that too.
                     shared.Dataship = shared.Inputs[2].readMessage(shared.Dataship)
                     shared.Inputs[2].time_stamp = shared.Inputs[2].time_stamp_string
@@ -57,8 +53,8 @@ class myThreadEfisInputReader(threading.Thread):
                     checkInternals()
                     shared.Dataship.traffic.cleanUp(shared.Dataship) # check if old traffic targets should be cleared up.
 
-            if (shared.Inputs[0].PlayFile != None): # if playing back a file.. add a little delay so it's closer to real world time.
-                time.sleep(.04)
+            #if (shared.Inputs[0].PlayFile != None): # if playing back a file.. add a little delay so it's closer to real world time.
+            #    time.sleep(.04)
             if shared.Dataship.textMode == True: # if in text mode.. lets delay a bit.. this keeps the cpu from heating up on my mac.
                 time.sleep(.01)
 
@@ -163,15 +159,6 @@ if __name__ == "__main__":
     if args.listusblogs:
         hud_utils.listUSBLogDataFiles()
         sys.exit()
-    if args.playfile1:
-        shared.Inputs[0].PlayFile = args.playfile1
-        print("Input1 playing log file: "+args.playfile1)
-    if args.playfile2:
-        shared.Inputs[1].PlayFile = args.playfile2
-        print("Input2 playing log file: "+args.playfile2)
-    if args.playfile3:
-        shared.Inputs[2].PlayFile = args.playfile3
-        print("Input3 playing log file: "+args.playfile3)
     if args.e:
         # set all the inputs to playback mode.
         allPlayback = True

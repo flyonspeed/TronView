@@ -189,11 +189,11 @@ class Input:
         if self.textMode_whatToShow==0 or self.textMode_whatToShow==6:
             hud_text.print_header("Fuel Data")
             hud_text.print_object(aircraft.fuel)
-            hud_text.print_header("Input Source 1")
-            hud_text.print_object(aircraft.inputs[0])
-            if(aircraft.inputs[1].Name != None):
-                hud_text.print_header("Input Source 2")
-                hud_text.print_object(aircraft.inputs[1])                
+            hud_text.print_header("Input 1")
+            hud_text.print_object(self)
+            if(len(shared.Inputs) > 1):
+                hud_text.print_header("Input 2")
+                hud_text.print_object(shared.Inputs[1])                
             hud_text.print_header("Internal Data")
             hud_text.print_object(aircraft.internal)
 
@@ -223,7 +223,7 @@ class Input:
         if self.output_logFile == None:
             self.output_logFile,self.output_logFileName = Input.createLogFile(self,".dat",True)
             print("Creating log output: %s"%(self.output_logFileName))
-            shared.Dataship.inputs[self.inputNum].RecFile = self.output_logFile
+            self.RecFile = self.output_logFile
         else:
             print("Already logging to: "+self.output_logFileName)
 
@@ -235,7 +235,7 @@ class Input:
         if self.output_logFile != None:
             Input.closeLogFile(self,self.output_logFile)
             self.output_logFile = None
-            shared.Dataship.inputs[self.inputNum].RecFile = None
+            self.RecFile = None
             return True, serverAvail
 
         return False,None
@@ -243,7 +243,7 @@ class Input:
     #############################################
     # fast forward if reading from a file.
     def fastForward(self,aircraft,bytesToSkip):
-            if aircraft.inputs[self.inputNum].PlayFile != None:
+            if self.PlayFile != None:
                 current = self.ser.tell()
                 moveTo = current - bytesToSkip
                 try:
@@ -258,7 +258,7 @@ class Input:
     #############################################
     # fast backwards if reading from a file.
     def fastBackwards(self,aircraft,bytesToSkip):
-            if aircraft.inputs[self.inputNum].PlayFile != None:
+            if self.PlayFile != None:
                 self.skipReadInput = True  # lets pause reading from the file for second while we mess with the file pointer.
                 current = self.ser.tell()
                 moveTo = current - bytesToSkip

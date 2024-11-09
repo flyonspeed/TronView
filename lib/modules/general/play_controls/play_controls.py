@@ -57,7 +57,7 @@ class play_controls(Module):
         self.buttonsDraw(aircraft, smartdisplay, pos)  # draw buttons
 
         # next_line = self.buttonLastY + 10
-        # for input in aircraft.inputs:
+        # for input in shared.Inputs:
         #     text = self.button_font.render(input.name, True, (200,200,200))
         #     self.surface.blit(text, (10, next_line))
         #     next_line += text.get_height() + 5

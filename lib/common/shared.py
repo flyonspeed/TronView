@@ -20,9 +20,11 @@ Dataship = dataship.Dataship()
 ## Input objects take in external data, process it if needed then
 ## stuff the data into the dataship object for the screens to use.
 ## Inputs can be from Serial, Files, wifi, etc...
-CurrentInput = None
-CurrentInput2 = None
-CurrentInput3 = None
+# CurrentInput = None
+# CurrentInput2 = None
+# CurrentInput3 = None
+
+Inputs = {}
 
 ####################################
 ## SmartDisplay Obect

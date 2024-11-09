@@ -17,7 +17,6 @@ class Input:
         self.inputtype = ""
         self.path_datarecorder = ""
 
-
     def initInput(self, num, aircraft):
         self.ser = None # is is the input source... File, serial device, network connection...
 
@@ -152,11 +151,11 @@ class Input:
     ## Function: printTextModeData
     def printTextModeData(self, aircraft):
         hud_text.print_header("Decoded data from Input Module: %s (Keys: space=cycle data, r=raw)"%(self.name))
-        if aircraft.inputs[0].PlayFile!=None:
-            hud_text.print_header("Playing Log1: %s"%(aircraft.inputs[0].PlayFile))
-        if aircraft.inputs[1].PlayFile!=None:
-            hud_text.print_header("Playing Log2: %s"%(aircraft.inputs[1].PlayFile))
-        if(shared.CurrentInput.isPaused==True):
+        if self.PlayFile!=None:
+            hud_text.print_header("Playing Log1: %s"%(self.PlayFile))
+        if len(shared.Inputs) > 1 and shared.Inputs[1].PlayFile!=None:
+            hud_text.print_header("Playing Log2: %s"%(shared.Inputs[1].PlayFile))
+        if(self.isPaused==True):
             hud_text.print_header("PLAYBACK PAUSED!")
 
         if(self.textMode_whatToShow==0): showHowManyListItems = 1

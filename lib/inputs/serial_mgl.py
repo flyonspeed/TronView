@@ -24,12 +24,13 @@ class serial_mgl(Input):
 
     def initInput(self,num,aircraft):
         Input.initInput( self,num, aircraft )  # call parent init Input.
-        if(aircraft.inputs[self.inputNum].PlayFile!=None):
+        print("initInput %d: %s playfile: %s"%(num,self.name,self.PlayFile))
+        if(self.PlayFile!=None):
             # Get playback file.
-            if aircraft.inputs[self.inputNum].PlayFile==True:
+            if self.PlayFile==True:
                 defaultTo = "MGL_Flight1.bin"
-                aircraft.inputs[self.inputNum].PlayFile = hud_utils.readConfig(self.name, "playback_file", defaultTo)
-            self.ser,self.input_logFileName = Input.openLogFile(self,aircraft.inputs[self.inputNum].PlayFile,"rb")
+                self.PlayFile = hud_utils.readConfig(self.name, "playback_file", defaultTo)
+            self.ser,self.input_logFileName = Input.openLogFile(self,self.PlayFile,"rb")
             self.isPlaybackMode = True
         else:
             self.efis_data_format = hud_utils.readConfig("DataInput", "format", "none")

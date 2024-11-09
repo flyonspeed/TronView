@@ -33,32 +33,31 @@ class myThreadEfisInputReader(threading.Thread):
         threading.Thread.__init__(self)
 
     def run(self):
-        #global CurrentInput, CurrentInput2,CurrentInput3, aircraft
         internalLoopCounter = 1
         while shared.Dataship.errorFoundNeedToExit == False:
-            if(shared.CurrentInput.isPaused==True):
+            if(shared.Inputs[0].isPaused==True):
                 pass
             else:
-                shared.Dataship = shared.CurrentInput.readMessage(shared.Dataship)
-                shared.Dataship.inputs[0].time_stamp = shared.CurrentInput.time_stamp_string
-                if(shared.CurrentInput2 != None): # if there is a 2nd input then read message from that too.
-                    shared.Dataship = shared.CurrentInput2.readMessage(shared.Dataship)
-                    shared.Dataship.inputs[1].time_stamp = shared.CurrentInput2.time_stamp_string
+                shared.Dataship = shared.Inputs[0].readMessage(shared.Dataship)
+                shared.Inputs[0].time_stamp = shared.Inputs[0].time_stamp_string
+                if(len(shared.Inputs) > 1 and shared.Inputs[1] != None): # if there is a 2nd input then read message from that too.
+                    shared.Dataship = shared.Inputs[1].readMessage(shared.Dataship)
+                    shared.Inputs[1].time_stamp = shared.Inputs[1].time_stamp_string
                     # show diff between time stamps if we have them.
-                    if(shared.CurrentInput2.time_stamp_string != None and shared.CurrentInput.time_stamp_string != None):
-                        time1Secs =  (shared.CurrentInput.time_stamp_min * 60) + shared.CurrentInput.time_stamp_sec
-                        time2Secs =  (shared.CurrentInput2.time_stamp_min * 60) + shared.CurrentInput2.time_stamp_sec
+                    if(shared.Inputs[1].time_stamp_string != None and shared.Inputs[0].time_stamp_string != None):
+                        time1Secs =  (shared.Inputs[0].time_stamp_min * 60) + shared.Inputs[0].time_stamp_sec
+                        time2Secs =  (shared.Inputs[1].time_stamp_min * 60) + shared.Inputs[1].time_stamp_sec
                         shared.Dataship.inputs[0].time_diff_secs = abs(time2Secs - time1Secs)
-                if(shared.CurrentInput3 != None): # if there is a 3rd input then read message from that too.
-                    shared.Dataship = shared.CurrentInput3.readMessage(shared.Dataship)
-                    shared.Dataship.inputs[2].time_stamp = shared.CurrentInput3.time_stamp_string
+                if(len(shared.Inputs) > 2 and shared.Inputs[2] != None): # if there is a 3rd input then read message from that too.
+                    shared.Dataship = shared.Inputs[2].readMessage(shared.Dataship)
+                    shared.Inputs[2].time_stamp = shared.Inputs[2].time_stamp_string
                 internalLoopCounter = internalLoopCounter - 1
                 if internalLoopCounter < 0:
                     internalLoopCounter = 100
                     checkInternals()
                     shared.Dataship.traffic.cleanUp(shared.Dataship) # check if old traffic targets should be cleared up.
 
-            if (shared.Dataship.inputs[0].PlayFile != None): # if playing back a file.. add a little delay so it's closer to real world time.
+            if (shared.Inputs[0].PlayFile != None): # if playing back a file.. add a little delay so it's closer to real world time.
                 time.sleep(.04)
             if shared.Dataship.textMode == True: # if in text mode.. lets delay a bit.. this keeps the cpu from heating up on my mac.
                 time.sleep(.01)
@@ -80,16 +79,20 @@ def checkInternals():
 #############################################
 ## Function: loadInput
 # load input.
-def loadInput(num,nameToLoad):
+def loadInput(num,nameToLoad,playFile=None):
     print(("Input data module %d: %s"%(num,nameToLoad)))
+    if hud_utils.findInput(nameToLoad) == False:
+        print(("Input source %d not found: %s"%(num,nameToLoad)))
+        hud_utils.findInput() # show available inputs
+        sys.exit()
     module = ".%s" % (nameToLoad)
     mod = importlib.import_module(module, "lib.inputs")  # dynamically load class
     class_ = getattr(mod, nameToLoad)
     newInput = class_()
+    newInput.PlayFile = playFile
     newInput.initInput(num,shared.Dataship)
-    shared.Dataship.inputs[num].Name = newInput.name
-    shared.Dataship.inputs[num].Ver = newInput.version
-    shared.Dataship.inputs[num].InputType = newInput.inputtype
+    shared.Inputs[num] = newInput
+    print(("Input %d loaded to shared.Inputs[%d]: %s"%(num,num,nameToLoad)))
     return newInput
 
 #############################################
@@ -123,9 +126,9 @@ def initDataship():
 #
 
 ScreenNameToLoad = hud_utils.readConfig("Main", "screen", "Default")  # default screen to load
-DataInputToLoad = hud_utils.readConfig("DataInput", "inputsource", "none")  # input method
-DataInputToLoad2 = hud_utils.readConfig("DataInput2", "inputsource", "none")  # optional 2nd input
-DataInputToLoad3 = hud_utils.readConfig("DataInput3", "inputsource", "none")  # optional 3rd input
+#DataInputToLoad = hud_utils.readConfig("DataInput", "inputsource", "none")  # input method
+#DataInputToLoad2 = hud_utils.readConfig("DataInput2", "inputsource", "none")  # optional 2nd input
+#DataInputToLoad3 = hud_utils.readConfig("DataInput3", "inputsource", "none")  # optional 3rd input
 
 # check args passed in.
 if __name__ == "__main__":
@@ -151,10 +154,6 @@ if __name__ == "__main__":
     if args.t:
         print("Text mode")
         shared.Dataship.textMode = True
-    if args.e:
-        shared.Dataship.inputs[0].PlayFile = True
-    if args.c:
-        shared.Dataship.inputs[0].PlayFile = args.c
     if args.listlogs:
         hud_utils.listLogDataFiles()
         sys.exit()
@@ -164,23 +163,33 @@ if __name__ == "__main__":
     if args.listusblogs:
         hud_utils.listUSBLogDataFiles()
         sys.exit()
-    if args.in1:
-        DataInputToLoad = args.in1
-    if args.in2:
-        DataInputToLoad2 = args.in2
-    if args.in3:
-        DataInputToLoad3 = args.in3
     if args.playfile1:
-        shared.Dataship.inputs[0].PlayFile = args.playfile1
+        shared.Inputs[0].PlayFile = args.playfile1
         print("Input1 playing log file: "+args.playfile1)
     if args.playfile2:
-        shared.Dataship.inputs[1].PlayFile = args.playfile2
+        shared.Inputs[1].PlayFile = args.playfile2
         print("Input2 playing log file: "+args.playfile2)
     if args.playfile3:
-        shared.Dataship.inputs[2].PlayFile = args.playfile3
+        shared.Inputs[2].PlayFile = args.playfile3
         print("Input3 playing log file: "+args.playfile3)
+    if args.e:
+        # set all the inputs to playback mode.
+        allPlayback = True
+    else:
+        allPlayback = False
+    if args.c:
+        # this is the same as --playfile1
+        shared.Inputs[0].PlayFile = args.c
     if args.i:
-        DataInputToLoad = args.i
+        # this is the same as --in1
+        loadInput(0,args.i,args.playfile1 if args.playfile1 else allPlayback)
+    if args.in1:
+        loadInput(0,args.in1,args.playfile1 if args.playfile1 else allPlayback)
+    if args.in2:
+        loadInput(1,args.in2,args.playfile2 if args.playfile2 else allPlayback)
+    if args.in3:
+        loadInput(2,args.in3,args.playfile3 if args.playfile3 else allPlayback)
+
     if args.screen:
         ScreenNameToLoad = args.screen
     if args.l:
@@ -207,33 +216,11 @@ if __name__ == "__main__":
         shared.Dataship.internal.OSVer = os.name + " " + platform.system() + " " + str(platform.release())
     shared.Dataship.internal.PythonVer = str(sys.version_info[0])+"."+str(sys.version_info[1])+"."+str(sys.version_info[2])
     shared.Dataship.internal.PyGameVer = pygame.version.ver
-    if DataInputToLoad == "none":
-        print("No input source given")
-        hud_utils.showArgs()
-    # Check and load input source
-    if hud_utils.findInput(DataInputToLoad) == False:
-        print(("Input source not found: %s"%(DataInputToLoad)))
-        hud_utils.findInput() # show available inputs
-        sys.exit()
-    shared.CurrentInput = loadInput(0,DataInputToLoad)
-    if DataInputToLoad2 != "none":
-        #if(DataInputToLoad2==DataInputToLoad): print("Skipping 2nd Input source : same as input 1")
-        #else:
-            if hud_utils.findInput(DataInputToLoad2) == False:
-                print(("Input source 2 not found: %s"%(DataInputToLoad2)))
-                hud_utils.findInput() # show available inputs
-                sys.exit()
-            shared.CurrentInput2 = loadInput(1,DataInputToLoad2)
-    if DataInputToLoad3 != "none":
-        #if(DataInputToLoad3==DataInputToLoad): print("Skipping 3rd Input source : same as input 1")
-        #else:
-            if hud_utils.findInput(DataInputToLoad3) == False:
-                print(("Input source 3 not found: %s"%(DataInputToLoad2)))
-                hud_utils.findInput() # show available inputs
-                sys.exit()
-            shared.CurrentInput3 = loadInput(2,DataInputToLoad3)
+    
+
     if(shared.Dataship.errorFoundNeedToExit==True): sys.exit()
     # check and load screen module. (if not starting in text mode)
+
     initDataship()
     if(shared.Dataship.errorFoundNeedToExit==True): sys.exit()
     if not shared.Dataship.textMode:
@@ -242,7 +229,7 @@ if __name__ == "__main__":
             hud_utils.findScreen() # show available screens
             sys.exit()
         graphic_mode.loadScreen(ScreenNameToLoad) # load and init screen
-        drawTimer.addGrowlNotice("1: %s"%(DataInputToLoad),3000,drawTimer.green,drawTimer.TOP_RIGHT)
+        #drawTimer.addGrowlNotice("1: %s"%(DataInputToLoad),3000,drawTimer.green,drawTimer.TOP_RIGHT)
 
     thread1 = myThreadEfisInputReader()  # start thread for reading efis input.
     thread1.start()
@@ -270,9 +257,9 @@ if __name__ == "__main__":
         pygame.quit()
         pygame.display.quit()
 
-    shared.CurrentInput.closeInput(shared.Dataship) # close the input source
-    if DataInputToLoad2 != "none" and shared.CurrentInput2 != None: shared.CurrentInput2.closeInput(shared.Dataship)
-    if DataInputToLoad3 != "none" and shared.CurrentInput3 != None: shared.CurrentInput3.closeInput(shared.Dataship)
+    for i in range(len(shared.Inputs)):
+        if shared.Inputs[i] != None:
+            shared.Inputs[i].closeInput(shared.Dataship)
     sys.exit()
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

@@ -2,8 +2,8 @@
 
 # make sure they are on linux
 if [[ $(uname) != "Linux" ]]; then
-    echo "This script is only supported on Linux."
-    exit 1
+	echo "This script is only supported on Linux."
+	exit 1
 fi
 
 
@@ -15,6 +15,23 @@ case $yn in
 		echo "Updating apt-get"
 		sudo apt-get -qq update
 
+		# get 32 or 64 bit version os?
+		bit_size=$(getconf LONG_BIT)
+		printf "OS detected as $bit_size bit \n"
+
+		# get memory size of pi?
+		#free -h
+		#               total        used        free      shared  buff/cache   available
+		#Mem:           3.7Gi       2.3Gi       174Mi       371Mi       1.6Gi       1.4Gi
+		#Swap:          199Mi          0B       199Mi
+		total_memory=$(free -h | grep Mem: | awk '{print $2}')
+		# remove Gi from total memory
+		total_memory=${total_memory::-2}
+		# convert total memory to int (round up)
+		pi_size=$(echo $total_memory | awk '{print int($1+0.5) " Gb version"}')
+		printf "Pi detected size: $pi_size \n"
+
+		# os name
 		os_pretty_name=$(cat /etc/os-release | grep PRETTY_NAME | cut -d'=' -f2 | sed 's/"//g')
 		printf "OS is $os_pretty_name \n\n"
 
@@ -49,27 +66,30 @@ case $yn in
 
 			# install required packages
 			echo "Installing required python3 packages"
-			sudo apt-get -y install python3 python3-serial python3-pygame python3-pyaudio
-			sudo pip3 install pygame_menu --break-system-packages
+			sudo apt-get -y install python3 python3-serial python3-pyaudio
+			sudo pip3 install pygame-ce --break-system-packages
 			sudo pip3 install geographiclib --break-system-packages
 			sudo apt install libsdl2-ttf-2.0-0 
 			sudo pip3 install Adafruit_ADS1x15 --break-system-packages
 			sudo pip3 install numpy --break-system-packages
 			sudo pip3 install pygame_gui --break-system-packages 
 
-		else
+		fi
+
+		# check rpi os is Raspbian GNU/Linux 11 (bullseye).. check by running cat /etc/os-release
+		if [ $(cat /etc/os-release | grep "GNU/Linux 11" | wc -l) -eq 1 ]; then
 			# get os pretty name
 			echo "OS is $os_pretty_name.  "
 
 			# install required packages
 			echo "Installing required pytho3 packages"
-			sudo apt-get -y install python3 python-serial python-pygame python-pyaudio
-			sudo pip3 install pygame_menu --break-system-packages
-			sudo pip3 install geographiclib --break-system-packages
+			sudo apt-get -y install python3 python-serial python-pyaudio
+			sudo pip3 install pygame-ce
+			sudo pip3 install geographiclib
 			sudo apt install libsdl2-ttf-2.0-0 
-			sudo pip3 install Adafruit_ADS1x15 --break-system-packages
-			sudo pip3 install numpy --break-system-packages
-			sudo pip3 install pygame_gui --break-system-packages
+			sudo pip3 install Adafruit_ADS1x15
+			sudo pip3 install numpy
+			sudo pip3 install pygame_gui 
 		fi
 
 		# ask if we should install the BNO055 IMU python library

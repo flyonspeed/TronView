@@ -36,13 +36,13 @@ class myThreadEfisInputReader(threading.Thread):
         internalLoopCounter = 1
         while shared.Dataship.errorFoundNeedToExit == False:
             # loop through all inputs and read messages from them.
-            for i in range(len(shared.Inputs)):
-                input = shared.Inputs[i]
-                if(input.isPaused==True):
+            input_count = len(shared.Inputs)
+            for i in range(input_count):
+                if(shared.Inputs[i].isPaused==True):
                     pass
                 else:
-                    shared.Dataship = input.readMessage(shared.Dataship)
-                    input.time_stamp = input.time_stamp_string
+                    shared.Inputs[i].readMessage(shared.Dataship)
+                    shared.Inputs[i].time_stamp = shared.Inputs[i].time_stamp_string
 
             internalLoopCounter = internalLoopCounter - 1
             if internalLoopCounter < 0:
@@ -70,7 +70,7 @@ class SingleInputReader(threading.Thread):
             if shared.Inputs[self.input_index].isPaused == True:
                 pass
             else:
-                shared.Dataship = shared.Inputs[self.input_index].readMessage(shared.Dataship)
+                shared.Inputs[self.input_index].readMessage(shared.Dataship)
                 shared.Inputs[self.input_index].time_stamp = shared.Inputs[self.input_index].time_stamp_string
                 
                 internalLoopCounter = internalLoopCounter - 1
@@ -248,16 +248,16 @@ if __name__ == "__main__":
 
     if args.input_threads:
         input_threads = []
+        print("Starting input threads")
         for i in range(len(shared.Inputs)):
             if shared.Inputs[i] is not None:
                 thread = SingleInputReader(i)
                 thread.start()
                 input_threads.append(thread)
-        print("Running each input on separate thread")
     else:
+        print("Running all inputs on single thread")
         thread1 = myThreadEfisInputReader()  # start thread for reading efis input.
         thread1.start()
-        print("Running all inputs on single thread")
 
     # testing.. start in edit mode.
     if shared.Dataship.textMode == False:

@@ -581,7 +581,12 @@ def main_edit_loop():
                 # Mouse move.. resize or move the module??
                 elif event.type == pygame.MOUSEMOTION or event.type == pygame.FINGERMOTION:
                     if event.type == pygame.FINGERMOTION:
-                        print("Finger motion: %d x %d" % (event.x, event.y))
+                        print("Finger motion: %d x %d , %d x %d" % (event.x, event.y, event.dx, event.dy))
+                        # print all atrribs of event object
+                        for attr in dir(event):
+                            print("obj.%s = %r" % (attr, getattr(event, attr)))
+
+
                         mx, my = event.x, event.y
                     else:
                         mx, my = pygame.mouse.get_pos()

@@ -25,6 +25,10 @@ case $yn in
 		#Mem:           3.7Gi       2.3Gi       174Mi       371Mi       1.6Gi       1.4Gi
 		#Swap:          199Mi          0B       199Mi
 		total_memory=$(free -h | grep Mem: | awk '{print $2}')
+		# if Gi is not in total memory, then its the 1GB version
+		if [[ $total_memory != *"Gi"* ]]; then
+			total_memory="1Gi"
+		fi
 		# remove Gi from total memory
 		total_memory=${total_memory::-2}
 		# convert total memory to int (round up)
@@ -77,16 +81,17 @@ case $yn in
 		fi
 
 		# check rpi os is Raspbian GNU/Linux 11 (bullseye).. check by running cat /etc/os-release
+		# bullseye comes with python 3.9.2
 		if [ $(cat /etc/os-release | grep "GNU/Linux 11" | wc -l) -eq 1 ]; then
 			# get os pretty name
 			echo "OS is $os_pretty_name.  "
 
 			# install required packages
-			echo "Installing required pytho3 packages"
-			sudo apt-get -y install python3 python-serial python-pyaudio
+			echo "Installing required python3 packages"
+			sudo apt-get -y install python3 python3-serial python3-pyaudio
+			sudo apt-get -y install libsdl2-ttf-2.0-0 
 			sudo pip3 install pygame-ce
 			sudo pip3 install geographiclib
-			sudo apt install libsdl2-ttf-2.0-0 
 			sudo pip3 install Adafruit_ADS1x15
 			sudo pip3 install numpy
 			sudo pip3 install pygame_gui 

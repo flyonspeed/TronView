@@ -7,6 +7,7 @@ import math
 from ... import hud_utils
 import inspect
 from typing import List, Any
+from lib.common.dataship.dataship_imu import IMU
 
 #############################################
 ## Class: Dataship
@@ -25,6 +26,9 @@ class Dataship(object):
         self.sys_time_string = None 
         self.pitch = 0.0 # degrees
         self.roll = 0.0  # degrees
+        self.yaw = 0.0 # degrees
+        self.mag_head = 0 # 0 to 360
+        self.gndtrack = 0 #TODO: Move to GPSData class?
         self.ias = 0 # in mph
         self.tas = 0 # mph
         self.alt = None # in Ft
@@ -34,8 +38,6 @@ class Dataship(object):
         self.BALT = None # in ft
         self.DA = None # in ft
         self.aoa = None # percentage 0 to 100 (if available)
-        self.mag_head = 0 # 0 to 360
-        self.gndtrack = 0 #TODO: Move to GPSData class?
         self.baro = 0 # inches of mercury
         self.baro_diff = 0
         self.vsi = 0 # ft/min
@@ -55,10 +57,9 @@ class Dataship(object):
         self.traffic: TrafficData = TrafficData()
         self.fuel = FuelData()
         self.internal = InteralData()
-        self.inputs = [InputDetails(),InputDetails(),InputDetails()]
         self.alerts = []
         self.analog = AnalogData()
-        self.imus = []
+        self.imus = {}
         self.debug1 = ""
         self.debug2 = ""
         self.debug3 = ""
@@ -76,6 +77,15 @@ class Dataship(object):
 
         self.data_format = 0 # 0 is ft/in
         self.data_format_temp = 0 # 0 is F, 1 is C
+
+    def get_imu1(self):
+        return self.imus[0]
+
+    def get_imu2(self):
+        return self.imus[1]
+
+    def get_imu3(self):
+        return self.imus[2]
 
     # set set measurement to use for data.
     # 0 is US standard. (mph, ft)
@@ -314,19 +324,6 @@ class InteralData(object):
         self.Hardware = None
         self.PythonVer = None
         self.PyGameVer = None
-
-#############################################
-## Class: InputDetails
-class InputDetails(object):
-    def __init__(self):
-        self.Name = None # Name of input
-        self.Ver = None
-        self.InputType = None # Connect Type.. IE serial, wifi
-        self.Battery = None
-        self.PlayFile = None
-        self.RecFile = None
-        self.time_stamp = None
-        self.time_diff_secs = None
 
 #############################################
 ## Class: GPSData

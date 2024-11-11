@@ -76,6 +76,9 @@ class text(Module):
                     # check if it starts with _ then skip it.
                     if sub_var.startswith('_'):
                         continue
+                    # check if it has a __dict__.. if so skip it cause it's probably a child object. (for now...)
+                    if hasattr(sub_vars[sub_var], '__dict__'):
+                        continue
                     final_value += f"{sub_var}: {sub_vars[sub_var]}\n"
                 obj = final_value
             return obj

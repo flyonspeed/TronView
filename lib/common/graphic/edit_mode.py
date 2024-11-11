@@ -407,7 +407,7 @@ def main_edit_loop():
                 # check for Mouse events
                 if event.type == pygame.MOUSEBUTTONDOWN or event.type == pygame.FINGERDOWN:
                     if event.type == pygame.FINGERDOWN:
-                        mx, my = event.pos
+                        mx, my =  event.x, event.y
                     else:
                         mx, my = pygame.mouse.get_pos()
                     if shared.Dataship.debug_mode > 0:
@@ -581,7 +581,13 @@ def main_edit_loop():
                 # Mouse move.. resize or move the module??
                 elif event.type == pygame.MOUSEMOTION or event.type == pygame.FINGERMOTION:
                     if event.type == pygame.FINGERMOTION:
-                        mx, my = event.pos
+                        print("Finger motion: %d x %d , %d x %d" % (event.x, event.y, event.dx, event.dy))
+                        # print all atrribs of event object
+                        for attr in dir(event):
+                            print("obj.%s = %r" % (attr, getattr(event, attr)))
+
+
+                        mx, my = event.x, event.y
                     else:
                         mx, my = pygame.mouse.get_pos()
                     if dragging and len(selected_screen_objects) == 1:  # if dragging a single screen object

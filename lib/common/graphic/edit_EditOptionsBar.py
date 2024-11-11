@@ -176,7 +176,8 @@ class EditOptionsBar:
                 options_list = details['options']
                 
                 # Ensure the current value is in the options list
-                if current_value not in options_list:
+                if current_value not in options_list and current_value is not None and current_value != 0:
+                    print(f"Warning: current value '{current_value}' not in options list for dropdown '{option}'")
                     options_list.append(current_value)
                 
                 dropdown = UIDropDownMenu(

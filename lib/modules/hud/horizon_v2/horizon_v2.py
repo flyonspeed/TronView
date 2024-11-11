@@ -428,9 +428,15 @@ class horizon_v2(Module):
         
         # Clear the surface before drawing
         self.surface.fill((0, 0, 0, 0 ))
-        
-        # Draw horizon lines starting at the specified position
-        self.draw_horz_lines(
+
+        # if aircraft.roll is None then don't draw the horizon lines.
+        if aircraft.roll is None or aircraft.pitch is None:
+            # draw a red X on the screen.
+            pygame.draw.line(self.surface, (255,0,0), (0,0), (self.width,self.height), 4)
+            pygame.draw.line(self.surface, (255,0,0), (self.width,0), (0,self.height), 4)
+        else:
+            # Draw horizon lines starting at the specified position
+            self.draw_horz_lines(
             self.width,
             self.height,
             ((self.width // 2), self.height // 2),  # Use the center of the drawing area

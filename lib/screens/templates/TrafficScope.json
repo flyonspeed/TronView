@@ -48,10 +48,18 @@
           {
             "name": "icon_scale",
             "value": 15
+          },
+          {
+            "name": "enable_smoothing",
+            "value": true
+          },
+          {
+            "name": "smoothing_factor",
+            "value": 0.15
           }
         ]
       },
-      "id": "M_q78du"
+      "id": "M_v4u3n"
     },
     {
       "type": "module",
@@ -114,7 +122,7 @@
           }
         ]
       },
-      "id": "M_odc3n"
+      "id": "M_8p08b"
     },
     {
       "type": "module",
@@ -160,10 +168,14 @@
               255,
               0
             ]
+          },
+          {
+            "name": "smoothing_factor",
+            "value": 0.15
           }
         ]
       },
-      "id": "M_b6ukf"
+      "id": "M_haqal"
     },
     {
       "type": "module",
@@ -179,7 +191,7 @@
         "name": "Buoy Manager",
         "options": [
           {
-            "name": "target_font_size",
+            "name": "button_font_size",
             "value": 20
           },
           {
@@ -192,7 +204,7 @@
           }
         ]
       },
-      "id": "M_brzjy",
+      "id": "M_twfuq",
       "event_handlers": [
         {
           "id": "test",
@@ -207,13 +219,13 @@
     {
       "type": "module",
       "title": "Text",
-      "x": 1106,
-      "y": 166,
+      "x": 1347,
+      "y": 84,
       "width": 200,
       "height": 50,
-      "grid_position": "TopM",
-      "grid_percentage_x": 1.76875,
-      "grid_percentage_y": 1.0611111111111111,
+      "grid_position": "TopR",
+      "grid_percentage_x": 0.521875,
+      "grid_percentage_y": 0.6055555555555555,
       "module": {
         "name": "Text",
         "options": [
@@ -263,7 +275,7 @@
           }
         ]
       },
-      "id": "M_fjiz0"
+      "id": "M_7mu3h"
     },
     {
       "type": "module",
@@ -324,7 +336,7 @@
           }
         ]
       },
-      "id": "M_tvp19"
+      "id": "M_ygpgj"
     },
     {
       "type": "module",
@@ -385,7 +397,7 @@
           }
         ]
       },
-      "id": "M_oy2ww"
+      "id": "M_xz3hl"
     },
     {
       "type": "module",
@@ -446,7 +458,7 @@
           }
         ]
       },
-      "id": "M_5ko59"
+      "id": "M_ct8u2"
     },
     {
       "type": "module",
@@ -507,7 +519,7 @@
           }
         ]
       },
-      "id": "M_wegd3"
+      "id": "M_zcuct"
     },
     {
       "type": "module",
@@ -568,7 +580,7 @@
           }
         ]
       },
-      "id": "M_gl4ei"
+      "id": "M_fn9pd"
     },
     {
       "type": "module",
@@ -629,7 +641,7 @@
           }
         ]
       },
-      "id": "M_mqxc1"
+      "id": "M_9y253"
     },
     {
       "type": "module",
@@ -690,7 +702,7 @@
           }
         ]
       },
-      "id": "M_ho9xk"
+      "id": "M_g12wm"
     },
     {
       "type": "module",
@@ -751,7 +763,7 @@
           }
         ]
       },
-      "id": "M_akkoh"
+      "id": "M_75x6v"
     },
     {
       "type": "module",
@@ -812,7 +824,7 @@
           }
         ]
       },
-      "id": "M_ao6fs"
+      "id": "M_eg0if"
     },
     {
       "type": "module",
@@ -874,7 +886,7 @@
           }
         ]
       },
-      "id": "M_52p86"
+      "id": "M_6lcs8"
     },
     {
       "type": "module",
@@ -937,7 +949,28 @@
           }
         ]
       },
-      "id": "M_t8pj5"
+      "id": "M_kaal4"
+    },
+    {
+      "type": "module",
+      "title": "Play Controls",
+      "x": 1392,
+      "y": 218,
+      "width": 358,
+      "height": 170,
+      "grid_position": "TopR",
+      "grid_percentage_x": 0.909375,
+      "grid_percentage_y": 1.6833333333333333,
+      "module": {
+        "name": "Play Controls",
+        "options": [
+          {
+            "name": "button_font_size",
+            "value": 20
+          }
+        ]
+      },
+      "id": "M_93cgf"
     }
   ]
 }

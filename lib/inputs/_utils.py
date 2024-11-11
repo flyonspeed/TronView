@@ -83,14 +83,14 @@ def windSpdDir(tas, gndspeed, gndtrack, mag_head, mag_decl):
     if tas > 30 and gndspeed > 30:
         crs = math.radians(gndtrack) #convert degrees to radians
         head = math.radians(mag_head + mag_decl) #convert degrees to radians
-        wind_speed = math.sqrt(math.pow(tas - gndspeed, 2) + 4 * tas * gndspeed * math.pow(math.sin((head - crs) / 2), 2))
+        wind_speed = round(math.sqrt(math.pow(tas - gndspeed, 2) + 4 * tas * gndspeed * math.pow(math.sin((head - crs) / 2), 2)), 1)
         wind_dir = crs + math.atan2(tas * math.sin(head-crs), tas * math.cos(head-crs) - gndspeed)
         if wind_dir < 0:
             wind_dir = wind_dir + 2 * math.pi
         if wind_dir > 2 * math.pi:
             wind_dir = wind_dir - 2 * math.pi
-        wind_dir = math.degrees(wind_dir) #convert radians to degrees
-        norm_wind_dir = (mag_head - wind_dir + mag_decl) % 360 #normalize the wind direction to the airplane heading
+        wind_dir = round(math.degrees(wind_dir), 1) #convert radians to degrees
+        norm_wind_dir = round((mag_head - wind_dir + mag_decl) % 360, 1) #normalize the wind direction to the airplane heading
 
     else:
         wind_speed = None

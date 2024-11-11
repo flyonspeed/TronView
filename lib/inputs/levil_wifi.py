@@ -2,7 +2,8 @@
 
 # wifi udp input source
 # levil (ilevil and B.O.M)
-# 1/23/2019 Christopher Jones
+# 1/23/2019  Topher
+# 11/6/2024  Added IMU data.
 
 from ._input import Input
 from lib import hud_utils
@@ -11,7 +12,7 @@ from lib import hud_text
 import binascii
 import time
 import socket
-
+from lib.common.dataship.dataship import IMU
 class levil_wifi(Input):
     def __init__(self):
         self.name = "levil"
@@ -21,13 +22,13 @@ class levil_wifi(Input):
     def initInput(self,num,aircraft):
         Input.initInput( self,num, aircraft )  # call parent init Input.
 
-        if(aircraft.inputs[self.inputNum].PlayFile!=None):
+        if(self.PlayFile!=None):
             # if in playback mode then log file.
             # get file to read from config.  else default to..
-            if aircraft.inputs[self.inputNum].PlayFile==True:
+            if self.PlayFile==True:
                 defaultTo = "levil_data1.bin"
-                aircraft.inputs[self.inputNum].PlayFile = hud_utils.readConfig(self.name, "playback_file", defaultTo)
-            self.ser,self.input_logFileName = Input.openLogFile(self,aircraft.inputs[self.inputNum].PlayFile,"rb")
+                self.PlayFile = hud_utils.readConfig(self.name, "playback_file", defaultTo)
+            self.ser,self.input_logFileName = Input.openLogFile(self,self.PlayFile,"rb")
             self.isPlaybackMode = True
         else:
             self.udpport = hud_utils.readConfigInt("DataInput", "udpport", "43211")
@@ -45,6 +46,14 @@ class levil_wifi(Input):
             #doesn't get any data
             #self.ser.settimeout(.1)
             self.ser.setblocking(0)
+
+        # create a empty imu object.
+        self.imuData = IMU()
+        self.imuData.id = "levil_imu"
+        self.imuData.name = self.name
+        self.imu_index = len(aircraft.imus)  # Start at 0
+        aircraft.imus[self.imu_index] = self.imuData
+        self.last_read_time = time.time()
 
     def closeInput(self,aircraft):
         if self.isPlaybackMode:
@@ -123,8 +132,8 @@ class levil_wifi(Input):
                     #print("status message len:"+str(len(msg)))
                     # B          B     H     B    B   
                     FirmwareVer, Batt, Error,WAAS,Aux = struct.unpack(">BBHBB",msg[5:11])
-                    aircraft.inputs[self.inputNum].FirmwareVer = FirmwareVer
-                    aircraft.inputs[self.inputNum].Battery = Batt
+                    self.FirmwareVer = FirmwareVer
+                    self.Battery = Batt
                     if(msg[4]==2):
                         if(WAAS==1):
                             aircraft.gps.GPSWAAS = 1
@@ -150,6 +159,18 @@ class levil_wifi(Input):
                             aircraft.oat = OAT
                         aircraft.msg_last = msg
                         aircraft.msg_count += 1
+
+                        # Update IMU data
+                        self.imuData.roll = aircraft.roll
+                        self.imuData.pitch = aircraft.pitch
+                        self.imuData.yaw = aircraft.mag_head
+                        if aircraft.debug_mode > 0:
+                            current_time = time.time() # calculate hz.
+                            self.imuData.hz = round(1 / (current_time - self.last_read_time), 1)
+                            self.last_read_time = current_time
+                        # Update the IMU in the aircraft's imu list
+                        aircraft.imus[self.imu_index] = self.imuData
+
                     else:
                         aircraft.msg_bad +=1
 

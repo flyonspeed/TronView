@@ -4,6 +4,7 @@
 # Stratux UDP
 # 1/23/2019 Topher
 # 11/4/2024 - Adding debug, and working on AHRS message parsing. 
+# 11/6/2024  Added IMU data.
 
 from ._input import Input
 from lib import hud_utils
@@ -20,6 +21,7 @@ import time
 import math
 from geographiclib.geodesic import Geodesic
 import datetime
+from lib.common.dataship.dataship import IMU
 
 class stratux_wifi(Input):
     def __init__(self):
@@ -30,13 +32,13 @@ class stratux_wifi(Input):
     def initInput(self,num,aircraft):
         Input.initInput( self,num, aircraft )  # call parent init Input.
 
-        if(aircraft.inputs[self.inputNum].PlayFile!=None):
+        if(self.PlayFile!=None):
             # if in playback mode then load example data file.
             # get file to read from config.  else default to..
-            if aircraft.inputs[self.inputNum].PlayFile==True:
+            if self.PlayFile==True:
                 defaultTo = "stratux_9.dat"
-                aircraft.inputs[self.inputNum].PlayFile = hud_utils.readConfig(self.name, "playback_file", defaultTo)
-            self.ser,self.input_logFileName = Input.openLogFile(self,aircraft.inputs[self.inputNum].PlayFile,"rb")
+                self.PlayFile = hud_utils.readConfig(self.name, "playback_file", defaultTo)
+            self.ser,self.input_logFileName = Input.openLogFile(self,self.PlayFile,"rb")
             self.isPlaybackMode = True
         else:
             self.udpport = hud_utils.readConfigInt("Stratux", "udpport", "4000")
@@ -63,6 +65,16 @@ class stratux_wifi(Input):
         self.use_ahrs = hud_utils.readConfigBool("Stratux", "use_ahrs", defaultUseAHRS)
         if(self.use_ahrs==False):
             print("Skipping AHRS data from Stratux")
+
+        # create a empty imu object.
+        self.imuData = IMU()
+        self.imuData.id = "stratux_imu"
+        self.imuData.name = self.name
+        self.imu_index = len(aircraft.imus)  # Start at 0
+        print("new stratux imu "+str(self.imu_index)+": "+str(self.imuData))
+        aircraft.imus[self.imu_index] = self.imuData
+        self.last_read_time = time.time()
+
 
     def closeInput(self,aircraft):
         if self.isPlaybackMode:
@@ -164,16 +176,16 @@ class stratux_wifi(Input):
                 if(aircraft.debug_mode>0):
                     print("Message ID "+format(msg[3]));
                 # check if we want to read in ahrs data input.
-                if(self.use_ahrs == False):
-                    return aircraft
+                # if(self.use_ahrs == False):
+                #     return aircraft
 
                 if(msg[3]==0): # status message
                     #print(msg)
                     #print("status message len:"+str(len(msg)))
                     # B          B     H     B    B   
                     FirmwareVer, Batt, Error,WAAS,Aux = struct.unpack(">BBHBB",msg[5:11])
-                    aircraft.inputs[self.inputNum].FirmwareVer = FirmwareVer
-                    aircraft.inputs[self.inputNum].Battery = Batt
+                    self.FirmwareVer = FirmwareVer
+                    self.Battery = Batt
                     if(msg[4]==2):
                         if(WAAS==1):
                             aircraft.gps.GPSWAAS = 1
@@ -195,19 +207,38 @@ class stratux_wifi(Input):
 
                         # h   h     h   h      h         h,    h   H        h     B   B
                         Roll,Pitch,Yaw,Inclin,TurnCoord,GLoad,ias,pressAlt,vSpeed,AOA,OAT = struct.unpack(">hhhhhhhHhBB",msg[5:25]) 
-                        aircraft.roll = None if Roll == 32767 else Roll / 10
-                        aircraft.pitch = None if Pitch == 32767 else Pitch / 10
-                        aircraft.mag_head = 0 if Yaw == 32767 else Yaw / 10
-                        aircraft.slip_skid = None if TurnCoord == 32767 else TurnCoord / 100
-                        aircraft.vert_G = None if GLoad == 32767 else GLoad / 10
-                        #aircraft.ias = ias # if ias is 32767 then no airspeed given?
-                        aircraft.PALT = pressAlt -5000 # 5000 is sea level.
-                        aircraft.vsi = vSpeed
-                        if(msg[4]==2): # if version is 2 then read AOA and OAT
-                            aircraft.aoa = AOA
-                            aircraft.oat = OAT
+
+                        # Update IMU data
+                        self.imuData.roll = None if Roll == 32767 else Roll / 10
+                        self.imuData.pitch = None if Pitch == 32767 else Pitch / 10
+                        self.imuData.yaw = None if Yaw == 32767 else Yaw / 10
+                        self.imuData.heading = self.imuData.yaw
+
+                        self.imuData.slip_skid = None if TurnCoord == 32767 else TurnCoord / 100
+                        self.imuData.vert_G = None if GLoad == 32767 else GLoad / 10
+
+                        if aircraft.debug_mode > 0:
+                            current_time = time.time() # calculate hz.
+                            self.imuData.hz = round(1 / (current_time - self.last_read_time), 1)
+                            self.last_read_time = current_time
+                        # Update the IMU in the aircraft's imus dictionary
+                        aircraft.imus[self.imu_index] = self.imuData                        
+
+                        if self.use_ahrs or self.imu_index == 0:
+                            aircraft.roll = self.imuData.roll
+                            aircraft.pitch = self.imuData.pitch
+                            aircraft.mag_head = self.imuData.heading
+                            aircraft.slip_skid = self.imuData.slip_skid
+                            aircraft.vert_G = self.imuData.vert_G
+                            aircraft.ias = ias # if ias is 32767 then no airspeed given?
+                            aircraft.PALT = pressAlt -5000 # 5000 is sea level.
+                            aircraft.vsi = vSpeed
+                            if(msg[4]==2): # if version is 2 then read AOA and OAT
+                                aircraft.aoa = AOA
+                                aircraft.oat = OAT
                         if(self.textMode_showRaw==True): aircraft.msg_last = msg
                         aircraft.msg_count += 1
+
                     else:
                         aircraft.msg_bad +=1
                         #aircraft.msg_len = len(msg)

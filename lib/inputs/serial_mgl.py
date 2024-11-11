@@ -4,6 +4,7 @@
 # MGL iEFIS
 # 1/23/2019 Topher
 # 11/4/2024 - optimize message parsing. round values. Added Yaw, fix for Mag_head.
+# 11/6/2024  Added IMU data.
 
 from ._input import Input
 from lib import hud_utils
@@ -13,6 +14,7 @@ import struct
 from lib import hud_text
 import binascii
 import time
+from lib.common.dataship.dataship_imu import IMU
 
 class serial_mgl(Input):
     def __init__(self):
@@ -22,12 +24,13 @@ class serial_mgl(Input):
 
     def initInput(self,num,aircraft):
         Input.initInput( self,num, aircraft )  # call parent init Input.
-        if(aircraft.inputs[self.inputNum].PlayFile!=None):
+        print("initInput %d: %s playfile: %s"%(num,self.name,self.PlayFile))
+        if(self.PlayFile!=None):
             # Get playback file.
-            if aircraft.inputs[self.inputNum].PlayFile==True:
+            if self.PlayFile==True:
                 defaultTo = "MGL_Flight1.bin"
-                aircraft.inputs[self.inputNum].PlayFile = hud_utils.readConfig(self.name, "playback_file", defaultTo)
-            self.ser,self.input_logFileName = Input.openLogFile(self,aircraft.inputs[self.inputNum].PlayFile,"rb")
+                self.PlayFile = hud_utils.readConfig(self.name, "playback_file", defaultTo)
+            self.ser,self.input_logFileName = Input.openLogFile(self,self.PlayFile,"rb")
             self.isPlaybackMode = True
         else:
             self.efis_data_format = hud_utils.readConfig("DataInput", "format", "none")
@@ -46,6 +49,14 @@ class serial_mgl(Input):
                 timeout=1,
             )
 
+        # create a empty imu object.
+        self.imuData = IMU()
+        self.imuData.id = "mgl_imu"
+        self.imuData.name = self.name
+        self.imu_index = len(aircraft.imus)  # Start at 0
+        print("new imu "+str(self.imu_index)+": "+str(self.imuData))
+        aircraft.imus[self.imu_index] = self.imuData
+        self.last_read_time = time.time()
 
     def closeInput(self,aircraft):
         if self.isPlaybackMode:
@@ -100,6 +111,22 @@ class serial_mgl(Input):
                             aircraft.msg_count += 1
                             if(self.textMode_showRaw==True): aircraft.msg_last = binascii.hexlify(Message) # save last message.
                             else: aircraft.msg_last = None
+
+                            # Update IMU data
+                            self.imuData.roll = aircraft.roll
+                            self.imuData.pitch = aircraft.pitch
+                            self.imuData.yaw = aircraft.yaw
+                            self.imuData.heading = aircraft.mag_head
+                            self.imuData.turn_rate = aircraft.turn_rate
+                            self.imuData.slip_skid = aircraft.slip_skid
+                            self.imuData.g_force = aircraft.vert_G
+                            if aircraft.debug_mode > 0:
+                                current_time = time.time()
+                                # calculate hz.
+                                self.imuData.hz = round(1 / (current_time - self.last_read_time), 1)
+                                self.last_read_time = current_time
+                            # Update the IMU in the aircraft's imus dictionary
+                            aircraft.imus[self.imu_index] = self.imuData
 
                     elif msgType == 2:  # GPS Message
                         Message = self.ser.read(48)

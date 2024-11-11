@@ -49,39 +49,41 @@ def main_graphical():
             if event.type == pygame.KEYDOWN:
                 mods = pygame.key.get_mods()
                 if event.key == pygame.K_RIGHT and mods & pygame.KMOD_CTRL :
-                    shared.CurrentInput.fastForward(shared.Dataship,500)
-                    if(shared.CurrentInput2 != None): shared.CurrentInput2.fastForward(shared.Dataship,500)
+                    shared.Inputs[0].fastForward(shared.Dataship,500)
+                    if len(shared.Inputs) > 1: 
+                        shared.Inputs[1].fastForward(shared.Dataship,500)
                 elif event.key == pygame.K_LEFT and mods & pygame.KMOD_CTRL :
-                    shared.CurrentInput.fastBackwards(shared.Dataship,500)
-                    if(shared.CurrentInput2 != None): shared.CurrentInput2.fastBackwards(shared.Dataship,500)
+                    shared.Inputs[0].fastBackwards(shared.Dataship,500)
+                    if len(shared.Inputs) > 1:
+                        shared.Inputs[1].fastBackwards(shared.Dataship,500)
                 elif event.key == pygame.K_p :
-                    if(shared.CurrentInput.isPlaybackMode==True):
-                        if(shared.CurrentInput.isPaused==False):
-                            shared.CurrentInput.isPaused = True
+                    if(shared.Inputs[0].isPlaybackMode==True):
+                        if(shared.Inputs[0].isPaused==False):
+                            shared.Inputs[0].isPaused = True
                             print("Playback Paused!")
                             drawTimer.addGrowlNotice("Playback paused",1000,drawTimer.nerd_yellow,drawTimer.CENTER)
                         else:
-                            shared.CurrentInput.isPaused = False
+                            shared.Inputs[0].isPaused = False
                             print("Plaback resumed.")
                             drawTimer.addGrowlNotice("Fullspeed ahead!",1000,drawTimer.nerd_yellow,drawTimer.CENTER)
                 #### Press 1 - Start logging flight data
                 elif (event.key == pygame.K_w and mods & pygame.KMOD_CTRL) or event.key == pygame.K_1 or event.key == pygame.K_KP1 :
                     try:
-                        shared.CurrentInput.startLog(shared.Dataship)
-                        drawTimer.addGrowlNotice("Log: %s"%(shared.CurrentInput.output_logFileName),3000,drawTimer.nerd_yellow,drawTimer.CENTER)
-                        if(shared.CurrentInput2 != None): 
-                            shared.CurrentInput2.startLog(shared.Dataship)
-                            drawTimer.addGrowlNotice("Log2: %s"%(shared.CurrentInput2.output_logFileName),3000,drawTimer.nerd_yellow,drawTimer.BOTTOM_CENTER)
+                        shared.Inputs[0].startLog(shared.Dataship)
+                        drawTimer.addGrowlNotice("Log: %s"%(shared.Inputs[0].output_logFileName),3000,drawTimer.nerd_yellow,drawTimer.CENTER)
+                        if len(shared.Inputs) > 1:
+                            shared.Inputs[1].startLog(shared.Dataship)
+                            drawTimer.addGrowlNotice("Log2: %s"%(shared.Inputs[1].output_logFileName),3000,drawTimer.nerd_yellow,drawTimer.BOTTOM_CENTER)
                     except :
-                        drawTimer.addGrowlNotice("Unable to create log: "+shared.CurrentInput.name,3000,drawTimer.nerd_yellow,drawTimer.CENTER)
+                        drawTimer.addGrowlNotice("Unable to create log: "+shared.Inputs[0].name,3000,drawTimer.nerd_yellow,drawTimer.CENTER)
                 #### Press 2 - Stop log
                 elif (event.key == pygame.K_e and mods & pygame.KMOD_CTRL) or event.key == pygame.K_2 or event.key == pygame.K_KP2:
                     try:
-                        Saved,SendingTo = shared.CurrentInput.stopLog(shared.Dataship)
-                        drawTimer.addGrowlNotice("Log: %s"%(shared.CurrentInput.output_logFileName),3000,drawTimer.nerd_yellow,drawTimer.CENTER) 
-                        if(shared.CurrentInput2 != None):
-                            Saved,SendingTo = shared.CurrentInput2.stopLog(shared.Dataship)
-                            drawTimer.addGrowlNotice("Log2: %s"%(shared.CurrentInput2.output_logFileName),3000,drawTimer.nerd_yellow,drawTimer.BOTTOM_CENTER) 
+                        Saved,SendingTo = shared.Inputs[0].stopLog(shared.Dataship)
+                        drawTimer.addGrowlNotice("Log: %s"%(shared.Inputs[0].output_logFileName),3000,drawTimer.nerd_yellow,drawTimer.CENTER) 
+                        if len(shared.Inputs) > 1:
+                            Saved,SendingTo = shared.Inputs[1].stopLog(shared.Dataship)
+                            drawTimer.addGrowlNotice("Log2: %s"%(shared.Inputs[1].output_logFileName),3000,drawTimer.nerd_yellow,drawTimer.BOTTOM_CENTER) 
                         if(SendingTo!=None):
                             drawTimer.addGrowlNotice("Uploading to %s"%(SendingTo),3000,drawTimer.nerd_yellow,drawTimer.TOP_LEFT) 
                     except ValueError:
@@ -150,10 +152,10 @@ def main_graphical():
         shared.smartdisplay.draw_loop_start()
         shared.CurrentScreen.draw(shared.Dataship,shared.smartdisplay)  # draw method for current screen object
         drawTimer.processAllDrawTimers(pygamescreen) # process / remove / draw any active drawTimers...
-        if(shared.Dataship.inputs[1].PlayFile!=None):
-            shared.smartdisplay.draw_text(shared.smartdisplay.LEFT_MID_UP, None, "PLAYBACK log2: %s" % (shared.Dataship.inputs[1].PlayFile), (255, 255, 0))
-        if(shared.Dataship.inputs[0].PlayFile!=None):
-            shared.smartdisplay.draw_text(shared.smartdisplay.LEFT_MID_UP, None, "PLAYBACK log1: %s" % (shared.Dataship.inputs[0].PlayFile), (255, 255, 0))
+        if len(shared.Inputs) > 1 and shared.Inputs[1].PlayFile != None:
+            shared.smartdisplay.draw_text(shared.smartdisplay.LEFT_MID_UP, None, "PLAYBACK log2: %s" % (shared.Inputs[1].PlayFile), (255, 255, 0))
+        if shared.Inputs[0].PlayFile != None:
+            shared.smartdisplay.draw_text(shared.smartdisplay.LEFT_MID_UP, None, "PLAYBACK log1: %s" % (shared.Inputs[0].PlayFile), (255, 255, 0))
         shared.smartdisplay.draw_loop_done()
 
         if(debug_mode>0):
@@ -336,11 +338,12 @@ def draw_debug(debug_mode,aircraft,smartdisplay):
         draw_debug_object(aircraft.fuel)
 
     if(debug_mode==5):
-        draw_label_debug_title("Input1")
-        draw_debug_object(aircraft.inputs[0])
-        draw_label_debug_title("Input2")
-        draw_debug_object(aircraft.inputs[1])
-        draw_label_debug_title("Internatl")
+        draw_label_debug_title("Input 1")
+        draw_debug_object(shared.Inputs[0])
+        if(len(shared.Inputs) > 1):
+            draw_label_debug_title("Input 2")
+            draw_debug_object(shared.Inputs[1])
+        draw_label_debug_title("Internal")
         draw_debug_object(aircraft.internal)
 
     smartdisplay.draw_text(smartdisplay.BOTTOM_RIGHT, debug_font, "%0.2f FPS" % (aircraft.fps), (255, 255, 0))

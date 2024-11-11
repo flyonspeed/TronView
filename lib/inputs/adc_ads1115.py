@@ -24,7 +24,7 @@ class adc_ads1115(Input):
 
     def initInput(self,num,aircraft):
         Input.initInput( self,num, aircraft )  # call parent init Input.
-        if(aircraft.inputs[self.inputNum].PlayFile!=None):
+        if(self.PlayFile!=None):
             self.isPlaybackMode = True
         else:
             self.isPlaybackMode = False

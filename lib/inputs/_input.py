@@ -9,6 +9,7 @@ from lib.util import rpi_hardware
 import re
 import os
 from lib.common import shared # global shared objects stored here.
+from datetime import datetime
 
 class Input:
     def __init__(self):
@@ -16,7 +17,6 @@ class Input:
         self.version = 1.0
         self.inputtype = ""
         self.path_datarecorder = ""
-
 
     def initInput(self, num, aircraft):
         self.ser = None # is is the input source... File, serial device, network connection...
@@ -81,7 +81,7 @@ class Input:
         # else try the example data last.
         try:
             openFileName = "lib/inputs/_example_data/"+filename
-            print("Opening Logfile: "+openFileName)
+            print("Opening example Logfile: "+openFileName)
             logFile = open(openFileName, attribs)
             self.input_logFileSize = os.path.getsize(openFileName)
             self.input_logFilePercent = 0
@@ -99,6 +99,15 @@ class Input:
                 openFileName = self.getNextLogFile("/mnt/usb/",fileExtension)
             else:
                 DataRecorderPath = hud_utils.getDataRecorderDir()
+                log_path_format = hud_utils.readConfig("DataRecorder", "log_path_format", "%Y/%m/")
+                # get todays year and month. create a folder YYYY/MM/
+                today = datetime.now()
+                # replace the %Y and %m in the log_path_format with the current year and month.
+                log_path_format = log_path_format.replace("%Y",str(today.year)).replace("%m",str(today.month)).replace("%d",str(today.day))
+                DataRecorderPath = DataRecorderPath + log_path_format
+                # create the folder if it doesn't exist.
+                if not os.path.exists(DataRecorderPath):
+                    os.makedirs(DataRecorderPath)
                 openFileName = self.getNextLogFile(DataRecorderPath,fileExtension)
             if isBinary == True:
                 logFile = open(openFileName, "w+b")
@@ -107,7 +116,10 @@ class Input:
             return logFile,openFileName
         except Exception as e: 
             print(e)
-            print("Error createLogFile() %s"%(openFileName))
+            print("Error createLogFile() %s"%(self.name))
+            # print full stack trace
+            import traceback
+            traceback.print_exc()
             return  "",""
 
     #############################################
@@ -137,26 +149,29 @@ class Input:
     ## get next log file to open.
     def getNextLogFile(self,dirname,fileExtension):
         from os.path import exists
-        print("getNextLogFile() "+dirname+" "+fileExtension)
+        #print("getNextLogFile() "+dirname+" "+fileExtension)
+        file_format = hud_utils.readConfig("DataRecorder", "log_file_format", "%Y_%m_%d_%INPUT")
+
         #fullpath = hud_utils.getDataRecorderDir()
         fullpath = dirname
         number = 1
-        newFilename = fullpath + self.name + "_" + str(number) + fileExtension
-        while exists(newFilename) == True:
+        today = datetime.now()
+        newFilename = fullpath + file_format.replace("%INPUT",self.name).replace("%Y",str(today.year)).replace("%m",str(today.month)).replace("%d",str(today.day)) + "_" + str(number) + fileExtension
+        while exists(newFilename) == True: # keep trying until we find a free filename.
             number = number + 1
-            newFilename = fullpath + self.name + "_" + str(number) + fileExtension
-        print("using filename %s"%(newFilename))
+            newFilename = fullpath + file_format.replace("%INPUT",self.name).replace("%Y",str(today.year)).replace("%m",str(today.month)).replace("%d",str(today.day)) + "_" + str(number) + fileExtension
+        #print("using filename %s"%(newFilename))
         return newFilename
 
     #############################################
     ## Function: printTextModeData
     def printTextModeData(self, aircraft):
         hud_text.print_header("Decoded data from Input Module: %s (Keys: space=cycle data, r=raw)"%(self.name))
-        if aircraft.inputs[0].PlayFile!=None:
-            hud_text.print_header("Playing Log1: %s"%(aircraft.inputs[0].PlayFile))
-        if aircraft.inputs[1].PlayFile!=None:
-            hud_text.print_header("Playing Log2: %s"%(aircraft.inputs[1].PlayFile))
-        if(shared.CurrentInput.isPaused==True):
+        if self.PlayFile!=None:
+            hud_text.print_header("Playing Log1: %s"%(self.PlayFile))
+        if len(shared.Inputs) > 1 and shared.Inputs[1].PlayFile!=None:
+            hud_text.print_header("Playing Log2: %s"%(shared.Inputs[1].PlayFile))
+        if(self.isPaused==True):
             hud_text.print_header("PLAYBACK PAUSED!")
 
         if(self.textMode_whatToShow==0): showHowManyListItems = 1
@@ -190,11 +205,11 @@ class Input:
         if self.textMode_whatToShow==0 or self.textMode_whatToShow==6:
             hud_text.print_header("Fuel Data")
             hud_text.print_object(aircraft.fuel)
-            hud_text.print_header("Input Source 1")
-            hud_text.print_object(aircraft.inputs[0])
-            if(aircraft.inputs[1].Name != None):
-                hud_text.print_header("Input Source 2")
-                hud_text.print_object(aircraft.inputs[1])                
+            hud_text.print_header("Input 1")
+            hud_text.print_object(self)
+            if(len(shared.Inputs) > 1):
+                hud_text.print_header("Input 2")
+                hud_text.print_object(shared.Inputs[1])                
             hud_text.print_header("Internal Data")
             hud_text.print_object(aircraft.internal)
 
@@ -224,7 +239,7 @@ class Input:
         if self.output_logFile == None:
             self.output_logFile,self.output_logFileName = Input.createLogFile(self,".dat",True)
             print("Creating log output: %s"%(self.output_logFileName))
-            shared.Dataship.inputs[self.inputNum].RecFile = self.output_logFile
+            self.RecFile = self.output_logFile
         else:
             print("Already logging to: "+self.output_logFileName)
 
@@ -236,7 +251,7 @@ class Input:
         if self.output_logFile != None:
             Input.closeLogFile(self,self.output_logFile)
             self.output_logFile = None
-            shared.Dataship.inputs[self.inputNum].RecFile = None
+            self.RecFile = None
             return True, serverAvail
 
         return False,None
@@ -244,7 +259,7 @@ class Input:
     #############################################
     # fast forward if reading from a file.
     def fastForward(self,aircraft,bytesToSkip):
-            if aircraft.inputs[self.inputNum].PlayFile != None:
+            if self.PlayFile != None:
                 current = self.ser.tell()
                 moveTo = current - bytesToSkip
                 try:
@@ -259,7 +274,7 @@ class Input:
     #############################################
     # fast backwards if reading from a file.
     def fastBackwards(self,aircraft,bytesToSkip):
-            if aircraft.inputs[self.inputNum].PlayFile != None:
+            if self.PlayFile != None:
                 self.skipReadInput = True  # lets pause reading from the file for second while we mess with the file pointer.
                 current = self.ser.tell()
                 moveTo = current - bytesToSkip

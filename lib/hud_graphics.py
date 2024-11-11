@@ -9,10 +9,13 @@ from . import hud_utils
 ## Function: initDisplay
 def initDisplay(debug):
     pygame.init()
-    # set the window icon
-    icon = pygame.image.load("lib/common/assets/tronview_logo1.png")
-    pygame.display.set_icon(icon)
-    pygame.display.set_caption('TronView')
+    try :
+        # set the window icon
+        icon = pygame.image.load("lib/common/assets/tronview_logo1.png")
+        pygame.display.set_icon(icon)
+        pygame.display.set_caption('TronView')
+    except:
+        print("Error: could not set window icon")
 
     disp_no = os.getenv("DISPLAY")
     print(("sys.platform:%s"%(sys.platform)))

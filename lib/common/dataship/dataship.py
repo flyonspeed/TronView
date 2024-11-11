@@ -57,7 +57,6 @@ class Dataship(object):
         self.traffic: TrafficData = TrafficData()
         self.fuel = FuelData()
         self.internal = InteralData()
-        self.inputs = [InputDetails(),InputDetails(),InputDetails()]
         self.alerts = []
         self.analog = AnalogData()
         self.imus = {}
@@ -325,19 +324,6 @@ class InteralData(object):
         self.Hardware = None
         self.PythonVer = None
         self.PyGameVer = None
-
-#############################################
-## Class: InputDetails
-class InputDetails(object):
-    def __init__(self):
-        self.Name = None # Name of input
-        self.Ver = None
-        self.InputType = None # Connect Type.. IE serial, wifi
-        self.Battery = None
-        self.PlayFile = None
-        self.RecFile = None
-        self.time_stamp = None
-        self.time_diff_secs = None
 
 #############################################
 ## Class: GPSData

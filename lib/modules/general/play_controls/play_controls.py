@@ -47,8 +47,8 @@ class play_controls(Module):
         #self.buttonAdd("Label_dist", "PlayBack:", newRow=True, type="label")
         #self.buttonAdd("test",  "Test", self.buttonPlay, newRow=True)
 
-        self.buttonSelected("btnPlay",not shared.CurrentInput.isPaused) # set the button to selected
-        self.buttonSelected("btnRecord",shared.CurrentInput.output_logFile != None)
+        self.buttonSelected("btnPlay",not shared.Inputs[0].isPaused) # set the button to selected
+        self.buttonSelected("btnRecord",shared.Inputs[0].output_logFile != None)
 
     # called every redraw for the module
     def draw(self, aircraft: dataship, smartdisplay, pos=(0, 0)):
@@ -57,7 +57,7 @@ class play_controls(Module):
         self.buttonsDraw(aircraft, smartdisplay, pos)  # draw buttons
 
         # next_line = self.buttonLastY + 10
-        # for input in aircraft.inputs:
+        # for input in shared.Inputs:
         #     text = self.button_font.render(input.name, True, (200,200,200))
         #     self.surface.blit(text, (10, next_line))
         #     next_line += text.get_height() + 5
@@ -76,43 +76,43 @@ class play_controls(Module):
 
     # button to play the scenario
     def buttonPlay(self,aircraft,button):
-        shared.CurrentInput.isPaused = not shared.CurrentInput.isPaused
-        self.buttonSelected("btnPlay",not shared.CurrentInput.isPaused) # set the button to selected
-        if(shared.CurrentInput2 != None):
-            shared.CurrentInput2.isPaused = not shared.CurrentInput2.isPaused
+        shared.Inputs[0].isPaused = not shared.Inputs[0].isPaused
+        self.buttonSelected("btnPlay",not shared.Inputs[0].isPaused) # set the button to selected
+        if len(shared.Inputs) > 1:
+            shared.Inputs[1].isPaused = not shared.Inputs[1].isPaused
 
     def buttonFastForward(self,aircraft,button):
         if button["text"] == ">>":
-            shared.CurrentInput.fastForward(shared.Dataship,1000)
-            if(shared.CurrentInput2 != None):
-                shared.CurrentInput2.fastForward(shared.Dataship,1000)
+            shared.Inputs[0].fastForward(shared.Dataship,1000)
+            if len(shared.Inputs) > 1:
+                shared.Inputs[1].fastForward(shared.Dataship,1000)
         else:
-            shared.CurrentInput.fastForward(shared.Dataship,500)
-            if(shared.CurrentInput2 != None):
-                shared.CurrentInput2.fastForward(shared.Dataship,500)
+            shared.Inputs[0].fastForward(shared.Dataship,500)
+            if len(shared.Inputs) > 1:
+                shared.Inputs[1].fastForward(shared.Dataship,500)
 
     def buttonFastBackwards(self,aircraft,button):
         if button["text"] == "<<":
-            shared.CurrentInput.fastBackwards(shared.Dataship,1000)
-            if(shared.CurrentInput2 != None):
-                shared.CurrentInput2.fastBackwards(shared.Dataship,1000)
+            shared.Inputs[0].fastBackwards(shared.Dataship,1000)
+            if len(shared.Inputs) > 1:
+                shared.Inputs[1].fastBackwards(shared.Dataship,1000)
         else:
-            shared.CurrentInput.fastBackwards(shared.Dataship,500)
-            if(shared.CurrentInput2 != None):
-                shared.CurrentInput2.fastBackwards(shared.Dataship,500)
+            shared.Inputs[0].fastBackwards(shared.Dataship,500)
+            if len(shared.Inputs) > 1:
+                shared.Inputs[1].fastBackwards(shared.Dataship,500)
 
     def buttonRecord(self,aircraft,button):
-        if shared.CurrentInput.output_logFile == None:
-            shared.CurrentInput.startLog(shared.Dataship)
+        if shared.Inputs[0].output_logFile == None:
+            shared.Inputs[0].startLog(shared.Dataship)
             self.buttonSelected("btnRecord",True)
         else:
-            shared.CurrentInput.stopLog(shared.Dataship)
+            shared.Inputs[0].stopLog(shared.Dataship)
             self.buttonSelected("btnRecord",False)
-        if(shared.CurrentInput2 != None): # check if there is a second input.
-            if shared.CurrentInput2.output_logFile == None:
-                shared.CurrentInput2.startLog(shared.Dataship)
+        if len(shared.Inputs) > 1: # check if there is a second input
+            if shared.Inputs[1].output_logFile == None:
+                shared.Inputs[1].startLog(shared.Dataship)
             else:
-                shared.CurrentInput2.stopLog(shared.Dataship)
+                shared.Inputs[1].stopLog(shared.Dataship)
 
     # return a dict of objects that are used to configure the module.
     def get_module_options(self):

@@ -34,8 +34,8 @@ def main_text_mode():
             hud_text.print_Clear()
             clearTimer = 0
         if(shared.Dataship.errorFoundNeedToExit==False):
-            shared.CurrentInput.printTextModeData(shared.Dataship)
-        time.sleep(.05) # wait a bit if in text mode... else we eat up to much cpu time.
+            shared.Inputs[0].printTextModeData(shared.Dataship)
+        time.sleep(.05)
 
 #############################################
 ## Class: threadReadKeyboard (FOR TEXT MODE ONLY...)
@@ -49,43 +49,44 @@ class threadReadKeyboard(threading.Thread):
     def run(self):
         while not shared.Dataship.errorFoundNeedToExit and shared.Dataship.textMode:
             key = self.stdscr.getch()
-            #curses.endwin()
             if key==ord('q'):
                 curses.endwin()
                 shared.Dataship.errorFoundNeedToExit = True
             if key==ord('p'):
-                if(shared.CurrentInput.isPlaybackMode==True):
-                    if(shared.CurrentInput.isPaused==False):
-                        shared.CurrentInput.isPaused = True
+                if(shared.Inputs[0].isPlaybackMode==True):
+                    if(shared.Inputs[0].isPaused==False):
+                        shared.Inputs[0].isPaused = True
                     else:
-                        shared.CurrentInput.isPaused = False
+                        shared.Inputs[0].isPaused = False
             elif key==curses.KEY_RIGHT:
-                shared.CurrentInput.fastForward(shared.Dataship,500)
-                if(shared.CurrentInput2 != None): shared.CurrentInput2.fastForward(shared.Dataship,500)
+                shared.Inputs[0].fastForward(shared.Dataship,500)
+                if len(shared.Inputs) > 1:
+                    shared.Inputs[1].fastForward(shared.Dataship,500)
             elif key==curses.KEY_LEFT:
-                shared.CurrentInput.fastBackwards(shared.Dataship,500)
-                if(shared.CurrentInput2 != None): shared.CurrentInput2.fastBackwards(shared.Dataship,500)
+                shared.Inputs[0].fastBackwards(shared.Dataship,500)
+                if len(shared.Inputs) > 1:
+                    shared.Inputs[1].fastBackwards(shared.Dataship,500)
             elif key==27:  # escape key.
                 curses.endwin()
                 shared.Dataship.textMode = False
-                loadScreen(hud_utils.findScreen("current")) # load current screen
-            #elif key==339: #page up
-            #elif key==338: #page up
+                loadScreen(hud_utils.findScreen("current"))
             elif key==23 or key==ord('1'):  #cntrl w
                 try:
-                    shared.CurrentInput.startLog(shared.Dataship)
-                    if(shared.CurrentInput2 != None): shared.CurrentInput2.startLog(shared.Dataship)
-                except :
+                    shared.Inputs[0].startLog(shared.Dataship)
+                    if len(shared.Inputs) > 1:
+                        shared.Inputs[1].startLog(shared.Dataship)
+                except:
                     pass
             elif key==5 or key==ord('2'): #cnrtl e
                 try:
-                    shared.CurrentInput.stopLog(shared.Dataship)
-                    if(shared.CurrentInput2 != None): shared.CurrentInput2.stopLog(shared.Dataship)
-                except :
+                    shared.Inputs[0].stopLog(shared.Dataship)
+                    if len(shared.Inputs) > 1:
+                        shared.Inputs[1].stopLog(shared.Dataship)
+                except:
                     pass
-            else: #else send this key to the input (if it has the ability)
+            else:
                 try:
-                    retrn,returnMsg = shared.CurrentInput.textModeKeyInput(key,shared.Dataship)
+                    retrn,returnMsg = shared.Inputs[0].textModeKeyInput(key,shared.Dataship)
                     if retrn == 'quit':
                         curses.endwin()
                         shared.Dataship.errorFoundNeedToExit = True

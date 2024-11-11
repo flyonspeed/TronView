@@ -41,6 +41,7 @@ echo "201: live bno085 + MGL + Stratux (pi only)"
 
 
 echo "Type 't' after number to run in text mode. Example: 3t"
+echo "Type 'm' after number to run multiple threads for inputs. Example: 3m"
 read -p "Enter your choice: " choice
 
 ADD_ARGS=""
@@ -53,6 +54,14 @@ else
     # default to showing HUD
     ADD_ARGS="-s F18_HUD"
 fi
+
+# check if "m" is anywhere in the string
+if [[ $choice == *m ]]; then
+    choice=${choice%m} # remove m from the string
+    # append -m to the args
+    ADD_ARGS="$ADD_ARGS --input-threads"
+fi
+
 
 # if not a number, exit
 if ! [[ $choice =~ ^[0-9]+$ ]]; then

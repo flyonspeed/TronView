@@ -32,13 +32,13 @@ class stratux_wifi(Input):
     def initInput(self,num,aircraft):
         Input.initInput( self,num, aircraft )  # call parent init Input.
 
-        if(aircraft.inputs[self.inputNum].PlayFile!=None):
+        if(self.PlayFile!=None):
             # if in playback mode then load example data file.
             # get file to read from config.  else default to..
-            if aircraft.inputs[self.inputNum].PlayFile==True:
+            if self.PlayFile==True:
                 defaultTo = "stratux_9.dat"
-                aircraft.inputs[self.inputNum].PlayFile = hud_utils.readConfig(self.name, "playback_file", defaultTo)
-            self.ser,self.input_logFileName = Input.openLogFile(self,aircraft.inputs[self.inputNum].PlayFile,"rb")
+                self.PlayFile = hud_utils.readConfig(self.name, "playback_file", defaultTo)
+            self.ser,self.input_logFileName = Input.openLogFile(self,self.PlayFile,"rb")
             self.isPlaybackMode = True
         else:
             self.udpport = hud_utils.readConfigInt("Stratux", "udpport", "4000")
@@ -184,8 +184,8 @@ class stratux_wifi(Input):
                     #print("status message len:"+str(len(msg)))
                     # B          B     H     B    B   
                     FirmwareVer, Batt, Error,WAAS,Aux = struct.unpack(">BBHBB",msg[5:11])
-                    aircraft.inputs[self.inputNum].FirmwareVer = FirmwareVer
-                    aircraft.inputs[self.inputNum].Battery = Batt
+                    self.FirmwareVer = FirmwareVer
+                    self.Battery = Batt
                     if(msg[4]==2):
                         if(WAAS==1):
                             aircraft.gps.GPSWAAS = 1

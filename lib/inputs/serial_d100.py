@@ -22,12 +22,12 @@ class serial_d100(Input):
     def initInput(self,num,aircraft):
         Input.initInput( self,num, aircraft )  # call parent init Input.
         
-        if(aircraft.inputs[self.inputNum].PlayFile!=None):
+        if(self.PlayFile!=None):
             # load log file to playback.
-            if aircraft.inputs[self.inputNum].PlayFile==True:
+            if self.PlayFile==True:
                 defaultTo = "dynon_d100_data1.txt"
-                aircraft.inputs[self.inputNum].PlayFile = hud_utils.readConfig(self.name, "playback_file", defaultTo)
-            self.ser,self.input_logFileName = Input.openLogFile(self,aircraft.inputs[self.inputNum].PlayFile,"r")
+                self.PlayFile = hud_utils.readConfig(self.name, "playback_file", defaultTo)
+            self.ser,self.input_logFileName = Input.openLogFile(self,self.PlayFile,"r")
         else:
             self.efis_data_format = hud_utils.readConfig("DataInput", "format", "none")
             self.efis_data_port = hud_utils.readConfig("DataInput", "port", "/dev/ttyS0")

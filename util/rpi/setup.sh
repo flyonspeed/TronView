@@ -77,6 +77,7 @@ case $yn in
 			sudo pip3 install Adafruit_ADS1x15 --break-system-packages
 			sudo pip3 install numpy --break-system-packages
 			sudo pip3 install pygame_gui --break-system-packages 
+			$pip_args="--break-system-packages"
 
 		fi
 
@@ -94,7 +95,12 @@ case $yn in
 			sudo pip3 install geographiclib
 			sudo pip3 install Adafruit_ADS1x15
 			sudo pip3 install numpy
-			sudo pip3 install pygame_gui 
+			sudo pip3 install pygame_gui
+
+			# check if python 3.9.2 is installed
+			if [ $(python3 --version | grep "3.9.2" | wc -l) -eq 1 ]; then
+				$pip_args=""
+			fi
 		fi
 
 		# ask if we should install the BNO055 IMU python library
@@ -102,7 +108,7 @@ case $yn in
 		case $yn in
 			[Yy]* )
 				echo "Installing BNO055 IMU python library"
-				sudo pip3 install adafruit-circuitpython-bno055 --break-system-packages
+				sudo pip3 install adafruit-circuitpython-bno055 $pip_args
 				;;
 		esac
 
@@ -111,7 +117,7 @@ case $yn in
 		case $yn in
 			[Yy]* )
 				echo "Installing BNO085 IMU python library"
-				sudo pip3 install adafruit-circuitpython-bno08x --break-system-packages
+				sudo pip3 install adafruit-circuitpython-bno08x $pip_args
 				;;
 		esac
 

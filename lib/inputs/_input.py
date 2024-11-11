@@ -9,6 +9,7 @@ from lib.util import rpi_hardware
 import re
 import os
 from lib.common import shared # global shared objects stored here.
+from datetime import datetime
 
 class Input:
     def __init__(self):
@@ -80,7 +81,7 @@ class Input:
         # else try the example data last.
         try:
             openFileName = "lib/inputs/_example_data/"+filename
-            print("Opening Logfile: "+openFileName)
+            print("Opening example Logfile: "+openFileName)
             logFile = open(openFileName, attribs)
             self.input_logFileSize = os.path.getsize(openFileName)
             self.input_logFilePercent = 0
@@ -98,6 +99,15 @@ class Input:
                 openFileName = self.getNextLogFile("/mnt/usb/",fileExtension)
             else:
                 DataRecorderPath = hud_utils.getDataRecorderDir()
+                log_path_format = hud_utils.readConfig("DataRecorder", "log_path_format", "%Y/%m/")
+                # get todays year and month. create a folder YYYY/MM/
+                today = datetime.now()
+                # replace the %Y and %m in the log_path_format with the current year and month.
+                log_path_format = log_path_format.replace("%Y",str(today.year)).replace("%m",str(today.month)).replace("%d",str(today.day))
+                DataRecorderPath = DataRecorderPath + log_path_format
+                # create the folder if it doesn't exist.
+                if not os.path.exists(DataRecorderPath):
+                    os.makedirs(DataRecorderPath)
                 openFileName = self.getNextLogFile(DataRecorderPath,fileExtension)
             if isBinary == True:
                 logFile = open(openFileName, "w+b")
@@ -106,7 +116,10 @@ class Input:
             return logFile,openFileName
         except Exception as e: 
             print(e)
-            print("Error createLogFile() %s"%(openFileName))
+            print("Error createLogFile() %s"%(self.name))
+            # print full stack trace
+            import traceback
+            traceback.print_exc()
             return  "",""
 
     #############################################
@@ -136,15 +149,18 @@ class Input:
     ## get next log file to open.
     def getNextLogFile(self,dirname,fileExtension):
         from os.path import exists
-        print("getNextLogFile() "+dirname+" "+fileExtension)
+        #print("getNextLogFile() "+dirname+" "+fileExtension)
+        file_format = hud_utils.readConfig("DataRecorder", "log_file_format", "%Y_%m_%d_%INPUT")
+
         #fullpath = hud_utils.getDataRecorderDir()
         fullpath = dirname
         number = 1
-        newFilename = fullpath + self.name + "_" + str(number) + fileExtension
-        while exists(newFilename) == True:
+        today = datetime.now()
+        newFilename = fullpath + file_format.replace("%INPUT",self.name).replace("%Y",str(today.year)).replace("%m",str(today.month)).replace("%d",str(today.day)) + "_" + str(number) + fileExtension
+        while exists(newFilename) == True: # keep trying until we find a free filename.
             number = number + 1
-            newFilename = fullpath + self.name + "_" + str(number) + fileExtension
-        print("using filename %s"%(newFilename))
+            newFilename = fullpath + file_format.replace("%INPUT",self.name).replace("%Y",str(today.year)).replace("%m",str(today.month)).replace("%d",str(today.day)) + "_" + str(number) + fileExtension
+        #print("using filename %s"%(newFilename))
         return newFilename
 
     #############################################

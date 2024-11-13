@@ -25,7 +25,7 @@ class serial_skyview(Input):
     def initInput(self,num,aircraft):
         Input.initInput( self,num, aircraft )  # call parent init Input.
         
-        if(self.PlayFile!=None):
+        if(self.PlayFile!=None and self.PlayFile!=False):
             # load playback file.
             if self.PlayFile==True:
                 defaultTo = "dynon_skyview_data1.txt"

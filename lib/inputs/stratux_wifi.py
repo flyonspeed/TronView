@@ -32,7 +32,7 @@ class stratux_wifi(Input):
     def initInput(self,num,aircraft):
         Input.initInput( self,num, aircraft )  # call parent init Input.
 
-        if(self.PlayFile!=None):
+        if(self.PlayFile!=None and self.PlayFile!=False):
             # if in playback mode then load example data file.
             # get file to read from config.  else default to..
             if self.PlayFile==True:

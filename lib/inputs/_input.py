@@ -76,6 +76,9 @@ class Input:
             print("Opening Logfile: "+openFileName+" size="+str(self.input_logFileSize))
             return logFile,openFileName
         except :
+            print("Error openLogFile() "+self.name)
+            import traceback
+            traceback.print_exc()
             pass
 
         # else try the example data last.

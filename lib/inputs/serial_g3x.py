@@ -33,7 +33,7 @@ class serial_g3x(Input):
 
     def initInput(self,num, aircraft):
         Input.initInput(self,num, aircraft)  # call parent init Input.
-        if(self.PlayFile!=None):
+        if(self.PlayFile!=None and self.PlayFile!=False):
             # play a log file?
             self.EOL = 10 # if log file then change the EOL
             if self.PlayFile==True:

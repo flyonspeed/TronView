@@ -25,7 +25,7 @@ class serial_mgl(Input):
     def initInput(self,num,aircraft):
         Input.initInput( self,num, aircraft )  # call parent init Input.
         print("initInput %d: %s playfile: %s"%(num,self.name,self.PlayFile))
-        if(self.PlayFile!=None):
+        if(self.PlayFile!=None and self.PlayFile!=False):
             # Get playback file.
             if self.PlayFile==True:
                 defaultTo = "MGL_Flight1.bin"

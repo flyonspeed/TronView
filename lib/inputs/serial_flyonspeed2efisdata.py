@@ -20,7 +20,7 @@ class serial_flyonspeed2efisdata(Input):
     def initInput(self,num,aircraft):
         Input.initInput( self,num, aircraft )  # call parent init Input.
         
-        if(self.PlayFile!=None):
+        if(self.PlayFile!=None and self.PlayFile!=False):
             if self.PlayFile==True:
                 defaultTo = "flyonspeed2efisdata_data1.csv"
                 self.PlayFile = hud_utils.readConfig(self.name, "playback_file", defaultTo)

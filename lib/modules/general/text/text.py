@@ -14,6 +14,8 @@ from lib.common.dataship import dataship
 from lib.common import shared
 import pygame
 import math
+from array import array
+import moderngl
 
 
 class text(Module):
@@ -139,21 +141,56 @@ class text(Module):
         else:
             y = pos[1] 
 
-        # Clear the surface with a transparent background
-        self.surface2.fill((0,0,0,0))
-
-        # Render the text with a transparent background
+        # Parse text
         text = self.parse_text(aircraft)
-        label = self.font.render(text, True, self.text_color)
-        self.surface2.blit(label, (0, 0))
+        
+        # Create text surface with alpha
+        text_surface = self.font.render(text, True, self.text_color)
+        text_width, text_height = text_surface.get_size()
+        
+        # Create surface with alpha channel
+        alpha_surface = pygame.Surface(text_surface.get_size(), pygame.SRCALPHA)
+        alpha_surface.fill((0,0,0,0))  # Fill with transparent black
+        alpha_surface.blit(text_surface, (0,0))
+        
+        # Convert screen coordinates to OpenGL coordinates (-1 to 1)
+        x_norm = (x / smartdisplay.width) * 2 - 1
+        y_norm = -((y / smartdisplay.height) * 2 - 1)  # Flip Y coordinate
+        
+        width_norm = (text_width / smartdisplay.width) * 2
+        height_norm = (text_height / smartdisplay.height) * 2
 
-        if self.box_weight > 0:
-            # calculate the width and height of the text
-            text_width, text_height = self.font.size(text)
-            # draw a box around the text
-            pygame.draw.rect(self.surface2, self.box_color, (0, 0, text_width, text_height), self.box_weight, self.box_radius)
-
-        self.pygamescreen.blit(self.surface2, (x,y))
+        # Create vertices with positions and texture coordinates
+        vertices = array('f', [
+            # positions       # texture coords
+            x_norm, y_norm,               0.0, 1.0,  # Bottom left
+            x_norm + width_norm, y_norm,  1.0, 1.0,  # Bottom right
+            x_norm + width_norm, y_norm - height_norm, 1.0, 0.0,  # Top right
+            x_norm, y_norm - height_norm, 0.0, 0.0,  # Top left
+        ])
+        
+        # Convert pygame surface to ModernGL texture
+        texture_data = pygame.image.tostring(alpha_surface, 'RGBA', True)
+        texture = smartdisplay.ctx.texture(
+            size=alpha_surface.get_size(),
+            components=4,
+            data=texture_data
+        )
+        texture.use(location=0)  # Bind to texture unit 0
+        
+        # Create vertex buffer and vertex array object
+        vbo = smartdisplay.ctx.buffer(vertices)
+        vao = smartdisplay.ctx.vertex_array(
+            smartdisplay.text_program, 
+            [(vbo, '2f 2f', 'in_position', 'in_texcoord')]
+        )
+        
+        # Draw the text
+        vao.render(mode=smartdisplay.ctx.TRIANGLE_FAN)
+        
+        # Clean up
+        vbo.release()
+        texture.release()
 
     # called before screen draw.  To clear the screen to your favorite color.
     def clear(self):

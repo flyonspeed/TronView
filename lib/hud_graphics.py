@@ -4,6 +4,9 @@ import math, os, sys, random, platform
 import argparse, pygame
 from operator import add
 from . import hud_utils
+from lib.common import shared
+import moderngl
+
 
 #############################################
 ## Function: initDisplay
@@ -22,6 +25,25 @@ def initDisplay(debug):
     print(("platform.machine:%s"%(platform.machine())))
     inWindow = hud_utils.readConfig("Main", "window", "false")  # default screen to load
     showFullScreen = True
+    gl_version = [3,3]
+
+    # Set OpenGL display flags
+    #pygame.display.gl_set_attribute(pygame.GL_DEPTH_SIZE, 24)
+    #pygame.display.gl_set_attribute(pygame.GL_DOUBLEBUFFER, 1)
+    pygame.display.gl_set_attribute(
+            pygame.GL_CONTEXT_MAJOR_VERSION, gl_version[0]
+        )
+    pygame.display.gl_set_attribute(
+        pygame.GL_CONTEXT_MINOR_VERSION, gl_version[1]
+    )
+    pygame.display.gl_set_attribute(
+        pygame.GL_CONTEXT_PROFILE_MASK, pygame.GL_CONTEXT_PROFILE_CORE
+    )
+    pygame.display.gl_set_attribute(pygame.GL_CONTEXT_FORWARD_COMPATIBLE_FLAG, 1) # mac osx needs this ??
+    pygame.display.gl_set_attribute(pygame.GL_DOUBLEBUFFER, 1)
+    pygame.display.gl_set_attribute(pygame.GL_DEPTH_SIZE, 24)
+
+    display_flags = pygame.OPENGL | pygame.DOUBLEBUF
 
     if inWindow != "false":
         # if they want a windowed version..
@@ -39,11 +61,11 @@ def initDisplay(debug):
         # assume we are in xdisplay. in xwindows on linux/rpi
         print(("default to XDisplay {0}".format(disp_no)))
         if showFullScreen == False:
-            screen = pygame.display.set_mode(size)
+            screen = pygame.display.set_mode(size, display_flags)
         else:
             # Go full screen with no frame.
             size = pygame.display.Info().current_w, pygame.display.Info().current_h
-            screen = pygame.display.set_mode((0,0), pygame.NOFRAME)
+            screen = pygame.display.set_mode((0,0), display_flags | pygame.NOFRAME)
     else:
         drivers = ["directfb", "fbcon", "svgalib"]
         found = False
@@ -64,18 +86,21 @@ def initDisplay(debug):
 
         # check if we want to show fullscreen or window.
         if showFullScreen == False:
-            screen = pygame.display.set_mode(size, pygame.RESIZABLE)
+            screen = pygame.display.set_mode(size, display_flags | pygame.RESIZABLE, vsync=1)
         else:
             # else go full screen.
             size = pygame.display.Info().current_w, pygame.display.Info().current_h
-            screen = pygame.display.set_mode(size, pygame.FULLSCREEN)
-
+            screen = pygame.display.set_mode(size, display_flags | pygame.FULLSCREEN, vsync=1)
 
     showMouse = hud_utils.readConfig("Main", "ShowMouse", "false")  # default screen to load
     if showMouse != "false":
         pygame.mouse.set_visible(True)  # show
     else:
         pygame.mouse.set_visible(False)  # hide the mouse
+
+
+    ctx = moderngl.create_context()
+    shared.smartdisplay.set_ctx(ctx)
 
     return screen, size
 

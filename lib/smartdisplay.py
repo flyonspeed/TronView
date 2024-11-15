@@ -3,6 +3,8 @@
 
 import pygame
 import math
+import moderngl
+from array import array
 
 #############################################
 ## Class: smartdisplay
@@ -65,7 +67,342 @@ class SmartDisplay(object):
         self.pos_next_bottom_padding = 0
 
         self.pos_horz_padding = 15
+        
+    
+    def set_ctx(self, ctx):
+        self.ctx = ctx
+        # Enable blending
+        ctx.enable(moderngl.BLEND)
+        ctx.blend_func = moderngl.SRC_ALPHA, moderngl.ONE_MINUS_SRC_ALPHA
+        self.text_program = ctx.program(
+            vertex_shader='''
+                #version 330
+                in vec2 in_position;
+                in vec2 in_texcoord;
+                out vec2 v_texcoord;
 
+                void main() {
+                    gl_Position = vec4(in_position, 0.0, 1.0);
+                    v_texcoord = in_texcoord;
+                }
+            ''',
+            fragment_shader='''
+                #version 330
+                uniform sampler2D texture0;
+                in vec2 v_texcoord;
+                out vec4 f_color;
+
+                void main() {
+                    vec4 texel = texture(texture0, v_texcoord);
+                    if(texel.a < 0.1) discard;
+                    f_color = texel;
+                }
+            '''
+        )
+
+    def gl_tv_text(self, text, x, y, font=None, color=(255,255,255)):
+        """
+        Render text at given x,y coordinates using ModernGL
+        
+        Args:
+            text (str): Text to render
+            x (int): X coordinate in screen space
+            y (int): Y coordinate in screen space 
+            font (pygame.font.Font, optional): Font to use. Defaults to self.font
+            color (tuple, optional): RGB color tuple. Defaults to white
+        """
+        if font is None:
+            font = self.font
+        
+        # Create text surface with alpha
+        text_surface = font.render(text, True, color)
+        text_width, text_height = text_surface.get_size()
+        
+        # Create surface with alpha channel
+        alpha_surface = pygame.Surface(text_surface.get_size(), pygame.SRCALPHA)
+        alpha_surface.fill((0,0,0,0))  # Fill with transparent black
+        alpha_surface.blit(text_surface, (0,0))
+        
+        # Convert screen coordinates to OpenGL coordinates (-1 to 1)
+        x_norm = (x / self.width) * 2 - 1
+        y_norm = -((y / self.height) * 2 - 1)  # Flip Y coordinate
+        
+        width_norm = (text_width / self.width) * 2
+        height_norm = (text_height / self.height) * 2
+
+        # Create vertices with positions and texture coordinates
+        vertices = array('f', [
+            # positions       # texture coords
+            x_norm, y_norm,               0.0, 1.0,  # Bottom left
+            x_norm + width_norm, y_norm,  1.0, 1.0,  # Bottom right
+            x_norm + width_norm, y_norm - height_norm, 1.0, 0.0,  # Top right
+            x_norm, y_norm - height_norm, 0.0, 0.0,  # Top left
+        ])
+        
+        # Convert pygame surface to ModernGL texture
+        texture_data = pygame.image.tostring(alpha_surface, 'RGBA', True)
+        texture = self.ctx.texture(
+            size=alpha_surface.get_size(),
+            components=4,
+            data=texture_data
+        )
+        texture.use(location=0)  # Bind to texture unit 0
+        
+        # Create vertex buffer and vertex array object
+        vbo = self.ctx.buffer(vertices)
+        vao = self.ctx.vertex_array(
+            self.text_program, 
+            [(vbo, '2f 2f', 'in_position', 'in_texcoord')]
+        )
+        
+        # Draw the text
+        vao.render(mode=self.ctx.TRIANGLE_FAN)
+        
+        # Clean up
+        vbo.release()
+        texture.release()
+
+    def gl_tv_rect(self, color, rect, thickness=0):
+        """
+        Draw a rectangle using ModernGL
+        
+        Args:
+            color (tuple): RGB color tuple
+            rect (tuple): (x, y, width, height) in screen coordinates
+            thickness (int): Border thickness. 0 means filled rectangle
+        """
+        x, y, width, height = rect
+        
+        # Convert screen coordinates to OpenGL coordinates (-1 to 1)
+        x_norm = (x / self.width) * 2 - 1
+        y_norm = -((y / self.height) * 2 - 1)
+        width_norm = (width / self.width) * 2
+        height_norm = (height / self.height) * 2
+
+        if thickness == 0:
+            # Filled rectangle
+            program = self.ctx.program(
+                vertex_shader='''
+                    #version 330
+                    in vec2 in_position;
+                    void main() {
+                        gl_Position = vec4(in_position, 0.0, 1.0);
+                    }
+                ''',
+                fragment_shader='''
+                    #version 330
+                    uniform vec3 color;
+                    out vec4 f_color;
+                    void main() {
+                        f_color = vec4(color, 1.0);
+                    }
+                '''
+            )
+            
+            vertices = array('f', [
+                x_norm, y_norm,
+                x_norm + width_norm, y_norm,
+                x_norm + width_norm, y_norm - height_norm,
+                x_norm, y_norm - height_norm,
+            ])
+            
+            program['color'].write(array('f', [c/255 for c in color]))
+            vbo = self.ctx.buffer(vertices)
+            vao = self.ctx.vertex_array(program, [(vbo, '2f', 'in_position')])
+            vao.render(mode=self.ctx.TRIANGLE_FAN)
+            vbo.release()
+        else:
+            # Outlined rectangle
+            program = self.ctx.program(
+                vertex_shader='''
+                    #version 330
+                    in vec2 in_position;
+                    void main() {
+                        gl_Position = vec4(in_position, 0.0, 1.0);
+                    }
+                ''',
+                fragment_shader='''
+                    #version 330
+                    uniform vec3 color;
+                    out vec4 f_color;
+                    void main() {
+                        f_color = vec4(color, 1.0);
+                    }
+                '''
+            )
+
+            t = (thickness / self.width) * 2  # Convert thickness to normalized coordinates
+            
+            # Create vertices for 4 rectangles (top, right, bottom, left borders)
+            vertices = array('f', [
+                # Top
+                x_norm, y_norm,
+                x_norm + width_norm, y_norm,
+                x_norm + width_norm, y_norm - t,
+                x_norm, y_norm - t,
+                # Right
+                x_norm + width_norm - t, y_norm,
+                x_norm + width_norm, y_norm,
+                x_norm + width_norm, y_norm - height_norm,
+                x_norm + width_norm - t, y_norm - height_norm,
+                # Bottom
+                x_norm, y_norm - height_norm + t,
+                x_norm + width_norm, y_norm - height_norm + t,
+                x_norm + width_norm, y_norm - height_norm,
+                x_norm, y_norm - height_norm,
+                # Left
+                x_norm, y_norm,
+                x_norm + t, y_norm,
+                x_norm + t, y_norm - height_norm,
+                x_norm, y_norm - height_norm,
+            ])
+
+            program['color'].write(array('f', [c/255 for c in color]))
+            vbo = self.ctx.buffer(vertices)
+            vao = self.ctx.vertex_array(program, [(vbo, '2f', 'in_position')])
+            vao.render(mode=self.ctx.TRIANGLES)
+            vbo.release()
+
+    def gl_tv_circle(self, color, center, radius, thickness=0):
+        """
+        Draw a circle using ModernGL
+        
+        Args:
+            color (tuple): RGB color tuple
+            center (tuple): (x, y) center point in screen coordinates
+            radius (float): radius in pixels
+            thickness (int): Border thickness. 0 means filled circle
+        """
+        x, y = center
+        segments = 32  # Number of segments to approximate circle
+        
+        # Convert screen coordinates to OpenGL coordinates (-1 to 1)
+        x_norm = (x / self.width) * 2 - 1
+        y_norm = -((y / self.height) * 2 - 1)
+        radius_norm_x = (radius / self.width) * 2
+        radius_norm_y = (radius / self.height) * 2
+
+        program = self.ctx.program(
+            vertex_shader='''
+                #version 330
+                in vec2 in_position;
+                void main() {
+                    gl_Position = vec4(in_position, 0.0, 1.0);
+                }
+            ''',
+            fragment_shader='''
+                #version 330
+                uniform vec3 color;
+                out vec4 f_color;
+                void main() {
+                    f_color = vec4(color, 1.0);
+                }
+            '''
+        )
+
+        vertices = []
+        if thickness == 0:
+            # Filled circle
+            vertices.append(x_norm)
+            vertices.append(y_norm)
+            for i in range(segments + 1):
+                angle = 2 * math.pi * i / segments
+                vertices.append(x_norm + math.cos(angle) * radius_norm_x)
+                vertices.append(y_norm + math.sin(angle) * radius_norm_y)
+            render_mode = self.ctx.TRIANGLE_FAN
+        else:
+            # Outlined circle
+            t_norm_x = (thickness / self.width) * 2
+            t_norm_y = (thickness / self.height) * 2
+            for i in range(segments):
+                angle1 = 2 * math.pi * i / segments
+                angle2 = 2 * math.pi * (i + 1) / segments
+                
+                # Outer vertices
+                vertices.extend([
+                    x_norm + math.cos(angle1) * (radius_norm_x + t_norm_x),
+                    y_norm + math.sin(angle1) * (radius_norm_y + t_norm_y),
+                    x_norm + math.cos(angle2) * (radius_norm_x + t_norm_x),
+                    y_norm + math.sin(angle2) * (radius_norm_y + t_norm_y),
+                    x_norm + math.cos(angle1) * radius_norm_x,
+                    y_norm + math.sin(angle1) * radius_norm_y,
+                    
+                    x_norm + math.cos(angle2) * radius_norm_x,
+                    y_norm + math.sin(angle2) * radius_norm_y,
+                    x_norm + math.cos(angle2) * (radius_norm_x + t_norm_x),
+                    y_norm + math.sin(angle2) * (radius_norm_y + t_norm_y),
+                    x_norm + math.cos(angle1) * radius_norm_x,
+                    y_norm + math.sin(angle1) * radius_norm_y,
+                ])
+            render_mode = self.ctx.TRIANGLES
+
+        program['color'].write(array('f', [c/255 for c in color]))
+        vbo = self.ctx.buffer(array('f', vertices))
+        vao = self.ctx.vertex_array(program, [(vbo, '2f', 'in_position')])
+        vao.render(mode=render_mode)
+        vbo.release()
+
+    def gl_tv_line(self, color, start_pos, end_pos, thickness=1):
+        """
+        Draw a line using ModernGL
+        
+        Args:
+            color (tuple): RGB color tuple
+            start_pos (tuple): (x, y) start point in screen coordinates
+            end_pos (tuple): (x, y) end point in screen coordinates
+            thickness (int): Line thickness in pixels
+        """
+        x1, y1 = start_pos
+        x2, y2 = end_pos
+        
+        # Convert screen coordinates to OpenGL coordinates (-1 to 1)
+        x1_norm = (x1 / self.width) * 2 - 1
+        y1_norm = -((y1 / self.height) * 2 - 1)
+        x2_norm = (x2 / self.width) * 2 - 1
+        y2_norm = -((y2 / self.height) * 2 - 1)
+        
+        # Calculate normal vector to line
+        dx = x2_norm - x1_norm
+        dy = y2_norm - y1_norm
+        length = math.sqrt(dx*dx + dy*dy)
+        if length == 0:
+            return
+        
+        nx = -dy/length * (thickness/self.width) * 2
+        ny = dx/length * (thickness/self.height) * 2
+
+        program = self.ctx.program(
+            vertex_shader='''
+                #version 330
+                in vec2 in_position;
+                void main() {
+                    gl_Position = vec4(in_position, 0.0, 1.0);
+                }
+            ''',
+            fragment_shader='''
+                #version 330
+                uniform vec3 color;
+                out vec4 f_color;
+                void main() {
+                    f_color = vec4(color, 1.0);
+                }
+            '''
+        )
+
+        vertices = array('f', [
+            x1_norm + nx, y1_norm + ny,
+            x2_norm + nx, y2_norm + ny,
+            x2_norm - nx, y2_norm - ny,
+            x1_norm - nx, y1_norm - ny,
+        ])
+
+        program['color'].write(array('f', [c/255 for c in color]))
+        vbo = self.ctx.buffer(vertices)
+        vao = self.ctx.vertex_array(program, [(vbo, '2f', 'in_position')])
+        vao.render(mode=self.ctx.TRIANGLE_FAN)
+        vbo.release()
+
+    ###################################################################
 
     def setDisplaySize(self,width,height):
         self.org_width = width
@@ -307,5 +644,187 @@ class SmartDisplay(object):
         elif justify==2:
             newSurface.blit(label, (newSurface.get_width()/2-label.get_width()/2,ylabelStart))
         self.blit_next(newSurface,pos,posAdjustment)
+
+    def init_batch_programs(self):
+        """Initialize shader programs for batch rendering"""
+        # Program for colored primitives (lines, rects)
+        self.color_program = self.ctx.program(
+            vertex_shader='''
+                #version 330
+                in vec2 in_position;
+                in vec3 in_color;
+                out vec3 v_color;
+                void main() {
+                    gl_Position = vec4(in_position, 0.0, 1.0);
+                    v_color = in_color;
+                }
+            ''',
+            fragment_shader='''
+                #version 330
+                in vec3 v_color;
+                out vec4 f_color;
+                void main() {
+                    f_color = vec4(v_color, 1.0);
+                }
+            '''
+        )
+
+        # Keep existing text_program for text rendering
+
+        # Initialize batch buffers
+        self.batch_lines = []
+        self.batch_rects = []
+        self.batch_texts = []
+
+    def gl_tv_line_batch(self, color, start_pos, end_pos, thickness=1):
+        """Add line to batch"""
+        x1, y1 = start_pos
+        x2, y2 = end_pos
+        color_norm = [c/255 for c in color]
+        
+        # Store normalized coordinates and color
+        self.batch_lines.append({
+            'pos': (x1, y1, x2, y2),
+            'color': color_norm,
+            'thickness': thickness
+        })
+
+    def gl_tv_rect_batch(self, color, rect, thickness=0):
+        """Add rectangle to batch"""
+        self.batch_rects.append({
+            'rect': rect,
+            'color': [c/255 for c in color],
+            'thickness': thickness
+        })
+
+    def gl_tv_text_batch(self, text, x, y, font=None, color=(255,255,255)):
+        """Add text to batch"""
+        if font is None:
+            font = self.font
+        
+        self.batch_texts.append({
+            'text': text,
+            'pos': (x, y),
+            'font': font,
+            'color': color
+        })
+
+    def render_batches(self):
+        """Render all batched elements efficiently"""
+        
+        # 1. Render filled rectangles
+        filled_rects = [r for r in self.batch_rects if r['thickness'] == 0]
+        if filled_rects:
+            vertices = []
+            colors = []
+            for rect in filled_rects:
+                x, y, width, height = rect['rect']
+                x_norm = (x / self.width) * 2 - 1
+                y_norm = -((y / self.height) * 2 - 1)
+                width_norm = (width / self.width) * 2
+                height_norm = (height / self.height) * 2
+                
+                # Add vertices for rectangle
+                quad = [
+                    (x_norm, y_norm),
+                    (x_norm + width_norm, y_norm),
+                    (x_norm + width_norm, y_norm - height_norm),
+                    (x_norm, y_norm - height_norm),
+                ]
+                vertices.extend([coord for point in quad for coord in point])
+                colors.extend(rect['color'] * 4)  # Same color for all 4 vertices
+
+            # Create and bind buffers
+            vbo = self.ctx.buffer(array('f', vertices))
+            cbo = self.ctx.buffer(array('f', colors))
+            vao = self.ctx.vertex_array(
+                self.color_program, 
+                [
+                    (vbo, '2f', 'in_position'),
+                    (cbo, '3f', 'in_color'),
+                ]
+            )
+            vao.render(mode=self.ctx.TRIANGLE_FAN)
+            vbo.release()
+            cbo.release()
+
+        # 2. Render all lines
+        if self.batch_lines:
+            vertices = []
+            colors = []
+            for line in self.batch_lines:
+                x1, y1, x2, y2 = line['pos']
+                thickness = line['thickness']
+                
+                # Convert to normalized coordinates
+                x1_norm = (x1 / self.width) * 2 - 1
+                y1_norm = -((y1 / self.height) * 2 - 1)
+                x2_norm = (x2 / self.width) * 2 - 1
+                y2_norm = -((y2 / self.height) * 2 - 1)
+                
+                # Calculate normal vector for thickness
+                dx = x2_norm - x1_norm
+                dy = y2_norm - y1_norm
+                length = math.sqrt(dx*dx + dy*dy)
+                if length == 0:
+                    continue
+                    
+                nx = -dy/length * (thickness/self.width) * 2
+                ny = dx/length * (thickness/self.height) * 2
+                
+                # Add vertices for thick line
+                quad = [
+                    (x1_norm + nx, y1_norm + ny),
+                    (x2_norm + nx, y2_norm + ny),
+                    (x2_norm - nx, y2_norm - ny),
+                    (x1_norm - nx, y1_norm - ny),
+                ]
+                vertices.extend([coord for point in quad for coord in point])
+                colors.extend(line['color'] * 4)
+
+            # Create and bind buffers
+            vbo = self.ctx.buffer(array('f', vertices))
+            cbo = self.ctx.buffer(array('f', colors))
+            vao = self.ctx.vertex_array(
+                self.color_program, 
+                [
+                    (vbo, '2f', 'in_position'),
+                    (cbo, '3f', 'in_color'),
+                ]
+            )
+            vao.render(mode=self.ctx.TRIANGLE_FAN)
+            vbo.release()
+            cbo.release()
+
+        # 3. Render all text
+        # Sort texts by font to minimize texture switches
+        sorted_texts = sorted(self.batch_texts, key=lambda x: id(x['font']))
+        current_font = None
+        current_vertices = []
+        current_colors = []
+        
+        for text_obj in sorted_texts:
+            if text_obj['font'] != current_font:
+                # Render accumulated text with previous font
+                if current_vertices:
+                    self._render_text_batch(current_vertices, current_colors, current_font)
+                    current_vertices = []
+                    current_colors = []
+                current_font = text_obj['font']
+                
+            # Add text vertices and colors to current batch
+            text_surface = current_font.render(text_obj['text'], True, text_obj['color'])
+            # Add vertices and texture coordinates...
+            # (Similar to existing gl_tv_text implementation)
+
+        # Render final text batch
+        if current_vertices:
+            self._render_text_batch(current_vertices, current_colors, current_font)
+
+        # Clear batches
+        self.batch_lines = []
+        self.batch_rects = []
+        self.batch_texts = []
+
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python
 

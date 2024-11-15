@@ -48,7 +48,7 @@ def main_edit_loop():
     # clear screen using pygame
     pygamescreen = shared.smartdisplay.pygamescreen
     pygamescreen.fill((0, 0, 0))
-    pygame.display.update()
+    pygame.display.flip()
     anchor_manager = GridAnchorManager(pygamescreen, shared.smartdisplay.x_end, shared.smartdisplay.y_end)
 
     # if shared.CurrentScreen.ScreenObjects exists.. if it doesn't create it as array
@@ -81,7 +81,8 @@ def main_edit_loop():
     ############################################################################################
     # Main edit draw loop
     while not shared.Dataship.errorFoundNeedToExit and not exit_edit_mode:
-        pygamescreen.fill((0, 0, 0)) # clear screen
+        #pygamescreen.fill((0, 0, 0)) # clear screen
+        shared.smartdisplay.ctx.clear(color=(0, 0, 0))
         event_list = pygame.event.get() # get all events
         action_performed = False  # Flag to check if an action was performed
         time_delta = clock.tick(maxframerate) / 1000.0 # get the time delta and limit the framerate.
@@ -663,16 +664,18 @@ def main_edit_loop():
         # Draw FPS if enabled
         if shared.Dataship.show_FPS:
             fps = clock.get_fps()
-            fps_text = fps_font.render(f"FPS: {fps:.2f}", True, (255, 255, 255), (0, 0, 0, 0), pygame.SRCALPHA)
-            fps_rect = fps_text.get_rect(topright=(shared.smartdisplay.x_end - 10, 10))
-            pygamescreen.blit(fps_text, fps_rect)
+            #fps_text = fps_font.render(f"FPS: {fps:.2f}", True, (255, 255, 255), (0, 0, 0, 0), pygame.SRCALPHA)
+            #fps_rect = fps_text.get_rect(topright=(shared.smartdisplay.x_end - 10, 10))
+            #pygamescreen.blit(fps_text, fps_rect)
+            shared.smartdisplay.gl_tv_text(f"FPS: {fps:.2f}", shared.smartdisplay.x_end - 250, 10)
 
             # Add total draw time for all modules
             total_draw_time = sum(getattr(obj, 'draw_time', 0) for obj in shared.CurrentScreen.ScreenObjects)
             total_time_text = f"DrawTime: {total_draw_time:.2f}ms" # show time in ms
-            total_time_surface = fps_font.render(total_time_text, True, (255, 255, 255), (0, 0, 0, 0))
-            total_time_rect = total_time_surface.get_rect(topright=(shared.smartdisplay.x_end - 10, 40))
-            pygamescreen.blit(total_time_surface, total_time_rect)
+            #total_time_surface = fps_font.render(total_time_text, True, (255, 255, 255), (0, 0, 0, 0))
+            #total_time_rect = total_time_surface.get_rect(topright=(shared.smartdisplay.x_end - 10, 40))
+            #pygamescreen.blit(total_time_surface, total_time_rect)
+            shared.smartdisplay.gl_tv_text(total_time_text, shared.smartdisplay.x_end - 250, 40)
 
         # Draw ruler if enabled
         if show_ruler:
@@ -684,7 +687,7 @@ def main_edit_loop():
 
         pygame_gui_manager.draw_ui(pygamescreen)
         #now make pygame update display.
-        pygame.display.update()
+        pygame.display.flip()
 
 def handle_drag_end(selected_objects, start_positions):
     movesHappened = 0

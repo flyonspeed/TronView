@@ -46,6 +46,13 @@ class object3d(Module):
         self.imu_ids = []
         self.imu_ids2 = []
 
+        # update self.source_imu_index_name with the correct name using the index.
+        # this can happen because we load a screen that used a imu id that is not in the list or moved
+        # we only care about the index.
+        for imu_index, imu in shared.Dataship.imus.items():
+            if self.source_imu_index == imu_index:
+                self.source_imu_index_name = imu.id
+
         self.draw_arrows = True
         self.zero_position = None
 
@@ -274,7 +281,7 @@ class object3d(Module):
         self.imu_ids = []
         if isinstance(imu_list, dict):
             # If it's a dictionary, iterate through values
-            for imu_id, imu in imu_list.items():
+            for imu_index, imu in imu_list.items():
                 #print(f"IMU {imu_id}:", imu.id)
                 self.imu_ids.append(str(imu.id))
         if len(self.source_imu_index_name) == 0: # if no name.
@@ -356,6 +363,14 @@ class object3d(Module):
         This is as if the 2nd IMU was the camera looking mounted on the primary IMU.
         Returns a virtual IMU object with the relative orientation between the two IMUs.
         '''
+        if self.source_imu_index2 >= shared.Dataship.imus.__len__():  # secondary imu not found.
+            # create a virtual imu with all None values.
+            virtual_imu = type('VirtualIMU', (), {})()
+            virtual_imu.pitch = None
+            virtual_imu.roll = None
+            virtual_imu.yaw = None
+            return virtual_imu
+        print("calculateCameraPosition ", self.source_imu_index, self.source_imu_index2, len(shared.Dataship.imus))
         # Get references to both IMUs from shared dataship
         imu_base = shared.Dataship.imus[self.source_imu_index]
         imu_camera = shared.Dataship.imus[self.source_imu_index2]

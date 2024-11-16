@@ -417,7 +417,7 @@ class object3d(Module):
             virtual_imu.roll = None
             virtual_imu.yaw = None
             return virtual_imu
-        print("calculateCameraPosition ", self.source_imu_index, self.source_imu_index2, len(shared.Dataship.imus))
+        #print("calculateCameraPosition ", self.source_imu_index, self.source_imu_index2, len(shared.Dataship.imus))
         # Get references to both IMUs from shared dataship
         imu_base = shared.Dataship.imus[self.source_imu_index]
         imu_camera = shared.Dataship.imus[self.source_imu_index2]

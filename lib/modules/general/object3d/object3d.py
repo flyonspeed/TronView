@@ -18,6 +18,12 @@ class object3d(Module):
         self.MainColor = (255,255,255)
         self.font_size = 20  # Reduced font size for better fit
 
+        # Add smoothing variables
+        self.smoothing_factor = 0.1  # Default smoothing (0 = no smoothing, 1 = max smoothing)
+        self.current_pitch = 0
+        self.current_roll = 0 
+        self.current_yaw = 0
+
         self.source_imu_index_name = ""  # name of the primary imu.
         self.source_imu_index = 0  # index of the primary imu.
 
@@ -103,9 +109,38 @@ class object3d(Module):
             else:
                 source_imu = aircraft.imus[self.source_imu_index]
 
-            pitch = source_imu.pitch
-            roll = source_imu.roll
-            yaw = source_imu.yaw
+            # Apply smoothing to the orientation values
+            if source_imu.pitch is not None:
+                target_pitch = source_imu.pitch
+                self.current_pitch += (target_pitch - self.current_pitch) * (1 - self.smoothing_factor)
+                pitch = self.current_pitch
+            else:
+                pitch = None
+
+            if source_imu.roll is not None:
+                target_roll = source_imu.roll
+                self.current_roll += (target_roll - self.current_roll) * (1 - self.smoothing_factor)
+                roll = self.current_roll
+            else:
+                roll = None
+
+            if source_imu.yaw is not None:
+                target_yaw = source_imu.yaw
+                # Handle yaw wraparound at 360/0 degrees
+                if abs(target_yaw - self.current_yaw) > 180:
+                    if target_yaw > self.current_yaw:
+                        target_yaw -= 360
+                    else:
+                        target_yaw += 360
+                self.current_yaw += (target_yaw - self.current_yaw) * (1 - self.smoothing_factor)
+                # Normalize yaw back to -180 to 180 range
+                yaw = self.current_yaw
+                if yaw > 180:
+                    yaw -= 360
+                elif yaw < -180:
+                    yaw += 360
+            else:
+                yaw = None
         else:
             roll = None
             pitch = None
@@ -291,7 +326,7 @@ class object3d(Module):
         self.imu_ids2 = self.imu_ids.copy()
         self.imu_ids2.append("NONE")
 
-        return {
+        options = {
             "source_imu_index_name": {
                 "type": "dropdown",
                 "label": "Primary IMU",
@@ -327,8 +362,20 @@ class object3d(Module):
                 "default": False,
                 "label": "Show Coordinates",
                 "description": "Show the XYZ axes.",
+            },
+            "smoothing_factor": {
+                "type": "float",
+                "default": 0.1,
+                "min": 0.0,
+                "max": 0.99,
+                "label": "Smoothing Factor",
+                "description": "Amount of smoothing to apply to orientation changes (0 = none, 0.99 = max)",
             }
         }
+        
+        # Add existing options
+        options.update(super().get_module_options())
+        return options
     
     def changeSource1IMU(self):
         '''

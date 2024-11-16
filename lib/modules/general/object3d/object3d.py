@@ -24,6 +24,8 @@ class object3d(Module):
         self.source_imu_index2_name = ""  # name of the secondary imu. (optional)
         self.source_imu_index2 = None  # index of the secondary imu. (optional)
 
+        self.show_xyz = False
+
     # called once for setup
     def initMod(self, pygamescreen, width=None, height=None):
         if width is None:
@@ -234,6 +236,15 @@ class object3d(Module):
         # draw buttons
         if self.source_imu_index2 is None:
             self.buttonsDraw(aircraft, smartdisplay, pos)
+        
+        if self.show_xyz:
+            # create text for x, y, z.
+            x = round(source_imu.pitch,1)
+            y = round(source_imu.roll,1)
+            z = round(source_imu.yaw,1)
+            text = self.font.render("Pitch: "+str(x)+"\nRoll: "+str(y)+"\nYaw: "+str(z), True, self.MainColor)
+            text_rect = text.get_rect(topleft=(10, 10)) # draw in top left corner.
+            self.surface.blit(text, text_rect)
 
         # Draw the surface onto the main screen
         smartdisplay.pygamescreen.blit(self.surface, pos if pos != (None, None) else (0, 0))
@@ -294,6 +305,12 @@ class object3d(Module):
                 "default": (255,255,255),
                 "label": "Main Color",
                 "description": "Color of the main line.",
+            },
+            "show_xyz": {
+                "type": "bool",
+                "default": False,
+                "label": "Show Coordinates",
+                "description": "Show the XYZ axes.",
             }
         }
     

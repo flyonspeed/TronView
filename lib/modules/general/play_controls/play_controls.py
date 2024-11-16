@@ -76,29 +76,35 @@ class play_controls(Module):
 
     # button to play the scenario
     def buttonPlay(self,aircraft,button):
-        shared.Inputs[0].isPaused = not shared.Inputs[0].isPaused
-        self.buttonSelected("btnPlay",not shared.Inputs[0].isPaused) # set the button to selected
-        if len(shared.Inputs) > 1:
+        if shared.Inputs[0].input_logFileName != None:
+            shared.Inputs[0].isPaused = not shared.Inputs[0].isPaused
+            self.buttonSelected("btnPlay",not shared.Inputs[0].isPaused) # set the button to selected
+        if len(shared.Inputs) > 1 and shared.Inputs[1].input_logFileName != None:
             shared.Inputs[1].isPaused = not shared.Inputs[1].isPaused
+            self.buttonSelected("btnPlay",not shared.Inputs[1].isPaused) # set the button to selected
 
     def buttonFastForward(self,aircraft,button):
         if button["text"] == ">>":
-            shared.Inputs[0].fastForward(shared.Dataship,1000)
-            if len(shared.Inputs) > 1:
+            if shared.Inputs[0].input_logFileName != None:  
+                shared.Inputs[0].fastForward(shared.Dataship,1000)
+            if len(shared.Inputs) > 1 and shared.Inputs[1].input_logFileName != None:
                 shared.Inputs[1].fastForward(shared.Dataship,1000)
         else:
-            shared.Inputs[0].fastForward(shared.Dataship,500)
-            if len(shared.Inputs) > 1:
+            if shared.Inputs[0].input_logFileName != None:
+                shared.Inputs[0].fastForward(shared.Dataship,500)
+            if len(shared.Inputs) > 1 and shared.Inputs[1].input_logFileName != None:
                 shared.Inputs[1].fastForward(shared.Dataship,500)
 
     def buttonFastBackwards(self,aircraft,button):
         if button["text"] == "<<":
-            shared.Inputs[0].fastBackwards(shared.Dataship,1000)
-            if len(shared.Inputs) > 1:
+            if shared.Inputs[0].input_logFileName != None:
+                shared.Inputs[0].fastBackwards(shared.Dataship,1000)
+            if len(shared.Inputs) > 1 and shared.Inputs[1].input_logFileName != None:
                 shared.Inputs[1].fastBackwards(shared.Dataship,1000)
         else:
-            shared.Inputs[0].fastBackwards(shared.Dataship,500)
-            if len(shared.Inputs) > 1:
+            if shared.Inputs[0].input_logFileName != None:
+                shared.Inputs[0].fastBackwards(shared.Dataship,500)
+            if len(shared.Inputs) > 1 and shared.Inputs[1].input_logFileName != None:
                 shared.Inputs[1].fastBackwards(shared.Dataship,500)
 
     def buttonRecord(self,aircraft,button):
@@ -106,13 +112,15 @@ class play_controls(Module):
             shared.Inputs[0].startLog(shared.Dataship)
             self.buttonSelected("btnRecord",True)
         else:
-            shared.Inputs[0].stopLog(shared.Dataship)
+            if shared.Inputs[0].input_logFileName != None:
+                shared.Inputs[0].stopLog(shared.Dataship)
             self.buttonSelected("btnRecord",False)
         if len(shared.Inputs) > 1: # check if there is a second input
             if shared.Inputs[1].output_logFile == None:
                 shared.Inputs[1].startLog(shared.Dataship)
             else:
-                shared.Inputs[1].stopLog(shared.Dataship)
+                if shared.Inputs[1].input_logFileName != None:
+                    shared.Inputs[1].stopLog(shared.Dataship)
 
     # return a dict of objects that are used to configure the module.
     def get_module_options(self):

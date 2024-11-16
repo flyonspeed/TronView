@@ -62,6 +62,9 @@ class gyro_i2c_bno085(Input):
         self.imuData.id = self.id
         self.imuData.name = self.name
         self.imuData.address = self.address
+        self.imuData.home_pitch = None
+        self.imuData.home_roll = None
+        self.imuData.home_yaw = None
 
         # create imu in dataship object. append to dict with key as num_imus.
         aircraft.imus[self.num_imus] = self.imuData
@@ -69,7 +72,6 @@ class gyro_i2c_bno085(Input):
         self.last_read_time = time.time()
         self.start_time = time.time()
         
-
 
     def closeInput(self,aircraft):
         print("bno085 close")
@@ -118,12 +120,10 @@ class gyro_i2c_bno085(Input):
             self.imuData.quat = [roll_offset, pitch_offset, yaw_offset]
             self.imuData.gyro = [gyro_x , gyro_y , gyro_z ]
             self.imuData.accel = [round(accel_x,2), round(accel_y,2), round(accel_z,2)]
-            self.imuData.pitch = pitch_offset
-            self.imuData.roll = roll_offset
-            self.imuData.yaw = yaw_offset
             self.imuData.cali_sys = self.bno.calibration_status
 
             # update aircraft object.
+            self.imuData.updatePos(pitch_offset, roll_offset, yaw_offset)
             aircraft.imus[self.num_imus] = self.imuData
 
             if self.feed_into_aircraft:
@@ -140,6 +140,14 @@ class gyro_i2c_bno085(Input):
         return aircraft
 
 
+    def home(self):
+        '''
+        home the bno055.  This mean take a snapshot of the current pitch/roll/yaw and store it as the home position.
+        all subsequent yaw values will be relative to this home position.
+        '''
+        self.imuData.home_pitch = self.imuData.pitch
+        self.imuData.home_roll = self.imuData.roll
+        self.imuData.home_yaw = self.imuData.yaw
 
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

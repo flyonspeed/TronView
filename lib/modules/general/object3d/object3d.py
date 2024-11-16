@@ -5,9 +5,6 @@
 # Topher 2024
 
 from lib.modules._module import Module
-from lib import hud_graphics
-from lib import hud_utils
-from lib import smartdisplay
 import pygame
 import math
 from lib.common import shared
@@ -46,11 +43,16 @@ class object3d(Module):
         self.draw_arrows = True
         self.zero_position = None
 
+        self.buttonsInit()
+        self.buttonAdd(id="zero_position", 
+                       text="Zero", 
+                       function=self.zeroPosition, 
+                       pos="BotR")
+
     # called every redraw for the mod
     def draw(self, aircraft, smartdisplay, pos=(None, None)):
         # Clear the surface
         self.surface.fill((0, 0, 0, 0))
-
 
         # Calculate the cube size based on the smaller dimension of the surface
         cube_size = min(self.width, self.height) * 1  # Use % of the smaller dimension
@@ -84,10 +86,10 @@ class object3d(Module):
         # if imu is available and the self.source_imu_index is not larger than the number of imus.
         if aircraft.imus and self.source_imu_index < len(aircraft.imus):
             source_imu = aircraft.imus[self.source_imu_index]
-            new_position = self.getUpdatedPostion(source_imu.pitch, source_imu.roll, source_imu.yaw)
-            pitch = new_position[0]
-            roll = new_position[1]
-            yaw = new_position[2]
+            #new_position = self.getUpdatedPostion(source_imu.pitch, source_imu.roll, source_imu.yaw)
+            pitch = source_imu.pitch
+            roll = source_imu.roll
+            yaw = source_imu.yaw
         else:
             roll = None
             pitch = None
@@ -222,6 +224,9 @@ class object3d(Module):
                     # Draw the rotated and scaled text
                     self.surface.blit(rotated_text, rotated_rect)
 
+        # draw buttons
+        self.buttonsDraw(aircraft, smartdisplay, pos)
+
         # Draw the surface onto the main screen
         smartdisplay.pygamescreen.blit(self.surface, pos if pos != (None, None) else (0, 0))
 
@@ -272,42 +277,48 @@ class object3d(Module):
         # source_imu_index_name got changed. find the index of the imu id in the imu list.
         self.source_imu_index = self.imu_ids.index(self.source_imu_index_name)
         #print("source_imu_index==", self.source_imu_index)
-        self.zero_position = None
+        shared.Dataship.imus[self.source_imu_index].home(delete=True) 
 
     def processClick(self, aircraft: Dataship, mx, my):
-        # When clicked, set the current position as the new zero reference point
-        if aircraft.imus and self.source_imu_index < len(aircraft.imus):
-            source_imu = aircraft.imus[self.source_imu_index]
-            self.zero_position = [
-                source_imu.pitch,
-                source_imu.roll,
-                source_imu.yaw
-            ]
-            print("New zero position set:", self.zero_position)
+        if self.buttonsCheckClick(aircraft, mx, my):
+            return
+    
+    def zeroPosition(self, aircraft: Dataship, button):
+        aircraft.imus[self.source_imu_index].home()
+        
+        # # When clicked, set the current position as the new zero reference point
+        # if aircraft.imus and self.source_imu_index < len(aircraft.imus):
+        #     source_imu = aircraft.imus[self.source_imu_index]
+        #     self.zero_position = [
+        #         source_imu.pitch,
+        #         source_imu.roll,
+        #         source_imu.yaw
+        #     ]
+        #     print("New zero position set:", self.zero_position)
 
-    def getUpdatedPostion(self, pitch, roll, yaw):
-        if pitch is None or roll is None:
-            return [None, None, None]
+    # def getUpdatedPostion(self, pitch, roll, yaw):
+    #     if pitch is None or roll is None:
+    #         return [None, None, None]
 
-        # If we have a zero position set, return values relative to that position
-        if self.zero_position is not None:
-            # Calculate the relative angles
-            rel_pitch = pitch - self.zero_position[0]
-            rel_roll = roll - self.zero_position[1]
-            if yaw is not None: 
-                rel_yaw = yaw - self.zero_position[2]
-            else:
-                rel_yaw = None  
+    #     # If we have a zero position set, return values relative to that position
+    #     if self.zero_position is not None:
+    #         # Calculate the relative angles
+    #         rel_pitch = pitch - self.zero_position[0]
+    #         rel_roll = roll - self.zero_position[1]
+    #         if yaw is not None: 
+    #             rel_yaw = yaw - self.zero_position[2]
+    #         else:
+    #             rel_yaw = None  
             
-            # Normalize angles to -180 to +180 range
-            rel_pitch = (rel_pitch + 180) % 360 - 180
-            rel_roll = (rel_roll + 180) % 360 - 180
-            if rel_yaw is not None:
-                rel_yaw = (rel_yaw + 180) % 360 - 180
+    #         # Normalize angles to -180 to +180 range
+    #         rel_pitch = (rel_pitch + 180) % 360 - 180
+    #         rel_roll = (rel_roll + 180) % 360 - 180
+    #         if rel_yaw is not None:
+    #             rel_yaw = (rel_yaw + 180) % 360 - 180
 
             
-            return [rel_pitch, rel_roll, rel_yaw]
-        else:
-            return [pitch, roll, yaw]
+    #         return [rel_pitch, rel_roll, rel_yaw]
+    #     else:
+    #         return [pitch, roll, yaw]
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

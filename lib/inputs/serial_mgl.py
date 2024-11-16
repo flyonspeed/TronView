@@ -53,6 +53,7 @@ class serial_mgl(Input):
         self.imuData = IMU()
         self.imuData.id = "mgl_imu"
         self.imuData.name = self.name
+        self.imuData.inputIndex = num
         self.imu_index = len(aircraft.imus)  # Start at 0
         print("new imu "+str(self.imu_index)+": "+str(self.imuData))
         aircraft.imus[self.imu_index] = self.imuData
@@ -99,8 +100,8 @@ class serial_mgl(Input):
                                 "<HhhhhhhhhhhhBBBBi", Message
                             )
                             aircraft.pitch = round(PitchAngle * 0.1, 1)  # truncate to 1 decimal place
-                            aircraft.roll = round(BankAngle * 0.1, 2)  #
-                            aircraft.yaw = YawAngle
+                            aircraft.roll = round(BankAngle * 0.1, 1)  #
+                            aircraft.yaw = YawAngle 
                             if HeadingMag != 0:
                                 aircraft.mag_head = int(HeadingMag * 0.1)
                             else:
@@ -113,13 +114,10 @@ class serial_mgl(Input):
                             else: aircraft.msg_last = None
 
                             # Update IMU data
-                            self.imuData.roll = aircraft.roll
-                            self.imuData.pitch = aircraft.pitch
-                            self.imuData.yaw = aircraft.yaw
-                            self.imuData.heading = aircraft.mag_head
                             self.imuData.turn_rate = aircraft.turn_rate
                             self.imuData.slip_skid = aircraft.slip_skid
                             self.imuData.g_force = aircraft.vert_G
+
                             if aircraft.debug_mode > 0:
                                 current_time = time.time()
                                 # calculate hz.
@@ -127,6 +125,9 @@ class serial_mgl(Input):
                                 self.last_read_time = current_time
                             # Update the IMU in the aircraft's imus dictionary
                             aircraft.imus[self.imu_index] = self.imuData
+                            # update the IMU position.
+                            self.imuData.updatePos(aircraft.pitch, aircraft.roll, aircraft.yaw)
+
 
                     elif msgType == 2:  # GPS Message
                         Message = self.ser.read(48)
@@ -325,8 +326,7 @@ class serial_mgl(Input):
             print("mgl serial exception")
             aircraft.errorFoundNeedToExit = True
         return aircraft
-
-
+    
 
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

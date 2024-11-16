@@ -53,7 +53,11 @@ class Module:
     ##########################################################
     # add a button to the module
     ##########################################################
-    def buttonAdd(self, id, text, function = None, x=-1, y=-1, width=0, height=0, newRow=False, center=False, selected=False, type="button"):
+    def buttonAdd(self, id, text, function = None, pos=None, x=-1, y=-1, width=0, height=0, newRow=False, center=False, selected=False, type="button"):
+        # make sure the button_surface exists
+        if not hasattr(self, 'button_surface'):
+            self.buttonsInit()
+
         # Calculate the button width based on text if width is 0
         label_width = self.button_font.size(text)[0]
         if width == 0:
@@ -67,12 +71,45 @@ class Module:
 
         # Find the last button's position
         last_button = None if len(self.buttons) == 0 else self.buttons[-1]
+ 
+        # "TopL", "TopM", "TopR",
+        # "MidL", "MidM", "MidR",
+        # "BotL", "BotM", "BotR"
+
+        if pos is not None:
+            if pos == "TopL":
+                x = 10
+                y = 10
+            elif pos == "TopM":
+                x = (self.width / 2) - (width / 2)
+                y = 10
+            elif pos == "TopR":
+                x = self.width - width - 10
+                y = 10
+            elif pos == "MidL":
+                x = 10
+                y = (self.height / 2) - (height / 2)
+            elif pos == "MidM":
+                x = (self.width / 2) - (width / 2)
+                y = (self.height / 2) - (height / 2)
+            elif pos == "MidR":
+                x = self.width - width - 10
+                y = (self.height / 2) - (height / 2)
+            elif pos == "BotL":
+                x = 10
+                y = self.height - height - 10
+            elif pos == "BotM":
+                x = (self.width / 2) - (width / 2)
+                y = self.height - height - 10
+            elif pos == "BotR":
+                x = self.width - width - 10
+                y = self.height - height - 10
 
         # Handle newRow
         if newRow:
             y = (last_button['y'] + last_button['height'] + 10) if last_button else 10
             x = 10
-        else:
+        elif pos is None:
             if last_button:
                 x = last_button['x'] + last_button['width'] + 10
                 y = last_button['y']
@@ -82,7 +119,7 @@ class Module:
 
         # Handle centering
         if center:
-            row_buttons = [b for b in self.buttons if b['y'] == y]
+            row_buttons = [b for b in self.buttons if b['y'] == y] # get all buttons in this row
             row_width = sum(b['width'] for b in row_buttons) + width + ((len(row_buttons) + 1) * 10)
             x = (self.width - row_width) / 2 + sum(b['width'] for b in row_buttons) + (len(row_buttons) * 10)
 
@@ -106,6 +143,7 @@ class Module:
             "draw_background": draw_background
         }
         self.buttons.append(button)
+
 
     # draw all buttons (if any)
     def buttonsDraw(self, aircraft, smartdisplay, pos=(0,0)):
@@ -140,6 +178,8 @@ class Module:
             if button["x"] <= mx <= button["x"] + button["width"] and button["y"] <= my <= button["y"] + button["height"]:
                 if button["function"]:
                     button["function"]( aircraft, button )
+                return True
+        return False
     
     # set a button to selected
     def buttonSelected(self, id, selected=True):

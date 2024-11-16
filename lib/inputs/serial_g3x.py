@@ -208,14 +208,12 @@ class serial_g3x(Input):
                                 Input.addToLog(self,self.output_logFile,bytes([61,ord(SentID)]))
                                 Input.addToLog(self,self.output_logFile,msg)
                             # Update IMU data
-                            self.imuData.roll = aircraft.roll
-                            self.imuData.pitch = aircraft.pitch
-                            self.imuData.yaw = aircraft.mag_head
                             if aircraft.debug_mode > 0:
                                 current_time = time.time() # calculate hz.
                                 self.imuData.hz = round(1 / (current_time - self.last_read_time), 1)
                                 self.last_read_time = current_time
                             # Update the IMU in the aircraft's imu list
+                            self.imuData.updatePos(aircraft.pitch,aircraft.roll,aircraft.mag_head)
                             aircraft.imus[self.imu_index] = self.imuData
                             return aircraft
                     else:

@@ -192,9 +192,8 @@ if __name__ == "__main__":
         allPlayback = True
     else:
         allPlayback = False
-    if args.c:
-        # this is the same as --playfile1
-        shared.Inputs[0].PlayFile = args.c
+    if args.c:  # this is the same as --playfile1        
+        args.playfile1 = args.c
     if args.i:
         # this is the same as --in1
         loadInput(0,args.i,args.playfile1 if args.playfile1 else allPlayback)

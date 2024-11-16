@@ -18,8 +18,11 @@ class object3d(Module):
         self.MainColor = (255,255,255)
         self.font_size = 20  # Reduced font size for better fit
 
-        self.source_imu_index_name = ""
-        self.source_imu_index = 0
+        self.source_imu_index_name = ""  # name of the primary imu.
+        self.source_imu_index = 0  # index of the primary imu.
+
+        self.source_imu_index2_name = ""  # name of the secondary imu. (optional)
+        self.source_imu_index2 = None  # index of the secondary imu. (optional)
 
     # called once for setup
     def initMod(self, pygamescreen, width=None, height=None):
@@ -39,6 +42,7 @@ class object3d(Module):
         # Create a surface with per-pixel alpha
         self.surface = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
         self.imu_ids = []
+        self.imu_ids2 = []
 
         self.draw_arrows = True
         self.zero_position = None
@@ -48,6 +52,28 @@ class object3d(Module):
                        text="Zero", 
                        function=self.zeroPosition, 
                        pos="BotR")
+        
+        # Define cube vertices with the same order as before
+        self.vertices = [
+            [-1, -1, -1], # front left bottom (0)
+            [1, -1, -1],  # front right bottom (1)
+            [1, 1, -1],   # front right top (2)
+            [-1, 1, -1],  # front left top (3)
+            [-1, -1, 1],  # back left bottom (4)
+            [1, -1, 1],   # back right bottom (5)
+            [1, 1, 1],    # back right top (6)
+            [-1, 1, 1]    # back left top (7)
+        ]
+        # Define faces (vertices that make up each face)
+        self.faces = [
+            ([0, 1, 2, 3], "FRONT", (255, 0, 0, 64)),    # Front face (red)
+            ([5, 4, 7, 6], "BACK", (0, 255, 0, 64)),     # Back face (green)
+            ([4, 0, 3, 7], "LEFT", (0, 0, 255, 64)),     # Left face (blue)
+            ([1, 5, 6, 2], "RIGHT", (255, 255, 0, 64)),  # Right face (yellow)
+            ([3, 2, 6, 7], "BOTTOM", (255, 0, 255, 64)),    # Bottom face (magenta)
+            ([0, 1, 5, 4], "TOP", (0, 255, 255, 64))  # Top face (cyan)
+        ]
+
 
     # called every redraw for the mod
     def draw(self, aircraft, smartdisplay, pos=(None, None)):
@@ -61,32 +87,13 @@ class object3d(Module):
         x = self.width // 2
         y = self.height // 2
 
-        # Define cube vertices with the same order as before
-        vertices = [
-            [-1, -1, -1], # front left bottom (0)
-            [1, -1, -1],  # front right bottom (1)
-            [1, 1, -1],   # front right top (2)
-            [-1, 1, -1],  # front left top (3)
-            [-1, -1, 1],  # back left bottom (4)
-            [1, -1, 1],   # back right bottom (5)
-            [1, 1, 1],    # back right top (6)
-            [-1, 1, 1]    # back left top (7)
-        ]
-
-        # Define faces (vertices that make up each face)
-        faces = [
-            ([0, 1, 2, 3], "FRONT", (255, 0, 0, 64)),    # Front face (red)
-            ([5, 4, 7, 6], "BACK", (0, 255, 0, 64)),     # Back face (green)
-            ([4, 0, 3, 7], "LEFT", (0, 0, 255, 64)),     # Left face (blue)
-            ([1, 5, 6, 2], "RIGHT", (255, 255, 0, 64)),  # Right face (yellow)
-            ([3, 2, 6, 7], "TOP", (255, 0, 255, 64)),    # Top face (magenta)
-            ([0, 1, 5, 4], "BOTTOM", (0, 255, 255, 64))  # Bottom face (cyan)
-        ]
-
         # if imu is available and the self.source_imu_index is not larger than the number of imus.
         if aircraft.imus and self.source_imu_index < len(aircraft.imus):
-            source_imu = aircraft.imus[self.source_imu_index]
-            #new_position = self.getUpdatedPostion(source_imu.pitch, source_imu.roll, source_imu.yaw)
+            if self.source_imu_index2 is not None:
+                source_imu = self.calculateCameraPosition()
+            else:
+                source_imu = aircraft.imus[self.source_imu_index]
+
             pitch = source_imu.pitch
             roll = source_imu.roll
             yaw = source_imu.yaw
@@ -144,7 +151,7 @@ class object3d(Module):
 
         # Apply rotations to vertices
         rotated_vertices = []
-        for v in vertices:
+        for v in self.vertices:
             rotated = rotate_z(rotate_y(rotate_x(v, pitch), yaw), roll)
             # Project 3D point to 2D surface
             scale = cube_size / (4 + rotated[2])
@@ -157,12 +164,12 @@ class object3d(Module):
             x = sum(rotated_vertices[v][0] for v in face_vertices) / 4
             y = sum(rotated_vertices[v][1] for v in face_vertices) / 4
             # Calculate average z-coordinate for depth sorting
-            z = sum(rotate_z(rotate_y(rotate_x(vertices[v], pitch), yaw), roll)[2] for v in face_vertices) / 4
+            z = sum(rotate_z(rotate_y(rotate_x(self.vertices[v], pitch), yaw), roll)[2] for v in face_vertices) / 4
             return (x, y, z)
 
         # Sort faces by z-coordinate (painter's algorithm)
         faces_with_depth = []
-        for face_vertices, label, color in faces:
+        for face_vertices, label, color in self.faces:
             center = get_face_center(face_vertices)
             faces_with_depth.append((face_vertices, label, color, center[2]))
         
@@ -171,7 +178,7 @@ class object3d(Module):
 
         # Create text surfaces once
         text_surfaces = {}
-        for _, label, color in faces:
+        for _, label, color in self.faces:
             # Create a surface for the text with a transparent background
             text_surface = pygame.Surface((100, 30), pygame.SRCALPHA)
             rendered_text = self.font.render(label, True, self.MainColor)
@@ -252,15 +259,31 @@ class object3d(Module):
         if len(self.source_imu_index_name) == 0: # if no name.
             self.source_imu_index_name = self.imu_ids[self.source_imu_index]  # select first one.
 
+        # duplicate the list for the secondary imu.
+        self.imu_ids2 = self.imu_ids.copy()
+        self.imu_ids2.append("NONE")
+
         return {
             "source_imu_index_name": {
                 "type": "dropdown",
-                "label": "Source IMU",
+                "label": "Primary IMU",
                 "description": "IMU to use for the 3D object.",
                 "options": self.imu_ids,
-                "post_change_function": "changeSourceIMU"
+                "post_change_function": "changeSource1IMU"
             },
             "source_imu_index": {
+                "type": "int",
+                "hidden": True,  # hide from the UI, but save to json screen file.
+                "default": 0
+            },
+            "source_imu_index2_name": {
+                "type": "dropdown",
+                "label": "Secondary IMU (Camera)",
+                "description": "If selected then 2nd IMU will be position camera. As if it was mounted on the Primary IMU.",
+                "options": self.imu_ids2,
+                "post_change_function": "changeSource2IMU"
+            },
+            "source_imu_index2": {
                 "type": "int",
                 "hidden": True,  # hide from the UI, but save to json screen file.
                 "default": 0
@@ -273,52 +296,71 @@ class object3d(Module):
             }
         }
     
-    def changeSourceIMU(self):
+    def changeSource1IMU(self):
+        '''
+        Change the primary IMU.
+        '''
         # source_imu_index_name got changed. find the index of the imu id in the imu list.
         self.source_imu_index = self.imu_ids.index(self.source_imu_index_name)
         #print("source_imu_index==", self.source_imu_index)
         shared.Dataship.imus[self.source_imu_index].home(delete=True) 
+
+    def changeSource2IMU(self):
+        if self.source_imu_index2_name == "NONE":
+            self.source_imu_index2 = None
+        else:
+            self.source_imu_index2 = self.imu_ids2.index(self.source_imu_index2_name)
+            shared.Dataship.imus[self.source_imu_index2].home(delete=True) 
 
     def processClick(self, aircraft: Dataship, mx, my):
         if self.buttonsCheckClick(aircraft, mx, my):
             return
     
     def zeroPosition(self, aircraft: Dataship, button):
+        '''
+        Set the zero position of the primary IMU.
+        '''
         aircraft.imus[self.source_imu_index].home()
+
+
+    def calculateCameraPosition(self):
+        '''
+        Calculate the camera position based on the primary and secondary IMU.
+        This is as if the 2nd IMU was the camera looking mounted on the primary IMU.
+        Returns a virtual IMU object with the relative orientation between the two IMUs.
+        '''
+        # Get references to both IMUs from shared dataship
+        imu_base = shared.Dataship.imus[self.source_imu_index]
+        imu_camera = shared.Dataship.imus[self.source_imu_index2]
+
+        # Create a virtual IMU that represents the relative orientation
+        virtual_imu = type('VirtualIMU', (), {})()
+
+        # if either pitch or roll is None then set the virtual imu to None.
+        if imu_camera.pitch is None or imu_base.pitch is None:
+            virtual_imu.pitch = None
+            virtual_imu.roll = None
+            virtual_imu.yaw = None
+            return virtual_imu
+
+        # Calculate relative angles by subtracting base IMU angles from camera IMU angles
+        virtual_imu.pitch = imu_camera.pitch - imu_base.pitch
+        virtual_imu.roll = imu_camera.roll - imu_base.roll
         
-        # # When clicked, set the current position as the new zero reference point
-        # if aircraft.imus and self.source_imu_index < len(aircraft.imus):
-        #     source_imu = aircraft.imus[self.source_imu_index]
-        #     self.zero_position = [
-        #         source_imu.pitch,
-        #         source_imu.roll,
-        #         source_imu.yaw
-        #     ]
-        #     print("New zero position set:", self.zero_position)
+        # Special handling for yaw to handle wraparound at 360/0 degrees
+        if imu_camera.yaw is not None and imu_base.yaw is not None:
+            yaw_diff = imu_camera.yaw - imu_base.yaw
+            if yaw_diff > 180:
+                yaw_diff -= 360
+            elif yaw_diff < -180:
+                yaw_diff += 360
+            virtual_imu.yaw = yaw_diff
+        else:
+            virtual_imu.yaw = None
 
-    # def getUpdatedPostion(self, pitch, roll, yaw):
-    #     if pitch is None or roll is None:
-    #         return [None, None, None]
+        return virtual_imu
 
-    #     # If we have a zero position set, return values relative to that position
-    #     if self.zero_position is not None:
-    #         # Calculate the relative angles
-    #         rel_pitch = pitch - self.zero_position[0]
-    #         rel_roll = roll - self.zero_position[1]
-    #         if yaw is not None: 
-    #             rel_yaw = yaw - self.zero_position[2]
-    #         else:
-    #             rel_yaw = None  
-            
-    #         # Normalize angles to -180 to +180 range
-    #         rel_pitch = (rel_pitch + 180) % 360 - 180
-    #         rel_roll = (rel_roll + 180) % 360 - 180
-    #         if rel_yaw is not None:
-    #             rel_yaw = (rel_yaw + 180) % 360 - 180
 
-            
-    #         return [rel_pitch, rel_roll, rel_yaw]
-    #     else:
-    #         return [pitch, roll, yaw]
+
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

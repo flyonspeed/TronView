@@ -239,9 +239,18 @@ class object3d(Module):
         
         if self.show_xyz:
             # create text for x, y, z.
-            x = round(source_imu.pitch,1)
-            y = round(source_imu.roll,1)
-            z = round(source_imu.yaw,1)
+            if source_imu.pitch is not None:
+                x = round(source_imu.pitch,1)
+            else:
+                x = "---"
+            if source_imu.roll is not None:
+                y = round(source_imu.roll,1)
+            else:
+                    y = "---"
+            if source_imu.yaw is not None:
+                z = round(source_imu.yaw,1)
+            else:
+                z = "---"
             text = self.font.render("Pitch: "+str(x)+"\nRoll: "+str(y)+"\nYaw: "+str(z), True, self.MainColor)
             text_rect = text.get_rect(topleft=(10, 10)) # draw in top left corner.
             self.surface.blit(text, text_rect)

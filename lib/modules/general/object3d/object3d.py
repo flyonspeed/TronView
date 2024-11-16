@@ -232,7 +232,8 @@ class object3d(Module):
                     self.surface.blit(rotated_text, rotated_rect)
 
         # draw buttons
-        self.buttonsDraw(aircraft, smartdisplay, pos)
+        if self.source_imu_index2 is None:
+            self.buttonsDraw(aircraft, smartdisplay, pos)
 
         # Draw the surface onto the main screen
         smartdisplay.pygamescreen.blit(self.surface, pos if pos != (None, None) else (0, 0))
@@ -343,18 +344,20 @@ class object3d(Module):
             virtual_imu.yaw = None
             return virtual_imu
 
-        # Calculate relative angles by subtracting base IMU angles from camera IMU angles
-        virtual_imu.pitch = imu_camera.pitch - imu_base.pitch
-        virtual_imu.roll = imu_camera.roll - imu_base.roll
+        # Calculate combined angles by adding base IMU angles and camera IMU angles
+        virtual_imu.pitch = imu_base.pitch + imu_camera.pitch
+        virtual_imu.roll = imu_base.roll + imu_camera.roll
         
         # Special handling for yaw to handle wraparound at 360/0 degrees
         if imu_camera.yaw is not None and imu_base.yaw is not None:
-            yaw_diff = imu_camera.yaw - imu_base.yaw
-            if yaw_diff > 180:
-                yaw_diff -= 360
-            elif yaw_diff < -180:
-                yaw_diff += 360
-            virtual_imu.yaw = yaw_diff
+            # Add the yaw angles
+            combined_yaw = imu_base.yaw + imu_camera.yaw
+            # Normalize to -180 to 180 range
+            if combined_yaw > 180:
+                combined_yaw -= 360
+            elif combined_yaw < -180:
+                combined_yaw += 360
+            virtual_imu.yaw = combined_yaw
         else:
             virtual_imu.yaw = None
 

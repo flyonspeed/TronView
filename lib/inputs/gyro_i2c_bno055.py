@@ -110,21 +110,24 @@ class gyro_i2c_bno055(Input):
             roll_offset, pitch_offset, yaw_offset = self.quaternion_to_euler(*self.bno.quaternion)
             #quat_i, quat_j, quat_k, quat_real = self.bno.quaternion
             #print( "I: %0.6f  J: %0.6f K: %0.6f  Real: %0.6f" % (quat_i, quat_j, quat_k, quat_real))
-            gyro_x, gyro_y, gyro_z = self.bno.gyro
+            #gyro_x, gyro_y, gyro_z = self.bno.gyro
             #print("X: %0.6f  Y: %0.6f Z: %0.6f rads/s" % (gyro_x, gyro_y, gyro_z))
-            accel_x, accel_y, accel_z = self.bno.linear_acceleration
+            #accel_x, accel_y, accel_z = self.bno.linear_acceleration
 
             #aircraft.pitch = gyro_x * 180
             #aircraft.roll = gyro_y * 180
 
             # update imuData object.
             self.imuData.quat = [roll_offset, pitch_offset, yaw_offset]
-            self.imuData.gyro = [gyro_x , gyro_y , gyro_z ]
-            self.imuData.accel = [accel_x, accel_y, accel_z]
+            #self.imuData.gyro = [gyro_x , gyro_y , gyro_z ]
+            #self.imuData.accel = [accel_x, accel_y, accel_z]
             self.imuData.cali_mag = self.bno.calibration_status[3]
             self.imuData.cali_accel = self.bno.calibration_status[2]
             self.imuData.cali_gyro = self.bno.calibration_status[1]
             self.imuData.cali_sys = self.bno.calibration_status[0]
+
+            # reverse pitch and roll
+            pitch_offset = -pitch_offset
 
             # update aircraft object.
             self.imuData.updatePos(pitch_offset, roll_offset, yaw_offset)

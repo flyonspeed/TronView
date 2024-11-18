@@ -77,7 +77,7 @@ case $yn in
 			sudo pip3 install Adafruit_ADS1x15 --break-system-packages
 			sudo pip3 install numpy --break-system-packages
 			sudo pip3 install pygame_gui --break-system-packages 
-			$pip_args="--break-system-packages"
+			pip_args="--break-system-packages"
 
 		fi
 

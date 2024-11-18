@@ -6,15 +6,16 @@
 from ._input import Input
 from lib import hud_utils
 from . import _utils
-import struct
 import time
-import statistics
+from time import sleep
 import board
 import busio
 import adafruit_bno08x
 from adafruit_bno08x.i2c import BNO08X_I2C
 from lib.common.dataship.dataship_imu import IMU
 import math
+import traceback
+
 class gyro_i2c_bno085(Input):
     def __init__(self):
         self.name = "bno085 IMU 9dof"
@@ -46,16 +47,7 @@ class gyro_i2c_bno085(Input):
         self.feed_into_aircraft = hud_utils.readConfigBool("bno085", "device"+str(self.num_bno085)+"_aircraft", self.num_imus == 0)
         print("init bno085("+str(self.num_bno085)+") id: "+str(self.id)+" address: "+str(self.address))
 
-
-        self.i2c = busio.I2C(board.SCL, board.SDA)
-        self.bno = BNO08X_I2C(self.i2c, address=self.address)
-
-        self.bno.enable_feature(adafruit_bno08x.BNO_REPORT_ACCELEROMETER)
-        self.bno.enable_feature(adafruit_bno08x.BNO_REPORT_LINEAR_ACCELERATION)
-        self.bno.enable_feature(adafruit_bno08x.BNO_REPORT_GYROSCOPE)
-        #self.bno.enable_feature(adafruit_bno08x.BNO_REPORT_MAGNETOMETER)
-        self.bno.enable_feature(adafruit_bno08x.BNO_REPORT_ROTATION_VECTOR)
-        #self.bno.enable_feature(adafruit_bno08x.BNO_REPORT_GAME_ROTATION_VECTOR)
+        self.init_i2c()
 
         # create a empty imu object.
         self.imuData = IMU()
@@ -71,7 +63,24 @@ class gyro_i2c_bno085(Input):
 
         self.last_read_time = time.time()
         self.start_time = time.time()
-        
+    
+    def init_i2c(self):
+        if not hasattr(self, 'i2c'):
+            self.i2c = busio.I2C(board.SCL, board.SDA)
+        else:
+            self.i2c.deinit()
+            self.i2c = busio.I2C(board.SCL, board.SDA)
+            self.bno = None
+            sleep(1)
+        self.bno = BNO08X_I2C(self.i2c, address=self.address)
+
+        self.bno.enable_feature(adafruit_bno08x.BNO_REPORT_ACCELEROMETER)
+        self.bno.enable_feature(adafruit_bno08x.BNO_REPORT_LINEAR_ACCELERATION)
+        self.bno.enable_feature(adafruit_bno08x.BNO_REPORT_GYROSCOPE)
+        #self.bno.enable_feature(adafruit_bno08x.BNO_REPORT_MAGNETOMETER)
+        self.bno.enable_feature(adafruit_bno08x.BNO_REPORT_ROTATION_VECTOR)
+        #self.bno.enable_feature(adafruit_bno08x.BNO_REPORT_GAME_ROTATION_VECTOR)
+
 
     def closeInput(self,aircraft):
         print("bno085 close")
@@ -134,20 +143,14 @@ class gyro_i2c_bno085(Input):
 
 
         except Exception as e:
-            aircraft.errorFoundNeedToExit = True
+            #aircraft.errorFoundNeedToExit = True
             print(e)
-            #print(traceback.format_exc())
+            # print full traceback.
+            traceback.print_exc()
+            #self.bno.soft_reset()
+            self.init_i2c()
+
         return aircraft
-
-
-    def home(self):
-        '''
-        home the bno055.  This mean take a snapshot of the current pitch/roll/yaw and store it as the home position.
-        all subsequent yaw values will be relative to this home position.
-        '''
-        self.imuData.home_pitch = self.imuData.pitch
-        self.imuData.home_roll = self.imuData.roll
-        self.imuData.home_yaw = self.imuData.yaw
 
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

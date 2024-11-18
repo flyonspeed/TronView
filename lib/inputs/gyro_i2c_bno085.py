@@ -74,9 +74,9 @@ class gyro_i2c_bno085(Input):
             sleep(1)
         self.bno = BNO08X_I2C(self.i2c, address=self.address)
 
-        self.bno.enable_feature(adafruit_bno08x.BNO_REPORT_ACCELEROMETER)
-        self.bno.enable_feature(adafruit_bno08x.BNO_REPORT_LINEAR_ACCELERATION)
-        self.bno.enable_feature(adafruit_bno08x.BNO_REPORT_GYROSCOPE)
+        #self.bno.enable_feature(adafruit_bno08x.BNO_REPORT_ACCELEROMETER)
+        #self.bno.enable_feature(adafruit_bno08x.BNO_REPORT_LINEAR_ACCELERATION)
+        #self.bno.enable_feature(adafruit_bno08x.BNO_REPORT_GYROSCOPE)
         #self.bno.enable_feature(adafruit_bno08x.BNO_REPORT_MAGNETOMETER)
         self.bno.enable_feature(adafruit_bno08x.BNO_REPORT_ROTATION_VECTOR)
         #self.bno.enable_feature(adafruit_bno08x.BNO_REPORT_GAME_ROTATION_VECTOR)
@@ -132,7 +132,7 @@ class gyro_i2c_bno085(Input):
             #self.imuData.cali_sys = self.bno.calibration_status
 
             # update the pitch.  it's backwards. pitch up is negative.
-            self.imuData.pitch = -pitch_offset
+            pitch_offset = -pitch_offset
 
             # update aircraft object.
             self.imuData.updatePos(pitch_offset, roll_offset, yaw_offset)

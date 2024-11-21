@@ -436,8 +436,8 @@ class object3d(Module):
             return virtual_imu
 
         # Calculate relative angles by subtracting base IMU angles from camera IMU angles
-        virtual_imu.pitch = imu_camera.pitch - imu_base.pitch
-        virtual_imu.roll = imu_camera.roll - imu_base.roll
+        virtual_imu.pitch = imu_base.pitch + imu_camera.pitch
+        virtual_imu.roll =  imu_base.roll + imu_camera.roll
         
         # Special handling for yaw to handle wraparound at 360/0 degrees
         if imu_camera.yaw is not None and imu_base.yaw is not None:

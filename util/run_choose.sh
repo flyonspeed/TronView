@@ -43,7 +43,15 @@ echo "201: live bno085 + MGL + Stratux (pi only)"
 echo "Type 't' after number to run in text mode. Example: 3t"
 echo "Type 'm' after number to run multiple threads for inputs. Example: 3m"
 echo "Type 'd' to record console debug output to a file. Example: 3d (saves to data/console_logs/)"
-read -p "Enter your choice: " choice
+
+get_input() {
+    prompt="$1"
+    echo "$prompt" >&2
+    read response </dev/tty
+    echo "$response"
+}
+
+choice=$(get_input "Enter your choice: ")
 
 ADD_ARGS=""
 

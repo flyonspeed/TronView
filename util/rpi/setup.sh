@@ -104,13 +104,9 @@ fi
 # Function to get user input with a prompt
 get_input() {
     prompt="$1"
-    if [ -t 0 ]; then  # Check if stdin is a terminal
-        read -p "$prompt" response
-    else
-        # For piped input, print prompt to stderr and read from stdin
-        echo "$prompt" >&2
-        read response
-    fi
+    # Print prompt to stderr and read from stdin
+    echo "$prompt" >&2
+    read response </dev/tty
     echo "$response"
 }
 

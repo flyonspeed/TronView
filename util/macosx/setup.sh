@@ -6,6 +6,16 @@ if [[ $(uname) != "Darwin" ]]; then
     exit 1
 fi
 
+# Function to get user input with a prompt
+get_input() {
+    prompt="$1"
+    # Print prompt to stderr and read from stdin
+    echo "$prompt" >&2
+    read response </dev/tty
+    echo "$response"
+}
+
+
 echo "Setup mac osx for running TronView"
 echo "-----------------------------------"
 
@@ -33,8 +43,7 @@ if ! [[ "$VIRTUAL_ENV" ]]; then
 	source venv/bin/activate
 fi
 
-echo "Install Python libraries requied by TronView?  (y or n)"
-read -p " " yn;
+yn=$(get_input "Install Python libraries requied by TronView?  (y or n)")
 case $yn in
 	[Yy]* )echo "Installing python libs"
 		python3 -m pip install -r utils/macosx/requirements.txt

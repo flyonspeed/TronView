@@ -66,11 +66,16 @@ class gyro_i2c_bno055(Input):
         aircraft.imus[self.num_imus] = self.imuData
 
         self.last_read_time = time.time()
-
-        self.bno.offsets_magnetometer = (-83, -292, -349)
-        self.bno.offsets_accelerometer = (23, -64, -42)
-        self.bno.offsets_gyroscope = (-2, -1, 1)
-        
+        if num == 0:
+            self.bno.offsets_magnetometer = (-83, -292, -349)
+            self.bno.offsets_accelerometer = (23, -64, -42)
+            self.bno.offsets_gyroscope = (-2, -1, 1)
+        else:
+            # else #2 IMU
+            self.bno.offsets_magnetometer = (-54, -356, -220)
+            self.bno.offsets_accelerometer = (9, -72, -23)
+            self.bno.offsets_gyroscope = (1, 4, -1)
+ 
     def closeInput(self,aircraft):
         print("bno055("+str(self.inputNum)+") close")
 

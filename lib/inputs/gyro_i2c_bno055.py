@@ -150,13 +150,4 @@ class gyro_i2c_bno055(Input):
             #print(traceback.format_exc())
         return aircraft
 
-    def home(self):
-        '''
-        home the bno055.  This mean take a snapshot of the current pitch/roll/yaw and store it as the home position.
-        all subsequent yaw values will be relative to this home position.
-        '''
-        self.imuData.home_pitch = self.imuData.pitch
-        self.imuData.home_roll = self.imuData.roll
-        self.imuData.home_yaw = self.imuData.yaw
-
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

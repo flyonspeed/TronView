@@ -407,7 +407,10 @@ class object3d(Module):
     def calculateCameraPosition(self):
         '''
         Calculate the camera position based on the primary and secondary IMU.
-        This is as if the 2nd IMU was the camera looking mounted on the primary IMU.
+        The virtual IMU represents where the camera IMU is looking relative to the base IMU's orientation.
+        For example:
+        - If base IMU is at 100° yaw and camera IMU is at 110° yaw, virtual IMU will be at 10° yaw
+        - If base IMU is at 15° pitch and camera IMU is at -15° pitch, virtual IMU will be at 0° pitch
         Returns a virtual IMU object with the relative orientation between the two IMUs.
         '''
         if self.source_imu_index2 >= shared.Dataship.imus.__len__():  # secondary imu not found.
@@ -417,7 +420,7 @@ class object3d(Module):
             virtual_imu.roll = None
             virtual_imu.yaw = None
             return virtual_imu
-        #print("calculateCameraPosition ", self.source_imu_index, self.source_imu_index2, len(shared.Dataship.imus))
+
         # Get references to both IMUs from shared dataship
         imu_base = shared.Dataship.imus[self.source_imu_index]
         imu_camera = shared.Dataship.imus[self.source_imu_index2]
@@ -425,27 +428,29 @@ class object3d(Module):
         # Create a virtual IMU that represents the relative orientation
         virtual_imu = type('VirtualIMU', (), {})()
 
-        # if either pitch or roll is None then set the virtual imu to None.
+        # If either IMU has None values, return None for all orientations
         if imu_camera.pitch is None or imu_base.pitch is None:
             virtual_imu.pitch = None
             virtual_imu.roll = None
             virtual_imu.yaw = None
             return virtual_imu
 
-        # Calculate combined angles by adding base IMU angles and camera IMU angles
-        virtual_imu.pitch = imu_base.pitch + imu_camera.pitch
-        virtual_imu.roll = imu_base.roll + imu_camera.roll
+        # Calculate relative angles by subtracting base IMU angles from camera IMU angles
+        virtual_imu.pitch = imu_camera.pitch - imu_base.pitch
+        virtual_imu.roll = imu_camera.roll - imu_base.roll
         
         # Special handling for yaw to handle wraparound at 360/0 degrees
         if imu_camera.yaw is not None and imu_base.yaw is not None:
-            # Add the yaw angles
-            combined_yaw = imu_base.yaw + imu_camera.yaw
+            # Calculate the relative yaw angle
+            relative_yaw = imu_camera.yaw - imu_base.yaw
+            
             # Normalize to -180 to 180 range
-            if combined_yaw > 180:
-                combined_yaw -= 360
-            elif combined_yaw < -180:
-                combined_yaw += 360
-            virtual_imu.yaw = combined_yaw
+            if relative_yaw > 180:
+                relative_yaw -= 360
+            elif relative_yaw < -180:
+                relative_yaw += 360
+                
+            virtual_imu.yaw = relative_yaw
         else:
             virtual_imu.yaw = None
 

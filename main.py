@@ -34,9 +34,9 @@ class myThreadEfisInputReader(threading.Thread):
 
     def run(self):
         internalLoopCounter = 1
+        input_count = len(shared.Inputs)
         while shared.Dataship.errorFoundNeedToExit == False:
             # loop through all inputs and read messages from them.
-            input_count = len(shared.Inputs)
             for i in range(input_count):
                 if(shared.Inputs[i].isPaused==True):
                     pass
@@ -45,8 +45,8 @@ class myThreadEfisInputReader(threading.Thread):
                     shared.Inputs[i].time_stamp = shared.Inputs[i].time_stamp_string
 
             internalLoopCounter = internalLoopCounter - 1
-            if internalLoopCounter < 0:
-                internalLoopCounter = 100
+            if internalLoopCounter < 1:
+                internalLoopCounter = 1000
                 checkInternals()
                 shared.Dataship.traffic.cleanUp(shared.Dataship) # check if old traffic targets should be cleared up.
 
@@ -75,8 +75,8 @@ class SingleInputReader(threading.Thread):
                 
                 internalLoopCounter = internalLoopCounter - 1
                 if self.input_index == 0:  # Only do cleanup on one thread
-                    if internalLoopCounter < 0:
-                        internalLoopCounter = 100
+                    if internalLoopCounter < 1:
+                        internalLoopCounter = 1000
                         checkInternals()
                         shared.Dataship.traffic.cleanUp(shared.Dataship)
                         #print(f"Input Thread: {self.input_index} {shared.Inputs[self.input_index].name} looped")
@@ -192,9 +192,8 @@ if __name__ == "__main__":
         allPlayback = True
     else:
         allPlayback = False
-    if args.c:
-        # this is the same as --playfile1
-        shared.Inputs[0].PlayFile = args.c
+    if args.c:  # this is the same as --playfile1        
+        args.playfile1 = args.c
     if args.i:
         # this is the same as --in1
         loadInput(0,args.i,args.playfile1 if args.playfile1 else allPlayback)

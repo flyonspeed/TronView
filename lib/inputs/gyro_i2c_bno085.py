@@ -6,15 +6,16 @@
 from ._input import Input
 from lib import hud_utils
 from . import _utils
-import struct
 import time
-import statistics
+from time import sleep
 import board
 import busio
 import adafruit_bno08x
 from adafruit_bno08x.i2c import BNO08X_I2C
 from lib.common.dataship.dataship_imu import IMU
 import math
+import traceback
+
 class gyro_i2c_bno085(Input):
     def __init__(self):
         self.name = "bno085 IMU 9dof"
@@ -46,29 +47,39 @@ class gyro_i2c_bno085(Input):
         self.feed_into_aircraft = hud_utils.readConfigBool("bno085", "device"+str(self.num_bno085)+"_aircraft", self.num_imus == 0)
         print("init bno085("+str(self.num_bno085)+") id: "+str(self.id)+" address: "+str(self.address))
 
-
-        self.i2c = busio.I2C(board.SCL, board.SDA)
-        self.bno = BNO08X_I2C(self.i2c, address=self.address)
-
-        self.bno.enable_feature(adafruit_bno08x.BNO_REPORT_ACCELEROMETER)
-        self.bno.enable_feature(adafruit_bno08x.BNO_REPORT_LINEAR_ACCELERATION)
-        self.bno.enable_feature(adafruit_bno08x.BNO_REPORT_GYROSCOPE)
-        #self.bno.enable_feature(adafruit_bno08x.BNO_REPORT_MAGNETOMETER)
-        self.bno.enable_feature(adafruit_bno08x.BNO_REPORT_ROTATION_VECTOR)
-        #self.bno.enable_feature(adafruit_bno08x.BNO_REPORT_GAME_ROTATION_VECTOR)
+        self.init_i2c()
 
         # create a empty imu object.
         self.imuData = IMU()
         self.imuData.id = self.id
         self.imuData.name = self.name
         self.imuData.address = self.address
+        self.imuData.home_pitch = None
+        self.imuData.home_roll = None
+        self.imuData.home_yaw = None
 
         # create imu in dataship object. append to dict with key as num_imus.
         aircraft.imus[self.num_imus] = self.imuData
 
         self.last_read_time = time.time()
         self.start_time = time.time()
-        
+    
+    def init_i2c(self):
+        if not hasattr(self, 'i2c'):
+            self.i2c = busio.I2C(board.SCL, board.SDA)
+        else:
+            self.i2c.deinit()
+            self.i2c = busio.I2C(board.SCL, board.SDA)
+            self.bno = None
+            sleep(1)
+        self.bno = BNO08X_I2C(self.i2c, address=self.address)
+
+        #self.bno.enable_feature(adafruit_bno08x.BNO_REPORT_ACCELEROMETER)
+        #self.bno.enable_feature(adafruit_bno08x.BNO_REPORT_LINEAR_ACCELERATION)
+        #self.bno.enable_feature(adafruit_bno08x.BNO_REPORT_GYROSCOPE)
+        #self.bno.enable_feature(adafruit_bno08x.BNO_REPORT_MAGNETOMETER)
+        self.bno.enable_feature(adafruit_bno08x.BNO_REPORT_ROTATION_VECTOR)
+        #self.bno.enable_feature(adafruit_bno08x.BNO_REPORT_GAME_ROTATION_VECTOR)
 
 
     def closeInput(self,aircraft):
@@ -110,20 +121,21 @@ class gyro_i2c_bno085(Input):
             roll_offset, pitch_offset, yaw_offset = self.quaternion_to_euler(*self.bno.quaternion)
 
             #print( "I: %0.6f  J: %0.6f K: %0.6f  Real: %0.6f" % (quat_i, quat_j, quat_k, quat_real))
-            gyro_x, gyro_y, gyro_z = self.bno.gyro
-            accel_x, accel_y, accel_z = self.bno.linear_acceleration
+            #gyro_x, gyro_y, gyro_z = self.bno.gyro
+            #accel_x, accel_y, accel_z = self.bno.linear_acceleration
             #print("X: %0.6f  Y: %0.6f Z: %0.6f rads/s" % (gyro_x, gyro_y, gyro_z))
 
             # update imuData object.
-            self.imuData.quat = [roll_offset, pitch_offset, yaw_offset]
-            self.imuData.gyro = [gyro_x , gyro_y , gyro_z ]
-            self.imuData.accel = [round(accel_x,2), round(accel_y,2), round(accel_z,2)]
-            self.imuData.pitch = pitch_offset
-            self.imuData.roll = roll_offset
-            self.imuData.yaw = yaw_offset
-            self.imuData.cali_sys = self.bno.calibration_status
+            #self.imuData.quat = [roll_offset, pitch_offset, yaw_offset]
+            #self.imuData.gyro = [gyro_x , gyro_y , gyro_z ]
+            #self.imuData.accel = [round(accel_x,2), round(accel_y,2), round(accel_z,2)]
+            #self.imuData.cali_sys = self.bno.calibration_status
+
+            # update the pitch.  it's backwards. pitch up is negative.
+            pitch_offset = -pitch_offset
 
             # update aircraft object.
+            self.imuData.updatePos(pitch_offset, roll_offset, yaw_offset)
             aircraft.imus[self.num_imus] = self.imuData
 
             if self.feed_into_aircraft:
@@ -134,12 +146,14 @@ class gyro_i2c_bno085(Input):
 
 
         except Exception as e:
-            aircraft.errorFoundNeedToExit = True
+            #aircraft.errorFoundNeedToExit = True
             print(e)
-            #print(traceback.format_exc())
+            # print full traceback.
+            traceback.print_exc()
+            #self.bno.soft_reset()
+            self.init_i2c()
+
         return aircraft
-
-
 
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

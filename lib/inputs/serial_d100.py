@@ -112,15 +112,13 @@ class serial_d100(Input):
 
 
                     # Update IMU data
-                    self.imuData.roll = aircraft.roll
-                    self.imuData.pitch = aircraft.pitch
-                    self.imuData.yaw = aircraft.mag_head
                     self.imuData.heading = aircraft.mag_head
                     if aircraft.debug_mode > 0:
                         current_time = time.time() # calculate hz.
                         self.imuData.hz = round(1 / (current_time - self.last_read_time), 1)
                         self.last_read_time = current_time
                     # Update the IMU in the aircraft's imu list
+                    self.imuData.updatePos(aircraft.pitch, aircraft.roll, aircraft.yaw)
                     aircraft.imus[self.imu_index] = self.imuData
 
 

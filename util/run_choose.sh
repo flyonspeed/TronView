@@ -218,7 +218,7 @@ fi
 if [ $choice -eq 201 ]; then
     # linux/raspberry pi only
     if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-        eval "$RUN_PREFIX python3 main.py -i serial_mgl --playfile1 mgl_chase_rv6_1.dat --in2 stratux_wifi --playfile2 stratux_chase_rv6_1.dat -s F18_HUD --in3 gyro_i2c_bno085 $ADD_ARGS"
+        eval "$RUN_PREFIX python3 main.py -i serial_mgl --playfile1 mgl_chase_rv6_1.dat --in3 stratux_wifi --playfile3 stratux_chase_rv6_1.dat -s F18_HUD --in2 gyro_i2c_bno085 $ADD_ARGS"
     else
         echo "only supported on pi"
     fi

@@ -213,6 +213,7 @@ class stratux_wifi(Input):
                         self.imuData.pitch = None if Pitch == 32767 else Pitch / 10
                         self.imuData.yaw = None if Yaw == 32767 else Yaw / 10
                         self.imuData.heading = self.imuData.yaw
+                        self.imuData.updatePos(self.imuData.pitch, self.imuData.roll, self.imuData.heading)
 
                         self.imuData.slip_skid = None if TurnCoord == 32767 else TurnCoord / 100
                         self.imuData.vert_G = None if GLoad == 32767 else GLoad / 10

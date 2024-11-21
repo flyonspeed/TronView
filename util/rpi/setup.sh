@@ -101,29 +101,41 @@ if [ $(cat /etc/os-release | grep "GNU/Linux 11" | wc -l) -eq 1 ]; then
 	fi
 fi
 
-# ask if we should install the BNO055 IMU python library
-read -p "Install BNO055 IMU python library? (y or n)" yn;
+# Function to get user input with a prompt
+get_input() {
+    prompt="$1"
+    if [ -t 0 ]; then  # Check if stdin is a terminal
+        read -p "$prompt" response
+    else
+        # For piped input, print prompt to stderr and read from stdin
+        echo "$prompt" >&2
+        read response
+    fi
+    echo "$response"
+}
+
+# Replace read -p sections with the new function
+yn=$(get_input "Install BNO055 IMU python library? (y or n)")
 case $yn in
-	[Yy]* )
-		echo "Installing BNO055 IMU python library"
-		sudo pip3 install adafruit-circuitpython-bno055 $pip_args
-		;;
+    [Yy]* )
+        echo "Installing BNO055 IMU python library"
+        sudo pip3 install adafruit-circuitpython-bno055 $pip_args
+        ;;
 esac
 
-# ask if we should install the BNO085 IMU python library
-read -p "Install BNO085 IMU python library? (y or n)" yn;
+yn=$(get_input "Install BNO085 IMU python library? (y or n)")
 case $yn in
-	[Yy]* )
-		echo "Installing BNO085 IMU python library"
-		sudo pip3 install adafruit-circuitpython-bno08x $pip_args
-		;;
+    [Yy]* )
+        echo "Installing BNO085 IMU python library"
+        sudo pip3 install adafruit-circuitpython-bno08x $pip_args
+        ;;
 esac
 
 # check if /boot/config.txt has already been modified to support 400000 i2c baud rate
 if grep -q "dtparam=i2c_arm_baudrate=400000" /boot/config.txt; then
 	echo "i2c baud rate already set to 400000"
 else
-	read -p "The BNO085 IMU requires a faster i2c baud rate of 400000.  Set i2c baud rate to 400000? (y or n)" yn;
+	yn=$(get_input "The BNO085 IMU requires a faster i2c baud rate of 400000. Set i2c baud rate to 400000? (y or n)")
 	case $yn in
 		[Yy]* )
 			echo "Setting i2c baud rate to 400000"
@@ -135,7 +147,7 @@ fi
 echo "" # blank line
 echo "----------------------------------------"
 echo "Done. Please reboot your pi now.  Type sudo reboot"
-;;
+
 
 
 

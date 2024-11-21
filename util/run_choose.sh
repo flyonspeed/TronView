@@ -1,15 +1,27 @@
 #!/bin/bash
+# Get absolute paths
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+TRONVIEW_DIR="$(dirname "$SCRIPT_DIR")"
+
 
 # Check if we're running on macOS
 if [[ "$OSTYPE" == "darwin"* ]]; then
     # macOS
     RUN_PREFIX=""
-    source venv/bin/activate
+
+    echo "Activating venv at: $TRONVIEW_DIR/venv/bin/activate"
+    source "$TRONVIEW_DIR/venv/bin/activate"
+    # Verify python path
+    which python3
+
 else
     # Assume Linux or other Unix-like OS
     RUN_PREFIX="sudo"
 fi
 
+
+
+# kill any running python3 processes
 $RUN_PREFIX pkill -f 'python3'
 
 # ask user to choose which demo to run
@@ -100,16 +112,27 @@ if ! [[ $choice =~ ^[0-9]+$ ]]; then
     choice=0
 fi
 
+
+# Function to run python commands
+run_python() {
+    cd "$TRONVIEW_DIR" || exit
+    echo "Running from directory: $(pwd)"
+    echo "Using Python: $(which python3)"
+    eval "$RUN_PREFIX python3 $TRONVIEW_DIR/main.py $* $ADD_ARGS"
+}
+
+
+
 ########################################################
 # G3x demos
 ########################################################
 
 if [ $choice -eq 1 ]; then
-    eval "$RUN_PREFIX python3 main.py -i serial_g3x -e $ADD_ARGS"
+    run_python "-i serial_g3x -e"
 fi
 
 if [ $choice -eq 2 ]; then
-    eval "$RUN_PREFIX python3 main.py -i serial_g3x -c g3x_aoa_10_99.dat $ADD_ARGS"
+    run_python "-i serial_g3x -c g3x_aoa_10_99.dat"
 fi
 
 ########################################################
@@ -117,15 +140,15 @@ fi
 ########################################################
 
 if [ $choice -eq 3 ]; then
-    eval "$RUN_PREFIX python3 main.py -i serial_mgl --playfile1 mgl_8.dat --in2 stratux_wifi --playfile2 stratux_8.dat $ADD_ARGS"
+    run_python "-i serial_mgl --playfile1 mgl_8.dat --in2 stratux_wifi --playfile2 stratux_8.dat"
 fi
 
 if [ $choice -eq 4 ]; then
-    eval "$RUN_PREFIX python3 main.py -i serial_mgl -c MGL_G430_Data_3Feb19_v7_Horz_Vert_Nedl_come_to_center.bin $ADD_ARGS" 
+    run_python "-i serial_mgl -c MGL_G430_Data_3Feb19_v7_Horz_Vert_Nedl_come_to_center.bin"
 fi
 
 if [ $choice -eq 5 ]; then
-    eval "$RUN_PREFIX python3 main.py -i serial_mgl -c mgl_data1.bin $ADD_ARGS"
+    run_python "-i serial_mgl -c mgl_data1.bin"
 fi
 
 ########################################################
@@ -133,11 +156,11 @@ fi
 ########################################################
 
 if [ $choice -eq 6 ]; then
-    eval "$RUN_PREFIX python3 main.py -i serial_d100 -e $ADD_ARGS"
+    run_python "-i serial_d100 -e"
 fi
 
 if [ $choice -eq 7 ]; then
-    eval "$RUN_PREFIX python3 main.py -i serial_skyview -e $ADD_ARGS"
+    run_python "-i serial_skyview -e"
 fi
 
 ########################################################
@@ -145,15 +168,15 @@ fi
 ########################################################
 
 if [ $choice -eq 9 ]; then
-    eval "$RUN_PREFIX python3 main.py -i serial_mgl --playfile1 mgl_chase_rv6_1.dat --in2 stratux_wifi --playfile2 stratux_chase_rv6_1.dat $ADD_ARGS"
+    run_python "-i serial_mgl --playfile1 mgl_chase_rv6_1.dat --in2 stratux_wifi --playfile2 stratux_chase_rv6_1.dat"
 fi
 
 if [ $choice -eq 10 ]; then
-    eval "$RUN_PREFIX python3 main.py -i serial_mgl --playfile1 mgl_chase_rv6_2.dat --in2 stratux_wifi --playfile2 stratux_chase_rv6_2.dat $ADD_ARGS"
+    run_python "-i serial_mgl --playfile1 mgl_chase_rv6_2.dat --in2 stratux_wifi --playfile2 stratux_chase_rv6_2.dat"
 fi
 
 if [ $choice -eq 11 ]; then
-    eval "$RUN_PREFIX python3 main.py -i serial_mgl --playfile1 mgl_chase_rv6_3.dat --in2 stratux_wifi --playfile2 stratux_chase_rv6_3.dat $ADD_ARGS"
+    run_python "-i serial_mgl --playfile1 mgl_chase_rv6_3.dat --in2 stratux_wifi --playfile2 stratux_chase_rv6_3.dat"
 fi
 
 ########################################################
@@ -161,15 +184,15 @@ fi
 ########################################################
 
 if [ $choice -eq 12 ]; then
-    eval "$RUN_PREFIX python3 main.py -i stratux_wifi -c stratux_54.dat $ADD_ARGS"
+    run_python "-i stratux_wifi -c stratux_54.dat"
 fi
 
 if [ $choice -eq 13 ]; then
-    eval "$RUN_PREFIX python3 main.py -i stratux_wifi -c stratux_57.dat $ADD_ARGS"
+    run_python "-i stratux_wifi -c stratux_57.dat"
 fi
 
 if [ $choice -eq 14 ]; then
-    eval "$RUN_PREFIX python3 main.py -i stratux_wifi $ADD_ARGS"
+    run_python "-i stratux_wifi"
 fi
 
 
@@ -180,7 +203,7 @@ fi
 if [ $choice -eq 21 ]; then
     # linux/raspberry pi only
     if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-        eval "$RUN_PREFIX python3 main.py -i gyro_i2c_bno055 $ADD_ARGS"
+        run_python "-i gyro_i2c_bno055"
     else
         echo "Currently only supported on linux/raspberry pi"
     fi
@@ -189,7 +212,7 @@ fi
 if [ $choice -eq 22 ]; then
     # linux/raspberry pi only
     if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-        eval "$RUN_PREFIX python3 main.py --in1 gyro_i2c_bno055 --in1 serial_mgl --playfile1 mgl_data1.bin $ADD_ARGS"
+        run_python "--in1 gyro_i2c_bno055 --in1 serial_mgl --playfile1 mgl_data1.bin"
     else
         echo "only supported on pi"
     fi
@@ -198,7 +221,7 @@ fi
 if [ $choice -eq 23 ]; then
     # linux/raspberry pi only
     if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-        eval "$RUN_PREFIX python3 main.py -i serial_mgl --playfile1 mgl_chase_rv6_1.dat --in2 stratux_wifi --playfile2 stratux_chase_rv6_1.dat -s F18_HUD --in3 gyro_i2c_bno055 $ADD_ARGS"
+        run_python "-i serial_mgl --playfile1 mgl_chase_rv6_1.dat --in2 stratux_wifi --playfile2 stratux_chase_rv6_1.dat -s F18_HUD --in3 gyro_i2c_bno055"
     else
         echo "only supported on pi"
     fi
@@ -207,7 +230,7 @@ fi
 if [ $choice -eq 24 ]; then
     # linux/raspberry pi only
     if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-        eval "$RUN_PREFIX python3 main.py -i gyro_i2c_bno055 --in2 gyro_i2c_bno055 $ADD_ARGS"
+        run_python "-i gyro_i2c_bno055 --in2 gyro_i2c_bno055"
     else
         echo "only supported on pi"
     fi
@@ -217,7 +240,7 @@ fi
 if [ $choice -eq 200 ]; then
     # linux/raspberry pi only
     if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-        eval "$RUN_PREFIX python3 main.py -i gyro_i2c_bno085 $ADD_ARGS"
+        run_python "-i gyro_i2c_bno085"
     else
         echo "Currently only supported on linux/raspberry pi"
     fi
@@ -226,7 +249,7 @@ fi
 if [ $choice -eq 201 ]; then
     # linux/raspberry pi only
     if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-        eval "$RUN_PREFIX python3 main.py -i serial_mgl --playfile1 mgl_chase_rv6_1.dat --in3 stratux_wifi --playfile3 stratux_chase_rv6_1.dat -s F18_HUD --in2 gyro_i2c_bno085 $ADD_ARGS"
+        run_python "-i serial_mgl --playfile1 mgl_chase_rv6_1.dat --in3 stratux_wifi --playfile3 stratux_chase_rv6_1.dat -s F18_HUD --in2 gyro_i2c_bno085"
     else
         echo "only supported on pi"
     fi

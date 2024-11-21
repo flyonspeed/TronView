@@ -36,18 +36,27 @@ then
 	brew install python3
 fi
 
+# Get absolute paths. remove 2 levels from the path because we are in util/macosx
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+TRONVIEW_DIR="$(dirname "$(dirname "$SCRIPT_DIR")")"
+echo "TronView directory: $TRONVIEW_DIR"
+
 # check if virtual environment is activated
 if ! [[ "$VIRTUAL_ENV" ]]; then
+
 	echo "Python Virtual environment is not activated. Creating venv..."
-	python3-m venv venv
-	source venv/bin/activate
+	python3 -m venv "$TRONVIEW_DIR/venv"
+    source "$TRONVIEW_DIR/venv/bin/activate"
 fi
 
-yn=$(get_input "Install Python libraries requied by TronView?  (y or n)")
+yn=$(get_input "Install Python libraries required by TronView (macOS)?  (y or n)")
 case $yn in
 	[Yy]* )echo "Installing python libs"
-		python3 -m pip install -r utils/macosx/requirements.txt
+		# install python libs in virtual environment
+		echo "TronView directory: $TRONVIEW_DIR"
+		python3 -m pip install -r "$TRONVIEW_DIR/util/macosx/requirements.txt"
 		;;
 	[Nn]* )echo "..."; 
 esac
+
 

@@ -24,12 +24,13 @@ class horizon_v2(Module):
         self.show_targets = True
         self.target_distance_threshold = 10
         self.fov_x = hud_utils.readConfigInt("HUD", "fov_x", 13.942) # Field of View X in degrees
+        self.fov_y = hud_utils.readConfigInt("HUD", "fov_y", 13.942) # Field of View y in degrees
         self.target_positions = {}  # Store smoothed positions for each target
         self.target_smoothing = 0.2  # Default smoothing factor (0-1), lower = smoother
 
         # Add new settings for horizon line
-        self.horizon_line_color = (128, 128, 128)  # Default gray color
-        self.horizon_line_thickness = 2  # Default thickness
+        self.horizon_line_color = (255, 165, 0)  # Default default to orange
+        self.horizon_line_thickness = 4  # Default thickness
         self.horizon_line_length = 0.8  # Percentage of screen width
 
     # called once for setup
@@ -78,7 +79,7 @@ class horizon_v2(Module):
 
         self.source_imu_index2_name = ""  # name of the secondary imu. (optional)
         self.source_imu_index2 = None  # index of the secondary imu. (optional)
-        self.camera_head_imu = None  # IMU object for camera head.
+        self.camera_head_imu = None  # IMU object for camera head. Human Head view.
        
 
     #############################################
@@ -485,44 +486,12 @@ class horizon_v2(Module):
             yaw_offset = 0
             
             if self.camera_head_imu is not None:
-                # Calculate relative angles between aircraft and camera
                 pitch_offset = -self.camera_head_imu.pitch
                 roll_offset = self.camera_head_imu.roll
                 yaw_offset = ((self.camera_head_imu.yaw - aircraft.mag_head + 180) % 360) - 180
 
-                # Calculate pixel offset based on yaw difference
-                pixels_per_degree = self.width / self.fov_x
-                x_offset = -yaw_offset * pixels_per_degree
-
-                # Draw horizon reference line from camera perspective
-                center_x = self.width // 2
-                center_y = self.height // 2
-                line_length = self.width * self.horizon_line_length
-                
-                # Combine aircraft and camera roll
-                total_roll = aircraft.roll - roll_offset
-                roll_rad = math.radians(total_roll)
-                
-                # Combine aircraft and camera pitch
-                total_pitch = aircraft.pitch - pitch_offset
-                pitch_pixels = (total_pitch * self.height) / self.pxy_div
-                center_y += pitch_pixels
-                
-                # Calculate line endpoints considering total roll
-                dx = math.cos(roll_rad) * line_length / 2
-                dy = math.sin(roll_rad) * line_length / 2
-                
-                # Adjust x position based on yaw offset
-                center_x += x_offset
-                
-                # Draw horizon reference line
-                pygame.draw.line(
-                    self.surface,
-                    self.horizon_line_color,
-                    (center_x - dx, center_y - dy),
-                    (center_x + dx, center_y + dy),
-                    self.horizon_line_thickness
-                )
+            # Draw the horizon line from camera perspective
+            self.draw_horizon_line(aircraft, yaw_offset, pitch_offset, roll_offset)
 
             # Apply camera offsets to aircraft attitude for the rest of the display
             adjusted_pitch = aircraft.pitch - pitch_offset
@@ -729,25 +698,17 @@ class horizon_v2(Module):
             },
             "horizon_line_color": {
                 "type": "color",
-                "default": (128, 128, 128),
+                "default": (255, 165, 0),  # Orange
                 "label": "Horizon Line Color",
                 "description": "Color of the true horizon reference line"
             },
             "horizon_line_thickness": {
                 "type": "int",
-                "default": 2,
+                "default": 4,
                 "min": 1,
                 "max": 10,
                 "label": "Horizon Line Thickness",
                 "description": "Thickness of the horizon reference line"
-            },
-            "horizon_line_length": {
-                "type": "float",
-                "default": 0.8,
-                "min": 0.1,
-                "max": 1.0,
-                "label": "Horizon Line Length",
-                "description": "Length of horizon line as percentage of screen width"
             }
         }
         
@@ -772,6 +733,63 @@ class horizon_v2(Module):
             self.source_imu_index2 = self.imu_ids2.index(self.source_imu_index2_name)
             shared.Dataship.imus[self.source_imu_index2].home(delete=True)
             self.camera_head_imu = shared.Dataship.imus[self.source_imu_index2]
+
+    def draw_horizon_line(self, aircraft, camera_yaw_offset=0, camera_pitch_offset=0, camera_roll_offset=0):
+        """
+        Draw a single line representing the horizon from the camera's perspective.
+        The line's appearance depends on:
+        - Aircraft pitch and roll (which way you're facing)
+        - Camera yaw, pitch, roll (which way you're looking - head position)
+        """
+        
+        # Calculate where the horizon intersects the view plane
+        center_x = self.width // 2
+        center_y = self.height // 2
+        
+        # Convert angles to radians
+        camera_yaw_rad = math.radians(camera_yaw_offset)
+        camera_pitch_rad = math.radians(camera_pitch_offset)
+        camera_roll_rad = math.radians(camera_roll_offset)
+        aircraft_pitch_rad = math.radians(aircraft.pitch)
+        aircraft_roll_rad = math.radians(aircraft.roll)
+        
+        # Calculate total pitch effect (aircraft + camera)
+        # When looking forward/back, use full pitch
+        # When looking sideways, pitch effect diminishes based on cos of yaw
+        pitch_effect = (aircraft.pitch - camera_pitch_offset) * math.cos(camera_yaw_rad)
+        
+        # Calculate roll effect
+        # Combine aircraft roll with camera roll
+        # When looking sideways, aircraft pitch creates apparent roll
+        roll_effect = (aircraft.roll - camera_roll_offset) * math.cos(camera_yaw_rad) + \
+                     aircraft.pitch * math.sin(camera_yaw_rad)
+        
+        # Convert pitch to screen pixels
+        pitch_pixels = (pitch_effect * self.height) / self.pxy_div
+        
+        # Calculate horizon line center point
+        horizon_y = center_y + pitch_pixels
+        
+        # Calculate line angle based on total roll effect
+        roll_rad = math.radians(roll_effect)
+        
+        # Calculate line endpoints
+        dx = math.cos(roll_rad) * self.width * 2  # Extended length to ensure coverage
+        dy = math.sin(roll_rad) * self.width * 2
+        
+        x1 = center_x - dx
+        y1 = horizon_y - dy
+        x2 = center_x + dx
+        y2 = horizon_y + dy
+        
+        # Draw the horizon line
+        pygame.draw.line(
+            self.surface,
+            self.horizon_line_color,
+            (x1, y1),
+            (x2, y2),
+            self.horizon_line_thickness
+        )
 
 #############################################
 ## Class: Point

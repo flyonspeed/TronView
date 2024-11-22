@@ -128,11 +128,11 @@ run_python() {
 ########################################################
 
 if [ $choice -eq 1 ]; then
-    run_python "-i serial_g3x -e"
+    run_python "-i serial_g3x -c g3x_demo1_cj.dat"
 fi
 
 if [ $choice -eq 2 ]; then
-    run_python "-i serial_g3x -c g3x_aoa_10_99.dat"
+    run_python "-i serial_g3x -c g3x_engine1_cj.dat"
 fi
 
 ########################################################

@@ -26,19 +26,6 @@ class gyro_i2c_bno085(Input):
 
     def initInput(self,num,aircraft):
         Input.initInput( self,num, aircraft )  # call parent init Input.
-        
-        # Check if we're in playback mode
-        if self.PlayFile is not None and self.PlayFile is not False:
-            # if in playback mode then load example data file
-            if self.PlayFile is True:
-                defaultTo = "bno085_1.dat"
-                self.PlayFile = hud_utils.readConfig(self.name, "playback_file", defaultTo)
-            self.ser, self.input_logFileName = Input.openLogFile(self,self.PlayFile,"rb")
-            self.isPlaybackMode = True
-        else:
-            # Normal I2C initialization
-            self.i2c = busio.I2C(board.SCL, board.SDA)
-            self.init_i2c()
 
         # get this num of imu
         self.num_imus = len(aircraft.imus) # 0 is first imu.
@@ -52,10 +39,23 @@ class gyro_i2c_bno085(Input):
         # read address from config.
         self.id = hud_utils.readConfig("bno085", "device"+str(self.num_bno085)+"_id", "bno085_"+str(self.num_bno085))
         self.address = hud_utils.readConfigInt("bno085", "device"+str(self.num_bno085)+"_address", 0x4A)
-
         # should this imu feed into aircraft roll/pitch/yaw? if num is 0 then default is true.
         self.feed_into_aircraft = hud_utils.readConfigBool("bno085", "device"+str(self.num_bno085)+"_aircraft", self.num_imus == 0)
         print("init bno085("+str(self.num_bno085)+") id: "+str(self.id)+" address: "+str(self.address))
+
+        
+        # Check if we're in playback mode
+        if self.PlayFile is not None and self.PlayFile is not False:
+            # if in playback mode then load example data file
+            if self.PlayFile is True:
+                defaultTo = "bno085_1.dat"
+                self.PlayFile = hud_utils.readConfig(self.name, "playback_file", defaultTo)
+            self.ser, self.input_logFileName = Input.openLogFile(self,self.PlayFile,"rb")
+            self.isPlaybackMode = True
+        else:
+            # Normal I2C initialization
+            self.i2c = busio.I2C(board.SCL, board.SDA)
+            self.init_i2c()
 
         # create a empty imu object.
         self.imuData = IMU()
@@ -128,26 +128,19 @@ class gyro_i2c_bno085(Input):
                 if line.startswith('085'):  # Changed from 055 to 085 for BNO085
                     # Parse the log file format
                     parts = line.split(',')
-                    if len(parts) >= 11:
-                        pitch = float(parts[1])
-                        roll = float(parts[2])
-                        yaw = float(parts[3])
-                        cali_mag = int(parts[4]) if parts[4] != 'None' else None
-                        cali_accel = int(parts[5]) if parts[5] != 'None' else None
-                        cali_gyro = int(parts[6]) if parts[6] != 'None' else None
-                        cali_sys = int(parts[7]) if parts[7] != 'None' else None
-                        home_pitch = None if parts[8] == 'None' else float(parts[8])
-                        home_roll = None if parts[9] == 'None' else float(parts[9])
-                        home_yaw = None if parts[10] == 'None' else float(parts[10])
+                    if len(parts) >= 8:
+                        timeStamp = float(parts[1])
+                        pitch = float(parts[2])
+                        roll = float(parts[3])
+                        yaw = float(parts[4])
+                        home_pitch = None if parts[5] == 'None' else float(parts[5])
+                        home_roll = None if parts[6] == 'None' else float(parts[6])
+                        home_yaw = None if parts[7] == 'None' else float(parts[7])
                         
                         # Update IMU data
                         self.imuData.pitch = pitch
                         self.imuData.roll = roll
                         self.imuData.yaw = yaw
-                        self.imuData.cali_mag = cali_mag
-                        self.imuData.cali_accel = cali_accel
-                        self.imuData.cali_gyro = cali_gyro
-                        self.imuData.cali_sys = cali_sys
                         self.imuData.home_pitch = home_pitch
                         self.imuData.home_roll = home_roll
                         self.imuData.home_yaw = home_yaw
@@ -184,10 +177,7 @@ class gyro_i2c_bno085(Input):
 
                 # Write to log file if enabled
                 if self.output_logFile is not None:
-                    log_line = f"085,{self.imuData.pitch},{self.imuData.roll},{self.imuData.yaw},"
-                    log_line += f"{self.imuData.cali_mag},{self.imuData.cali_accel},{self.imuData.cali_gyro},"
-                    log_line += f"{self.imuData.cali_sys},{self.imuData.home_pitch},{self.imuData.home_roll},"
-                    log_line += f"{self.imuData.home_yaw}\n"
+                    log_line = f"085,{time.time()},{self.imuData.pitch},{self.imuData.roll},{self.imuData.yaw},{self.imuData.home_pitch},{self.imuData.home_roll},{self.imuData.home_yaw}\n"
                     Input.addToLog(self, self.output_logFile, log_line.encode())
 
         except Exception as e:

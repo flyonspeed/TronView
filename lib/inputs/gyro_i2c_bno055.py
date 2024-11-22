@@ -26,20 +26,6 @@ class gyro_i2c_bno055(Input):
 
     def initInput(self,num,aircraft):
         Input.initInput( self,num, aircraft )  # call parent init Input.
-        
-        # Check if we're in playback mode
-        if self.PlayFile is not None and self.PlayFile is not False:
-            # if in playback mode then load example data file
-            if self.PlayFile is True:
-                defaultTo = "bno055_1.dat"
-                self.PlayFile = hud_utils.readConfig(self.name, "playback_file", defaultTo)
-            self.ser, self.input_logFileName = Input.openLogFile(self,self.PlayFile,"rb")
-            self.isPlaybackMode = True
-        else:
-            # Normal I2C initialization
-            self.i2c = busio.I2C(board.SCL, board.SDA)
-            self.bno = adafruit_bno055.BNO055_I2C(self.i2c, address=self.address)
-
         # check how many imus are already in aircraft.imus. 
         self.num_imus = len(aircraft.imus)
 
@@ -57,6 +43,19 @@ class gyro_i2c_bno055(Input):
         self.feed_into_aircraft = hud_utils.readConfigBool("bno055", "device"+str(self.num_bno055)+"_aircraft", self.num_imus == 0)
 
         print("init bno055("+str(self.num_bno055)+") id: "+str(self.id)+" address: "+str(self.address))
+        
+        # Check if we're in playback mode
+        if self.PlayFile is not None and self.PlayFile is not False:
+            # if in playback mode then load example data file
+            if self.PlayFile is True:
+                defaultTo = "bno055_1.dat"
+                self.PlayFile = hud_utils.readConfig(self.name, "playback_file", defaultTo)
+            self.ser, self.input_logFileName = Input.openLogFile(self,self.PlayFile,"rb")
+            self.isPlaybackMode = True
+        else:
+            # Normal I2C initialization
+            self.i2c = busio.I2C(board.SCL, board.SDA)
+            self.bno = adafruit_bno055.BNO055_I2C(self.i2c, address=self.address)
 
         self.last_read_time = time.time()
         if num == 0:

@@ -28,16 +28,12 @@ $RUN_PREFIX pkill -f 'python3'
 echo "Choose which demo/test to run:"
 #echo "1:   G3X - EFIS"
 #echo "2:   G3X - AOA Test data"
-echo "3:   MGL & Stratux - chasing traffic"
-echo "4:   MGL - G430 CDI"
-echo "5:   MGL - Gyro Test"
+echo "3:   MGL & Stratux - chasing traffic, 4: MGL - G430 CDI, 5: MGL - Gyro Test"
 
 echo "6:   Dynon D100"
 echo "7:   Dynon Skyview"
 
-echo "9:   MGL & Stratux RV6 Chase 1"
-echo "10:  MGL & Stratux RV6 Chase 2"
-echo "11:  MGL & Stratux RV6 Chase 3"
+echo "9, 10, or 11:   MGL & Stratux RV6 Chase 1, 2, or 3"
 
 echo "12:  Stratux ONLY Demo 54"
 echo "13:  Stratux ONLY Demo 57 (Bad pitch/roll)"
@@ -50,6 +46,7 @@ echo "24:  live dual bno055 + bno055 (pi only)"
 
 echo "200: live bno085 IMU data (pi only)"
 echo "201: live bno085 + MGL + Stratux (pi only)"
+echo "205: bno085 DEMO DATA"
 
 
 echo "Type 't' after number to run in text mode. Example: 3t"
@@ -253,6 +250,10 @@ if [ $choice -eq 201 ]; then
     else
         echo "only supported on pi"
     fi
+fi
+
+if [ $choice -eq 205 ]; then
+    run_python "--in1 gyro_i2c_bno085 -e"
 fi
 
 ########################################################

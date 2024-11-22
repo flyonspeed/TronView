@@ -122,10 +122,22 @@ class gyro_virtual(Input):
 
                 if self.auto_rotate_pitch != 0:
                     self.test_pitch += self.auto_rotate_pitch
+                    if self.test_pitch > 180:
+                        self.test_pitch = -180 + (self.test_pitch - 180)
+                    if self.test_pitch < -180:
+                        self.test_pitch = 180 + (self.test_pitch + 180)
                 if self.auto_rotate_roll != 0:
                     self.test_roll += self.auto_rotate_roll
+                    if self.test_roll > 180:
+                        self.test_roll = -180 + (self.test_roll - 180)
+                    if self.test_roll < -180:
+                        self.test_roll = 180 + (self.test_roll + 180)
                 if self.auto_rotate_yaw != 0:
                     self.test_yaw += self.auto_rotate_yaw
+                    if self.test_yaw > 180:
+                        self.test_yaw = -180 + (self.test_yaw - 180)
+                    if self.test_yaw < -180:
+                        self.test_yaw = 180 + (self.test_yaw + 180)
 
                 # update aircraft object
                 self.imuData.updatePos(self.test_pitch, self.test_roll, self.test_yaw)

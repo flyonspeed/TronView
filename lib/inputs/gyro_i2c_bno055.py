@@ -8,9 +8,6 @@ from . import _utils
 import struct
 import time
 import statistics
-import board
-import busio
-import adafruit_bno055
 from lib.common.dataship.dataship_imu import IMU
 import math
 import binascii
@@ -53,6 +50,10 @@ class gyro_i2c_bno055(Input):
             self.ser, self.input_logFileName = Input.openLogFile(self,self.PlayFile,"rb")
             self.isPlaybackMode = True
         else:
+            # Only import i2c libraries if we're not in playback mode
+            import board
+            import busio
+            import adafruit_bno055
             # Normal I2C initialization
             self.i2c = busio.I2C(board.SCL, board.SDA)
             self.bno = adafruit_bno055.BNO055_I2C(self.i2c, address=self.address)

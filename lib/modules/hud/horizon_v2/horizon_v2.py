@@ -27,6 +27,11 @@ class horizon_v2(Module):
         self.target_positions = {}  # Store smoothed positions for each target
         self.target_smoothing = 0.2  # Default smoothing factor (0-1), lower = smoother
 
+        # Add new settings for horizon line
+        self.horizon_line_color = (128, 128, 128)  # Default gray color
+        self.horizon_line_thickness = 2  # Default thickness
+        self.horizon_line_length = 0.8  # Percentage of screen width
+
     # called once for setup
     def initMod(self, pygamescreen, width=None, height=None):
         if width is None:
@@ -481,32 +486,45 @@ class horizon_v2(Module):
             
             if self.camera_head_imu is not None:
                 # Calculate relative angles between aircraft and camera
-                pitch_offset = self.camera_head_imu.pitch
+                pitch_offset = -self.camera_head_imu.pitch
                 roll_offset = self.camera_head_imu.roll
                 yaw_offset = ((self.camera_head_imu.yaw - aircraft.mag_head + 180) % 360) - 180
 
-                # Draw horizon reference line when camera is not aligned with aircraft heading
-                if abs(yaw_offset) > 5:  # Only draw if camera is significantly off-axis
-                    center_x = self.width // 2
-                    center_y = self.height // 2
-                    line_length = self.width * 0.8
-                    
-                    # Calculate horizon line endpoints considering camera roll
-                    roll_rad = math.radians(roll_offset)
-                    dx = math.cos(roll_rad) * line_length / 2
-                    dy = math.sin(roll_rad) * line_length / 2
-                    
-                    # Draw dashed horizon reference line
-                    self.draw_dashed_line(
-                        self.surface,
-                        (128, 128, 128),  # Gray color
-                        (center_x - dx, center_y - dy),
-                        (center_x + dx, center_y + dy),
-                        width=2,
-                        dash_length=20
-                    )
+                # Calculate pixel offset based on yaw difference
+                pixels_per_degree = self.width / self.fov_x
+                x_offset = -yaw_offset * pixels_per_degree
 
-            # Apply camera offsets to aircraft attitude
+                # Draw horizon reference line from camera perspective
+                center_x = self.width // 2
+                center_y = self.height // 2
+                line_length = self.width * self.horizon_line_length
+                
+                # Combine aircraft and camera roll
+                total_roll = aircraft.roll - roll_offset
+                roll_rad = math.radians(total_roll)
+                
+                # Combine aircraft and camera pitch
+                total_pitch = aircraft.pitch - pitch_offset
+                pitch_pixels = (total_pitch * self.height) / self.pxy_div
+                center_y += pitch_pixels
+                
+                # Calculate line endpoints considering total roll
+                dx = math.cos(roll_rad) * line_length / 2
+                dy = math.sin(roll_rad) * line_length / 2
+                
+                # Adjust x position based on yaw offset
+                center_x += x_offset
+                
+                # Draw horizon reference line
+                pygame.draw.line(
+                    self.surface,
+                    self.horizon_line_color,
+                    (center_x - dx, center_y - dy),
+                    (center_x + dx, center_y + dy),
+                    self.horizon_line_thickness
+                )
+
+            # Apply camera offsets to aircraft attitude for the rest of the display
             adjusted_pitch = aircraft.pitch - pitch_offset
             adjusted_roll = aircraft.roll - roll_offset
 
@@ -630,7 +648,7 @@ class horizon_v2(Module):
         self.imu_ids2.append("NONE")
 
         # each item in the dict represents a configuration option.  These are variable in this class that are exposed to the user to edit.
-        return {
+        options = {
             "source_imu_index_name": {
                 "type": "dropdown",
                 "label": "Primary IMU",
@@ -708,8 +726,32 @@ class horizon_v2(Module):
                 "max": 1.0,
                 "label": "Target Smoothing",
                 "description": "Target position smoothing (0.01-1.0, lower = smoother)"
+            },
+            "horizon_line_color": {
+                "type": "color",
+                "default": (128, 128, 128),
+                "label": "Horizon Line Color",
+                "description": "Color of the true horizon reference line"
+            },
+            "horizon_line_thickness": {
+                "type": "int",
+                "default": 2,
+                "min": 1,
+                "max": 10,
+                "label": "Horizon Line Thickness",
+                "description": "Thickness of the horizon reference line"
+            },
+            "horizon_line_length": {
+                "type": "float",
+                "default": 0.8,
+                "min": 0.1,
+                "max": 1.0,
+                "label": "Horizon Line Length",
+                "description": "Length of horizon line as percentage of screen width"
             }
         }
+        
+        return options
 
     def update_flight_path_color(self, new_color):
         self.flight_path_color = new_color

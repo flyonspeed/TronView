@@ -312,18 +312,12 @@ class object3d(Module):
     def get_module_options(self):
         # get the imu list of imu objects
         imu_list = shared.Dataship.imus
-        # go through imu list and get the id and name.
         self.imu_ids = []
-        if isinstance(imu_list, dict):
-            # If it's a dictionary, iterate through values
-            for imu_index, imu in imu_list.items():
-                #print(f"IMU {imu_id}:", imu.id)
-                self.imu_ids.append(str(imu.id))
-        if len(self.source_imu_index_name) == 0: # if no name.
+        for imu_index, imu in imu_list.items(): # populate the list of ids of IMUs
+            self.imu_ids.append(str(imu.id))
+        if len(self.source_imu_index_name) == 0: # if primary imu name is not set.
             self.source_imu_index_name = self.imu_ids[self.source_imu_index]  # select first one.
-
-        # duplicate the list for the secondary imu.
-        self.imu_ids2 = self.imu_ids.copy()
+        self.imu_ids2 = self.imu_ids.copy()  # duplicate the list for the secondary imu.
         self.imu_ids2.append("NONE")
 
         options = {
@@ -462,7 +456,6 @@ class object3d(Module):
         '''
         # source_imu_index_name got changed. find the index of the imu id in the imu list.
         self.source_imu_index = self.imu_ids.index(self.source_imu_index_name)
-        #print("source_imu_index==", self.source_imu_index)
         shared.Dataship.imus[self.source_imu_index].home(delete=True) 
 
     def changeSource2IMU(self):

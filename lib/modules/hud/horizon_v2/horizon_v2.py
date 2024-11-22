@@ -9,9 +9,10 @@ from lib.modules._module import Module
 from lib import hud_graphics
 from lib import hud_utils
 from lib import smartdisplay
-from lib.common.dataship import dataship
 import pygame
 import math
+from lib.common import shared
+from lib.common.dataship.dataship import Dataship
 
 
 class horizon_v2(Module):
@@ -66,6 +67,14 @@ class horizon_v2(Module):
         self.x_offset = 0
         self.xCenter = self.width // 2
         self.yCenter = self.height // 2
+
+        self.source_imu_index_name = ""  # name of the primary imu.
+        self.source_imu_index = 0  # index of the primary imu.
+
+        self.source_imu_index2_name = ""  # name of the secondary imu. (optional)
+        self.source_imu_index2 = None  # index of the secondary imu. (optional)
+        self.camera_head_imu = None  # IMU object for camera head.
+       
 
     #############################################
     ## Function: generateHudReferenceLineArray
@@ -429,6 +438,10 @@ class horizon_v2(Module):
         # Clear the surface before drawing
         self.surface.fill((0, 0, 0, 0 ))
 
+        # if self.self.camera_head_imu is not None then use the secondary imu as the camera head position.
+        # this means that if camera head yaw is not the same as aircraft.yaw then the horizon will be offset in that direction.
+        # if self.camera_head_imu.pitch is 30 and aircraft.pitch is 0 then the horizon will still be drawn at pitch 0. but the drawing will be offset by 30 degrees.
+
         # if aircraft.roll is None then don't draw the horizon lines.
         if aircraft.roll is None or aircraft.pitch is None:
             # draw a red X on the screen.
@@ -537,8 +550,41 @@ class horizon_v2(Module):
 
     # return a dict of objects that are used to configure the module.
     def get_module_options(self):
+        imu_list = shared.Dataship.imus
+        self.imu_ids = []
+        for imu_index, imu in imu_list.items(): # populate the list of ids of IMUs
+            self.imu_ids.append(str(imu.id))
+        if len(self.source_imu_index_name) == 0: # if primary imu name is not set.
+            self.source_imu_index_name = self.imu_ids[self.source_imu_index]  # select first one.
+        self.imu_ids2 = self.imu_ids.copy()  # duplicate the list for the secondary imu.
+        self.imu_ids2.append("NONE")
+
         # each item in the dict represents a configuration option.  These are variable in this class that are exposed to the user to edit.
         return {
+            "source_imu_index_name": {
+                "type": "dropdown",
+                "label": "Primary IMU",
+                "description": "IMU to use for the 3D object.",
+                "options": self.imu_ids,
+                "post_change_function": "changeSource1IMU"
+            },
+            "source_imu_index": {
+                "type": "int",
+                "hidden": True,  # hide from the UI, but save to json screen file.
+                "default": 0
+            },
+            "source_imu_index2_name": {
+                "type": "dropdown",
+                "label": "Secondary IMU (Camera Head)",
+                "description": "If selected then 2nd IMU will be position camera. As if it was mounted on the Primary IMU.",
+                "options": self.imu_ids2,
+                "post_change_function": "changeSource2IMU"
+            },
+            "source_imu_index2": {
+                "type": "int",
+                "hidden": True,  # hide from the UI, but save to json screen file.
+                "default": 0
+            },
             "line_mode": {
                 "type": "bool",
                 "default": False,
@@ -598,6 +644,22 @@ class horizon_v2(Module):
     def update_flight_path_color(self, new_color):
         self.flight_path_color = new_color
 
+    def changeSource1IMU(self):
+        '''
+        Change the primary IMU.
+        '''
+        # source_imu_index_name got changed. find the index of the imu id in the imu list.
+        self.source_imu_index = self.imu_ids.index(self.source_imu_index_name)
+        shared.Dataship.imus[self.source_imu_index].home(delete=True) 
+
+    def changeSource2IMU(self):
+        if self.source_imu_index2_name == "NONE":
+            self.source_imu_index2 = None
+            self.camera_head_imu = None
+        else:
+            self.source_imu_index2 = self.imu_ids2.index(self.source_imu_index2_name)
+            shared.Dataship.imus[self.source_imu_index2].home(delete=True)
+            self.camera_head_imu = shared.Dataship.imus[self.source_imu_index2]
 
 #############################################
 ## Class: Point

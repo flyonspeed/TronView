@@ -374,76 +374,77 @@ class object3d(Module):
         }
 
         # check if self.imu_ids[self.source_imu_index].input has a method setPostion.
-        if shared.Dataship.imus[self.source_imu_index].input is not None:
-            if hasattr(shared.Dataship.imus[self.source_imu_index].input, "setPostion"):
-                # check if self.test_pitch exists.
-                if not hasattr(self, "test_pitch"):
-                    self.test_pitch = 0
-                if not hasattr(self, "test_roll"):
-                    self.test_roll = 0
-                if not hasattr(self, "test_yaw"):
-                    self.test_yaw = 0
-                if not hasattr(self, "auto_rotate_pitch"):
-                    self.auto_rotate_pitch = 0
-                if not hasattr(self, "auto_rotate_roll"):
-                    self.auto_rotate_roll = 0
-                if not hasattr(self, "auto_rotate_yaw"):
-                    self.auto_rotate_yaw = 0
+        if self.source_imu_index < len(shared.Dataship.imus) and shared.Dataship.imus[self.source_imu_index].input is not None:
+            if shared.Dataship.imus[self.source_imu_index].input is not None:
+                if hasattr(shared.Dataship.imus[self.source_imu_index].input, "setPostion"):
+                    # check if self.test_pitch exists.
+                    if not hasattr(self, "test_pitch"):
+                        self.test_pitch = 0
+                    if not hasattr(self, "test_roll"):
+                        self.test_roll = 0
+                    if not hasattr(self, "test_yaw"):
+                        self.test_yaw = 0
+                    if not hasattr(self, "auto_rotate_pitch"):
+                        self.auto_rotate_pitch = 0
+                    if not hasattr(self, "auto_rotate_roll"):
+                        self.auto_rotate_roll = 0
+                    if not hasattr(self, "auto_rotate_yaw"):
+                        self.auto_rotate_yaw = 0
 
-                options["test_pitch"] = {
-                    "type": "int",
-                    "default": 0,
-                    "min": -180,
-                    "max": 180,
-                    "label": "Test Pitch",
-                    "description": "Test pitch value.",
-                    "post_change_function": "setTestPostion"
-                }
-                options["test_roll"] = {
-                    "type": "int",
-                    "default": 0,
-                    "min": -180,
-                    "max": 180,
-                    "label": "Test Roll",
-                    "description": "Test roll value.",
-                    "post_change_function": "setTestPostion"
-                }
-                options["test_yaw"] = {
-                    "type": "int",
-                    "default": 0,
-                    "min": -180,
-                    "max": 180,
-                    "label": "Test Yaw",
-                    "description": "Test yaw value.",
-                    "post_change_function": "setTestPostion"
-                }
-                options["auto_rotate_pitch"] = {
-                    "type": "int",
-                    "default": 0,
-                    "min": -5,
-                    "max": 5,
-                    "label": "Auto Rotate Pitch",
-                    "description": "Auto rotate pitch value.",
-                    "post_change_function": "setTestAutoRotate"
-                }
-                options["auto_rotate_roll"] = {
-                    "type": "int",
-                    "default": 0,
-                    "min": -5,
-                    "max": 5,
-                    "label": "Auto Rotate Roll",
-                    "description": "Auto rotate roll value.",
-                    "post_change_function": "setTestAutoRotate"
-                }
-                options["auto_rotate_yaw"] = {
-                    "type": "int",
-                    "default": 0,
-                    "min": -5,
-                    "max": 5,
-                    "label": "Auto Rotate Yaw",
-                    "description": "Auto rotate yaw value.",
-                    "post_change_function": "setTestAutoRotate"
-                }
+                    options["test_pitch"] = {
+                        "type": "int",
+                        "default": 0,
+                        "min": -180,
+                        "max": 180,
+                        "label": "Test Pitch",
+                        "description": "Test pitch value.",
+                        "post_change_function": "setTestPostion"
+                    }
+                    options["test_roll"] = {
+                        "type": "int",
+                        "default": 0,
+                        "min": -180,
+                        "max": 180,
+                        "label": "Test Roll",
+                        "description": "Test roll value.",
+                        "post_change_function": "setTestPostion"
+                    }
+                    options["test_yaw"] = {
+                        "type": "int",
+                        "default": 0,
+                        "min": -180,
+                        "max": 180,
+                        "label": "Test Yaw",
+                        "description": "Test yaw value.",
+                        "post_change_function": "setTestPostion"
+                    }
+                    options["auto_rotate_pitch"] = {
+                        "type": "int",
+                        "default": 0,
+                        "min": -5,
+                        "max": 5,
+                        "label": "Auto Rotate Pitch",
+                        "description": "Auto rotate pitch value.",
+                        "post_change_function": "setTestAutoRotate"
+                    }
+                    options["auto_rotate_roll"] = {
+                        "type": "int",
+                        "default": 0,
+                        "min": -5,
+                        "max": 5,
+                        "label": "Auto Rotate Roll",
+                        "description": "Auto rotate roll value.",
+                        "post_change_function": "setTestAutoRotate"
+                    }
+                    options["auto_rotate_yaw"] = {
+                        "type": "int",
+                        "default": 0,
+                        "min": -5,
+                        "max": 5,
+                        "label": "Auto Rotate Yaw",
+                        "description": "Auto rotate yaw value.",
+                        "post_change_function": "setTestAutoRotate"
+                    }
         
         # Add existing options
         options.update(super().get_module_options())

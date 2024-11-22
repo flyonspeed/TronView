@@ -49,14 +49,6 @@ class gyro_i2c_bno085(Input):
             self.ser, self.input_logFileName = Input.openLogFile(self,self.PlayFile,"rb")
             self.isPlaybackMode = True
         else:
-            # Only import i2c libraries if we're not in playback mode
-            import board
-            import busio
-            import adafruit_bno08x
-            from adafruit_bno08x.i2c import BNO08X_I2C
-            self.adafruit_bno08x = adafruit_bno08x  # Store for later use
-            # Normal I2C initialization
-            self.i2c = busio.I2C(board.SCL, board.SDA)
             self.init_i2c()
 
         # create a empty imu object.
@@ -75,6 +67,11 @@ class gyro_i2c_bno085(Input):
         self.start_time = time.time()
 
     def init_i2c(self):
+        import board
+        import busio
+        import adafruit_bno08x
+        from adafruit_bno08x.i2c import BNO08X_I2C
+
         if not hasattr(self, 'i2c'):
             self.i2c = busio.I2C(board.SCL, board.SDA)
         else:

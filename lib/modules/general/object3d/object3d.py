@@ -372,11 +372,89 @@ class object3d(Module):
                 "description": "Amount of smoothing to apply to orientation changes (0 = none, 0.99 = max)",
             }
         }
+
+        # check if self.imu_ids[self.source_imu_index].input has a method setPostion.
+        if shared.Dataship.imus[self.source_imu_index].input is not None:
+            if hasattr(shared.Dataship.imus[self.source_imu_index].input, "setPostion"):
+                # check if self.test_pitch exists.
+                if not hasattr(self, "test_pitch"):
+                    self.test_pitch = 0
+                if not hasattr(self, "test_roll"):
+                    self.test_roll = 0
+                if not hasattr(self, "test_yaw"):
+                    self.test_yaw = 0
+                if not hasattr(self, "auto_rotate_pitch"):
+                    self.auto_rotate_pitch = 0
+                if not hasattr(self, "auto_rotate_roll"):
+                    self.auto_rotate_roll = 0
+                if not hasattr(self, "auto_rotate_yaw"):
+                    self.auto_rotate_yaw = 0
+
+                options["test_pitch"] = {
+                    "type": "int",
+                    "default": 0,
+                    "min": -180,
+                    "max": 180,
+                    "label": "Test Pitch",
+                    "description": "Test pitch value.",
+                    "post_change_function": "setTestPostion"
+                }
+                options["test_roll"] = {
+                    "type": "int",
+                    "default": 0,
+                    "min": -180,
+                    "max": 180,
+                    "label": "Test Roll",
+                    "description": "Test roll value.",
+                    "post_change_function": "setTestPostion"
+                }
+                options["test_yaw"] = {
+                    "type": "int",
+                    "default": 0,
+                    "min": -180,
+                    "max": 180,
+                    "label": "Test Yaw",
+                    "description": "Test yaw value.",
+                    "post_change_function": "setTestPostion"
+                }
+                options["auto_rotate_pitch"] = {
+                    "type": "int",
+                    "default": 0,
+                    "min": -5,
+                    "max": 5,
+                    "label": "Auto Rotate Pitch",
+                    "description": "Auto rotate pitch value.",
+                    "post_change_function": "setTestAutoRotate"
+                }
+                options["auto_rotate_roll"] = {
+                    "type": "int",
+                    "default": 0,
+                    "min": -5,
+                    "max": 5,
+                    "label": "Auto Rotate Roll",
+                    "description": "Auto rotate roll value.",
+                    "post_change_function": "setTestAutoRotate"
+                }
+                options["auto_rotate_yaw"] = {
+                    "type": "int",
+                    "default": 0,
+                    "min": -5,
+                    "max": 5,
+                    "label": "Auto Rotate Yaw",
+                    "description": "Auto rotate yaw value.",
+                    "post_change_function": "setTestAutoRotate"
+                }
         
         # Add existing options
         options.update(super().get_module_options())
         return options
+
+    def setTestPostion(self):
+        shared.Dataship.imus[self.source_imu_index].input.setPostion(self.test_pitch, self.test_roll, self.test_yaw)
     
+    def setTestAutoRotate(self):
+        shared.Dataship.imus[self.source_imu_index].input.setAutoRotate(self.auto_rotate_pitch, self.auto_rotate_roll, self.auto_rotate_yaw)
+
     def changeSource1IMU(self):
         '''
         Change the primary IMU.

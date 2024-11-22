@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# BNO 085 IMU 9 DOF gyro
+# Virtual IMU
 
 from ._input import Input
 from lib import hud_utils
@@ -12,9 +12,9 @@ import traceback
 import binascii
 from lib.common.dataship.dataship_imu import IMU
 
-class gyro_i2c_bno085(Input):
+class gyro_virtual(Input):
     def __init__(self):
-        self.name = "bno085"
+        self.name = "imuVirtual"
         self.version = 1.0
         self.inputtype = "gyro"
         self.values = []
@@ -27,46 +27,35 @@ class gyro_i2c_bno085(Input):
         self.num_imus = len(aircraft.imus) # 0 is first imu.
 
         # check how many imus are named the same as this one. get next number for this one.
-        self.num_bno085 = 1
+        self.num_imu = 1
         for index, imu in aircraft.imus.items():
             if imu.name == self.name:   
-                self.num_bno085 += 1
+                self.num_imu += 1
 
         # read address from config.
-        self.id = hud_utils.readConfig("bno085", "device"+str(self.num_bno085)+"_id", "bno085_"+str(self.num_bno085))
-        self.address = hud_utils.readConfigInt("bno085", "device"+str(self.num_bno085)+"_address", 0x4A)
+        self.id = hud_utils.readConfig("imu_virtual", "device"+str(self.num_imu)+"_id", "imu_virtual_"+str(self.num_imu))
         # should this imu feed into aircraft roll/pitch/yaw? if num is 0 then default is true.
-        self.feed_into_aircraft = hud_utils.readConfigBool("bno085", "device"+str(self.num_bno085)+"_aircraft", self.num_imus == 0)
-        print("init bno085("+str(self.num_bno085)+") id: "+str(self.id)+" address: "+str(self.address))
+        self.feed_into_aircraft = hud_utils.readConfigBool("imu_virtual", "device"+str(self.num_imu)+"_aircraft", self.num_imus == 0)
+        print("init imu_virtual("+str(self.num_imu)+") id: "+str(self.id))
 
         
         # Check if we're in playback mode
         if self.PlayFile is not None and self.PlayFile is not False:
             # if in playback mode then load example data file
             if self.PlayFile is True:
-                defaultTo = "bno085_1.dat"
+                defaultTo = "imu_virtual1.dat"
                 self.PlayFile = hud_utils.readConfig(self.name, "playback_file", defaultTo)
             self.ser, self.input_logFileName = Input.openLogFile(self,self.PlayFile,"rb")
             self.isPlaybackMode = True
-        else:
-            # Only import i2c libraries if we're not in playback mode
-            import board
-            import busio
-            import adafruit_bno08x
-            from adafruit_bno08x.i2c import BNO08X_I2C
-            self.adafruit_bno08x = adafruit_bno08x  # Store for later use
-            # Normal I2C initialization
-            self.i2c = busio.I2C(board.SCL, board.SDA)
-            self.init_i2c()
 
         # create a empty imu object.
         self.imuData = IMU()
         self.imuData.id = self.id
         self.imuData.name = self.name
-        self.imuData.address = self.address
         self.imuData.home_pitch = None
         self.imuData.home_roll = None
         self.imuData.home_yaw = None
+        self.imuData.input = self
 
         # create imu in dataship object. append to dict with key as num_imus.
         aircraft.imus[self.num_imus] = self.imuData
@@ -74,43 +63,16 @@ class gyro_i2c_bno085(Input):
         self.last_read_time = time.time()
         self.start_time = time.time()
 
-    def init_i2c(self):
-        if not hasattr(self, 'i2c'):
-            self.i2c = busio.I2C(board.SCL, board.SDA)
-        else:
-            self.i2c.deinit()
-            self.i2c = busio.I2C(board.SCL, board.SDA)
-            self.bno = None
-            sleep(1)
-        self.bno = BNO08X_I2C(self.i2c, address=self.address)
+        self.test_pitch = 0
+        self.test_roll = 0
+        self.test_yaw = 0
 
-        #self.bno.enable_feature(adafruit_bno08x.BNO_REPORT_ACCELEROMETER)
-        #self.bno.enable_feature(adafruit_bno08x.BNO_REPORT_LINEAR_ACCELERATION)
-        #self.bno.enable_feature(adafruit_bno08x.BNO_REPORT_GYROSCOPE)
-        #self.bno.enable_feature(adafruit_bno08x.BNO_REPORT_MAGNETOMETER)
-        self.bno.enable_feature(adafruit_bno08x.BNO_REPORT_ROTATION_VECTOR)
-        #self.bno.enable_feature(adafruit_bno08x.BNO_REPORT_GAME_ROTATION_VECTOR)
-
+        self.auto_rotate_pitch = 0
+        self.auto_rotate_roll = 0
+        self.auto_rotate_yaw = 0
+        
     def closeInput(self,aircraft):
-        print("bno085 close")
-
-    def quaternion_to_euler(self, x, y, z, w):
-        roll = math.atan2(2.0 * (w * x + y * z), 1.0 - 2.0 * (x * x + y * y))
-        roll = round(math.degrees(roll), 1)
-
-        pitch_raw = 2.0 * (w * y - z * x)
-        pitch = math.asin(max(-1.0, min(1.0, pitch_raw)))  # Clamp value within -1 and 1
-        pitch = round(math.degrees(pitch), 1)
-
-        yaw = -math.atan2(2.0 * (w * z + x * y), 1.0 - 2.0 * (y * y + z * z))
-        yaw = round(math.degrees(yaw), 1)
-
-        if yaw > 180:
-            yaw -= 360
-        elif yaw < -180:
-            yaw += 360
-
-        return roll, pitch, yaw
+        print("imu_virtual close")
 
     #############################################
     ## Function: readMessage
@@ -127,7 +89,7 @@ class gyro_i2c_bno085(Input):
                     self.ser.seek(0)
                     return aircraft
                 
-                if line.startswith('085'):  # Changed from 055 to 085 for BNO085
+                if line.startswith('imu'):
                     # Parse the log file format
                     parts = line.split(',')
                     if len(parts) >= 8:
@@ -157,19 +119,18 @@ class gyro_i2c_bno085(Input):
                 time.sleep(0.02)  # Add delay for playback mode
             else:
                 # Live sensor reading code
-                if aircraft.debug_mode > 0:
-                    current_time = time.time()
-                    self.imuData.hz = round(1 / (current_time - self.last_read_time), 1)
-                    self.last_read_time = current_time
 
-                roll_offset, pitch_offset, yaw_offset = self.quaternion_to_euler(*self.bno.quaternion)
-
-                # update the pitch (it's backwards)
-                pitch_offset = -pitch_offset
+                if self.auto_rotate_pitch != 0:
+                    self.test_pitch += self.auto_rotate_pitch
+                if self.auto_rotate_roll != 0:
+                    self.test_roll += self.auto_rotate_roll
+                if self.auto_rotate_yaw != 0:
+                    self.test_yaw += self.auto_rotate_yaw
 
                 # update aircraft object
-                self.imuData.updatePos(pitch_offset, roll_offset, yaw_offset)
+                self.imuData.updatePos(self.test_pitch, self.test_roll, self.test_yaw)
                 aircraft.imus[self.num_imus] = self.imuData
+
 
                 if self.feed_into_aircraft:
                     aircraft.pitch = self.imuData.pitch
@@ -189,5 +150,15 @@ class gyro_i2c_bno085(Input):
                 self.init_i2c()
 
         return aircraft
+
+    def setPostion(self, pitch, roll, yaw):
+        self.test_pitch = pitch
+        self.test_roll = roll
+        self.test_yaw = yaw
+    
+    def setAutoRotate(self, pitch, roll, yaw):
+        self.auto_rotate_pitch = pitch
+        self.auto_rotate_roll = roll
+        self.auto_rotate_yaw = yaw
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

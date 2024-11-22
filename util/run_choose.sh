@@ -19,8 +19,6 @@ else
     RUN_PREFIX="sudo"
 fi
 
-
-
 # kill any running python3 processes
 $RUN_PREFIX pkill -f 'python3'
 
@@ -42,11 +40,13 @@ echo "14:  Stratux ONLY Demo 5 - Shows traffic targets only, No AHRS data"
 echo "21:  live i2c bno055 IMU data (pi only)"
 echo "22:  live i2c bno055 & MGL ( pi only)"
 echo "23:  live i2c bno055 + MGL + Stratux (pi only)"
-echo "24:  live dual bno055 + bno055 (pi only)"
+echo "24:  live dual bno055 + bno055 (pi only) 25 : live bno085 + virtual IMU (pi only)"
 
 echo "200: live bno085 IMU data (pi only)"
 echo "201: live bno085 + MGL + Stratux (pi only)"
 echo "205: bno085 DEMO DATA"
+
+echo "210: 1 Virtual IMU, 211: 2 Virtual IMUs"
 
 
 echo "Type 't' after number to run in text mode. Example: 3t"
@@ -233,6 +233,13 @@ if [ $choice -eq 24 ]; then
     fi
 fi
 
+if [ $choice -eq 25 ]; then
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        run_python "-i gyro_i2c_bno085 --in2 gyro_virtual"
+    else
+        echo "only supported on pi"
+    fi
+fi
 
 if [ $choice -eq 200 ]; then
     # linux/raspberry pi only
@@ -254,6 +261,14 @@ fi
 
 if [ $choice -eq 205 ]; then
     run_python "--in1 gyro_i2c_bno085 -e"
+fi
+
+if [ $choice -eq 210 ]; then
+    run_python "--in1 gyro_virtual"
+fi
+
+if [ $choice -eq 211 ]; then
+    run_python "--in1 gyro_virtual --in2 gyro_virtual"
 fi
 
 ########################################################

@@ -30,6 +30,8 @@ class IMU(object):
         self.org_pitch = None
         self.org_roll = None
         self.org_yaw = None
+
+        self.input = None
     
     def home(self, delete=False):
         '''
@@ -58,6 +60,17 @@ class IMU(object):
         else:
             self.org_pitch = pitch
             self.org_roll = roll
+
+        # check if pitch and roll are within -180 to 180 degrees
+        # if self.org_pitch > 180:
+        #     self.org_pitch = 360 - self.org_pitch
+        # if self.org_roll > 180:
+        #     self.org_roll = 360 - self.org_roll
+        # if self.org_pitch < -180:
+        #     self.org_pitch = 360 + self.org_pitch
+        # if self.org_roll < -180:
+        #     self.org_roll = 360 + self.org_roll
+        
         # convert yaw from 0-360 to -180 to 180.
         if yaw is not None:
             self.org_yaw = ((yaw + 180) % 360) - 180

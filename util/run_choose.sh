@@ -19,8 +19,6 @@ else
     RUN_PREFIX="sudo"
 fi
 
-
-
 # kill any running python3 processes
 $RUN_PREFIX pkill -f 'python3'
 
@@ -28,28 +26,29 @@ $RUN_PREFIX pkill -f 'python3'
 echo "Choose which demo/test to run:"
 #echo "1:   G3X - EFIS"
 #echo "2:   G3X - AOA Test data"
-echo "3:   MGL & Stratux - chasing traffic"
-echo "4:   MGL - G430 CDI"
-echo "5:   MGL - Gyro Test"
+echo "3:   MGL + Stratux + vIMU- chasing traffic, 4: MGL - G430 CDI, 5: MGL - Gyro Test"
 
 echo "6:   Dynon D100"
 echo "7:   Dynon Skyview"
 
-echo "9:   MGL & Stratux RV6 Chase 1"
-echo "10:  MGL & Stratux RV6 Chase 2"
-echo "11:  MGL & Stratux RV6 Chase 3"
+echo "9, 10, or 11:   MGL + Stratux + vIMU RV6 Chase 1, 2, or 3"
 
 echo "12:  Stratux ONLY Demo 54"
 echo "13:  Stratux ONLY Demo 57 (Bad pitch/roll)"
 echo "14:  Stratux ONLY Demo 5 - Shows traffic targets only, No AHRS data"
 
-echo "21:  live i2c bno055 IMU data (pi only)"
-echo "22:  live i2c bno055 & MGL ( pi only)"
-echo "23:  live i2c bno055 + MGL + Stratux (pi only)"
-echo "24:  live dual bno055 + bno055 (pi only)"
+echo "21:  live bno055 (pi only)"
+echo "22:  live bno055 & MGL ( pi only)"
+echo "23:  live bno055 + MGL + Stratux (pi only)"
+echo "24:  live dual bno055 + bno055 (pi only) 25 : live virtual IMU + bno055 + bno055 (pi only)"
+echo "26:  live virtual IMU + bno055 + bno055 (pi only)"
 
 echo "200: live bno085 IMU data (pi only)"
 echo "201: live bno085 + MGL + Stratux (pi only)"
+echo "202: live virtual imu + bno085  (pi only)"
+echo "205: bno085 DEMO DATA"
+
+echo "300: 1 Virtual IMU, 301: 2 Virtual IMUs"
 
 
 echo "Type 't' after number to run in text mode. Example: 3t"
@@ -140,7 +139,7 @@ fi
 ########################################################
 
 if [ $choice -eq 3 ]; then
-    run_python "-i serial_mgl --playfile1 mgl_8.dat --in2 stratux_wifi --playfile2 stratux_8.dat"
+    run_python "-i serial_mgl --playfile1 mgl_8.dat --in2 stratux_wifi --playfile2 stratux_8.dat --in3 gyro_virtual"
 fi
 
 if [ $choice -eq 4 ]; then
@@ -168,15 +167,15 @@ fi
 ########################################################
 
 if [ $choice -eq 9 ]; then
-    run_python "-i serial_mgl --playfile1 mgl_chase_rv6_1.dat --in2 stratux_wifi --playfile2 stratux_chase_rv6_1.dat"
+    run_python "-i serial_mgl --playfile1 mgl_chase_rv6_1.dat --in2 stratux_wifi --playfile2 stratux_chase_rv6_1.dat --in3 gyro_virtual"
 fi
 
 if [ $choice -eq 10 ]; then
-    run_python "-i serial_mgl --playfile1 mgl_chase_rv6_2.dat --in2 stratux_wifi --playfile2 stratux_chase_rv6_2.dat"
+    run_python "-i serial_mgl --playfile1 mgl_chase_rv6_2.dat --in2 stratux_wifi --playfile2 stratux_chase_rv6_2.dat --in3 gyro_virtual"
 fi
 
 if [ $choice -eq 11 ]; then
-    run_python "-i serial_mgl --playfile1 mgl_chase_rv6_3.dat --in2 stratux_wifi --playfile2 stratux_chase_rv6_3.dat"
+    run_python "-i serial_mgl --playfile1 mgl_chase_rv6_3.dat --in2 stratux_wifi --playfile2 stratux_chase_rv6_3.dat --in3 gyro_virtual"
 fi
 
 ########################################################
@@ -236,6 +235,21 @@ if [ $choice -eq 24 ]; then
     fi
 fi
 
+if [ $choice -eq 25 ]; then
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        run_python "--in1 gyro_virtual --in2 gyro_i2c_bno055 --in3 gyro_virtual"
+    else
+        echo "only supported on pi"
+    fi
+fi
+
+if [ $choice -eq 26 ]; then
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        run_python "--in1 gyro_virtual --in2 gyro_i2c_bno055 --in3 gyro_i2c_bno055 "
+    else
+        echo "only supported on pi"
+    fi
+fi
 
 if [ $choice -eq 200 ]; then
     # linux/raspberry pi only
@@ -253,6 +267,26 @@ if [ $choice -eq 201 ]; then
     else
         echo "only supported on pi"
     fi
+fi
+
+if [ $choice -eq 202 ]; then
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        run_python "--in2 gyro_i2c_bno085 --in1 gyro_virtual"
+    else
+        echo "only supported on pi"
+    fi
+fi
+
+if [ $choice -eq 205 ]; then
+    run_python "--in1 gyro_i2c_bno085 -e"
+fi
+
+if [ $choice -eq 300 ]; then
+    run_python "--in1 gyro_virtual"
+fi
+
+if [ $choice -eq 301 ]; then
+    run_python "--in1 gyro_virtual --in2 gyro_virtual"
 fi
 
 ########################################################

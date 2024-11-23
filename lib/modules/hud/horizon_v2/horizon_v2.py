@@ -9,9 +9,10 @@ from lib.modules._module import Module
 from lib import hud_graphics
 from lib import hud_utils
 from lib import smartdisplay
-from lib.common.dataship import dataship
 import pygame
 import math
+from lib.common import shared
+from lib.common.dataship.dataship import Dataship
 
 
 class horizon_v2(Module):
@@ -23,8 +24,21 @@ class horizon_v2(Module):
         self.show_targets = True
         self.target_distance_threshold = 10
         self.fov_x = hud_utils.readConfigInt("HUD", "fov_x", 13.942) # Field of View X in degrees
+        self.fov_y = hud_utils.readConfigInt("HUD", "fov_y", 13.942) # Field of View y in degrees
         self.target_positions = {}  # Store smoothed positions for each target
         self.target_smoothing = 0.2  # Default smoothing factor (0-1), lower = smoother
+
+        # Add new settings for horizon line
+        self.horizon_line_color = (255, 165, 0)  # Default default to orange
+        self.horizon_line_thickness = 4  # Default thickness
+        self.horizon_line_length = 0.8  # Percentage of screen width
+       
+        self.source_imu_index_name = ""  # name of the primary imu. used to the aircraft heading, pitch, roll
+        self.source_imu_index = 0  # index of the primary imu.
+        self.source_imu_index2_name = "NONE"  # name of the secondary imu. (optional)
+        self.source_imu_index2 = None  # index of the secondary imu. (optional)
+        self.camera_head_imu = None  # IMU object for camera head. Human Head view.
+               
 
     # called once for setup
     def initMod(self, pygamescreen, width=None, height=None):
@@ -56,7 +70,6 @@ class horizon_v2(Module):
         self.caged_mode = 1 # default on
         self.center_circle_mode = hud_utils.readConfigInt("HUD", "center_circle", 4)
 
-
         # sampling for flight path.
         self.readings = []  # Setup moving averages to smooth a bit
         self.max_samples = 30 # FPM smoothing
@@ -66,6 +79,7 @@ class horizon_v2(Module):
         self.x_offset = 0
         self.xCenter = self.width // 2
         self.yCenter = self.height // 2
+
 
     #############################################
     ## Function: generateHudReferenceLineArray
@@ -160,16 +174,26 @@ class horizon_v2(Module):
         pxy_div,
         pos
     ):
-        # x_offset, y_offset = pos
-        # center_x = x_offset + width // 2
-        # center_y = y_offset + height // 2
+        # Calculate camera yaw offset relative to aircraft heading
+        camera_yaw_offset = 0
+        if self.camera_head_imu is not None:
+            camera_yaw_offset = ((self.camera_head_imu.yaw - aircraft.mag_head + 180) % 360) - 180
+        
+        # Calculate pixel offset based on yaw difference
+        pixels_per_degree = width / self.fov_x
+        x_offset = -camera_yaw_offset * pixels_per_degree
+        
+        # Adjust center point based on camera yaw
+        center_x = width // 2 + x_offset
+        center_y = height // 2
+        adjusted_center = (center_x, center_y)
 
         # Draw lines centered on the screen
         for l in range(-60, 61, ahrs_line_deg):
             line_coords = self.generateHudReferenceLineArray(
                 width,
                 height,
-                ahrs_center,  # Use the new center point
+                adjusted_center,
                 pxy_div,
                 pitch=aircraft.pitch,
                 roll=aircraft.roll,
@@ -177,13 +201,25 @@ class horizon_v2(Module):
                 line_mode=line_mode,
             )
 
-            # No need to adjust coordinates here, as we've centered them in generateHudReferenceLineArray
+            # Check if any part of the line is within the visible area
+            # Convert line endpoints to screen-relative coordinates
+            screen_x1 = line_coords[1][0] - x_offset
+            screen_x2 = line_coords[2][0] - x_offset
+            
+            # Calculate visible bounds based on FOV
+            left_bound = (width // 2) - (width // 2)  # 0
+            right_bound = (width // 2) + (width // 2)  # width
+            
+            # Skip if line is completely outside visible area
+            if (screen_x1 < left_bound and screen_x2 < left_bound) or \
+               (screen_x1 > right_bound and screen_x2 > right_bound):
+                continue
 
             if abs(l) > 45:
                 if l % 5 == 0 and l % 10 != 0:
                     continue
 
-            # Draw lines (already centered)
+            # Draw lines
             if l < 0:
                 self.draw_dashed_line(
                     self.surface,
@@ -193,42 +229,54 @@ class horizon_v2(Module):
                     width=line_thickness,
                     dash_length=5,
                 )
-                pygame.draw.lines(self.surface,
-                    color,
-                    False,
-                    (line_coords[2],
-                    line_coords[4]),
-                    line_thickness
-                )
-                pygame.draw.lines(self.surface,
-                    color,
-                    False,
-                    (line_coords[1],
-                    line_coords[5]),
-                    line_thickness
-                )
+                # Only draw end markers if they're within view
+                if left_bound <= screen_x2 <= right_bound:
+                    pygame.draw.lines(
+                        self.surface,
+                        color,
+                        False,
+                        (line_coords[2], line_coords[4]),
+                        line_thickness
+                    )
+                if left_bound <= screen_x1 <= right_bound:
+                    pygame.draw.lines(
+                        self.surface,
+                        color,
+                        False,
+                        (line_coords[1], line_coords[5]),
+                        line_thickness
+                    )
             else:
-                pygame.draw.lines(
-                    self.surface,
-                    color,
-                    False,
-                    (line_coords[0],
-                    line_coords[1],
-                    line_coords[2],
-                    line_coords[3]),
-                    line_thickness
-                )
+                visible_points = []
+                for point in [line_coords[0], line_coords[1], line_coords[2], line_coords[3]]:
+                    screen_x = point[0] - x_offset
+                    if left_bound <= screen_x <= right_bound:
+                        visible_points.append(point)
+                
+                if len(visible_points) >= 2:
+                    pygame.draw.lines(
+                        self.surface,
+                        color,
+                        False,
+                        visible_points,
+                        line_thickness
+                    )
 
-            # Draw degree text (already centered)
+            # Draw degree text if within view
             if l != 0 and l % 5 == 0:
                 text = font.render(str(l), False, color)
                 text_width, text_height = text.get_size()
-                left = int(line_coords[1][0]) - (text_width + int(width / 100))
-                top = int(line_coords[1][1]) - text_height / 2
-                self.surface.blit(text, (left, top))
+                text_x = int(line_coords[1][0]) - (text_width + int(width / 100))
+                text_screen_x = text_x - x_offset
+                
+                if left_bound <= text_screen_x <= right_bound:
+                    self.surface.blit(text, (text_x, int(line_coords[1][1]) - text_height / 2))
 
 
     def draw_center(self,smartdisplay, x_offset, y_offset):
+        '''
+        Draw the center circle.
+        '''
         center_x = x_offset + self.width // 2
         center_y = y_offset + self.height // 2
 
@@ -303,6 +351,9 @@ class horizon_v2(Module):
             )
 
     def draw_flight_path(self,aircraft,smartdisplay, x_offset, y_offset):
+        '''
+        Draw the flight path indicator.
+        '''
         def mean(nums):
             return int(sum(nums)) / max(len(nums), 1)
 
@@ -422,44 +473,71 @@ class horizon_v2(Module):
             aircraft.flightPathMarker_x = fpv_x # save to aircraft object for other modules to use.
 
 
-    # called every redraw for the mod
+    # called every redraw for this screen module
     def draw(self, aircraft, smartdisplay, pos=(0, 0)):
+        '''
+        Draw method to draw all the elements of the horizon.
+        '''
         x, y = pos
         
         # Clear the surface before drawing
-        self.surface.fill((0, 0, 0, 0 ))
+        self.surface.fill((0, 0, 0, 0))
 
-        # if aircraft.roll is None then don't draw the horizon lines.
         if aircraft.roll is None or aircraft.pitch is None:
             # draw a red X on the screen.
             pygame.draw.line(self.surface, (255,0,0), (0,0), (self.width,self.height), 4)
             pygame.draw.line(self.surface, (255,0,0), (self.width,0), (0,self.height), 4)
         else:
-            # Draw horizon lines starting at the specified position
+            # Calculate camera head offsets if present
+            pitch_offset = 0
+            roll_offset = 0
+            yaw_offset = 0
+            
+            if self.camera_head_imu is not None:
+                pitch_offset = -self.camera_head_imu.pitch
+                roll_offset = self.camera_head_imu.roll
+                yaw_offset = ((self.camera_head_imu.yaw - aircraft.mag_head + 180) % 360) - 180
+
+            # Draw the horizon line from camera perspective
+            self.draw_horizon_line(aircraft, yaw_offset, pitch_offset, roll_offset)
+
+            # Apply camera offsets to aircraft attitude for the rest of the display
+            adjusted_pitch = aircraft.pitch - pitch_offset
+            adjusted_roll = aircraft.roll - roll_offset
+
+            # Draw horizon lines with adjusted angles
             self.draw_horz_lines(
-            self.width,
-            self.height,
-            ((self.width // 2), self.height // 2),  # Use the center of the drawing area
-            self.ahrs_line_deg,
-            aircraft,
-            self.MainColor,
-            self.line_thickness,
-            self.line_mode,
-            self.font,
-            self.pxy_div,
-            (x, y)
-        )
+                self.width,
+                self.height,
+                ((self.width // 2), self.height // 2),
+                self.ahrs_line_deg,
+                type('AdjustedAircraft', (), {
+                    'pitch': adjusted_pitch,
+                    'roll': adjusted_roll,
+                    'mag_head': aircraft.mag_head,
+                    'turn_rate': aircraft.turn_rate,
+                    'vsi': aircraft.vsi,
+                    'traffic': aircraft.traffic,
+                    'gndtrack': aircraft.gndtrack
+                }),
+                self.MainColor,
+                self.line_thickness,
+                self.line_mode,
+                self.font,
+                self.pxy_div,
+                (x, y)
+            )
 
-        # Use map() to apply draw_target to all targets
-        if self.show_targets:
-            list(map(lambda t: self.draw_target(t, aircraft), 
-                     filter(lambda t: t.dist is not None and t.dist < self.target_distance_threshold and t.brng is not None, 
-                            aircraft.traffic.targets)))
+            # Only show targets if camera is roughly aligned with aircraft heading
+            if self.show_targets and abs(yaw_offset) < 45:
+                list(map(lambda t: self.draw_target(t, aircraft), 
+                        filter(lambda t: t.dist is not None and t.dist < self.target_distance_threshold and t.brng is not None, 
+                                aircraft.traffic.targets)))
 
-
-        # Draw center and flight path on the main screen (already adjusted for position)
-        self.draw_center(smartdisplay, x, y)
-        self.draw_flight_path(aircraft, smartdisplay, x, y)
+            # Draw center and flight path
+            self.draw_center(smartdisplay, x, y)
+            if abs(yaw_offset) < 45:  # Only show flight path when looking forward
+                self.draw_flight_path(aircraft, smartdisplay, x, y)
 
         # Blit the entire surface to the screen at the specified position
         smartdisplay.pygamescreen.blit(self.surface, pos)
@@ -515,12 +593,6 @@ class horizon_v2(Module):
             self.surface.blit(labelAngle, (int(xx) + 10, int(yy) + labelCallsign_rect.height))
 
 
-    # update a setting
-    def setting(self,key,var):
-        print("setting ",key,var)
-        locals()[key] = var
-        print("setting ",locals()[key])
-
     # cycle through the modes.
     def cyclecaged_mode(self):
         self.caged_mode = self.caged_mode + 1
@@ -531,14 +603,43 @@ class horizon_v2(Module):
         #self.ahrs_bg.fill((0, 0, 0))  # clear screen
         print("clear")
 
-    # handle key events
-    def processEvent(self, event):
-        print("processEvent")
-
     # return a dict of objects that are used to configure the module.
     def get_module_options(self):
+        imu_list = shared.Dataship.imus
+        self.imu_ids = []
+        for imu_index, imu in imu_list.items(): # populate the list of ids of IMUs
+            self.imu_ids.append(str(imu.id))
+        if len(self.source_imu_index_name) == 0: # if primary imu name is not set.
+            self.source_imu_index_name = self.imu_ids[self.source_imu_index]  # select first one.
+        self.imu_ids2 = self.imu_ids.copy()  # duplicate the list for the secondary imu.
+        self.imu_ids2.append("NONE")
+
         # each item in the dict represents a configuration option.  These are variable in this class that are exposed to the user to edit.
-        return {
+        options = {
+            "source_imu_index_name": {
+                "type": "dropdown",
+                "label": "Primary IMU",
+                "description": "IMU to use for the 3D object.",
+                "options": self.imu_ids,
+                "post_change_function": "changeSource1IMU"
+            },
+            "source_imu_index": {
+                "type": "int",
+                "hidden": True,  # hide from the UI, but save to json screen file.
+                "default": 0
+            },
+            "source_imu_index2_name": {
+                "type": "dropdown",
+                "label": "Secondary IMU (Camera Head)",
+                "description": "If selected then 2nd IMU will be position camera. As if it was mounted on the Primary IMU.",
+                "options": self.imu_ids2,
+                "post_change_function": "changeSource2IMU"
+            },
+            "source_imu_index2": {
+                "type": "int",
+                "hidden": True,  # hide from the UI, but save to json screen file.
+                "default": 0
+            },
             "line_mode": {
                 "type": "bool",
                 "default": False,
@@ -592,12 +693,100 @@ class horizon_v2(Module):
                 "max": 1.0,
                 "label": "Target Smoothing",
                 "description": "Target position smoothing (0.01-1.0, lower = smoother)"
+            },
+            "horizon_line_color": {
+                "type": "color",
+                "default": (255, 165, 0),  # Orange
+                "label": "Horizon Line Color",
+                "description": "Color of the true horizon reference line"
+            },
+            "horizon_line_thickness": {
+                "type": "int",
+                "default": 4,
+                "min": 1,
+                "max": 10,
+                "label": "Horizon Line Thickness",
+                "description": "Thickness of the horizon reference line"
             }
         }
+        
+        return options
 
     def update_flight_path_color(self, new_color):
         self.flight_path_color = new_color
 
+    def changeSource1IMU(self):
+        '''
+        Change the primary IMU.
+        '''
+        # source_imu_index_name got changed. find the index of the imu id in the imu list.
+        self.source_imu_index = self.imu_ids.index(self.source_imu_index_name)
+        shared.Dataship.imus[self.source_imu_index].home(delete=True) 
+
+    def changeSource2IMU(self):
+        if self.source_imu_index2_name == "NONE":
+            self.source_imu_index2 = None
+            self.camera_head_imu = None
+        else:
+            self.source_imu_index2 = self.imu_ids2.index(self.source_imu_index2_name)
+            shared.Dataship.imus[self.source_imu_index2].home(delete=True)
+            self.camera_head_imu = shared.Dataship.imus[self.source_imu_index2]
+
+    def draw_horizon_line(self, aircraft, camera_yaw_offset=0, camera_pitch_offset=0, camera_roll_offset=0):
+        """
+        Draw a single line representing the horizon from the camera's perspective.
+        The line's appearance depends on:
+        - Aircraft pitch and roll (which way you're facing)
+        - Camera yaw, pitch, roll (which way you're looking - head position)
+        """
+        
+        # Calculate where the horizon intersects the view plane
+        center_x = self.width // 2
+        center_y = self.height // 2
+        
+        # Convert angles to radians
+        camera_yaw_rad = math.radians(camera_yaw_offset)
+        camera_pitch_rad = math.radians(camera_pitch_offset)
+        camera_roll_rad = math.radians(camera_roll_offset)
+        aircraft_pitch_rad = math.radians(aircraft.pitch)
+        aircraft_roll_rad = math.radians(aircraft.roll)
+        
+        # Calculate total pitch effect (aircraft + camera)
+        # Invert pitch since positive pitch should move horizon line down
+        pitch_effect = -(aircraft.pitch - camera_pitch_offset) * math.cos(camera_yaw_rad)
+        
+        # Calculate roll effect
+        # When looking sideways, aircraft pitch creates apparent roll
+        # Invert roll to match aircraft orientation
+        roll_effect = -(aircraft.roll - camera_roll_offset) * math.cos(camera_yaw_rad) - \
+                     aircraft.pitch * math.sin(camera_yaw_rad)
+        
+        # Convert pitch to screen pixels
+        pitch_pixels = (pitch_effect * self.height) / self.pxy_div
+        
+        # Calculate horizon line center point
+        horizon_y = center_y + pitch_pixels
+        
+        # Calculate line angle based on total roll effect
+        roll_rad = math.radians(roll_effect)
+        
+        # Calculate line endpoints
+        dx = math.cos(roll_rad) * self.width * self.horizon_line_length
+        dy = math.sin(roll_rad) * self.width * self.horizon_line_length
+        
+        x1 = center_x - dx
+        y1 = horizon_y - dy
+        x2 = center_x + dx
+        y2 = horizon_y + dy
+        
+        # Draw the horizon line
+        pygame.draw.line(
+            self.surface,
+            self.horizon_line_color,
+            (x1, y1),
+            (x2, y2),
+            self.horizon_line_thickness
+        )
 
 #############################################
 ## Class: Point

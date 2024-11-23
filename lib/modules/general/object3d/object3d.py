@@ -26,8 +26,7 @@ class object3d(Module):
 
         self.source_imu_index_name = ""  # name of the primary imu.
         self.source_imu_index = 0  # index of the primary imu.
-
-        self.source_imu_index2_name = ""  # name of the secondary imu. (optional)
+        self.source_imu_index2_name = "NONE"  # name of the secondary imu. (optional)
         self.source_imu_index2 = None  # index of the secondary imu. (optional)
 
         self.show_xyz = False
@@ -312,18 +311,12 @@ class object3d(Module):
     def get_module_options(self):
         # get the imu list of imu objects
         imu_list = shared.Dataship.imus
-        # go through imu list and get the id and name.
         self.imu_ids = []
-        if isinstance(imu_list, dict):
-            # If it's a dictionary, iterate through values
-            for imu_index, imu in imu_list.items():
-                #print(f"IMU {imu_id}:", imu.id)
-                self.imu_ids.append(str(imu.id))
-        if len(self.source_imu_index_name) == 0: # if no name.
+        for imu_index, imu in imu_list.items(): # populate the list of ids of IMUs
+            self.imu_ids.append(str(imu.id))
+        if len(self.source_imu_index_name) == 0: # if primary imu name is not set.
             self.source_imu_index_name = self.imu_ids[self.source_imu_index]  # select first one.
-
-        # duplicate the list for the secondary imu.
-        self.imu_ids2 = self.imu_ids.copy()
+        self.imu_ids2 = self.imu_ids.copy()  # duplicate the list for the secondary imu.
         self.imu_ids2.append("NONE")
 
         options = {
@@ -372,18 +365,96 @@ class object3d(Module):
                 "description": "Amount of smoothing to apply to orientation changes (0 = none, 0.99 = max)",
             }
         }
+
+        # check if self.imu_ids[self.source_imu_index].input has a method setPostion.
+        if self.source_imu_index < len(shared.Dataship.imus) and shared.Dataship.imus[self.source_imu_index].input is not None:
+            if shared.Dataship.imus[self.source_imu_index].input is not None:
+                if hasattr(shared.Dataship.imus[self.source_imu_index].input, "setPostion"):
+                    # check if self.test_pitch exists.
+                    if not hasattr(self, "test_pitch"):
+                        self.test_pitch = 0
+                    if not hasattr(self, "test_roll"):
+                        self.test_roll = 0
+                    if not hasattr(self, "test_yaw"):
+                        self.test_yaw = 0
+                    if not hasattr(self, "auto_rotate_pitch"):
+                        self.auto_rotate_pitch = 0
+                    if not hasattr(self, "auto_rotate_roll"):
+                        self.auto_rotate_roll = 0
+                    if not hasattr(self, "auto_rotate_yaw"):
+                        self.auto_rotate_yaw = 0
+
+                    options["test_pitch"] = {
+                        "type": "int",
+                        "default": 0,
+                        "min": -180,
+                        "max": 180,
+                        "label": "Test Pitch",
+                        "description": "Test pitch value.",
+                        "post_change_function": "setTestPostion"
+                    }
+                    options["test_roll"] = {
+                        "type": "int",
+                        "default": 0,
+                        "min": -180,
+                        "max": 180,
+                        "label": "Test Roll",
+                        "description": "Test roll value.",
+                        "post_change_function": "setTestPostion"
+                    }
+                    options["test_yaw"] = {
+                        "type": "int",
+                        "default": 0,
+                        "min": -180,
+                        "max": 180,
+                        "label": "Test Yaw",
+                        "description": "Test yaw value.",
+                        "post_change_function": "setTestPostion"
+                    }
+                    options["auto_rotate_pitch"] = {
+                        "type": "int",
+                        "default": 0,
+                        "min": -5,
+                        "max": 5,
+                        "label": "Auto Rotate Pitch",
+                        "description": "Auto rotate pitch value.",
+                        "post_change_function": "setTestAutoRotate"
+                    }
+                    options["auto_rotate_roll"] = {
+                        "type": "int",
+                        "default": 0,
+                        "min": -5,
+                        "max": 5,
+                        "label": "Auto Rotate Roll",
+                        "description": "Auto rotate roll value.",
+                        "post_change_function": "setTestAutoRotate"
+                    }
+                    options["auto_rotate_yaw"] = {
+                        "type": "int",
+                        "default": 0,
+                        "min": -5,
+                        "max": 5,
+                        "label": "Auto Rotate Yaw",
+                        "description": "Auto rotate yaw value.",
+                        "post_change_function": "setTestAutoRotate"
+                    }
         
         # Add existing options
         options.update(super().get_module_options())
         return options
+
+    def setTestPostion(self):
+        shared.Dataship.imus[self.source_imu_index].input.setPostion(self.test_pitch, self.test_roll, self.test_yaw)
     
+    def setTestAutoRotate(self):
+        shared.Dataship.imus[self.source_imu_index].input.setAutoRotate(self.auto_rotate_pitch, self.auto_rotate_roll, self.auto_rotate_yaw)
+
     def changeSource1IMU(self):
         '''
         Change the primary IMU.
         '''
         # source_imu_index_name got changed. find the index of the imu id in the imu list.
         self.source_imu_index = self.imu_ids.index(self.source_imu_index_name)
-        #print("source_imu_index==", self.source_imu_index)
         shared.Dataship.imus[self.source_imu_index].home(delete=True) 
 
     def changeSource2IMU(self):

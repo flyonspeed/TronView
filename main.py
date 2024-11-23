@@ -206,6 +206,8 @@ if __name__ == "__main__":
 
     if args.screen:
         ScreenNameToLoad = args.screen
+    else:
+        ScreenNameToLoad = hud_utils.readConfig("Main", "screen", "F18_HUD")
     if args.l:
         rpi_hardware.list_serial_ports(True)
         sys.exit()

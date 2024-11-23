@@ -6,8 +6,16 @@ if [[ $(uname) != "Linux" ]]; then
 	exit 1
 fi
 
+# Get absolute paths. remove 2 levels from the path because we are in util/macosx
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+TRONVIEW_DIR="$(dirname "$(dirname "$SCRIPT_DIR")")"
+echo "TronView directory: $TRONVIEW_DIR"
 
-printf "Raspberry Pi Setup script Version 0.1.2 \n\n"
+# cat docs/imgs/logo_txt_small.txt
+cat "$TRONVIEW_DIR/docs/imgs/logo_txt_small.txt"
+echo ""
+printf "Raspberry Pi / Linux Setup script Version 0.1.3 \n\n"
+echo "-----------------------------------"
 
 # update apt-get quietly
 echo "Updating apt-get"
@@ -69,6 +77,7 @@ if [ $(cat /etc/os-release | grep "Debian GNU/Linux 12" | wc -l) -eq 1 ]; then
 	# install required packages
 	echo "Installing required python3 packages"
 	sudo apt-get -y install python3 python3-serial python3-pyaudio
+	sudo apt-get -y install dialog
 	sudo pip3 install pygame-ce --break-system-packages
 	sudo pip3 install geographiclib --break-system-packages
 	sudo apt install libsdl2-ttf-2.0-0 
@@ -89,6 +98,7 @@ if [ $(cat /etc/os-release | grep "GNU/Linux 11" | wc -l) -eq 1 ]; then
 	echo "Installing required python3 packages"
 	sudo apt-get -y install python3 python3-serial python3-pyaudio
 	sudo apt-get -y install libsdl2-ttf-2.0-0 
+	sudo apt-get -y install dialog
 	sudo pip3 install pygame-ce
 	sudo pip3 install geographiclib
 	sudo pip3 install Adafruit_ADS1x15
@@ -142,7 +152,7 @@ fi
 
 echo "" # blank line
 echo "----------------------------------------"
-echo "Done. Please reboot your pi now.  Type sudo reboot"
+echo "Done. Your Pi may need to be rebooted to enable serial or i2c.  Type sudo reboot"
 
 
 

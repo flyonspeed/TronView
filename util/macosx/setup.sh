@@ -58,14 +58,18 @@ if ! [[ "$VIRTUAL_ENV" ]]; then
     source "$TRONVIEW_DIR/venv/bin/activate"
 fi
 
-yn=$(get_input "Install Python libraries required by TronView (macOS)?  (y or n)")
-case $yn in
-	[Yy]* )echo "Installing python libs"
-		# install python libs in virtual environment
-		echo "TronView directory: $TRONVIEW_DIR"
-		python3 -m pip install -r "$TRONVIEW_DIR/util/macosx/requirements.txt"
-		;;
-	[Nn]* )echo "..."; 
-esac
+# install python libs in virtual environment
+echo "Installing python libs"
+python3 -m pip install -r "$TRONVIEW_DIR/util/macosx/requirements.txt"
+
+# yn=$(get_input "Install Python libraries required by TronView (macOS)?  (y or n)")
+# case $yn in
+# 	[Yy]* )echo "Installing python libs"
+# 		# install python libs in virtual environment
+# 		echo "TronView directory: $TRONVIEW_DIR"
+# 		python3 -m pip install -r "$TRONVIEW_DIR/util/macosx/requirements.txt"
+# 		;;
+# 	[Nn]* )echo "..."; 
+# esac
 
 

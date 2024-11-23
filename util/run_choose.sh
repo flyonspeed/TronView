@@ -41,6 +41,7 @@ echo "21:  live bno055 (pi only)"
 echo "22:  live bno055 & MGL ( pi only)"
 echo "23:  live bno055 + MGL + Stratux (pi only)"
 echo "24:  live dual bno055 + bno055 (pi only) 25 : live virtual IMU + bno055 + bno055 (pi only)"
+echo "26:  live virtual IMU + bno055 + bno055 (pi only)"
 
 echo "200: live bno085 IMU data (pi only)"
 echo "201: live bno085 + MGL + Stratux (pi only)"
@@ -237,6 +238,14 @@ fi
 if [ $choice -eq 25 ]; then
     if [[ "$OSTYPE" == "linux-gnu"* ]]; then
         run_python "--in1 gyro_virtual --in2 gyro_i2c_bno055 --in3 gyro_virtual"
+    else
+        echo "only supported on pi"
+    fi
+fi
+
+if [ $choice -eq 26 ]; then
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        run_python "--in1 gyro_virtual --in2 gyro_i2c_bno055 --in3 gyro_i2c_bno055 "
     else
         echo "only supported on pi"
     fi

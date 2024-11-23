@@ -37,17 +37,17 @@ echo "12:  Stratux ONLY Demo 54"
 echo "13:  Stratux ONLY Demo 57 (Bad pitch/roll)"
 echo "14:  Stratux ONLY Demo 5 - Shows traffic targets only, No AHRS data"
 
-echo "21:  live i2c bno055 IMU data (pi only)"
-echo "22:  live i2c bno055 & MGL ( pi only)"
-echo "23:  live i2c bno055 + MGL + Stratux (pi only)"
-echo "24:  live dual bno055 + bno055 (pi only) 25 : live bno085 + virtual IMU (pi only)"
+echo "21:  live bno055 (pi only)"
+echo "22:  live bno055 & MGL ( pi only)"
+echo "23:  live bno055 + MGL + Stratux (pi only)"
+echo "24:  live dual bno055 + bno055 (pi only) 25 : live virtual IMU + bno055 (pi only)"
 
 echo "200: live bno085 IMU data (pi only)"
 echo "201: live bno085 + MGL + Stratux (pi only)"
+echo "202: live virtual imu + bno085  (pi only)"
 echo "205: bno085 DEMO DATA"
 
 echo "210: 1 Virtual IMU, 211: 2 Virtual IMUs"
-
 
 echo "Type 't' after number to run in text mode. Example: 3t"
 echo "Type 'm' after number to run multiple threads for inputs. Example: 3m"
@@ -235,7 +235,7 @@ fi
 
 if [ $choice -eq 25 ]; then
     if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-        run_python "-i gyro_i2c_bno085 --in2 gyro_virtual"
+        run_python "--in2 gyro_i2c_bno055 --in1 gyro_virtual"
     else
         echo "only supported on pi"
     fi
@@ -254,6 +254,14 @@ if [ $choice -eq 201 ]; then
     # linux/raspberry pi only
     if [[ "$OSTYPE" == "linux-gnu"* ]]; then
         run_python "-i serial_mgl --playfile1 mgl_chase_rv6_1.dat --in3 stratux_wifi --playfile3 stratux_chase_rv6_1.dat -s F18_HUD --in2 gyro_i2c_bno085"
+    else
+        echo "only supported on pi"
+    fi
+fi
+
+if [ $choice -eq 202 ]; then
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        run_python "--in2 gyro_i2c_bno085 --in1 gyro_virtual"
     else
         echo "only supported on pi"
     fi

@@ -11,6 +11,8 @@ import statistics
 from lib.common.dataship.dataship_imu import IMU
 import math
 import binascii
+import traceback
+
 
 class gyro_i2c_bno055(Input):
     def __init__(self):
@@ -180,6 +182,7 @@ class gyro_i2c_bno055(Input):
         except Exception as e:
             aircraft.errorFoundNeedToExit = True
             print(e)
+            traceback.print_exc()
 
         return aircraft
 

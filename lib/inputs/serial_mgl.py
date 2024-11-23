@@ -101,9 +101,9 @@ class serial_mgl(Input):
                             )
                             aircraft.pitch = round(PitchAngle * 0.1, 1)  # truncate to 1 decimal place
                             aircraft.roll = round(BankAngle * 0.1, 1)  #
-                            aircraft.yaw = YawAngle 
+                            aircraft.yaw = round(YawAngle * 0.1, 1) 
                             if HeadingMag != 0:
-                                aircraft.mag_head = int(HeadingMag * 0.1)
+                                aircraft.mag_head = round(HeadingMag * 0.1,1)
                             else:
                                 aircraft.mag_head = 0
                             aircraft.turn_rate = round(TurnRate * 0.1, 1)

@@ -26,12 +26,12 @@ $RUN_PREFIX pkill -f 'python3'
 echo "Choose which demo/test to run:"
 #echo "1:   G3X - EFIS"
 #echo "2:   G3X - AOA Test data"
-echo "3:   MGL & Stratux - chasing traffic, 4: MGL - G430 CDI, 5: MGL - Gyro Test"
+echo "3:   MGL + Stratux + vIMU- chasing traffic, 4: MGL - G430 CDI, 5: MGL - Gyro Test"
 
 echo "6:   Dynon D100"
 echo "7:   Dynon Skyview"
 
-echo "9, 10, or 11:   MGL & Stratux RV6 Chase 1, 2, or 3"
+echo "9, 10, or 11:   MGL + Stratux + vIMU RV6 Chase 1, 2, or 3"
 
 echo "12:  Stratux ONLY Demo 54"
 echo "13:  Stratux ONLY Demo 57 (Bad pitch/roll)"
@@ -47,7 +47,8 @@ echo "201: live bno085 + MGL + Stratux (pi only)"
 echo "202: live virtual imu + bno085  (pi only)"
 echo "205: bno085 DEMO DATA"
 
-echo "210: 1 Virtual IMU, 211: 2 Virtual IMUs"
+echo "300: 1 Virtual IMU, 301: 2 Virtual IMUs"
+
 
 echo "Type 't' after number to run in text mode. Example: 3t"
 echo "Type 'm' after number to run multiple threads for inputs. Example: 3m"
@@ -137,7 +138,7 @@ fi
 ########################################################
 
 if [ $choice -eq 3 ]; then
-    run_python "-i serial_mgl --playfile1 mgl_8.dat --in2 stratux_wifi --playfile2 stratux_8.dat"
+    run_python "-i serial_mgl --playfile1 mgl_8.dat --in2 stratux_wifi --playfile2 stratux_8.dat --in3 gyro_virtual"
 fi
 
 if [ $choice -eq 4 ]; then
@@ -165,15 +166,15 @@ fi
 ########################################################
 
 if [ $choice -eq 9 ]; then
-    run_python "-i serial_mgl --playfile1 mgl_chase_rv6_1.dat --in2 stratux_wifi --playfile2 stratux_chase_rv6_1.dat"
+    run_python "-i serial_mgl --playfile1 mgl_chase_rv6_1.dat --in2 stratux_wifi --playfile2 stratux_chase_rv6_1.dat --in3 gyro_virtual"
 fi
 
 if [ $choice -eq 10 ]; then
-    run_python "-i serial_mgl --playfile1 mgl_chase_rv6_2.dat --in2 stratux_wifi --playfile2 stratux_chase_rv6_2.dat"
+    run_python "-i serial_mgl --playfile1 mgl_chase_rv6_2.dat --in2 stratux_wifi --playfile2 stratux_chase_rv6_2.dat --in3 gyro_virtual"
 fi
 
 if [ $choice -eq 11 ]; then
-    run_python "-i serial_mgl --playfile1 mgl_chase_rv6_3.dat --in2 stratux_wifi --playfile2 stratux_chase_rv6_3.dat"
+    run_python "-i serial_mgl --playfile1 mgl_chase_rv6_3.dat --in2 stratux_wifi --playfile2 stratux_chase_rv6_3.dat --in3 gyro_virtual"
 fi
 
 ########################################################

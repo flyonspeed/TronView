@@ -11,8 +11,10 @@ We are working on several new features.
 - Show/Hide screen modules based on key commands or other inputs. (event handlers)
 - Additional IMU/Gyro support (BNO085, BNO055)
 - Looking into live data broadcast to other TronView displays (that would be cool!)
-- Moving Map?
+- Moving Map.
 - More external sensors (Pressure, Voltage, GPS, etc)
+- Touch screen support (New Raspberry Pi Touchscreen v2)
+- Dual Screen support (Main + AR Glasses)
 
 ## Features Include:
 - Build custom efis or hud screens or AR glasses screen. (or any kinda of screen you want)
@@ -28,7 +30,7 @@ We are working on several new features.
 - Display flight data in Knots, Standard, Metric, F or C
 - Designed for Raspberry Pi 4/5 but also runs on Mac OSx, Windows, and other linux systems.
 - Show NAV needles for approaches. (If NAV data is available)
-- Use multiple data input sources, (MGL, G3x, Dynon, iLevil, stratux, Adafruit ADS1115, BNO055, BNO085, Generic Serial Logger)
+- Use multiple data input sources, (MGL, G3x, Dynon, iLevil, stratux, Analog CDI via ADS1115, IMU BNO055 & BNO085, Generic Serial Logger)
 
 
 # Quick Start for Raspberry Pi and Mac OS
@@ -49,6 +51,9 @@ We are working on several new features.
 
 ## Text Mode
 ![hud_animation](docs/efis_screenshot_text.png?raw=true)
+
+## Engine/System Display in Classic Pinzgauer Swiss Military Vehicle
+![pinzgauer](docs/imgs/pinz1.jpeg?raw=true)
 
 
 # About

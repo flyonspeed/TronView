@@ -32,6 +32,13 @@ class horizon_v2(Module):
         self.horizon_line_color = (255, 165, 0)  # Default default to orange
         self.horizon_line_thickness = 4  # Default thickness
         self.horizon_line_length = 0.8  # Percentage of screen width
+       
+        self.source_imu_index_name = ""  # name of the primary imu. used to the aircraft heading, pitch, roll
+        self.source_imu_index = 0  # index of the primary imu.
+        self.source_imu_index2_name = "NONE"  # name of the secondary imu. (optional)
+        self.source_imu_index2 = None  # index of the secondary imu. (optional)
+        self.camera_head_imu = None  # IMU object for camera head. Human Head view.
+               
 
     # called once for setup
     def initMod(self, pygamescreen, width=None, height=None):
@@ -63,7 +70,6 @@ class horizon_v2(Module):
         self.caged_mode = 1 # default on
         self.center_circle_mode = hud_utils.readConfigInt("HUD", "center_circle", 4)
 
-
         # sampling for flight path.
         self.readings = []  # Setup moving averages to smooth a bit
         self.max_samples = 30 # FPM smoothing
@@ -74,13 +80,6 @@ class horizon_v2(Module):
         self.xCenter = self.width // 2
         self.yCenter = self.height // 2
 
-        self.source_imu_index_name = ""  # name of the primary imu.
-        self.source_imu_index = 0  # index of the primary imu.
-
-        self.source_imu_index2_name = ""  # name of the secondary imu. (optional)
-        self.source_imu_index2 = None  # index of the secondary imu. (optional)
-        self.camera_head_imu = None  # IMU object for camera head. Human Head view.
-       
 
     #############################################
     ## Function: generateHudReferenceLineArray
@@ -275,6 +274,9 @@ class horizon_v2(Module):
 
 
     def draw_center(self,smartdisplay, x_offset, y_offset):
+        '''
+        Draw the center circle.
+        '''
         center_x = x_offset + self.width // 2
         center_y = y_offset + self.height // 2
 
@@ -349,6 +351,9 @@ class horizon_v2(Module):
             )
 
     def draw_flight_path(self,aircraft,smartdisplay, x_offset, y_offset):
+        '''
+        Draw the flight path indicator.
+        '''
         def mean(nums):
             return int(sum(nums)) / max(len(nums), 1)
 
@@ -468,8 +473,11 @@ class horizon_v2(Module):
             aircraft.flightPathMarker_x = fpv_x # save to aircraft object for other modules to use.
 
 
-    # called every redraw for the mod
+    # called every redraw for this screen module
     def draw(self, aircraft, smartdisplay, pos=(0, 0)):
+        '''
+        Draw method to draw all the elements of the horizon.
+        '''
         x, y = pos
         
         # Clear the surface before drawing
@@ -585,12 +593,6 @@ class horizon_v2(Module):
             self.surface.blit(labelAngle, (int(xx) + 10, int(yy) + labelCallsign_rect.height))
 
 
-    # update a setting
-    def setting(self,key,var):
-        print("setting ",key,var)
-        locals()[key] = var
-        print("setting ",locals()[key])
-
     # cycle through the modes.
     def cyclecaged_mode(self):
         self.caged_mode = self.caged_mode + 1
@@ -600,10 +602,6 @@ class horizon_v2(Module):
     def clear(self):
         #self.ahrs_bg.fill((0, 0, 0))  # clear screen
         print("clear")
-
-    # handle key events
-    def processEvent(self, event):
-        print("processEvent")
 
     # return a dict of objects that are used to configure the module.
     def get_module_options(self):
@@ -754,14 +752,13 @@ class horizon_v2(Module):
         aircraft_roll_rad = math.radians(aircraft.roll)
         
         # Calculate total pitch effect (aircraft + camera)
-        # When looking forward/back, use full pitch
-        # When looking sideways, pitch effect diminishes based on cos of yaw
-        pitch_effect = (aircraft.pitch - camera_pitch_offset) * math.cos(camera_yaw_rad)
+        # Invert pitch since positive pitch should move horizon line down
+        pitch_effect = -(aircraft.pitch - camera_pitch_offset) * math.cos(camera_yaw_rad)
         
         # Calculate roll effect
-        # Combine aircraft roll with camera roll
         # When looking sideways, aircraft pitch creates apparent roll
-        roll_effect = (aircraft.roll - camera_roll_offset) * math.cos(camera_yaw_rad) + \
+        # Invert roll to match aircraft orientation
+        roll_effect = -(aircraft.roll - camera_roll_offset) * math.cos(camera_yaw_rad) - \
                      aircraft.pitch * math.sin(camera_yaw_rad)
         
         # Convert pitch to screen pixels
@@ -774,8 +771,8 @@ class horizon_v2(Module):
         roll_rad = math.radians(roll_effect)
         
         # Calculate line endpoints
-        dx = math.cos(roll_rad) * self.width * 2  # Extended length to ensure coverage
-        dy = math.sin(roll_rad) * self.width * 2
+        dx = math.cos(roll_rad) * self.width * self.horizon_line_length
+        dy = math.sin(roll_rad) * self.width * self.horizon_line_length
         
         x1 = center_x - dx
         y1 = horizon_y - dy

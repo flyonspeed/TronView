@@ -26,8 +26,7 @@ class object3d(Module):
 
         self.source_imu_index_name = ""  # name of the primary imu.
         self.source_imu_index = 0  # index of the primary imu.
-
-        self.source_imu_index2_name = ""  # name of the secondary imu. (optional)
+        self.source_imu_index2_name = "NONE"  # name of the secondary imu. (optional)
         self.source_imu_index2 = None  # index of the secondary imu. (optional)
 
         self.show_xyz = False

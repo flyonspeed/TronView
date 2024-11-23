@@ -71,6 +71,22 @@ class gyro_i2c_bno055(Input):
             self.bno.offsets_accelerometer = (9, -72, -23)
             self.bno.offsets_gyroscope = (1, 4, -1)
  
+        # create a empty imu object.
+        self.imuData = IMU()
+        self.imuData.id = self.id
+        self.imuData.name = self.name
+        self.imuData.address = self.address
+        self.imuData.home_pitch = None
+        self.imuData.home_roll = None
+        self.imuData.home_yaw = None
+
+        # create imu in dataship object. append to dict with key as num_imus.
+        aircraft.imus[self.num_imus] = self.imuData
+
+        self.last_read_time = time.time()
+        self.start_time = time.time()
+
+
     def closeInput(self,aircraft):
         print("bno055("+str(self.inputNum)+") close")
 

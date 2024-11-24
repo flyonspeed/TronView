@@ -368,7 +368,11 @@ class horizon_v2(Module):
             fpv_x = mean(self.readings)  # Moving average to smooth a bit
             if len(self.readings) == self.max_samples:
                 self.readings.pop(0)
-        gfpv_x = ((((aircraft.mag_head - aircraft.gndtrack) + 180) % 360) - 180) * 1.5  + (
+        
+        use_heading = aircraft.mag_head
+        if aircraft.mag_head is None and aircraft.gndtrack is not None:
+            use_heading = aircraft.gndtrack
+        gfpv_x = ((((use_heading - aircraft.gndtrack) + 180) % 360) - 180) * 1.5  + (
             aircraft.turn_rate * 5
         )
         self.readings1.append(gfpv_x)
@@ -543,8 +547,19 @@ class horizon_v2(Module):
         smartdisplay.pygamescreen.blit(self.surface, pos)
 
     def draw_target(self, t, aircraft):
+        '''
+        Draw a target on the screen.
+        '''
+        heading_to_use = aircraft.mag_head
+        # if aircraft.mag_head is None then check if aircraft.gndtrack is not None
+        if aircraft.mag_head is None and aircraft.gndtrack is not None:
+            heading_to_use = aircraft.gndtrack
+        else:
+            # else can't use either so don't draw it.
+            return
+
         # Calculate the relative bearing to the target
-        relative_bearing = (t.brng - aircraft.mag_head + 180) % 360 - 180
+        relative_bearing = (t.brng - heading_to_use + 180) % 360 - 180
 
         # Check if the target is within the field of view
         if abs(relative_bearing) > self.fov_x / 2:

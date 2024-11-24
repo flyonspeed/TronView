@@ -157,6 +157,16 @@ class heading(Module):
 
         hdg_hdg = aircraft.mag_head
         gnd_trk = self.roint(aircraft.gndtrack)
+        if aircraft.mag_head is None and aircraft.gndtrack is not None:
+            hdg_hdg = aircraft.gndtrack
+        elif aircraft.gndtrack is None and aircraft.mag_head is not None:
+            gnd_trk = aircraft.mag_head
+        else:
+            # can't use either so don't draw it.
+            # draw a x in the center of the screen.
+            pygame.draw.line(self.pygamescreen, (255, 0, 0), [self.width // 2 - 10, self.height // 2], [self.width // 2 + 10, self.height // 2], 3)
+            pygame.draw.line(self.pygamescreen, (255, 0, 0), [self.width // 2, self.height // 2 - 10], [self.width // 2, self.height // 2 + 10], 3)
+            return
 
         # Initialize current_display_hdg if None
         if self.current_display_hdg is None:

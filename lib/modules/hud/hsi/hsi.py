@@ -284,6 +284,8 @@ class hsi(Module):
             y_pos = pos[1] + self.height / 2
 
         target_heading = aircraft.mag_head
+        if aircraft.mag_head is None and aircraft.gndtrack is not None:
+            target_heading = aircraft.gndtrack
         
         # Initialize current_heading if None
         if self.current_heading is None:

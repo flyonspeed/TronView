@@ -46,7 +46,7 @@ handle_menu_exit() {
     local exit_status=$1
     if [ $exit_status -ne 0 ]; then  # Changed from -eq 1 to -ne 0
         if [ "$2" = "main" ]; then
-            clear
+            #clear
             echo "Exiting..."
             exit 0
         else
@@ -142,7 +142,7 @@ while true; do
                                   --menu "Choose a demo:" 20 60 10 \
                                   "1" "Demo 54" \
                                   "2" "Demo 57 (Bad pitch/roll)" \
-                                  "3" "Demo 5 - Traffic targets only" \
+                                  "3" "Demo stratux_8 - Traffic targets only" \
                                   2>&1 1>&3)
                 exit_status=$?
                 exec 3>&-
@@ -151,7 +151,7 @@ while true; do
                     case $subchoice in
                         1) choice="-i stratux_wifi -c stratux_54.dat" ;;
                         2) choice="-i stratux_wifi -c stratux_57.dat" ;;
-                        3) choice="-i stratux_wifi" ;;
+                        3) choice="-i stratux_wifi -c stratux_8.dat" ;;
                     esac
                     break  # Break just the inner loop
                 else
@@ -221,7 +221,7 @@ while true; do
     # If we have a valid choice, show additional options
     if [ ! -z "$choice" ]; then
         # Clear the dialog window
-        clear
+        #clear
 
         # Additional options dialog
         exec 3>&1
@@ -276,7 +276,7 @@ done
 # Only run if we have a valid choice
 if [ ! -z "$choice" ]; then
     # Clear the dialog window
-    clear
+    #clear
 
     # Function to run python commands
     run_python() {
@@ -294,5 +294,5 @@ if [ ! -z "$choice" ]; then
     fi
 fi
 
-echo "To run again type: ./util/run.sh"
+echo "To run again type: ./util/run.sh (make sure you are in the TronView directory)"
 

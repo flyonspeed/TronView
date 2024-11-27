@@ -403,6 +403,21 @@ def main_edit_loop():
                     # Undo functionality
                     elif event.key == pygame.K_z and (mods & pygame.KMOD_CTRL):
                         undo_last_change(shared.Change_history, shared)
+                
+                # check for joystick events
+                if event.type == pygame.JOYBUTTONDOWN or event.type == pygame.JOYBUTTONUP:
+                    print("Joystick event: %s" % pygame.event.event_name(event.type))
+
+                if event.type == pygame.JOYDEVICEADDED:
+                    # This event will be generated when the program starts for every
+                    # joystick, filling up the list without needing to create them manually.
+                    joy = pygame.joystick.Joystick(event.device_index)
+                    # look if there is any gyro_joystick in the list
+                    for index, inputObj in shared.Inputs.items():
+                        print("inputObj: %s" % inputObj.name)
+                        if inputObj.name == "imuJoystick":
+                            inputObj.setJoystick(joy)
+                            break
 
                 # check for Mouse events
                 if event.type == pygame.MOUSEBUTTONDOWN or event.type == pygame.FINGERDOWN:

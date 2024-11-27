@@ -12,6 +12,7 @@ version = "0.2"
 
 ser = None
 port = "/dev/ttyS0"  # default serial port
+backup_port = "/dev/ttyUSB0"
 counter = 0
 badmessageheaderCount = 0
 goodmessageheaderCount = 0
@@ -392,7 +393,7 @@ def list_serial_ports(printthem):
             if(printthem==True): print("found serial port: "+com_port)
             rtn.append(com_port)
         if 'ttyUSB' in com_port:
-            if(printthem==True): print("found serial port: "+com_port)
+            if(printthem==True): print("found USB serial port: "+com_port)
             rtn.append(com_port)
     return rtn
 
@@ -439,7 +440,7 @@ print_xy(
 )
 
 try:
-    ser=serial.Serial(
+    ser = serial.Serial(
         port=port,
         baudrate=115200,
         parity=serial.PARITY_NONE,
@@ -447,14 +448,28 @@ try:
         bytesize=serial.EIGHTBITS,
         timeout=1,
     )
-
 except:
-    print("Unable to open serial port: "+port)
-    print("Try passing in port to command line with -i <port>"+port)
-    print("Here is a list of ports found:")
-    list_serial_ports(True)
-    sys.exit()
-print("Opened port: "+port+ " @115200 baud (cntrl-c to quit)")
+    print(f"Unable to open primary serial port: {port}")
+    print(f"Trying backup port: {backup_port}")
+    try:
+        ser = serial.Serial(
+            port=backup_port,
+            baudrate=115200,
+            parity=serial.PARITY_NONE,
+            stopbits=serial.STOPBITS_ONE,
+            bytesize=serial.EIGHTBITS,
+            timeout=1,
+        )
+        print(f"Successfully opened port: {backup_port}")
+        port = backup_port
+    except:
+        print(f"Unable to open port: {backup_port}")
+        print("Try passing in port to command line with -i <port>")
+        print("Here is a list of ports found:")
+        list_serial_ports(True)
+        sys.exit()
+
+print(f"Opened port: {port} @115200 baud (cntrl-c to quit)")
 
 if readType == "skyview":
     print_xy(2, 0, "Data format: " + bcolors.OKBLUE + "Dynon Skyview" + bcolors.ENDC)

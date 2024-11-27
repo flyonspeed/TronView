@@ -39,6 +39,7 @@ declare -a menu_options=(
     "Stratux Demos" "Stratux only demos"
     "IMU Tests" "IMU related tests (Pi only)"
     "Virtual IMU" "Virtual IMU demos"
+    "Tests" "Tests"
 )
 
 # Function to handle menu exit codes
@@ -80,6 +81,7 @@ while true; do
     case $choice in
         ############################################################################
         "MGL Demos")
+            SHOW_ADDITIONAL_OPTIONS=true
             while true; do
                 exec 3>&1
                 subchoice=$(dialog --clear --title "MGL Demos" \
@@ -112,6 +114,7 @@ while true; do
             ;;
         ############################################################################
         "Dynon Demos")
+            SHOW_ADDITIONAL_OPTIONS=true
             while true; do
                 exec 3>&1
                 subchoice=$(dialog --clear --title "Dynon Demos" \
@@ -136,6 +139,7 @@ while true; do
             ;;
         ############################################################################
         "Stratux Demos")
+            SHOW_ADDITIONAL_OPTIONS=true
             while true; do
                 exec 3>&1
                 subchoice=$(dialog --clear --title "Stratux Demos" \
@@ -162,6 +166,7 @@ while true; do
             ;;
         ############################################################################
         "IMU Tests")
+            SHOW_ADDITIONAL_OPTIONS=true
             while true; do
                 exec 3>&1
                 subchoice=$(dialog --clear --title "IMU Tests" \
@@ -194,12 +199,14 @@ while true; do
             ;;
         ############################################################################
         "Virtual IMU")
+            SHOW_ADDITIONAL_OPTIONS=true
             while true; do
                 exec 3>&1
                 subchoice=$(dialog --clear --title "Virtual IMU" \
                                   --menu "Choose a demo:" 20 60 10 \
                                   "1" "1 Virtual IMU" \
                                   "2" "2 Virtual IMUs" \
+                                  "3" "Joystick vIMU + Virtual IMU" \
                                   2>&1 1>&3)
                 exit_status=$?
                 exec 3>&-
@@ -208,6 +215,7 @@ while true; do
                     case $subchoice in
                         1) choice="--in1 gyro_virtual" ;;
                         2) choice="--in1 gyro_virtual --in2 gyro_virtual" ;;
+                        3) choice="--in1 gyro_joystick --in2 gyro_virtual" ;;
                     esac
                     break  # Break just the inner loop
                 else
@@ -216,10 +224,46 @@ while true; do
                 fi
             done
             ;;
+        ############################################################################
+        "Tests")
+            SHOW_ADDITIONAL_OPTIONS=false
+            while true; do
+                exec 3>&1
+                subchoice=$(dialog --clear --title "Tests" \
+                                  --menu "Choose a test:" 20 60 10 \
+                                  "1" "Test Joystick" \
+                                  "2" "Raw Serial Read" \
+                                  "3" "Read Serial MGL" \
+                                  "4" "Read Serial Dynon Skyview" \
+                                  "5" "Read Serial Garmin G3x" \
+                                  2>&1 1>&3)
+                exit_status=$?
+                exec 3>&-
+                
+                if handle_menu_exit $exit_status "sub"; then
+                    case $subchoice in
+                        1) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/joystick.py" ;;
+                        2) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/serial_raw.py" ;;
+                        3) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/serial_read.py -m" ;;
+                        4) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/serial_read.py -s" ;;
+                        5) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/serial_read.py -g" ;;
+                    esac
+                    echo "Running: $FULL_COMMAND"
+                    #exit 0
+                    # goto the end of the loop
+                    break 2
+                else
+
+                    break  # Break the inner loop to return to main menu
+                fi
+            done
+            ;;
+
     esac
 
+
     # If we have a valid choice, show additional options
-    if [ ! -z "$choice" ]; then
+    if [ ! -z "$choice"  ] && $SHOW_ADDITIONAL_OPTIONS; then
         # Clear the dialog window
         #clear
 
@@ -293,6 +337,12 @@ if [ ! -z "$choice" ]; then
         echo "IMU options only supported on Linux/Raspberry Pi"
     fi
 fi
+
+if [ ! -z "$FULL_COMMAND" ]; then
+    eval "$FULL_COMMAND"
+fi
+
+
 
 echo "To run again type: ./util/run.sh (make sure you are in the TronView directory)"
 

@@ -145,13 +145,13 @@ fi
 
 if [[ $selections == *"AutoRun"* ]] && [ $(cat /etc/os-release | grep "Debian GNU/Linux 12" | wc -l) -eq 1 ]; then
     echo "Setting up autorun"
-    sudo echo '[Desktop Entry]
-    Type=Application
-    Name=StartTronView
-    Path='$TRONVIEW_DIR'
-    Exec=lxterminal -e '$TRONVIEW_DIR'/util/run.sh
-    Terminal=true
-    StartupNotify=false' >> /etc/xdg/autostart/start_tronview.desktop
+    sudo bash -c 'echo "[Desktop Entry]
+Type=Application
+Name=StartTronView
+Path='$TRONVIEW_DIR'
+Exec=lxterminal -e '$TRONVIEW_DIR'/util/run.sh
+Terminal=true
+StartupNotify=false" > /etc/xdg/autostart/start_tronview.desktop'
 fi
 
 if [[ $selections == *"Desktop"* ]]; then

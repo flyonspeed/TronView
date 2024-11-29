@@ -111,71 +111,50 @@ if [ $(cat /etc/os-release | grep "GNU/Linux 11" | wc -l) -eq 1 ]; then
 	fi
 fi
 
-# Function to get user input with a prompt
-get_input() {
-    prompt="$1"
-    # Print prompt to stderr and read from stdin
-    echo "$prompt" >&2
-    read response </dev/tty
-    echo "$response"
-}
+# Create temporary file for dialog output
+temp_file=$(mktemp)
 
-# Replace read -p sections with the new function
-yn=$(get_input "Install BNO055 IMU python library? (y or n)")
-case $yn in
-    [Yy]* )
-        echo "Installing BNO055 IMU python library"
-        sudo pip3 install adafruit-circuitpython-bno055 $pip_args
-        ;;
-esac
+# Main dialog menu
+dialog --clear --title "Sensor Installation" \
+       --checklist "Select options to install:" 15 60 3 \
+       "BNO055" "Bosch BNO055 9-DOF sensor" OFF \
+       "BNO085" "Bosch BNO085 9-DOF sensor" OFF \
+       "AutoRun" "Setup autorun on boot" OFF \
+       2> $temp_file
 
-yn=$(get_input "Install BNO085 IMU python library? (y or n)")
-case $yn in
-    [Yy]* )
-        echo "Installing BNO085 IMU python library"
-        sudo pip3 install adafruit-circuitpython-bno08x $pip_args
-        ;;
-esac
+# Read selections
+selections=$(cat $temp_file)
 
-# check if /boot/config.txt has already been modified to support 400000 i2c baud rate
-if grep -q "dtparam=i2c_arm_baudrate=400000" /boot/config.txt; then
-	echo "i2c baud rate already set to 400000"
-else
-	yn=$(get_input "The BNO085 IMU requires a faster i2c baud rate of 400000. Set i2c baud rate to 400000? (y or n)")
-	case $yn in
-		[Yy]* )
-			echo "Setting i2c baud rate to 400000"
-			sudo bash -c 'echo "dtparam=i2c_arm_baudrate=400000" >> /boot/config.txt'
-			;;
-	esac
+# Process selections
+if [[ $selections == *"BNO055"* ]]; then
+    echo "Installing BNO055 IMU python library"
+    sudo pip3 install adafruit-circuitpython-bno055 $pip_args
 fi
 
-# setup autorun.  only for bookworm.
-# create a desktop entry in /etc/xdg/autostart
-# [Desktop Entry]
-# Type=Application
-# Name=StartTronView
-# Path=/home/nerd/dev/TronView/
-# #Exec=/home/nerd/dev/TronView/util/run.sh
-# Exec=lxterminal -e /home/nerd/dev/TronView/util/run.sh
-# #Exec=lxterminal
-# Terminal=true
-# StartupNotify=false
-if [ $(cat /etc/os-release | grep "Debian GNU/Linux 12" | wc -l) -eq 1 ]; then
-	yn=$(get_input "Setup TronView to auto-run at startup? (y or n)")
-	case $yn in
-	[Yy]* )
-		echo "Setting up autorun"
-		sudo echo '[Desktop Entry]
-		Type=Application
-		Name=StartTronView
-		Path='$TRONVIEW_DIR'
-		Exec=lxterminal -e '$TRONVIEW_DIR'/util/run.sh
-		Terminal=true
-		StartupNotify=false' >> /etc/xdg/autostart/start_tronview.desktop
-			;;
-	esac
+if [[ $selections == *"BNO085"* ]]; then
+    echo "Installing BNO085 IMU python library"
+    sudo pip3 install adafruit-circuitpython-bno08x $pip_args
+    
+    # Automatically set I2C baud rate for BNO085
+    if ! grep -q "dtparam=i2c_arm_baudrate=400000" /boot/config.txt; then
+        echo "Setting i2c baud rate to 400000"
+        sudo bash -c 'echo "dtparam=i2c_arm_baudrate=400000" >> /boot/config.txt'
+    fi
 fi
+
+if [[ $selections == *"AutoRun"* ]] && [ $(cat /etc/os-release | grep "Debian GNU/Linux 12" | wc -l) -eq 1 ]; then
+    echo "Setting up autorun"
+    sudo echo '[Desktop Entry]
+    Type=Application
+    Name=StartTronView
+    Path='$TRONVIEW_DIR'
+    Exec=lxterminal -e '$TRONVIEW_DIR'/util/run.sh
+    Terminal=true
+    StartupNotify=false' >> /etc/xdg/autostart/start_tronview.desktop
+fi
+
+# Clean up
+rm -f $temp_file
 
 echo "" # blank line
 echo "----------------------------------------"

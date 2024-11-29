@@ -23,12 +23,12 @@ save_last_run() {
     local args="$2"
     local timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
     local auto_run="$3"    
-    $RUN_PREFIX echo "{
+    eval "$RUN_PREFIX echo '{
     \"name\": \"$name\",
     \"args\": \"$args\",
     \"timestamp\": \"$timestamp\",
     \"auto_run\": $auto_run
-}" > "$TRONVIEW_DIR/data/system/last_run.json"
+}' > \"$TRONVIEW_DIR/data/system/last_run.json\""
 }
 
 # Function to run python commands

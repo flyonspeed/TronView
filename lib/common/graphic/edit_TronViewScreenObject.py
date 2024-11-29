@@ -263,7 +263,7 @@ class TronViewScreenObject:
                             if post_change_function:
                                 post_change_function()
                     except Exception as e:
-                            print("Error setting module (%s) option (%s): %s" % (self.module.name, option['name'], e))
+                            print("NOTICE: setting module (%s) option (%s): %s" % (self.module.name, option['name'], e))
                 # now that the options are set lets call initMod one more time.
                 self.module.initMod(self.pygamescreen, self.width, self.height)
         

@@ -1,10 +1,54 @@
 #!/bin/bash
 # Run TronView with a menu for selecting demos and options
+# using dialog to build menus.  https://man.uex.se/1/dialog
 # Nov 22, 2024.  Topher.
 
 # Get absolute paths
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 TRONVIEW_DIR="$(dirname "$SCRIPT_DIR")"
+
+if [[ "$OSTYPE" == "darwin"* ]]; then # Check if we're running on macOS
+    RUN_PREFIX=""
+else # else Linux we have to do everything as sudo so the app gets access to the serial ports and i2c
+    RUN_PREFIX="sudo"
+fi
+
+# Create data directory if it doesn't exist
+$RUN_PREFIX mkdir -p "$TRONVIEW_DIR/data"
+$RUN_PREFIX mkdir -p "$TRONVIEW_DIR/data/system"
+
+# Function to save last run configuration
+save_last_run() {
+    local name="$1"
+    local args="$2"
+    local timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+    local auto_run="$3"    
+    
+    # Create the JSON content first
+    local json_content='{
+    "name": "'"$name"'",
+    "args": "'"$args"'",
+    "timestamp": "'"$timestamp"'",
+    "auto_run": '"$auto_run"'
+}'
+    
+    # Use tee with sudo to write the file
+    echo "$json_content" | $RUN_PREFIX tee "$TRONVIEW_DIR/data/system/last_run.json" >/dev/null
+    
+    # check for success
+    if [ $? -ne 0 ]; then
+        echo "Error saving ($RUN_PREFIX) last run configuration to $TRONVIEW_DIR/data/system/last_run.json"
+    fi
+}
+
+# Function to run python commands
+run_python() {
+    cd "$TRONVIEW_DIR" || exit
+    echo "Running from directory: $(pwd)"
+    echo "Using Python: $(which python3)"
+    eval "$RUN_PREFIX python3 $TRONVIEW_DIR/main.py $* $ADD_ARGS"
+}
+
 
 # Check if dialog is installed
 if ! command -v dialog &> /dev/null; then
@@ -19,28 +63,38 @@ if ! command -v dialog &> /dev/null; then
     fi
 fi
 
-# Check if we're running on macOS
+# Check if we're running on macOS.  Create a python virtual environment and activate it.
 if [[ "$OSTYPE" == "darwin"* ]]; then
-    RUN_PREFIX=""
     echo "Activating venv at: $TRONVIEW_DIR/venv/bin/activate"
     source "$TRONVIEW_DIR/venv/bin/activate"
     which python3
-else
-    RUN_PREFIX="sudo"
 fi
 
 # kill any running python3 processes
-$RUN_PREFIX pkill -f 'python3'
+#$RUN_PREFIX pkill -f 'python3'
 
-# Create menu options array
-declare -a menu_options=(
-    "MGL Demos" "MGL related demos and tests" 
-    "Dynon Demos" "Dynon related demos"
-    "Stratux Demos" "Stratux only demos"
-    "IMU Tests" "IMU related tests (Pi only)"
-    "Virtual IMU" "Virtual IMU demos"
-    "Tests" "Tests"
-)
+# Load last run configuration if it exists
+LAST_RUN_FILE="$TRONVIEW_DIR/data/system/last_run.json"
+if [ -f "$LAST_RUN_FILE" ]; then
+    # if jq in not installed then install it on linux
+    if ! command -v jq &> /dev/null; then
+        if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+            echo "jq is not installed. Installing..."
+            sudo apt-get install jq -y
+        fi
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            brew install jq
+        fi
+    fi
+
+    # Add "Last Run" as first menu option
+    if command -v jq &> /dev/null; then
+        LAST_NAME=$(jq -r '.name' "$LAST_RUN_FILE")
+        LAST_ARGS=$(jq -r '.args' "$LAST_RUN_FILE")
+        LAST_TIME=$(jq -r '.timestamp' "$LAST_RUN_FILE")
+        LAST_AUTO_RUN=$(jq -r '.auto_run' "$LAST_RUN_FILE")
+    fi
+fi
 
 # Function to handle menu exit codes
 handle_menu_exit() {
@@ -57,11 +111,60 @@ handle_menu_exit() {
     return 0
 }
 
+################################################################################
+################################################################################
+## AUTO-RUN ???
+# If there was a last run, show dialog to run it again
+if [ -f "$LAST_RUN_FILE" ] && [ "$LAST_AUTO_RUN" = "true" ]; then
+    exec 3>&1
+    dialog --clear \
+           --title "TronView Auto-Run in 10 seconds" \
+           --pause "\nRun TronView: $LAST_NAME\n\nPress OK to run again\nPress Cancel or ESC for menu" \
+           12 60 10
+    exit_status=$?
+    exec 3>&-
+    #echo "Last run exit status: $exit_status"
+    case $exit_status in
+        0)  # OK pressed or timeout
+            choice="$LAST_ARGS"
+            selected_name="$LAST_NAME"
+            SHOW_ADDITIONAL_OPTIONS=false
+            # Run the command immediately
+            if [ ! -z "$choice" ]; then
+                run_python "$choice"
+            fi
+            exit 0
+            ;;
+        255)  # ESC pressed
+            ;;
+        1|*)    # Cancel/ESC pressed or any other result
+            # Continue to main menu
+            ;;
+    esac
+fi
+
+################################################################################
+################################################################################
+## MAIN MENU
 # Show 1st level main menu
+# Create menu options array
+declare -a menu_options=(
+    "MGL Demos" "MGL related demos and tests" 
+    "Dynon Demos" "Dynon related demos"
+    "Stratux Demos" "Stratux only demos"
+    "IMU Tests" "IMU related tests (Pi only)"
+    "Virtual IMU" "Virtual IMU demos"
+    "Tests" "Tests"
+)
+if [ -f "$LAST_RUN_FILE" ]; then
+    menu_options=("Last Run" "Run last: $LAST_NAME" "${menu_options[@]}")
+fi
+
 while true; do
     exec 3>&1
+    DIALOG_TIMEOUT=0
     choice=$(dialog --clear \
-                    --title "TronView" \
+                    --title "Startup script" \
                     --menu '\n
  _____             __     ___               \n
 |_   _| __ ___  _ _\ \   / (_) _____      __\n
@@ -69,7 +172,7 @@ while true; do
   | || | | (_) | | | \ V / | |  __/\ V  V / \n
   |_||_|  \___/|_| |_|\_/  |_|\___| \_/\_/  \n
 \n
-                    Choose a category:' 20 60 10 \
+                    Choose option:' 22 70 10 \
                     "${menu_options[@]}" \
                     2>&1 1>&3)
     exit_status=$?
@@ -97,18 +200,37 @@ while true; do
                 exec 3>&-
                 
                 if handle_menu_exit $exit_status "sub"; then
+                    selected_name=""
                     case $subchoice in
-                        1) choice="-i serial_mgl --playfile1 mgl_8.dat --in2 stratux_wifi --playfile2 stratux_8.dat --in3 gyro_virtual" ;;
-                        2) choice="-i serial_mgl -c MGL_G430_Data_3Feb19_v7_Horz_Vert_Nedl_come_to_center.bin" ;;
-                        3) choice="-i serial_mgl -c mgl_data1.bin" ;;
-                        4) choice="-i serial_mgl --playfile1 mgl_chase_rv6_1.dat --in2 stratux_wifi --playfile2 stratux_chase_rv6_1.dat --in3 gyro_virtual" ;;
-                        5) choice="-i serial_mgl --playfile1 mgl_chase_rv6_2.dat --in2 stratux_wifi --playfile2 stratux_chase_rv6_2.dat --in3 gyro_virtual" ;;
-                        6) choice="-i serial_mgl --playfile1 mgl_chase_rv6_3.dat --in2 stratux_wifi --playfile2 stratux_chase_rv6_3.dat --in3 gyro_virtual" ;;
+                        1) 
+                            choice="-i serial_mgl --playfile1 mgl_8.dat --in2 stratux_wifi --playfile2 stratux_8.dat --in3 gyro_virtual"
+                            selected_name="MGL + Stratux + vIMU - chasing traffic"
+                            ;;
+                        2) 
+                            choice="-i serial_mgl -c MGL_G430_Data_3Feb19_v7_Horz_Vert_Nedl_come_to_center.bin"
+                            selected_name="MGL - G430 CDI"
+                            ;;
+                        3) 
+                            choice="-i serial_mgl -c mgl_data1.bin"
+                            selected_name="MGL - Gyro Test"
+                            ;;
+                        4) 
+                            choice="-i serial_mgl --playfile1 mgl_chase_rv6_1.dat --in2 stratux_wifi --playfile2 stratux_chase_rv6_1.dat --in3 gyro_virtual"
+                            selected_name="MGL + Stratux RV6 Chase 1"
+                            ;;
+                        5) 
+                            choice="-i serial_mgl --playfile1 mgl_chase_rv6_2.dat --in2 stratux_wifi --playfile2 stratux_chase_rv6_2.dat --in3 gyro_virtual"
+                            selected_name="MGL + Stratux RV6 Chase 2"
+                            ;;
+                        6) 
+                            choice="-i serial_mgl --playfile1 mgl_chase_rv6_3.dat --in2 stratux_wifi --playfile2 stratux_chase_rv6_3.dat --in3 gyro_virtual"
+                            selected_name="MGL + Stratux RV6 Chase 3"
+                            ;;
                     esac
-                    break  # Break just the inner loop
+                    break
                 else
-                    choice=""  # Clear the choice
-                    break  # Break the inner loop to return to main menu
+                    choice=""
+                    break
                 fi
             done
             ;;
@@ -127,8 +249,14 @@ while true; do
                 
                 if handle_menu_exit $exit_status "sub"; then
                     case $subchoice in
-                        1) choice="-i serial_d100 -e" ;;
-                        2) choice="-i serial_skyview -e" ;;
+                        1) 
+                            choice="-i serial_d100 -e"
+                            selected_name="Dynon D100"
+                            ;;
+                        2) 
+                            choice="-i serial_skyview -e"
+                            selected_name="Dynon Skyview"
+                            ;;
                     esac
                     break  # Break just the inner loop
                 else
@@ -153,9 +281,18 @@ while true; do
                 
                 if handle_menu_exit $exit_status "sub"; then
                     case $subchoice in
-                        1) choice="-i stratux_wifi -c stratux_54.dat" ;;
-                        2) choice="-i stratux_wifi -c stratux_57.dat" ;;
-                        3) choice="-i stratux_wifi -c stratux_8.dat" ;;
+                        1) 
+                            choice="-i stratux_wifi -c stratux_54.dat"
+                            selected_name="Demo 54"
+                            ;;
+                        2) 
+                            choice="-i stratux_wifi -c stratux_57.dat"
+                            selected_name="Demo 57 (Bad pitch/roll)"
+                            ;;
+                        3) 
+                            choice="-i stratux_wifi -c stratux_8.dat"
+                            selected_name="Demo stratux_8 - Traffic targets only"
+                            ;;
                     esac
                     break  # Break just the inner loop
                 else
@@ -183,12 +320,24 @@ while true; do
                 
                 if handle_menu_exit $exit_status "sub"; then
                     case $subchoice in
-                        1) choice="-i gyro_i2c_bno055" ;;
-                        2) choice="--in1 gyro_i2c_bno055 --in1 serial_mgl --playfile1 mgl_data1.bin" ;;
-                        3) choice="-i serial_mgl --playfile1 mgl_chase_rv6_1.dat --in2 stratux_wifi --playfile2 stratux_chase_rv6_1.dat --in3 gyro_i2c_bno055" ;;
-                        4) choice="-i gyro_i2c_bno055 --in2 gyro_i2c_bno055" ;;
-                        5) choice="-i gyro_i2c_bno085" ;;
-                        6) choice="-i serial_mgl --playfile1 mgl_chase_rv6_1.dat --in3 stratux_wifi --playfile3 stratux_chase_rv6_1.dat --in2 gyro_i2c_bno085" ;;
+                        1) choice="-i gyro_i2c_bno055"
+                            selected_name="Live BNO055"
+                            ;;
+                        2) choice="--in1 gyro_i2c_bno055 --in1 serial_mgl --playfile1 mgl_data1.bin"
+                            selected_name="Live BNO055 & MGL"
+                            ;;
+                        3) choice="-i serial_mgl --playfile1 mgl_chase_rv6_1.dat --in2 stratux_wifi --playfile2 stratux_chase_rv6_1.dat --in3 gyro_i2c_bno055"
+                            selected_name="Live BNO055 + MGL + Stratux"
+                            ;;
+                        4) choice="-i gyro_i2c_bno055 --in2 gyro_i2c_bno055"
+                            selected_name="Live dual BNO055"
+                            ;;
+                        5) choice="-i gyro_i2c_bno085"
+                            selected_name="Live BNO085"
+                            ;;
+                        6) choice="-i serial_mgl --playfile1 mgl_chase_rv6_1.dat --in3 stratux_wifi --playfile3 stratux_chase_rv6_1.dat --in2 gyro_i2c_bno085"
+                            selected_name="Live BNO085 + MGL + Stratux"
+                            ;;
                     esac
                     break  # Break just the inner loop
                 else
@@ -213,9 +362,15 @@ while true; do
                 
                 if handle_menu_exit $exit_status "sub"; then
                     case $subchoice in
-                        1) choice="--in1 gyro_virtual" ;;
-                        2) choice="--in1 gyro_virtual --in2 gyro_virtual" ;;
-                        3) choice="--in1 gyro_joystick --in2 gyro_virtual" ;;
+                        1) choice="--in1 gyro_virtual"
+                            selected_name="1 Virtual IMU"
+                            ;;
+                        2) choice="--in1 gyro_virtual --in2 gyro_virtual"
+                            selected_name="2 Virtual IMUs"
+                            ;;
+                        3) choice="--in1 gyro_joystick --in2 gyro_virtual"
+                            selected_name="Joystick vIMU + Virtual IMU"
+                            ;;
                     esac
                     break  # Break just the inner loop
                 else
@@ -258,10 +413,15 @@ while true; do
                 fi
             done
             ;;
-
+        "Last Run")
+            choice="$LAST_ARGS"
+            SHOW_ADDITIONAL_OPTIONS=false
+            break
+            ;;
     esac
 
-
+    ############################################################################
+    # Additional Options Menu
     # If we have a valid choice, show additional options
     if [ ! -z "$choice"  ] && $SHOW_ADDITIONAL_OPTIONS; then
         # Clear the dialog window
@@ -274,7 +434,7 @@ while true; do
                         "text" "Run in text mode" OFF \
                         "multi" "Run multiple threads" OFF \
                         "debug" "Record debug output" OFF \
-                        "auto" "Auto-run at startup" OFF \
+                        "auto" "Auto-run next time" OFF \
                         2>&1 1>&3)
         exit_status=$?
         exec 3>&-
@@ -303,13 +463,14 @@ while true; do
 
         if [[ $options == *"auto"* ]]; then
             # make sure we are on linux
-            if [[ "$OSTYPE" != "linux-gnu"* ]]; then
-                echo "Auto-run at startup only supported on Linux/Raspberry Pi"
-            else
-                # add the above args and startup command to .bashrc
-                echo "alias tronview='sudo $TRONVIEW_DIR/util/run.sh'" >> ~/.bashrc
-                echo "TronView will start automatically at login"
-            fi
+            selected_auto_run="true"
+        else
+            selected_auto_run="false"
+        fi
+
+        # Before running the command, save the configuration
+        if [ ! -z "$choice" ] && [ "$choice" != "$LAST_ARGS" ]; then
+            save_last_run "$selected_name" "$choice $ADD_ARGS" "$selected_auto_run"
         fi
 
         # Break the main loop to run the command
@@ -321,15 +482,6 @@ done
 if [ ! -z "$choice" ]; then
     # Clear the dialog window
     #clear
-
-    # Function to run python commands
-    run_python() {
-        cd "$TRONVIEW_DIR" || exit
-        echo "Running from directory: $(pwd)"
-        echo "Using Python: $(which python3)"
-        eval "$RUN_PREFIX python3 $TRONVIEW_DIR/main.py $* $ADD_ARGS"
-    }
-
     # Run the selected command
     if [[ "$OSTYPE" == "linux-gnu"* ]] || [[ ! "$choice" =~ "bno" ]]; then
         run_python "$choice"
@@ -338,10 +490,10 @@ if [ ! -z "$choice" ]; then
     fi
 fi
 
+# Run the full command if it was set. example: python3 $TRONVIEW_DIR/util/tests/joystick.py
 if [ ! -z "$FULL_COMMAND" ]; then
     eval "$FULL_COMMAND"
 fi
-
 
 
 echo "To run again type: ./util/run.sh (make sure you are in the TronView directory)"

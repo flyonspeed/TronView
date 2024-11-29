@@ -13,6 +13,8 @@ import binascii
 import time
 import socket
 from lib.common.dataship.dataship import IMU
+import traceback
+
 class levil_wifi(Input):
     def __init__(self):
         self.name = "levil"
@@ -226,6 +228,10 @@ class levil_wifi(Input):
             #error with read in length.. ignore for now?
             #print("Error with read in length")
             pass
+        except Exception as e:
+            aircraft.errorFoundNeedToExit = True
+            print(e)
+            print(traceback.format_exc())
         return aircraft
 
 

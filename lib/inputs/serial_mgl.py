@@ -15,6 +15,7 @@ from lib import hud_text
 import binascii
 import time
 from lib.common.dataship.dataship_imu import IMU
+import traceback
 
 class serial_mgl(Input):
     def __init__(self):
@@ -324,6 +325,7 @@ class serial_mgl(Input):
         except serial.serialutil.SerialException as e:
             print(e)
             print("mgl serial exception")
+            traceback.print_exc()
             aircraft.errorFoundNeedToExit = True
         return aircraft
     

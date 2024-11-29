@@ -308,12 +308,13 @@ while true; do
                 exec 3>&1
                 subchoice=$(dialog --clear --title "IMU Tests" \
                                   --menu "Choose a test:" 20 60 10 \
-                                  "1" "Live BNO055" \
-                                  "2" "Live BNO055 & MGL" \
-                                  "3" "Live BNO055 + MGL + Stratux" \
-                                  "4" "Live dual BNO055" \
-                                  "5" "Live BNO085" \
-                                  "6" "Live BNO085 + MGL + Stratux" \
+                                  "1" "Live BNO055 IMU" \
+                                  "2" "Live BNO055 IMU & MGL" \
+                                  "3" "Live BNO055 IMU + MGL + Stratux" \
+                                  "4" "Live dual BNO055 IMUs" \
+                                  "5" "Live BNO085 IMU" \
+                                  "6" "Live dual BNO085 IMUs" \
+                                  "7" "Live BNO085 IMU + MGL + Stratux" \
                                   2>&1 1>&3)
                 exit_status=$?
                 exec 3>&-
@@ -335,7 +336,10 @@ while true; do
                         5) choice="-i gyro_i2c_bno085"
                             selected_name="Live BNO085"
                             ;;
-                        6) choice="-i serial_mgl --playfile1 mgl_chase_rv6_1.dat --in3 stratux_wifi --playfile3 stratux_chase_rv6_1.dat --in2 gyro_i2c_bno085"
+                        6) choice="--in1 gyro_i2c_bno085 --in2 gyro_i2c_bno085"
+                            selected_name="Live dual BNO085"
+                            ;;
+                        7) choice="-i serial_mgl --playfile1 mgl_chase_rv6_1.dat --in3 stratux_wifi --playfile3 stratux_chase_rv6_1.dat --in2 gyro_i2c_bno085"
                             selected_name="Live BNO085 + MGL + Stratux"
                             ;;
                     esac

@@ -502,12 +502,15 @@ class horizon_v2(Module):
                 roll_offset = self.camera_head_imu.roll
                 yaw_offset = ((self.camera_head_imu.yaw - aircraft.mag_head + 180) % 360) - 180
 
-            # Draw the horizon line from camera perspective
-            self.draw_horizon_line(aircraft, yaw_offset, pitch_offset, roll_offset)
+                # Draw the horizon line from camera perspective
+                self.draw_horizon_line(aircraft, yaw_offset, pitch_offset, roll_offset)
 
-            # Apply camera offsets to aircraft attitude for the rest of the display
-            adjusted_pitch = aircraft.pitch - pitch_offset
-            adjusted_roll = aircraft.roll - roll_offset
+                # Apply camera offsets to aircraft attitude for the rest of the display
+                adjusted_pitch = aircraft.pitch - pitch_offset
+                adjusted_roll = aircraft.roll - roll_offset
+            else:
+                adjusted_pitch = aircraft.pitch
+                adjusted_roll = aircraft.roll   
 
             # Draw horizon lines with adjusted angles
             self.draw_horz_lines(

@@ -76,18 +76,23 @@ fi
 # Load last run configuration if it exists
 LAST_RUN_FILE="$TRONVIEW_DIR/data/system/last_run.json"
 if [ -f "$LAST_RUN_FILE" ]; then
+    # if jq in not installed then install it on linux
+    if ! command -v jq &> /dev/null; then
+        if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+            echo "jq is not installed. Installing..."
+            sudo apt-get install jq -y
+        fi
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            brew install jq
+        fi
+    fi
+
     # Add "Last Run" as first menu option
     if command -v jq &> /dev/null; then
         LAST_NAME=$(jq -r '.name' "$LAST_RUN_FILE")
         LAST_ARGS=$(jq -r '.args' "$LAST_RUN_FILE")
         LAST_TIME=$(jq -r '.timestamp' "$LAST_RUN_FILE")
         LAST_AUTO_RUN=$(jq -r '.auto_run' "$LAST_RUN_FILE")
-    else
-        # Basic parsing if jq not available
-        LAST_NAME=$(grep -o '"name": *"[^"]*"' "$LAST_RUN_FILE" | cut -d'"' -f4)
-        LAST_ARGS=$(grep -o '"args": *"[^"]*"' "$LAST_RUN_FILE" | cut -d'"' -f4)
-        LAST_TIME=$(grep -o '"timestamp": *"[^"]*"' "$LAST_RUN_FILE" | cut -d'"' -f4)
-        LAST_AUTO_RUN=$(grep -o '"auto_run": *"[^"]*"' "$LAST_RUN_FILE" | cut -d'"' -f4)
     fi
 fi
 

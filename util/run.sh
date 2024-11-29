@@ -23,12 +23,18 @@ save_last_run() {
     local args="$2"
     local timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
     local auto_run="$3"    
-    eval "$RUN_PREFIX echo '{
-    \"name\": \"$name\",
-    \"args\": \"$args\",
-    \"timestamp\": \"$timestamp\",
-    \"auto_run\": $auto_run
-}' > \"$TRONVIEW_DIR/data/system/last_run.json\""
+    
+    # Create the JSON content first
+    local json_content='{
+    "name": "'"$name"'",
+    "args": "'"$args"'",
+    "timestamp": "'"$timestamp"'",
+    "auto_run": '"$auto_run"'
+}'
+    
+    # Use tee with sudo to write the file
+    echo "$json_content" | $RUN_PREFIX tee "$TRONVIEW_DIR/data/system/last_run.json" >/dev/null
+    
     # check for success
     if [ $? -ne 0 ]; then
         echo "Error saving ($RUN_PREFIX) last run configuration to $TRONVIEW_DIR/data/system/last_run.json"

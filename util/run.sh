@@ -7,9 +7,15 @@
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 TRONVIEW_DIR="$(dirname "$SCRIPT_DIR")"
 
+if [[ "$OSTYPE" == "darwin"* ]]; then # Check if we're running on macOS
+    RUN_PREFIX=""
+else # else Linux we have to do everything as sudo so the app gets access to the serial ports and i2c
+    RUN_PREFIX="sudo"
+fi
+
 # Create data directory if it doesn't exist
-mkdir -p "$TRONVIEW_DIR/data"
-mkdir -p "$TRONVIEW_DIR/data/system"
+$RUN_PREFIX mkdir -p "$TRONVIEW_DIR/data"
+$RUN_PREFIX mkdir -p "$TRONVIEW_DIR/data/system"
 
 # Function to save last run configuration
 save_last_run() {
@@ -17,7 +23,7 @@ save_last_run() {
     local args="$2"
     local timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
     local auto_run="$3"    
-    echo "{
+    $RUN_PREFIX echo "{
     \"name\": \"$name\",
     \"args\": \"$args\",
     \"timestamp\": \"$timestamp\",
@@ -47,14 +53,11 @@ if ! command -v dialog &> /dev/null; then
     fi
 fi
 
-# Check if we're running on macOS
+# Check if we're running on macOS.  Create a python virtual environment and activate it.
 if [[ "$OSTYPE" == "darwin"* ]]; then
-    RUN_PREFIX=""
     echo "Activating venv at: $TRONVIEW_DIR/venv/bin/activate"
     source "$TRONVIEW_DIR/venv/bin/activate"
     which python3
-else
-    RUN_PREFIX="sudo"
 fi
 
 # kill any running python3 processes

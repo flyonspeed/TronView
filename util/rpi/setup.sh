@@ -150,6 +150,33 @@ else
 	esac
 fi
 
+# setup autorun.  only for bookworm.
+# create a desktop entry in /etc/xdg/autostart
+# [Desktop Entry]
+# Type=Application
+# Name=StartTronView
+# Path=/home/nerd/dev/TronView/
+# #Exec=/home/nerd/dev/TronView/util/run.sh
+# Exec=lxterminal -e /home/nerd/dev/TronView/util/run.sh
+# #Exec=lxterminal
+# Terminal=true
+# StartupNotify=false
+if [ $(cat /etc/os-release | grep "Debian GNU/Linux 12" | wc -l) -eq 1 ]; then
+	yn=$(get_input "Setup TronView to auto-run at startup? (y or n)")
+	case $yn in
+	[Yy]* )
+		echo "Setting up autorun"
+		sudo echo '[Desktop Entry]
+		Type=Application
+		Name=StartTronView
+		Path='$TRONVIEW_DIR'
+		Exec=lxterminal -e '$TRONVIEW_DIR'/util/run.sh
+		Terminal=true
+		StartupNotify=false' >> /etc/xdg/autostart/start_tronview.desktop
+			;;
+	esac
+fi
+
 echo "" # blank line
 echo "----------------------------------------"
 echo "Done. Your Pi may need to be rebooted to enable serial or i2c.  Type sudo reboot"

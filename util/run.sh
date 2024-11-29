@@ -29,6 +29,10 @@ save_last_run() {
     \"timestamp\": \"$timestamp\",
     \"auto_run\": $auto_run
 }' > \"$TRONVIEW_DIR/data/system/last_run.json\""
+    # check for success
+    if [ $? -ne 0 ]; then
+        echo "Error saving ($RUN_PREFIX) last run configuration to $TRONVIEW_DIR/data/system/last_run.json"
+    fi
 }
 
 # Function to run python commands

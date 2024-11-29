@@ -117,9 +117,10 @@ temp_file=$(mktemp)
 # Main dialog menu
 dialog --clear --title "Sensor Installation" \
        --checklist "Select options to install:" 15 60 3 \
-       "BNO055" "Bosch BNO055 9-DOF sensor" OFF \
-       "BNO085" "Bosch BNO085 9-DOF sensor" OFF \
-       "AutoRun" "Setup autorun on boot" OFF \
+       "BNO055" "Bosch BNO055 9-DOF sensor" ON \
+       "BNO085" "Bosch BNO085 9-DOF sensor" ON \
+       "AutoRun" "Setup autorun on boot" ON \
+	   "Desktop" "Create desktop run shortcut" ON \
        2> $temp_file
 
 # Read selections
@@ -151,6 +152,20 @@ if [[ $selections == *"AutoRun"* ]] && [ $(cat /etc/os-release | grep "Debian GN
     Exec=lxterminal -e '$TRONVIEW_DIR'/util/run.sh
     Terminal=true
     StartupNotify=false' >> /etc/xdg/autostart/start_tronview.desktop
+fi
+
+if [[ $selections == *"Desktop"* ]]; then
+	echo "Creating desktop run shortcut"
+	# get user home directory
+	user_home=$(eval echo ~$(whoami))
+	echo '[Desktop Entry]
+	Type=Application
+	Name=TronView
+	Icon='$TRONVIEW_DIR/docs/imgs/tronview_thumb.png'
+	Path='$TRONVIEW_DIR'
+	Exec=lxterminal -e '$TRONVIEW_DIR'/util/run.sh
+	Terminal=true
+	StartupNotify=false' >> $user_home/Desktop/TronView.desktop
 fi
 
 # Clean up

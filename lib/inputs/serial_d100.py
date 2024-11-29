@@ -11,6 +11,7 @@ import serial
 import struct
 from lib import hud_text
 import time
+import traceback
 from lib.common.dataship.dataship import IMU
 
 class serial_d100(Input):
@@ -142,10 +143,16 @@ class serial_d100(Input):
         except ValueError as ex:
             print("dynon d100 data conversion error")
             print(ex)
+            traceback.print_exc()
             aircraft.errorFoundNeedToExit = True
         except serial.serialutil.SerialException:
             print("dynon d100 serial exception")
             aircraft.errorFoundNeedToExit = True
+            traceback.print_exc()
+        except Exception as e:
+            aircraft.errorFoundNeedToExit = True
+            print(e)
+            print(traceback.format_exc())
         return aircraft
 
 

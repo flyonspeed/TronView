@@ -18,6 +18,8 @@ import math, sys
 import time
 from contextlib import suppress
 from lib.common.dataship.dataship import IMU
+import traceback
+
 class serial_g3x(Input):
     def __init__(self):
         self.name = "g3x"
@@ -340,6 +342,7 @@ class serial_g3x(Input):
             print("G3X serial exception")
             print(type(e))
             print(e)
+            traceback.print_exc()
             aircraft.errorFoundNeedToExit = True
 
         return aircraft

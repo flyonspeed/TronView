@@ -13,7 +13,7 @@ import struct
 from lib import hud_text
 import time
 from lib.common.dataship.dataship import IMU
-
+import traceback
 
 class serial_skyview(Input):
     def __init__(self):
@@ -187,6 +187,7 @@ class serial_skyview(Input):
             pass
         except serial.serialutil.SerialException:
             print("skyview serial exception")
+            traceback.print_exc()
             aircraft.errorFoundNeedToExit = True
 
 

@@ -10,6 +10,7 @@ import struct
 import time
 import Adafruit_ADS1x15
 import statistics
+import traceback
 
 class adc_ads1115(Input):
     def __init__(self):

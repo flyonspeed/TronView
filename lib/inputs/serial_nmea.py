@@ -13,7 +13,7 @@ import datetime
 import pytz
 import airportsdata
 from timezonefinder import TimezoneFinder
-
+import traceback
 tf = TimezoneFinder()
 
 #######################################
@@ -288,6 +288,7 @@ class serial_nmea(Input):
 
         except:
             print("NMEA serial exception")
+            traceback.print_exc()
             aircraft.errorFoundNeedToExit = True
 
         return aircraft

@@ -24,7 +24,7 @@ class horizon_v2(Module):
         self.show_targets = True
         self.target_distance_threshold = 10
         self.fov_x = hud_utils.readConfigInt("HUD", "fov_x", 13.942) # Field of View X in degrees
-        self.fov_y = hud_utils.readConfigInt("HUD", "fov_y", 13.942) # Field of View y in degrees
+        #self.fov_y = hud_utils.readConfigInt("HUD", "fov_y", 13.942) # Field of View y in degrees
         self.target_positions = {}  # Store smoothed positions for each target
         self.target_smoothing = 0.2  # Default smoothing factor (0-1), lower = smoother
 
@@ -38,7 +38,19 @@ class horizon_v2(Module):
         self.source_imu_index2_name = "NONE"  # name of the secondary imu. (optional)
         self.source_imu_index2 = None  # index of the secondary imu. (optional)
         self.camera_head_imu = None  # IMU object for camera head. Human Head view.
-               
+
+        self.pxy_div = hud_utils.readConfigInt("HUD", "vertical_pixels_per_degree", 30)  # Y axis number of pixels per degree divisor
+        self.y_offset = hud_utils.readConfigInt("HUD", "Horizon_Offset", 0)  #  Horizon/Waterline Pixel Offset from HUD Center Neg Numb moves Up, Default=0               
+
+        # Add smoothing variables for horizon lines
+        self.horizon_smoothing = 0.15  # Smoothing factor (0-1), lower = smoother
+        self.prev_horizon_state = {
+            'pitch': 0,
+            'roll': 0,
+            'camera_yaw': 0,
+            'camera_pitch': 0,
+            'camera_roll': 0
+        }
 
     # called once for setup
     def initMod(self, pygamescreen, width=None, height=None):
@@ -63,8 +75,6 @@ class horizon_v2(Module):
         self.MainColor = (0, 255, 0)  # main color of hud graphics
         self.line_thickness = hud_utils.readConfigInt("HUD", "line_thickness", 2)
         self.ahrs_line_deg = hud_utils.readConfigInt("HUD", "vertical_degrees", 5)
-        self.pxy_div = hud_utils.readConfigInt("HUD", "vertical_pixels_per_degree", 30)  # Y axis number of pixels per degree divisor
-        self.y_offset = hud_utils.readConfigInt("HUD", "Horizon_Offset", 0)  #  Horizon/Waterline Pixel Offset from HUD Center Neg Numb moves Up, Default=0
 
         self.line_mode = hud_utils.readConfigInt("HUD", "line_mode", 1)
         self.caged_mode = 1 # default on
@@ -174,29 +184,59 @@ class horizon_v2(Module):
         pxy_div,
         pos
     ):
-        # Calculate camera yaw offset relative to aircraft heading
-        camera_yaw_offset = 0
-        if self.camera_head_imu is not None:
-            camera_yaw_offset = ((self.camera_head_imu.yaw - aircraft.mag_head + 180) % 360) - 180
+        # Apply smoothing to aircraft and camera attitudes
+        def smooth_angle(current, previous, smoothing):
+            # Handle angle wrapping for heading/yaw
+            diff = ((current - previous + 180) % 360) - 180
+            return previous + diff * smoothing
+
+        # Get current values
+        current_pitch = aircraft.pitch or 0
+        current_roll = aircraft.roll or 0
         
-        # Calculate pixel offset based on yaw difference
+        # Calculate camera offsets
+        camera_yaw = 0
+        camera_pitch = 0
+        camera_roll = 0
+        if self.camera_head_imu is not None:
+            camera_yaw = ((self.camera_head_imu.yaw - aircraft.mag_head + 180) % 360) - 180
+            camera_pitch = -self.camera_head_imu.pitch
+            camera_roll = self.camera_head_imu.roll
+
+        # Smooth all angles
+        smoothed_pitch = smooth_angle(current_pitch, self.prev_horizon_state['pitch'], self.horizon_smoothing)
+        smoothed_roll = smooth_angle(current_roll, self.prev_horizon_state['roll'], self.horizon_smoothing)
+        smoothed_cam_yaw = smooth_angle(camera_yaw, self.prev_horizon_state['camera_yaw'], self.horizon_smoothing)
+        smoothed_cam_pitch = smooth_angle(camera_pitch, self.prev_horizon_state['camera_pitch'], self.horizon_smoothing)
+        smoothed_cam_roll = smooth_angle(camera_roll, self.prev_horizon_state['camera_roll'], self.horizon_smoothing)
+
+        # Store current values for next frame
+        self.prev_horizon_state.update({
+            'pitch': smoothed_pitch,
+            'roll': smoothed_roll,
+            'camera_yaw': smoothed_cam_yaw,
+            'camera_pitch': smoothed_cam_pitch,
+            'camera_roll': smoothed_cam_roll
+        })
+
+        # Calculate pixel offset based on smoothed yaw difference
         pixels_per_degree = width / self.fov_x
-        x_offset = -camera_yaw_offset * pixels_per_degree
+        x_offset = -smoothed_cam_yaw * pixels_per_degree
         
         # Adjust center point based on camera yaw
         center_x = width // 2 + x_offset
         center_y = height // 2
         adjusted_center = (center_x, center_y)
 
-        # Draw lines centered on the screen
+        # Draw lines centered on the screen using smoothed values
         for l in range(-60, 61, ahrs_line_deg):
             line_coords = self.generateHudReferenceLineArray(
                 width,
                 height,
                 adjusted_center,
                 pxy_div,
-                pitch=aircraft.pitch,
-                roll=aircraft.roll,
+                pitch=smoothed_pitch,
+                roll=smoothed_roll,
                 deg_ref=l,
                 line_mode=line_mode,
             )
@@ -704,6 +744,14 @@ class horizon_v2(Module):
                 "label": "FOV X",
                 "description": "Field of View X in degrees"
             },
+            "pxy_div": {    
+                "type": "int",
+                "default": self.pxy_div,
+                "min": 20,
+                "max": 60,
+                "label": "Vert Pixels Per Degree",
+                "description": "Number of pixels per degree divisor"
+            },
             "target_smoothing": {
                 "type": "float",
                 "default": 0.2,
@@ -725,6 +773,14 @@ class horizon_v2(Module):
                 "max": 10,
                 "label": "Horizon Line Thickness",
                 "description": "Thickness of the horizon reference line"
+            },
+            "horizon_smoothing": {
+                "type": "float",
+                "default": 0.15,
+                "min": 0.01,
+                "max": 1.0,
+                "label": "Horizon Smoothing",
+                "description": "Horizon movement smoothing (0.01-1.0, lower = smoother)"
             }
         }
         

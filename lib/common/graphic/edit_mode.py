@@ -36,7 +36,7 @@ def main_edit_loop():
         shared.Change_history = ChangeHistory()
 
     # init common things.
-    maxframerate = hud_utils.readConfigInt("Main", "maxframerate", 30)
+    maxframerate = hud_utils.readConfigInt("Main", "maxframerate", 40)
     clock = pygame.time.Clock()
     pygame.time.set_timer(pygame.USEREVENT, 1000) # fire User events ever sec.
     debug_font = pygame.font.SysFont("monospace", 25, bold=False)

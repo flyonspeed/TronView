@@ -434,7 +434,7 @@ while true; do
         # Additional options dialog
         exec 3>&1
         options=$(dialog --clear --title "Additional Options" \
-                        --checklist "Select additional options:" 20 60 10 \
+                        --checklist "Use space bar to select 1 or more options :" 20 60 10 \
                         "text" "Run in text mode" OFF \
                         "multi" "Run multiple threads" OFF \
                         "debug" "Record debug output" OFF \

@@ -43,7 +43,7 @@ class horizon_v2(Module):
         self.y_offset = hud_utils.readConfigInt("HUD", "Horizon_Offset", 0)  #  Horizon/Waterline Pixel Offset from HUD Center Neg Numb moves Up, Default=0               
 
         # Add smoothing variables for horizon lines
-        self.horizon_smoothing = 0.15  # Smoothing factor (0-1), lower = smoother
+        self.horizon_smoothing = 0.25  # Smoothing factor (0-1), lower = smoother
         self.prev_horizon_state = {
             'pitch': 0,
             'roll': 0,

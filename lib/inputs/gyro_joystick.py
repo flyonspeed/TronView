@@ -19,7 +19,6 @@ class gyro_joystick(Input):
         self.num_axes = None  
 
     def initInput(self,num,aircraft):
-        pygame.joystick.init()
         Input.initInput(self,num,aircraft)  # call parent init Input.
 
         # get this num of imu

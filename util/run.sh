@@ -314,7 +314,9 @@ while true; do
                                   "4" "Live dual BNO055 IMUs" \
                                   "5" "Live BNO085 IMU" \
                                   "6" "Live dual BNO085 IMUs" \
-                                  "7" "Live BNO085 IMU + MGL + Stratux" \
+                                  "7" "MGL + Stratux + Live BNO085" \
+                                  "8" "vIMU + Live BNO085" \
+                                  "9" "joystick vIMU + Live BNO085" \
                                   2>&1 1>&3)
                 exit_status=$?
                 exec 3>&-
@@ -340,7 +342,13 @@ while true; do
                             selected_name="Live dual BNO085"
                             ;;
                         7) choice="-i serial_mgl --playfile1 mgl_chase_rv6_1.dat --in3 stratux_wifi --playfile3 stratux_chase_rv6_1.dat --in2 gyro_i2c_bno085"
-                            selected_name="Live BNO085 + MGL + Stratux"
+                            selected_name="MGL + Stratux + Live BNO085"
+                            ;;
+                        8) choice="-i gyro_virtual --in2 gyro_i2c_bno085"
+                            selected_name="vIMU + Live BNO085"
+                            ;;
+                        9) choice="-i gyro_joystick --in2 gyro_i2c_bno085"
+                            selected_name="joystick vIMU + Live BNO085"
                             ;;
                     esac
                     break  # Break just the inner loop

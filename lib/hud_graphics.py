@@ -9,6 +9,7 @@ from . import hud_utils
 ## Function: initDisplay
 def initDisplay(debug):
     pygame.init()
+    pygame.joystick.init()
     try :
         # set the window icon
         icon = pygame.image.load("lib/common/assets/tronview_logo1.png")

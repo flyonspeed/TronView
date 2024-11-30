@@ -169,8 +169,8 @@ class horizon_v2(Module):
         )
 
     #############################################
-    ## Function draw horz lines
-    def draw_horz_lines(
+    ## Function draw aircraft horizon lines
+    def draw_aircraft_horz_lines(
         self,
         width,
         height,
@@ -203,9 +203,17 @@ class horizon_v2(Module):
             camera_pitch = -self.camera_head_imu.pitch
             camera_roll = self.camera_head_imu.roll
 
+        # Calculate effective roll angle just like in draw_horizon_line()
+        cam_yaw_rad = math.radians(camera_yaw)
+        effective_roll = (-(current_roll - camera_roll) * math.cos(cam_yaw_rad)) /2
+        
+        # When looking up/down, horizon line should curve
+        pitch_induced_curve = camera_pitch * math.sin(cam_yaw_rad) * 0.5
+        effective_roll += pitch_induced_curve
+
         # Smooth all angles
         smoothed_pitch = smooth_angle(current_pitch, self.prev_horizon_state['pitch'], self.horizon_smoothing)
-        smoothed_roll = smooth_angle(current_roll, self.prev_horizon_state['roll'], self.horizon_smoothing)
+        smoothed_roll = smooth_angle(effective_roll, self.prev_horizon_state['roll'], self.horizon_smoothing)
         smoothed_cam_yaw = smooth_angle(camera_yaw, self.prev_horizon_state['camera_yaw'], self.horizon_smoothing)
         smoothed_cam_pitch = smooth_angle(camera_pitch, self.prev_horizon_state['camera_pitch'], self.horizon_smoothing)
         smoothed_cam_roll = smooth_angle(camera_roll, self.prev_horizon_state['camera_roll'], self.horizon_smoothing)
@@ -552,8 +560,8 @@ class horizon_v2(Module):
                 adjusted_pitch = aircraft.pitch
                 adjusted_roll = aircraft.roll   
 
-            # Draw horizon lines with adjusted angles
-            self.draw_horz_lines(
+            # Draw aircraft horizon lines with adjusted angles
+            self.draw_aircraft_horz_lines(
                 self.width,
                 self.height,
                 ((self.width // 2), self.height // 2),

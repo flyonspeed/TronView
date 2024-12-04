@@ -16,7 +16,10 @@ class gyro_joystick(Input):
         self.isPlaybackMode = False
 
         self.joystick = None
-        self.num_axes = None  
+        self.num_axis = None
+        self.axis_pitch = 1
+        self.axis_roll = 0
+        self.axis_yaw = 2
 
     def initInput(self,num,aircraft):
         Input.initInput(self,num,aircraft)  # call parent init Input.
@@ -74,14 +77,12 @@ class gyro_joystick(Input):
             
             else:
                 # Handle joystick input
-                if self.joystick:
-                    #pygame.event.pump()  # Process pygame events
-                    
-                    # Read joystick axes
+                if self.joystick:                    
+                    # Read joystick axis
                     # Map each axis to full 180 degree range (-180 to +180)
-                    pitch = round(-self.joystick.get_axis(1) * 180,2)  # Up/Down on left stick (-180 to 180 degrees)
-                    roll = round(self.joystick.get_axis(0) * 180,2)    # Left/Right on left stick (-180 to 180 degrees)
-                    yaw = round(self.joystick.get_axis(2) * 180,2)     # Left/Right on right stick (-180 to 180 degrees)
+                    pitch = round(-self.joystick.get_axis(self.axis_pitch) * 180,2)  # Up/Down on left stick (-180 to 180 degrees)
+                    roll = round(self.joystick.get_axis(self.axis_roll) * 180,2)    # Left/Right on left stick (-180 to 180 degrees)
+                    yaw = round(self.joystick.get_axis(self.axis_yaw) * 180,2)     # Left/Right on right stick (-180 to 180 degrees)
                     # convert yaw to 0-360 degrees
                     if yaw < 0:
                         yaw += 360
@@ -90,7 +91,6 @@ class gyro_joystick(Input):
                     
                     # Update IMU data
                     self.imuData.updatePos(pitch, roll, yaw)
-                    aircraft.imus[self.num_imus] = self.imuData
 
                     # Update aircraft if this is the primary IMU
                     if self.feed_into_aircraft:
@@ -112,8 +112,14 @@ class gyro_joystick(Input):
 
     def setJoystick(self, joystick):
         self.joystick = joystick
-        self.num_axes = joystick.get_numaxes()
-        print("setJoystick() %i: %s, num_axes: %s" % (joystick.get_instance_id(), joystick.get_name(), self.num_axes))
+        self.num_axis = joystick.get_numaxes()
+        print("setJoystick() %i: %s, num_axis: %s" % (joystick.get_instance_id(), joystick.get_name(), self.num_axis))
+
+        # map nimbus joystick axes to the correct ones.
+        if joystick.get_name() == "Nimbus":
+            self.axis_pitch = 11
+            self.axis_roll = 10
+            self.axis_yaw = 14
 
     def setPostion(self, pitch, roll, yaw):
         """Manual position setting (mainly for testing)"""

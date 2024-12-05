@@ -113,6 +113,7 @@ def main_edit_loop():
                 if edit_events_window.is_busy():
                     continue
 
+            # check dropdown: add new module
             if dropdown_add_new_module and dropdown_add_new_module.visible:
                 selection = dropdown_add_new_module.update(event_list)
                 if selection >= 0:
@@ -131,6 +132,7 @@ def main_edit_loop():
                     selected_screen_object = newObject
                     selected_screen_objects = [newObject]
             
+            # check dropdown: load screen template
             if dropdown_load_screen_template and dropdown_load_screen_template.visible:
                 selection = dropdown_load_screen_template.update(event_list)
                 if selection >= 0:
@@ -267,21 +269,14 @@ def main_edit_loop():
                         for sObject in shared.CurrentScreen.ScreenObjects:
                             sObject.selected = False
                         selected_screen_objects.clear()
-                        # add a new Screen object
+                        # Show the dropdown menu for adding a new module
                         mx, my = pygame.mouse.get_pos()
-                        # newObject = TronViewScreenObject(pygamescreen, 'module', f"A_{len(shared.CurrentScreen.ScreenObjects)}", module=None, x=mx, y=my)
-                        # shared.Change_history.add_change("add", {"object": newObject})
-                        # shared.CurrentScreen.ScreenObjects.append(
-                        #     newObject
-                        # )
-                        # newObject.selected = True
-                        # selected_screen_object = newObject
                         dropdown_add_new_module = DropDown( 
                             x=mx, y=my, w=140, h=30, 
                             main="Select Module", options=listModules)
                         dropdown_add_new_module.visible = True # show the dropdown menu
                         dropdown_add_new_module.draw_menu = True # draw the menu
-                        dropdown_add_new_module.storeObject = {"type": "module", "x": mx, "y": my} # store the object details
+                        dropdown_add_new_module.storeObject = {"type": "module", "x": mx, "y": my} # store the object details. used for adding new objects.
 
                     # MOVE SCREEN OBJECT UP IN DRAW ORDER (page up)
                     elif event.key == pygame.K_PAGEUP:

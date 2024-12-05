@@ -21,6 +21,10 @@ def find_module(byName = None, debugOutput = False):
                 ClassToload = file[:-3]  # get classname to load
                 class_ = getattr(mod, ClassToload)
                 newModuleClass = class_()
+                # if the module has a hide attribute, and it is true, skip it.
+                if hasattr(newModuleClass, "hide_from_add_menu"):
+                    if newModuleClass.hide_from_add_menu:
+                        continue
                 if byName is not None:
                     #print("Looking for "+byName+" .. Checking module: %s (%s)" % (newModuleClass.name, path))
                     if newModuleClass.name == byName:
@@ -33,6 +37,10 @@ def find_module(byName = None, debugOutput = False):
                         print("module: %s (%s)" % (newModuleClass.name, path))
                     modules.append(newModuleClass)
                     moduleNames.append(newModuleClass.name)
+
+    # sort the modules by name
+    modules.sort(key=lambda x: x.name)
+    moduleNames.sort()
 
     #print("Found %d modules" % len(modules))
     #print(modules)

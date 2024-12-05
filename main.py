@@ -46,9 +46,10 @@ class myThreadEfisInputReader(threading.Thread):
 
             internalLoopCounter = internalLoopCounter - 1
             if internalLoopCounter < 1:
-                internalLoopCounter = 1000
+                internalLoopCounter = 100
                 checkInternals()
                 shared.Dataship.traffic.cleanUp(shared.Dataship) # check if old traffic targets should be cleared up.
+                #print(f"Input Thread: {shared.Inputs[0].name} looped")
 
             if (shared.Inputs[0].PlayFile != None): # if playing back a file.. add a little delay so it's closer to real world time.
                time.sleep(.04)

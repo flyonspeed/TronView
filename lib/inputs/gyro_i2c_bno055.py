@@ -179,7 +179,7 @@ class gyro_i2c_bno055(Input):
 
                 # Update positions and aircraft
                 self.imuData.updatePos(pitch_offset, roll_offset, yaw_offset)
-                aircraft.imus[self.num_imus] = self.imuData
+                #aircraft.imus[self.num_imus] = self.imuData
 
                 if self.feed_into_aircraft:
                     aircraft.pitch = self.imuData.pitch

@@ -117,6 +117,9 @@ def loadInput(num,nameToLoad,playFile=None):
     newInput = class_()
     newInput.PlayFile = playFile
     newInput.initInput(num,shared.Dataship)
+    # check for attribute id. if not set, set it to name.
+    if not hasattr(newInput, 'id'):
+        newInput.id = newInput.name
     shared.Inputs[num] = newInput
     print(("Input %d loaded to shared.Inputs[%d]: %s"%(num,num,nameToLoad)))
     shared.GrowlManager.add_message("Input"+str(num)+": "+newInput.id + " Loaded " + nameToLoad, position=GrowlPosition.BOTTOM_LEFT, duration=8)

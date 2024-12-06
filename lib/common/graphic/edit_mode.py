@@ -308,22 +308,8 @@ def main_edit_loop():
                     elif event.key == pygame.K_i:
                         print("Inputs key pressed")
                         mx, my = pygame.mouse.get_pos()
-                        options = [
-                            "Option 1",
-                            ["Submenu 1", [
-                                "Submenu 1.1",
-                                "Submenu 1.2",
-                                ["Submenu 1.3", [
-                                    "Submenu 1.3.1",
-                                    "Submenu 1.3.2"
-                                ]]
-                            ]],
-                            "Option 2",
-                            ["Submenu 2", [
-                                "Submenu 2.1",
-                                "Submenu 2.2"
-                            ]]
-                        ]
+                        # get the list of inputs
+                        options = [input.name for input in shared.Inputs.values()]
                         active_dropdown = DropDown(
                             x=mx, y=my, w=140, h=30,
                             menuTitle="Select Input", options=options)

@@ -11,6 +11,26 @@ COLOR_LIST_ACTIVE = (255, 255, 255)
 ############################################################################################
 ############################################################################################
 # DropDown class used to pick the module from the list of modules.
+'''
+Example of submenu structure:
+                        options = [
+                            "Option 1",
+                            ["Submenu 1", [
+                                "Submenu 1.1",
+                                "Submenu 1.2",
+                                ["Submenu 1.3", [
+                                    "Submenu 1.3.1",
+                                    "Submenu 1.3.2"
+                                ]]
+                            ]],
+                            "Option 2",
+                            ["Submenu 2", [
+                                "Submenu 2.1",
+                                "Submenu 2.2"
+                            ]]
+                        ]
+
+'''
 class DropDownOption:
     def __init__(self, text, submenu=None):
         self.text = text

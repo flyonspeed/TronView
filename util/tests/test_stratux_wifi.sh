@@ -6,7 +6,7 @@ then
     if [[ "$OSTYPE" == "darwin"* ]]; then
         brew install nc
     else
-        sudo apt-get install -y netcat
+        sudo apt-get install -y netcat-traditional
     fi
 fi
 
@@ -17,19 +17,12 @@ then
 		# don't know how to install hd on macos
 		echo "Running on macos"
 	else
-		sudo apt-get install -y hd
+		# todo: install hd??
+		echo "Running on linux"
 	fi
 fi
 
-# determine which hex dump command to use
-if [[ "$OSTYPE" == "darwin"* ]]; then
-    HEX_DUMP="hexdump -C"
-else
-    HEX_DUMP="hd"
-fi
-
-
-echo "Test stratux UDP connection Port 4000? "
+echo "-=-=- Test stratux or iLevil connection -=-=-"
 echo "For UDP, If hex data shows then its connected. Then hit cntrl-c to exit"
 echo "Press u for iLevil UDP port 43211"
 echo "Press t for iLevil TCP port 2000"
@@ -51,17 +44,29 @@ get_char() {
 
 # Get input and process it
 char=$(get_char | tr '[:upper:]' '[:lower:]')
-printf "----------------------------------------\n"
+echo "----------------------------------------"
 
 case $char in
 	[Uu]* )echo "Listening for iLevil UDP port 43211"
-		sudo nc -u -l 0.0.0.0 43211 -k |$HEX_DUMP
+		if [[ "$OSTYPE" == "darwin"* ]]; then
+			nc -lu 43211 | hexdump -C
+		else
+			nc -u -l -p 43211 -k | hd
+		fi
 		;;
-	[Tt]* )echo "Listening for iLevil TCP port 2000"
-	       nc -zv 192.168.1.1 2000 |$HEX_DUMP
-	       ;;
+	[Tt]* )echo "Listening for iLevil 192.168.1.1 TCP port 2000"
+		if [[ "$OSTYPE" == "darwin"* ]]; then
+			nc -zv 192.168.1.1 2000 | hexdump -C
+		else
+			nc -zv 192.168.1.1 2000 | hd
+		fi
+		;;
 	[Ss]* )echo "Listening for Stratux UDP port 4000"
-		sudo nc -u -l 0.0.0.0 4000 -k |$HEX_DUMP
+		if [[ "$OSTYPE" == "darwin"* ]]; then
+			nc -lu 4000 | hexdump -C
+		else
+			nc -u -l -p 4000 -k | hd
+		fi
 		;;
     *) echo "Later skater!"
 esac

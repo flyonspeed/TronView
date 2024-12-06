@@ -1,4 +1,4 @@
-
+from lib.common import shared
 
 #############################################
 ## Class: IMU
@@ -46,6 +46,7 @@ class IMU(object):
             self.home_pitch = self.org_pitch
             self.home_roll = self.org_roll
             self.home_yaw = self.org_yaw
+            shared.GrowlManager.add_message(self.id + ": Set home position")
     
     def updatePos(self, pitch, roll, yaw):
         '''

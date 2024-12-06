@@ -7,6 +7,7 @@
 
 from lib.common.dataship import dataship
 from lib import smartdisplay
+from lib.common.graphic.growl_manager import GrowlManager
 
 ####################################
 ## DataShip object
@@ -54,6 +55,11 @@ DataDir = "./data/"
 ## This is a global object that is used to store the history of changes to the screen objects while in edit mode.
 ## This is used for the undo functionality.
 Change_history = None
+
+####################################
+## Growl Manager
+## This is a global object that is used to manage the growl messages.
+GrowlManager = GrowlManager()
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python
 

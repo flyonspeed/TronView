@@ -27,7 +27,7 @@ from lib.common.graphic.edit_EditOptionsBar import EditOptionsBar
 from lib.common.graphic.edit_TronViewScreenObject import GridAnchorManager
 from lib.common.graphic.edit_EditEventsWindow import EditEventsWindow, save_event_handlers_to_json, load_event_handlers_from_json
 from lib.common.graphic.edit_dropdown import DropDown
-
+from lib.common.graphic.growl_manager import GrowlManager
 
 #############################################
 ## Function: main edit loop
@@ -45,7 +45,7 @@ def main_edit_loop():
     exit_edit_mode = False
     pygame.mouse.set_visible(True)
     print("Entering Edit Mode")
-
+    shared.GrowlManager.initScreen()
     # clear screen using pygame
     pygamescreen = shared.smartdisplay.pygamescreen
     pygamescreen.fill((0, 0, 0))
@@ -158,6 +158,7 @@ def main_edit_loop():
                         if shared.Dataship.debug_mode > 2:
                             shared.Dataship.debug_mode = 0
                         print("Debug mode: %d" % shared.Dataship.debug_mode)
+                        shared.GrowlManager.add_message("Debug mode set : %d" % shared.Dataship.debug_mode)
                     elif event.key == pygame.K_ESCAPE:
                         # Unselect all selected objects
                         for sObject in shared.CurrentScreen.ScreenObjects:
@@ -320,6 +321,7 @@ def main_edit_loop():
                     # LOAD SCREEN FROM JSON
                     elif event.key == pygame.K_l:
                         load_screen_from_json("screen.json")
+                        shared.GrowlManager.add_message("Loaded screen from JSON")
 
                     # MOVE SCREEN OBJECT UP IN DRAW ORDER (page up)
                     elif event.key == pygame.K_PAGEUP:
@@ -328,7 +330,7 @@ def main_edit_loop():
                                 # move it to the bottom of the list
                                 shared.CurrentScreen.ScreenObjects.remove(sObject)
                                 shared.CurrentScreen.ScreenObjects.append(sObject)
-
+                                shared.GrowlManager.add_message("Moved module to bottom of list")
                                 break
                     # MOVE SCREEN OBJECT DOWN IN DRAW ORDER (page down)
                     elif event.key == pygame.K_PAGEDOWN:
@@ -337,11 +339,13 @@ def main_edit_loop():
                                 # move it to the top of the list
                                 shared.CurrentScreen.ScreenObjects.remove(sObject)
                                 shared.CurrentScreen.ScreenObjects.insert(0, sObject)
+                                shared.GrowlManager.add_message("Moved module to top of list")
                                 break
 
                     # SAVE SCREEN TO JSON
                     elif event.key == pygame.K_s:
                         save_screen_to_json()
+                        shared.GrowlManager.add_message("Saved screen to JSON")
 
                     # Toggle FPS display when 'F' is pressed
                     elif event.key == pygame.K_f:
@@ -426,6 +430,7 @@ def main_edit_loop():
                         print("inputObj: %s" % inputObj.name)
                         if inputObj.name == "imuJoystick":
                             inputObj.setJoystick(joy)
+                            shared.GrowlManager.add_message("IMU Joystick connected")
                             break
 
                 # check for Mouse events
@@ -679,17 +684,6 @@ def main_edit_loop():
 
         pygame_gui_manager.update(time_delta)
 
-        #Draw the dropdown menu if visible over the top of everything.
-        if active_dropdown and active_dropdown.visible:
-            # Create a semi-transparent overlay
-            screen_width = shared.smartdisplay.x_end
-            screen_height = shared.smartdisplay.y_end
-            overlay = pygame.Surface((screen_width, screen_height))
-            overlay.fill((0, 0, 0))  # Black background
-            overlay.set_alpha(200)    # 50% transparency (0-255)
-            pygamescreen.blit(overlay, (0, 0))            
-            active_dropdown.draw(pygamescreen)
-
         # Draw FPS if enabled
         if shared.Dataship.show_FPS:
             fps = clock.get_fps()
@@ -712,7 +706,22 @@ def main_edit_loop():
         if show_anchor_grid:
             anchor_manager.anchor_draw(selected_screen_objects)
 
-        pygame_gui_manager.draw_ui(pygamescreen)
+        #Draw the dropdown menu if visible over the top of everything.
+        if active_dropdown and active_dropdown.visible:
+            # Create a semi-transparent overlay
+            screen_width = shared.smartdisplay.x_end
+            screen_height = shared.smartdisplay.y_end
+            overlay = pygame.Surface((screen_width, screen_height))
+            overlay.fill((0, 0, 0))  # Black background
+            overlay.set_alpha(200)    # 50% transparency (0-255)
+            pygamescreen.blit(overlay, (0, 0))            
+            active_dropdown.draw(pygamescreen)
+        else:
+            pygame_gui_manager.draw_ui(pygamescreen)
+
+        # Draw Growl messages
+        shared.GrowlManager.draw(pygamescreen)
+
         #now make pygame update display.
         pygame.display.update()
 

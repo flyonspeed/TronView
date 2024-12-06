@@ -480,30 +480,52 @@ while $RUN_MENU_AGAIN; do
                 # get current branch
                 current_branch=$(git rev-parse --abbrev-ref HEAD)
                 # get latest branch by date
-                latest_branch=$(git branch -r --sort=-committerdate | head -n 1 | sed 's/origin\///')
+                git fetch --all
+                # remove HEAD -> from branch name (with extra spaces) if it exists 
+                # and remove /origin/ from the beginning of the branch name
+                latest_branch=$(git branch -r --sort=-committerdate | head -n 1 | sed 's/^.*origin\///' | sed 's/^HEAD -> //')
+                # get date of latest branch
+                latest_branch_date=$(git show -s --format=%ci $latest_branch)
+
+                # get 3 latest branches
+                latest_branch2nd=$(git branch -r --sort=-committerdate | head -n 2 | tail -n 1 | sed 's/^.*origin\///' | sed 's/^HEAD -> //')
+                latest_branch2nd_date=$(git show -s --format=%ci $latest_branch2nd)
+
+                latest_branch3rd=$(git branch -r --sort=-committerdate | head -n 3 | tail -n 1 | sed 's/^.*origin\///' | sed 's/^HEAD -> //')
+                latest_branch3rd_date=$(git show -s --format=%ci $latest_branch3rd)
+
+                # get 4th latest branch
+                latest_branch4th=$(git branch -r --sort=-committerdate | head -n 4 | tail -n 1 | sed 's/^.*origin\///' | sed 's/^HEAD -> //')
+                latest_branch4th_date=$(git show -s --format=%ci $latest_branch4th)
+
                 while true; do
                     exec 3>&1
                     subchoice=$(dialog --clear --title "Update" \
                                       --menu "Choose:" 20 60 10 \
                                       "1" "Update TronView (current branch: $current_branch)" \
-                                      "2" "Update latest branch: $latest_branch)" \
-                                      "3" "View Changelog" \
+                                      "2" "View Changelog" \
+                                      "3" "Branch: $latest_branch ($latest_branch_date)" \
+                                      "4" "Branch: $latest_branch2nd ($latest_branch2nd_date)" \
+                                      "5" "Branch: $latest_branch3rd ($latest_branch3rd_date)" \
+                                      "6" "Branch: $latest_branch4th ($latest_branch4th_date)" \
                                       2>&1 1>&3)
                     exit_status=$?
                     exec 3>&-
 
                     if handle_menu_exit $exit_status "sub"; then
                         case $subchoice in
-                            1) FULL_COMMAND="git pull " ;;
-                            2) FULL_COMMAND="git pull && git checkout $latest_branch " ;;
-                            3) 
+                            1) FULL_COMMAND="git pull" ;;
+                            2) 
                                 if command -v glow &> /dev/null; then
                                     FULL_COMMAND="glow $TRONVIEW_DIR/CHANGELOG.md"
                                 else
-                                    # Fallback to less if glow is not available
                                     FULL_COMMAND="less $TRONVIEW_DIR/CHANGELOG.md"
                                 fi
                                 ;;
+                            3) FULL_COMMAND="git checkout $latest_branch && git pull" ;;
+                            4) FULL_COMMAND="git checkout $latest_branch2nd && git pull" ;;
+                            5) FULL_COMMAND="git checkout $latest_branch3rd && git pull" ;;
+                            6) FULL_COMMAND="git checkout $latest_branch4th && git pull" ;;
                         esac 
                         break 2
                     else

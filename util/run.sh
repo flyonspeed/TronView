@@ -169,16 +169,20 @@ fi
 ## MAIN MENU
 # Show 1st level main menu
 # Create menu options array
-declare -a menu_options=(
-    "MGL Demos" "MGL related demos and tests" 
-    "Dynon Demos" "Dynon related demos"
-    "Stratux Demos" "Stratux only demos"
-    "IMU Tests" "IMU related tests (Pi only)"
-    "Virtual IMU" "Virtual IMU demos"
-    "Tests" "Test scripts, Serial, Joystick, I2c, WIFI"
-)
+    declare -a menu_options=(
+        "MGL Demos" "MGL related demos and tests" 
+        "Dynon Demos" "Dynon related demos"
+        "Stratux Demos" "Stratux only demos"
+        "IMU Tests" "IMU related tests (Pi only)"
+        "Virtual IMU" "Virtual IMU demos"
+        "Tests" "Test scripts, Serial, Joystick, I2c, WIFI"
+        "Update" "Update TronView & View Changelog"
+    )
 if [ -f "$LAST_RUN_FILE" ]; then
-    menu_options=("Last Run" "Run last: $LAST_NAME" "${menu_options[@]}")
+    # check if the 1st option is "Last Run"
+    if [[ "${menu_options[0]}" != "Last Run" ]]; then
+        menu_options=("Last Run" "Run last: $LAST_NAME" "${menu_options[@]}")
+    fi
 fi
 
 ASCII_ART='
@@ -189,25 +193,25 @@ _____             __     ___               \n
   |_||_|  \___/|_| |_|\_/  |_|\___| \_/\_/  \n
 '
 
+# Check if glow is installed
+if ! command -v glow &> /dev/null; then
+    echo "glow is not installed. Installing..."
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        brew install glow
+    elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        sudo mkdir -p /etc/apt/keyrings
+        curl -fsSL https://repo.charm.sh/apt/gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/charm.gpg
+        echo "deb [signed-by=/etc/apt/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *" | sudo tee /etc/apt/sources.list.d/charm.list
+        sudo apt update && sudo apt install glow
+    fi
+fi
+
 while $RUN_MENU_AGAIN; do
 
     ################################################################################
     ################################################################################
     ## MAIN MENU
     # Show 1st level main menu
-    # Create menu options array
-    declare -a menu_options=(
-        "MGL Demos" "MGL related demos and tests" 
-        "Dynon Demos" "Dynon related demos"
-        "Stratux Demos" "Stratux only demos"
-        "IMU Tests" "IMU related tests (Pi only)"
-        "Virtual IMU" "Virtual IMU demos"
-        "Tests" "Test scripts, Serial, Joystick, I2c, WIFI"
-    )
-    if [ -f "$LAST_RUN_FILE" ]; then
-        menu_options=("Last Run" "Run last: $LAST_NAME" "${menu_options[@]}")
-    fi
-
     while true; do
         exec 3>&1
         DIALOG_TIMEOUT=0
@@ -435,6 +439,7 @@ while $RUN_MENU_AGAIN; do
             ############################################################################
             "Tests")
                 SHOW_ADDITIONAL_OPTIONS=false
+                choice=""
                 while true; do
                     exec 3>&1
                     subchoice=$(dialog --clear --title "Tests" \
@@ -468,6 +473,45 @@ while $RUN_MENU_AGAIN; do
                     fi
                 done
                 ;;
+            ############################################################################
+            "Update")
+                SHOW_ADDITIONAL_OPTIONS=false
+                choice=""
+                # get current branch
+                current_branch=$(git rev-parse --abbrev-ref HEAD)
+                # get latest branch by date
+                latest_branch=$(git branch -r --sort=-committerdate | head -n 1 | sed 's/origin\///')
+                while true; do
+                    exec 3>&1
+                    subchoice=$(dialog --clear --title "Update" \
+                                      --menu "Choose:" 20 60 10 \
+                                      "1" "Update TronView (current branch: $current_branch)" \
+                                      "2" "Update latest branch: $latest_branch)" \
+                                      "3" "View Changelog" \
+                                      2>&1 1>&3)
+                    exit_status=$?
+                    exec 3>&-
+
+                    if handle_menu_exit $exit_status "sub"; then
+                        case $subchoice in
+                            1) FULL_COMMAND="git pull " ;;
+                            2) FULL_COMMAND="git pull && git checkout $latest_branch " ;;
+                            3) 
+                                if command -v glow &> /dev/null; then
+                                    FULL_COMMAND="glow $TRONVIEW_DIR/CHANGELOG.md"
+                                else
+                                    # Fallback to less if glow is not available
+                                    FULL_COMMAND="less $TRONVIEW_DIR/CHANGELOG.md"
+                                fi
+                                ;;
+                        esac 
+                        break 2
+                    else
+                        break
+                    fi
+                done
+                ;;
+            ############################################################################
             "Last Run")
                 choice="$LAST_ARGS"
                 SHOW_ADDITIONAL_OPTIONS=false
@@ -540,6 +584,8 @@ while $RUN_MENU_AGAIN; do
         # Run the selected command
         if [[ "$OSTYPE" == "linux-gnu"* ]] || [[ ! "$choice" =~ "bno" ]]; then
             run_python "$choice"
+            # clear $choice
+            choice=""
         else
             echo "IMU options only supported on Linux/Raspberry Pi"
         fi

@@ -25,7 +25,7 @@ from lib.common.graphic import edit_mode
 from lib.common import shared # global shared objects stored here.
 from lib.common.graphic import edit_save_load
 from lib.common.graphic.growl_manager import GrowlPosition
-from lib.version import __version__, __build_date__, __build__
+from lib.version import __version__, __build_date__, __build__, __build_time__
 
 #############################################
 ## Class: myThreadEfisInputReader
@@ -277,7 +277,7 @@ if __name__ == "__main__":
             edit_save_load.load_screen_from_json("default.json",from_templates=True)
 
     shared.GrowlManager.add_message("TronView " + __version__, position=GrowlPosition.CENTER, duration=8)
-    shared.GrowlManager.add_message("Build: " + __build__ + " " + __build_date__, position=GrowlPosition.CENTER, duration=8)
+    shared.GrowlManager.add_message("Build: " + __build__ + " " + __build_date__ + " " + __build_time__, position=GrowlPosition.CENTER, duration=8)
     shared.GrowlManager.add_message("By running this software you agree to the terms of the license.", position=GrowlPosition.CENTER, duration=8)
     shared.GrowlManager.add_message("Use at own risk!", position=GrowlPosition.CENTER, duration=8)
     shared.GrowlManager.add_message("TronView.org", position=GrowlPosition.CENTER, duration=8)

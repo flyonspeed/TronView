@@ -8,7 +8,7 @@ __license__ = "GPLv3"
 __copyright__ = f"Copyright 2024 {__author__}"
 
 # Build info
-__build__ = "beta"  # or "stable", "beta", etc.
+__build__ = "alpha"  # or "stable", "beta", etc.
 __build_date__ = "2024-12-05"
 __build_time__ = "21:05:00 PST"
 

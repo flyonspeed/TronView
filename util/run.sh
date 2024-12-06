@@ -317,24 +317,28 @@ while $RUN_MENU_AGAIN; do
                     exec 3>&1
                     subchoice=$(dialog --clear --title "Stratux Demos" \
                                       --menu "Choose a demo:" 20 60 10 \
-                                      "1" "Demo 54" \
-                                      "2" "Demo 57 (Bad pitch/roll)" \
-                                      "3" "Demo stratux_8 - Traffic targets only" \
+                                      "1" "Live Stratux Connection" \
+                                      "2" "Demo Data 54" \
+                                      "3" "Demo Data 57 (Bad pitch/roll)" \
+                                      "4" "Demo Data stratux_8 - Traffic targets only" \
                                       2>&1 1>&3)
                     exit_status=$?
                     exec 3>&-
                     
                     if handle_menu_exit $exit_status "sub"; then
                         case $subchoice in
-                            1) 
+                            1)  choice="--in1 stratux_wifi"
+                                selected_name="Live Stratux Connection"
+                                ;;
+                            2) 
                                 choice="-i stratux_wifi -c stratux_54.dat"
                                 selected_name="Demo 54"
                                 ;;
-                            2) 
+                            3) 
                                 choice="-i stratux_wifi -c stratux_57.dat"
                                 selected_name="Demo 57 (Bad pitch/roll)"
                                 ;;
-                            3) 
+                            4) 
                                 choice="-i stratux_wifi -c stratux_8.dat"
                                 selected_name="Demo stratux_8 - Traffic targets only"
                                 ;;
@@ -358,7 +362,7 @@ while $RUN_MENU_AGAIN; do
                                       "3" "Live BNO055 IMU + MGL + Stratux" \
                                       "4" "Live dual BNO055 IMUs" \
                                       "5" "Live BNO085 IMU" \
-                                      "6" "Live dual BNO085 IMUs" \
+                                      "6" "Live dual BNO085 IMUs + Live Stratux" \
                                       "7" "MGL + Stratux + Live BNO085" \
                                       "8" "vIMU + Live BNO085" \
                                       "9" "joystick vIMU + Live BNO085" \
@@ -383,7 +387,7 @@ while $RUN_MENU_AGAIN; do
                             5) choice="-i gyro_i2c_bno085"
                                 selected_name="Live BNO085"
                                 ;;
-                            6) choice="--in1 gyro_i2c_bno085 --in2 gyro_i2c_bno085"
+                            6) choice="--in1 gyro_i2c_bno085 --in2 gyro_i2c_bno085 --in3 stratux_wifi"
                                 selected_name="Live dual BNO085"
                                 ;;
                             7) choice="-i serial_mgl --playfile1 mgl_chase_rv6_1.dat --in3 stratux_wifi --playfile3 stratux_chase_rv6_1.dat --in2 gyro_i2c_bno085"

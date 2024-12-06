@@ -141,8 +141,6 @@ class gyro_virtual(Input):
 
                 # update aircraft object
                 self.imuData.updatePos(self.test_pitch, self.test_roll, self.test_yaw)
-                aircraft.imus[self.num_imus] = self.imuData
-
 
                 if self.feed_into_aircraft:
                     aircraft.pitch = self.imuData.pitch

@@ -20,6 +20,7 @@ class horizon(Module):
     def __init__(self):
         Module.__init__(self)
         self.name = "HUD Horizon"  # set name
+        self.hide_from_add_menu = True
 
     # called once for setup
     def initMod(self, pygamescreen, width=None, height=None):

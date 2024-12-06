@@ -26,7 +26,8 @@ from lib.common.graphic.edit_EditToolBar import EditToolBar
 from lib.common.graphic.edit_EditOptionsBar import EditOptionsBar
 from lib.common.graphic.edit_TronViewScreenObject import GridAnchorManager
 from lib.common.graphic.edit_EditEventsWindow import EditEventsWindow, save_event_handlers_to_json, load_event_handlers_from_json
-
+from lib.common.graphic.edit_dropdown import DropDown
+from lib.common.graphic.growl_manager import GrowlManager
 
 #############################################
 ## Function: main edit loop
@@ -36,7 +37,7 @@ def main_edit_loop():
         shared.Change_history = ChangeHistory()
 
     # init common things.
-    maxframerate = hud_utils.readConfigInt("Main", "maxframerate", 30)
+    maxframerate = hud_utils.readConfigInt("Main", "maxframerate", 40)
     clock = pygame.time.Clock()
     pygame.time.set_timer(pygame.USEREVENT, 1000) # fire User events ever sec.
     debug_font = pygame.font.SysFont("monospace", 25, bold=False)
@@ -44,7 +45,7 @@ def main_edit_loop():
     exit_edit_mode = False
     pygame.mouse.set_visible(True)
     print("Entering Edit Mode")
-
+    shared.GrowlManager.initScreen()
     # clear screen using pygame
     pygamescreen = shared.smartdisplay.pygamescreen
     pygamescreen.fill((0, 0, 0))
@@ -60,8 +61,7 @@ def main_edit_loop():
     offset_x = 0 # x offset for dragging
     offset_y = 0 # y offset for dragging
     resizing = False  # are we resizing?
-    dropdown_add_new_module = None # dropdown menu for module selection (if any)
-    dropdown_load_screen_template = None # dropdown menu for screen template selection (if any)
+    active_dropdown = None  # Single dropdown menu for all dropdown needs
     modulesFound, listModules = find_module(debugOutput=False)
     showAllBoundryBoxes = False
     selected_screen_objects = []
@@ -113,35 +113,36 @@ def main_edit_loop():
                 if edit_events_window.is_busy():
                     continue
 
-            if dropdown_add_new_module and dropdown_add_new_module.visible:
-                selection = dropdown_add_new_module.update(event_list)
+            # check dropdown menu if visible
+            if active_dropdown and active_dropdown.visible:
+                selection, selected_text = active_dropdown.update(event_list)
                 if selection >= 0:
-                    new_x = dropdown_add_new_module.storeObject["x"] # get the x,y from the dropdown storeObject..
-                    new_y = dropdown_add_new_module.storeObject["y"]
-                    print("Adding module: %s at %d x %d" % (listModules[selection], new_x, new_y))
-                    newObject = TronViewScreenObject(
-                        pygamescreen, 
-                        'module', 
-                        f"A_{len(shared.CurrentScreen.ScreenObjects)}", 
-                        module=find_module(byName=listModules[selection])[0][0],  # find and load the module by name
-                        x=new_x, y=new_y) # set the x,y position 
-                    shared.Change_history.add_change("add", {"object": newObject})
-                    shared.CurrentScreen.ScreenObjects.append( newObject )
-                    newObject.selected = True
-                    selected_screen_object = newObject
-                    selected_screen_objects = [newObject]
-            
-            if dropdown_load_screen_template and dropdown_load_screen_template.visible:
-                selection = dropdown_load_screen_template.update(event_list)
-                if selection >= 0:
-                    print("Selected template: %s" % dropdown_load_screen_template.options[selection])
-                    shared.Change_history.clear()
-                    if dropdown_load_screen_template.active_option == 0:
-                        # clear the screen
-                        shared.CurrentScreen.ScreenObjects.clear()
-                    else:
-                        load_screen_from_json(dropdown_load_screen_template.options[selection], from_templates=True)
-
+                    if active_dropdown.menu_type == "module":
+                        new_x = active_dropdown.storeObject["x"]
+                        new_y = active_dropdown.storeObject["y"]
+                        print("Adding module: %s at %d x %d" % (listModules[selection], new_x, new_y))
+                        newObject = TronViewScreenObject(
+                            pygamescreen, 
+                            'module', 
+                            f"A_{len(shared.CurrentScreen.ScreenObjects)}", 
+                            module=find_module(byName=listModules[selection])[0][0],
+                            x=new_x, y=new_y)
+                        shared.Change_history.add_change("add", {"object": newObject})
+                        shared.CurrentScreen.ScreenObjects.append(newObject)
+                        newObject.selected = True
+                        selected_screen_object = newObject
+                        selected_screen_objects = [newObject]
+                    elif active_dropdown.menu_type == "template":
+                        print("Selected template: %s" % selected_text)
+                        shared.Change_history.clear()
+                        if selection == 0:  # First option is "CLEAR SCREEN"
+                            shared.CurrentScreen.ScreenObjects.clear()
+                        else:
+                            load_screen_from_json(selected_text, from_templates=True)
+                    elif active_dropdown.menu_type == "input":
+                        print("Selected input: %s" % selected_text)
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                    active_dropdown = None
             else:
                 ############################################################################################
                 # KEY MAPPINGS
@@ -157,6 +158,7 @@ def main_edit_loop():
                         if shared.Dataship.debug_mode > 2:
                             shared.Dataship.debug_mode = 0
                         print("Debug mode: %d" % shared.Dataship.debug_mode)
+                        shared.GrowlManager.add_message("Debug mode set : %d" % shared.Dataship.debug_mode)
                     elif event.key == pygame.K_ESCAPE:
                         # Unselect all selected objects
                         for sObject in shared.CurrentScreen.ScreenObjects:
@@ -167,6 +169,9 @@ def main_edit_loop():
                             edit_options_bar = None
                         if edit_events_window:
                             edit_events_window.hide()
+                        if active_dropdown:
+                            active_dropdown.visible = False
+                            active_dropdown = None
                         print("All objects unselected")
                     elif event.key == pygame.K_TAB:
                         # Cycle through selected objects
@@ -263,51 +268,6 @@ def main_edit_loop():
                                 break
                     # ADD SCREEN OBJECT
                     elif event.key == pygame.K_a:
-                        # first unselect all modules
-                        for sObject in shared.CurrentScreen.ScreenObjects:
-                            sObject.selected = False
-                        selected_screen_objects.clear()
-                        # add a new Screen object
-                        mx, my = pygame.mouse.get_pos()
-                        # newObject = TronViewScreenObject(pygamescreen, 'module', f"A_{len(shared.CurrentScreen.ScreenObjects)}", module=None, x=mx, y=my)
-                        # shared.Change_history.add_change("add", {"object": newObject})
-                        # shared.CurrentScreen.ScreenObjects.append(
-                        #     newObject
-                        # )
-                        # newObject.selected = True
-                        # selected_screen_object = newObject
-                        dropdown_add_new_module = DropDown( 
-                            x=mx, y=my, w=140, h=30, 
-                            main="Select Module", options=listModules)
-                        dropdown_add_new_module.visible = True # show the dropdown menu
-                        dropdown_add_new_module.draw_menu = True # draw the menu
-                        dropdown_add_new_module.storeObject = {"type": "module", "x": mx, "y": my} # store the object details
-
-                    # MOVE SCREEN OBJECT UP IN DRAW ORDER (page up)
-                    elif event.key == pygame.K_PAGEUP:
-                        for sObject in shared.CurrentScreen.ScreenObjects:
-                            if sObject.selected:
-                                # move it to the bottom of the list
-                                shared.CurrentScreen.ScreenObjects.remove(sObject)
-                                shared.CurrentScreen.ScreenObjects.append(sObject)
-
-                                break
-                    # MOVE SCREEN OBJECT DOWN IN DRAW ORDER (page down)
-                    elif event.key == pygame.K_PAGEDOWN:
-                        for sObject in shared.CurrentScreen.ScreenObjects:
-                            if sObject.selected:
-                                # move it to the top of the list
-                                shared.CurrentScreen.ScreenObjects.remove(sObject)
-                                shared.CurrentScreen.ScreenObjects.insert(0, sObject)
-                                break
-
-                    # SAVE SCREEN TO JSON
-                    elif event.key == pygame.K_s:
-                        save_screen_to_json()
-
-                    # if ctrl + l is pressed then load the screen from the templates folder
-                    elif event.key == pygame.K_l and (pygame.key.get_mods() & pygame.KMOD_CTRL):
-                        # first unselect all modules
                         for sObject in shared.CurrentScreen.ScreenObjects:
                             sObject.selected = False
                         selected_screen_objects.clear()
@@ -316,24 +276,77 @@ def main_edit_loop():
                             edit_options_bar = None
                         if edit_events_window:
                             edit_events_window.hide()
-                        mx, my = pygame.mouse.get_pos()  # Get current mouse position
-                        print("Load template key pressed at %d x %d" % (mx, my))
-                        dropdown_load_screen_template = DropDown(
-                            x=mx, y=my, w=140, h=30, 
-                            menuTitle="Screen Templates")
-                        # get root dir of the current module
-                        root_dir = os.path.dirname(os.path.abspath(__file__))
-                        dropdown_load_screen_template.load_file_dir_as_options(os.path.join(root_dir+"/../../screens", "templates"))
-                        # add a option at the top of the list
-                        dropdown_load_screen_template.insert_option("CLEAR SCREEN", 0)
-                        dropdown_load_screen_template.visible = True
-                        dropdown_load_screen_template.draw_menu = True
-                        #load_screen_from_json("default.json", from_templates=True)
 
+                        # first unselect all modules
+                        for sObject in shared.CurrentScreen.ScreenObjects:
+                            sObject.selected = False
+                        selected_screen_objects.clear()
+                        # Show the dropdown menu for adding a new module
+                        mx, my = pygame.mouse.get_pos()
+                        active_dropdown = DropDown(
+                            x=mx, y=my, w=140, h=30,
+                            menuTitle="Add Screen Module", options=listModules)
+                        active_dropdown.menu_type = "module"  # Add type identifier
+                        active_dropdown.visible = True
+                        active_dropdown.draw_menu = True
+                        active_dropdown.storeObject = {"type": "module", "x": mx, "y": my} # store the mouse position
+
+                    # LOAD TEMPLATE
+                    elif event.key == pygame.K_l and (pygame.key.get_mods() & pygame.KMOD_CTRL):
+                        mx, my = pygame.mouse.get_pos()
+                        print("Load template key pressed at %d x %d" % (mx, my))
+                        active_dropdown = DropDown(
+                            x=mx, y=my, w=140, h=30,
+                            menuTitle="Screen Templates")
+                        active_dropdown.menu_type = "template"  # Add type identifier
+                        root_dir = os.path.dirname(os.path.abspath(__file__))
+                        active_dropdown.load_file_dir_as_options(os.path.join(root_dir+"/../../screens", "templates"))
+                        active_dropdown.insert_option("CLEAR SCREEN", 0)
+                        active_dropdown.visible = True
+                        active_dropdown.draw_menu = True
+
+                    # INPUTS
+                    elif event.key == pygame.K_i:
+                        print("Inputs key pressed")
+                        mx, my = pygame.mouse.get_pos()
+                        # get the list of inputs
+                        options = [input.name for input in shared.Inputs.values()]
+                        active_dropdown = DropDown(
+                            x=mx, y=my, w=140, h=30,
+                            menuTitle="Select Input", options=options)
+                        active_dropdown.menu_type = "input"  # Add type identifier
+                        active_dropdown.visible = True
+                        active_dropdown.draw_menu = True
+                        
                     # LOAD SCREEN FROM JSON
                     elif event.key == pygame.K_l:
                         load_screen_from_json("screen.json")
-                    
+                        shared.GrowlManager.add_message("Loaded screen from JSON")
+
+                    # MOVE SCREEN OBJECT UP IN DRAW ORDER (page up)
+                    elif event.key == pygame.K_PAGEUP:
+                        for sObject in shared.CurrentScreen.ScreenObjects:
+                            if sObject.selected:
+                                # move it to the bottom of the list
+                                shared.CurrentScreen.ScreenObjects.remove(sObject)
+                                shared.CurrentScreen.ScreenObjects.append(sObject)
+                                shared.GrowlManager.add_message("Moved module to bottom of list")
+                                break
+                    # MOVE SCREEN OBJECT DOWN IN DRAW ORDER (page down)
+                    elif event.key == pygame.K_PAGEDOWN:
+                        for sObject in shared.CurrentScreen.ScreenObjects:
+                            if sObject.selected:
+                                # move it to the top of the list
+                                shared.CurrentScreen.ScreenObjects.remove(sObject)
+                                shared.CurrentScreen.ScreenObjects.insert(0, sObject)
+                                shared.GrowlManager.add_message("Moved module to top of list")
+                                break
+
+                    # SAVE SCREEN TO JSON
+                    elif event.key == pygame.K_s:
+                        save_screen_to_json()
+                        shared.GrowlManager.add_message("Saved screen to JSON")
+
                     # Toggle FPS display when 'F' is pressed
                     elif event.key == pygame.K_f:
                         shared.Dataship.show_FPS = not shared.Dataship.show_FPS
@@ -417,6 +430,7 @@ def main_edit_loop():
                         print("inputObj: %s" % inputObj.name)
                         if inputObj.name == "imuJoystick":
                             inputObj.setJoystick(joy)
+                            shared.GrowlManager.add_message("IMU Joystick connected")
                             break
 
                 # check for Mouse events
@@ -667,11 +681,6 @@ def main_edit_loop():
                 edit_events_window.hide()
                 edit_events_window = None
 
-        # Last... Draw the dropdown menu if visible over the top of everything.
-        if dropdown_add_new_module and dropdown_add_new_module.visible:
-            dropdown_add_new_module.draw(pygamescreen)
-        elif dropdown_load_screen_template and dropdown_load_screen_template.visible:
-            dropdown_load_screen_template.draw(pygamescreen)
 
         pygame_gui_manager.update(time_delta)
 
@@ -697,7 +706,22 @@ def main_edit_loop():
         if show_anchor_grid:
             anchor_manager.anchor_draw(selected_screen_objects)
 
-        pygame_gui_manager.draw_ui(pygamescreen)
+        #Draw the dropdown menu if visible over the top of everything.
+        if active_dropdown and active_dropdown.visible:
+            # Create a semi-transparent overlay
+            screen_width = shared.smartdisplay.x_end
+            screen_height = shared.smartdisplay.y_end
+            overlay = pygame.Surface((screen_width, screen_height))
+            overlay.fill((0, 0, 0))  # Black background
+            overlay.set_alpha(200)    # 50% transparency (0-255)
+            pygamescreen.blit(overlay, (0, 0))            
+            active_dropdown.draw(pygamescreen)
+        else:
+            pygame_gui_manager.draw_ui(pygamescreen)
+
+        # Draw Growl messages
+        shared.GrowlManager.draw(pygamescreen)
+
         #now make pygame update display.
         pygame.display.update()
 
@@ -721,170 +745,6 @@ def handle_resize_end(screen_object, start_size):
             "old_size": start_size,
             "new_size": (screen_object.width, screen_object.height)
         })
-
-
-COLOR_INACTIVE = (100, 100, 100)
-COLOR_ACTIVE = (255, 255, 255)
-COLOR_LIST_INACTIVE = (100, 100, 100)
-COLOR_LIST_ACTIVE = (255, 255, 255)
-
-############################################################################################
-############################################################################################
-# DropDown class used to pick the module from the list of modules.
-class DropDown():
-    def __init__(self, color_menu=[COLOR_INACTIVE, COLOR_ACTIVE],
-                color_option=[COLOR_LIST_INACTIVE, COLOR_LIST_ACTIVE],
-                x=0, y=0, w=140, h=30, 
-                font=None, 
-                main="Select Option", 
-                options=[], 
-                menuTitle=None,
-                callback=None,
-                showButton=False,
-                storeObject=[]):
-        
-        self.menuTitle = menuTitle
-        self.color_menu = color_menu
-        self.color_option = color_option
-        self.rect = pygame.Rect(x, y, w, h)
-        self.font = font if font else pygame.font.SysFont(None, 25)
-        self.main = main
-        self.options = options
-        self.draw_menu = False
-        self.menu_active = False
-        self.active_option = -1
-        self.value = None
-        self.visible = False
-        self.option_rects = []  # Store rectangles for each option
-        self.callback = callback
-        self.showButton = showButton
-        self.storeObject = storeObject # place to store a object with details about what this dropdown is for.
-
-    def load_file_dir_as_options(self, path, ignore_regex=None, sort=True):
-        # each file name is the option. remove the extension.
-        self.options = [
-            os.path.splitext(os.path.basename(f))[0] for f in os.listdir(path) 
-            if os.path.isfile(os.path.join(path, f)) 
-            and (not ignore_regex or not re.match(ignore_regex, f))
-        ]
-        if sort:
-            self.options.sort()
-
-    def draw(self, surf):
-        screen_width = surf.get_width()
-        screen_height = surf.get_height()
-        eachOptionHeight = 20
-        
-        # Draw main dropdown button
-        if self.showButton:
-            pygame.draw.rect(surf, self.color_menu[self.menu_active], self.rect, 0)
-            msg = self.font.render(self.main, 1, (0, 0, 0))
-            surf.blit(msg, msg.get_rect(center=self.rect.center))
-
-        if self.draw_menu:
-            self.option_rects = []  # Clear previous option rects
-            
-            # Calculate items that can fit in one column
-            max_items_per_column = (screen_height - 40) // self.rect.height  # Leave 40px margin
-            if max_items_per_column < 1:
-                max_items_per_column = 1
-            
-            items_found = len(self.options)
-            
-            # Calculate number of columns needed
-            num_columns = (items_found + max_items_per_column - 1) // max_items_per_column
-            total_width = num_columns * self.rect.width
-            
-            # Initial position
-            start_x = self.rect.x
-            start_y = self.rect.y + self.rect.height
-
-            # Adjust horizontal position if menu would go off right edge
-            if start_x + total_width > screen_width:
-                start_x = screen_width - total_width - 10  # 10px margin
-                if start_x < 10:  # Ensure minimum left margin
-                    start_x = 10
-            
-            # Adjust vertical position if menu would go off bottom
-            if start_y + (items_found * eachOptionHeight) > screen_height:
-                print("Menu would go off bottom, moving up start_y:%d items_found:%d eachOptionHeight:%d > screen_height:%d" % (start_y, items_found, eachOptionHeight, screen_height))
-                # Move menu up, but ensure it doesn't go above top of screen
-                start_y = max(20, screen_height - (items_found * eachOptionHeight) - 20)
-            
-            current_x = start_x
-            current_y = start_y
-            current_index = 0
-
-            if self.menuTitle:
-                # draw the menu title at the top of the menu.
-                msg = self.font.render(self.menuTitle, 1, (0, 0, 0), bgcolor=(255, 255, 255))
-                surf.blit(msg, msg.get_rect(center=(self.rect.centerx, self.rect.y + 10)))
-                start_y += 20
-
-            while current_index < len(self.options):
-                # Start new column if we've reached max items in current column
-                if (current_y + self.rect.height > screen_height - 20 or 
-                    (current_index > 0 and current_index % max_items_per_column == 0)):
-                    current_y = start_y
-                    current_x += self.rect.width
-                
-                option_rect = pygame.Rect(current_x, current_y, self.rect.width, self.rect.height)
-                self.option_rects.append(option_rect)
-                
-                # Draw option background
-                pygame.draw.rect(surf, 
-                               self.color_option[1 if current_index == self.active_option else 0],
-                               option_rect, 0)
-                
-                # Draw option text
-                msg = self.font.render(self.options[current_index], 1, (0, 0, 0))
-                surf.blit(msg, msg.get_rect(center=option_rect.center))
-                
-                current_y += self.rect.height
-                current_index += 1
-
-    def insert_option(self, option, index):
-        self.options.insert(index, option)
-        self.option_rects.insert(index, pygame.Rect(0, 0, self.rect.width, self.rect.height))
-
-    def is_option_clicked(self, pos):
-        """Check if mouse position is inside any option rectangle"""
-        if not self.draw_menu:
-            return -1
-            
-        for i, rect in enumerate(self.option_rects):
-            if rect.collidepoint(pos):
-                return i
-        return -1
-
-    def update(self, event_list):
-        mpos = pygame.mouse.get_pos()
-        self.menu_active = self.rect.collidepoint(mpos)
-        
-        # Update active option based on mouse position
-        self.active_option = self.is_option_clicked(mpos)
-        
-        for event in event_list:
-            if event.type == pygame.MOUSEBUTTONDOWN or event.type == pygame.FINGERDOWN:
-                if self.menu_active:
-                    self.draw_menu = not self.draw_menu
-                    self.visible = not self.visible
-                elif self.draw_menu:
-                    clicked_option = self.is_option_clicked(mpos)
-                    if clicked_option >= 0:
-                        self.draw_menu = False
-                        self.visible = False
-                        if self.callback:
-                            self.callback(clicked_option)
-                        return clicked_option
-                    else:
-                        self.draw_menu = False
-                        self.visible = False
-        return -1
-
-    def toggle(self):
-        self.draw_menu = not self.draw_menu
-        self.visible = not self.visible
 
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

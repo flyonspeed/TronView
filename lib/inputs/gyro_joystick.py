@@ -16,10 +16,13 @@ class gyro_joystick(Input):
         self.isPlaybackMode = False
 
         self.joystick = None
-        self.num_axes = None  
+        self.num_axis = None
+        self.axis_pitch = 1
+        self.axis_roll = 0
+        self.axis_yaw = 2
+        self.freeze = False
 
     def initInput(self,num,aircraft):
-        pygame.joystick.init()
         Input.initInput(self,num,aircraft)  # call parent init Input.
 
         # get this num of imu
@@ -76,34 +79,55 @@ class gyro_joystick(Input):
             else:
                 # Handle joystick input
                 if self.joystick:
-                    #pygame.event.pump()  # Process pygame events
                     
-                    # Read joystick axes
-                    # Map each axis to full 180 degree range (-180 to +180)
-                    pitch = round(-self.joystick.get_axis(1) * 180,2)  # Up/Down on left stick (-180 to 180 degrees)
-                    roll = round(self.joystick.get_axis(0) * 180,2)    # Left/Right on left stick (-180 to 180 degrees)
-                    yaw = round(self.joystick.get_axis(2) * 180,2)     # Left/Right on right stick (-180 to 180 degrees)
-                    # convert yaw to 0-360 degrees
-                    if yaw < 0:
-                        yaw += 360
-                    
-                    #print("pitch: %s, roll: %s, yaw: %s" % (pitch, roll, yaw))
-                    
-                    # Update IMU data
-                    self.imuData.updatePos(pitch, roll, yaw)
-                    aircraft.imus[self.num_imus] = self.imuData
+                    if aircraft.debug_mode > 0:
+                        current_time = time.time()
+                        self.imuData.hz = round(1 / (current_time - self.last_read_time), 1)
+                        self.last_read_time = current_time
 
-                    # Update aircraft if this is the primary IMU
-                    if self.feed_into_aircraft:
-                        aircraft.pitch = self.imuData.pitch
-                        aircraft.roll = self.imuData.roll
-                        aircraft.mag_head = self.imuData.yaw
-                        aircraft.yaw = self.imuData.yaw
+                    # Read joystick axis
+                    if self.freeze == False:
+                        # Map each axis to full 180 degree range (-180 to +180)
+                        pitch = round(-self.joystick.get_axis(self.axis_pitch) * 180,2)  # Up/Down on left stick (-180 to 180 degrees)
+                        roll = round(self.joystick.get_axis(self.axis_roll) * 180,2)    # Left/Right on left stick (-180 to 180 degrees)
+                        yaw = round(self.joystick.get_axis(self.axis_yaw) * 180,2)     # Left/Right on right stick (-180 to 180 degrees)
+                        # convert yaw to 0-360 degrees
+                        if yaw < 0:
+                            yaw += 360
 
+                        # Update IMU data
+                        self.imuData.updatePos(pitch, roll, yaw)
+
+                        # Update aircraft if this is the primary IMU
+                        if self.feed_into_aircraft:
+                            aircraft.pitch = self.imuData.pitch
+                            aircraft.roll = self.imuData.roll
+                            aircraft.mag_head = self.imuData.yaw
+                            aircraft.yaw = self.imuData.yaw
+                                            
                     # Write to log file if enabled
                     if self.output_logFile is not None:
                         log_line = f"085,{time.time()},{self.imuData.pitch},{self.imuData.roll},{self.imuData.yaw},{self.imuData.home_pitch},{self.imuData.home_roll},{self.imuData.home_yaw}\n"
                         Input.addToLog(self, self.output_logFile, log_line.encode())
+
+                    # button 0:  is home
+                    if self.joystick.get_button(0):
+                        print("Button 0 pressed: home!")
+                        self.imuData.home()
+                        # wait for button 0 to be released
+                        while self.joystick.get_button(0):
+                            time.sleep(0.1)
+                    
+                    # button 1: then freeze the current position
+                    if self.joystick.get_button(1):
+                        print("Button 1 pressed: freeze!")
+                        if self.freeze == False:
+                            self.freeze = True
+                        else:
+                            self.freeze = False
+                        # wait for button 1 to be released
+                        while self.joystick.get_button(1):
+                            time.sleep(0.1)
 
         except Exception as e:
             print(e)
@@ -113,8 +137,14 @@ class gyro_joystick(Input):
 
     def setJoystick(self, joystick):
         self.joystick = joystick
-        self.num_axes = joystick.get_numaxes()
-        print("setJoystick() %i: %s, num_axes: %s" % (joystick.get_instance_id(), joystick.get_name(), self.num_axes))
+        self.num_axis = joystick.get_numaxes()
+        print("setJoystick() %i: %s, num_axis: %s" % (joystick.get_instance_id(), joystick.get_name(), self.num_axis))
+
+        # map nimbus joystick axes to the correct ones.
+        if joystick.get_name() == "Nimbus":
+            self.axis_pitch = 11
+            self.axis_roll = 10
+            self.axis_yaw = 14
 
     def setPostion(self, pitch, roll, yaw):
         """Manual position setting (mainly for testing)"""

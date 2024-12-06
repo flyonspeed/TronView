@@ -24,6 +24,8 @@ from lib.common.graphic import graphic_mode
 from lib.common.graphic import edit_mode
 from lib.common import shared # global shared objects stored here.
 from lib.common.graphic import edit_save_load
+from lib.common.graphic.growl_manager import GrowlPosition
+from lib.version import __version__, __build_date__, __build__, __build_time__
 
 #############################################
 ## Class: myThreadEfisInputReader
@@ -46,9 +48,10 @@ class myThreadEfisInputReader(threading.Thread):
 
             internalLoopCounter = internalLoopCounter - 1
             if internalLoopCounter < 1:
-                internalLoopCounter = 1000
+                internalLoopCounter = 100
                 checkInternals()
                 shared.Dataship.traffic.cleanUp(shared.Dataship) # check if old traffic targets should be cleared up.
+                #print(f"Input Thread: {shared.Inputs[0].name} looped")
 
             if (shared.Inputs[0].PlayFile != None): # if playing back a file.. add a little delay so it's closer to real world time.
                time.sleep(.04)
@@ -114,8 +117,12 @@ def loadInput(num,nameToLoad,playFile=None):
     newInput = class_()
     newInput.PlayFile = playFile
     newInput.initInput(num,shared.Dataship)
+    # check for attribute id. if not set, set it to name.
+    if not hasattr(newInput, 'id'):
+        newInput.id = newInput.name
     shared.Inputs[num] = newInput
     print(("Input %d loaded to shared.Inputs[%d]: %s"%(num,num,nameToLoad)))
+    shared.GrowlManager.add_message("Input"+str(num)+": "+newInput.id + " Loaded " + nameToLoad, position=GrowlPosition.BOTTOM_LEFT, duration=8)
     return newInput
 
 #############################################
@@ -268,6 +275,12 @@ if __name__ == "__main__":
             edit_save_load.load_screen_from_json("screen.json")
         else:
             edit_save_load.load_screen_from_json("default.json",from_templates=True)
+
+    shared.GrowlManager.add_message("TronView " + __version__, position=GrowlPosition.CENTER, duration=8)
+    shared.GrowlManager.add_message("Build: " + __build__ + " " + __build_date__ + " " + __build_time__, position=GrowlPosition.CENTER, duration=8)
+    shared.GrowlManager.add_message("By running this software you agree to the terms of the license.", position=GrowlPosition.CENTER, duration=8)
+    shared.GrowlManager.add_message("Use at own risk!", position=GrowlPosition.CENTER, duration=8)
+    shared.GrowlManager.add_message("TronView.org", position=GrowlPosition.CENTER, duration=8)
 
     # start main loop.
     while not shared.Dataship.errorFoundNeedToExit:

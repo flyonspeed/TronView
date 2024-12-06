@@ -14,6 +14,7 @@ from datetime import datetime
 class Input:
     def __init__(self):
         self.name = "Input Class"
+        self.id = ""
         self.version = 1.0
         self.inputtype = ""
         self.path_datarecorder = ""
@@ -74,6 +75,7 @@ class Input:
             self.input_logFileSize = os.path.getsize(openFileName)
             self.input_logFilePercent = 0
             print("Opening Logfile: "+openFileName+" size="+str(self.input_logFileSize))
+            shared.GrowlManager.add_message(self.id + ": Playing " + openFileName)
             return logFile,openFileName
         except :
             print("Error openLogFile() "+self.name)
@@ -116,6 +118,7 @@ class Input:
                 logFile = open(openFileName, "w+b")
             else:
                 logFile = open(openFileName, "w")
+            shared.GrowlManager.add_message(self.name + ": Created log file: " + openFileName)
             return logFile,openFileName
         except Exception as e: 
             print(e)

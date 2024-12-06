@@ -24,7 +24,7 @@ class horizon_v2(Module):
         self.show_targets = True
         self.target_distance_threshold = 10
         self.fov_x = hud_utils.readConfigInt("HUD", "fov_x", 13.942) # Field of View X in degrees
-        self.fov_y = hud_utils.readConfigInt("HUD", "fov_y", 13.942) # Field of View y in degrees
+        #self.fov_y = hud_utils.readConfigInt("HUD", "fov_y", 13.942) # Field of View y in degrees
         self.target_positions = {}  # Store smoothed positions for each target
         self.target_smoothing = 0.2  # Default smoothing factor (0-1), lower = smoother
 
@@ -38,7 +38,19 @@ class horizon_v2(Module):
         self.source_imu_index2_name = "NONE"  # name of the secondary imu. (optional)
         self.source_imu_index2 = None  # index of the secondary imu. (optional)
         self.camera_head_imu = None  # IMU object for camera head. Human Head view.
-               
+
+        self.pxy_div = hud_utils.readConfigInt("HUD", "vertical_pixels_per_degree", 30)  # Y axis number of pixels per degree divisor
+        self.y_offset = hud_utils.readConfigInt("HUD", "Horizon_Offset", 0)  #  Horizon/Waterline Pixel Offset from HUD Center Neg Numb moves Up, Default=0               
+
+        # Add smoothing variables for horizon lines
+        self.horizon_smoothing = 0.25  # Smoothing factor (0-1), lower = smoother
+        self.prev_horizon_state = {
+            'pitch': 0,
+            'roll': 0,
+            'camera_yaw': 0,
+            'camera_pitch': 0,
+            'camera_roll': 0
+        }
 
     # called once for setup
     def initMod(self, pygamescreen, width=None, height=None):
@@ -63,8 +75,6 @@ class horizon_v2(Module):
         self.MainColor = (0, 255, 0)  # main color of hud graphics
         self.line_thickness = hud_utils.readConfigInt("HUD", "line_thickness", 2)
         self.ahrs_line_deg = hud_utils.readConfigInt("HUD", "vertical_degrees", 5)
-        self.pxy_div = hud_utils.readConfigInt("HUD", "vertical_pixels_per_degree", 30)  # Y axis number of pixels per degree divisor
-        self.y_offset = hud_utils.readConfigInt("HUD", "Horizon_Offset", 0)  #  Horizon/Waterline Pixel Offset from HUD Center Neg Numb moves Up, Default=0
 
         self.line_mode = hud_utils.readConfigInt("HUD", "line_mode", 1)
         self.caged_mode = 1 # default on
@@ -159,8 +169,8 @@ class horizon_v2(Module):
         )
 
     #############################################
-    ## Function draw horz lines
-    def draw_horz_lines(
+    ## Function draw aircraft horizon lines
+    def draw_aircraft_horz_lines(
         self,
         width,
         height,
@@ -174,29 +184,67 @@ class horizon_v2(Module):
         pxy_div,
         pos
     ):
-        # Calculate camera yaw offset relative to aircraft heading
-        camera_yaw_offset = 0
-        if self.camera_head_imu is not None:
-            camera_yaw_offset = ((self.camera_head_imu.yaw - aircraft.mag_head + 180) % 360) - 180
+        # Apply smoothing to aircraft and camera attitudes
+        def smooth_angle(current, previous, smoothing):
+            # Handle angle wrapping for heading/yaw
+            diff = ((current - previous + 180) % 360) - 180
+            return previous + diff * smoothing
+
+        # Get current values
+        current_pitch = aircraft.pitch or 0
+        current_roll = aircraft.roll or 0
         
-        # Calculate pixel offset based on yaw difference
+        # Calculate camera offsets
+        camera_yaw = 0
+        camera_pitch = 0
+        camera_roll = 0
+        if self.camera_head_imu is not None:
+            camera_yaw = ((self.camera_head_imu.yaw - aircraft.mag_head + 180) % 360) - 180
+            camera_pitch = -self.camera_head_imu.pitch
+            camera_roll = self.camera_head_imu.roll
+
+        # Calculate effective roll angle just like in draw_horizon_line()
+        cam_yaw_rad = math.radians(camera_yaw)
+        effective_roll = (-(current_roll - camera_roll) * math.cos(cam_yaw_rad)) /2
+        
+        # When looking up/down, horizon line should curve
+        pitch_induced_curve = camera_pitch * math.sin(cam_yaw_rad) * 0.5
+        effective_roll += pitch_induced_curve
+
+        # Smooth all angles
+        smoothed_pitch = smooth_angle(current_pitch, self.prev_horizon_state['pitch'], self.horizon_smoothing)
+        smoothed_roll = smooth_angle(effective_roll, self.prev_horizon_state['roll'], self.horizon_smoothing)
+        smoothed_cam_yaw = smooth_angle(camera_yaw, self.prev_horizon_state['camera_yaw'], self.horizon_smoothing)
+        smoothed_cam_pitch = smooth_angle(camera_pitch, self.prev_horizon_state['camera_pitch'], self.horizon_smoothing)
+        smoothed_cam_roll = smooth_angle(camera_roll, self.prev_horizon_state['camera_roll'], self.horizon_smoothing)
+
+        # Store current values for next frame
+        self.prev_horizon_state.update({
+            'pitch': smoothed_pitch,
+            'roll': smoothed_roll,
+            'camera_yaw': smoothed_cam_yaw,
+            'camera_pitch': smoothed_cam_pitch,
+            'camera_roll': smoothed_cam_roll
+        })
+
+        # Calculate pixel offset based on smoothed yaw difference
         pixels_per_degree = width / self.fov_x
-        x_offset = -camera_yaw_offset * pixels_per_degree
+        x_offset = -smoothed_cam_yaw * pixels_per_degree
         
         # Adjust center point based on camera yaw
         center_x = width // 2 + x_offset
         center_y = height // 2
         adjusted_center = (center_x, center_y)
 
-        # Draw lines centered on the screen
+        # Draw lines centered on the screen using smoothed values
         for l in range(-60, 61, ahrs_line_deg):
             line_coords = self.generateHudReferenceLineArray(
                 width,
                 height,
                 adjusted_center,
                 pxy_div,
-                pitch=aircraft.pitch,
-                roll=aircraft.roll,
+                pitch=smoothed_pitch,
+                roll=smoothed_roll,
                 deg_ref=l,
                 line_mode=line_mode,
             )
@@ -493,27 +541,27 @@ class horizon_v2(Module):
             pygame.draw.line(self.surface, (255,0,0), (self.width,0), (0,self.height), 4)
         else:
             # Calculate camera head offsets if present
-            pitch_offset = 0
-            roll_offset = 0
-            yaw_offset = 0
+            camera_pitch = 0
+            camera_roll = 0
+            camera_yaw = 0
             
             if self.camera_head_imu is not None:
-                pitch_offset = -self.camera_head_imu.pitch
-                roll_offset = self.camera_head_imu.roll
-                yaw_offset = ((self.camera_head_imu.yaw - aircraft.mag_head + 180) % 360) - 180
+                camera_pitch = -self.camera_head_imu.pitch
+                camera_roll = self.camera_head_imu.roll
+                camera_yaw = ((self.camera_head_imu.yaw - aircraft.mag_head + 180) % 360) - 180
 
                 # Draw the horizon line from camera perspective
-                self.draw_horizon_line(aircraft, yaw_offset, pitch_offset, roll_offset)
+                self.draw_horizon_line(aircraft, camera_yaw, camera_pitch, camera_roll)
 
                 # Apply camera offsets to aircraft attitude for the rest of the display
-                adjusted_pitch = aircraft.pitch - pitch_offset
-                adjusted_roll = aircraft.roll - roll_offset
+                adjusted_pitch = aircraft.pitch - camera_pitch
+                adjusted_roll = aircraft.roll - camera_roll
             else:
                 adjusted_pitch = aircraft.pitch
                 adjusted_roll = aircraft.roll   
 
-            # Draw horizon lines with adjusted angles
-            self.draw_horz_lines(
+            # Draw aircraft horizon lines with adjusted angles
+            self.draw_aircraft_horz_lines(
                 self.width,
                 self.height,
                 ((self.width // 2), self.height // 2),
@@ -536,14 +584,14 @@ class horizon_v2(Module):
             )
 
             # Only show targets if camera is roughly aligned with aircraft heading
-            if self.show_targets and abs(yaw_offset) < 45:
+            if self.show_targets and abs(camera_yaw) < 45:
                 list(map(lambda t: self.draw_target(t, aircraft), 
                         filter(lambda t: t.dist is not None and t.dist < self.target_distance_threshold and t.brng is not None, 
                                 aircraft.traffic.targets)))
 
             # Draw center and flight path
             self.draw_center(smartdisplay, x, y)
-            if abs(yaw_offset) < 45:  # Only show flight path when looking forward
+            if abs(camera_yaw) < 45:  # Only show flight path when looking forward
                 self.draw_flight_path(aircraft, smartdisplay, x, y)
 
         # Blit the entire surface to the screen at the specified position
@@ -704,6 +752,14 @@ class horizon_v2(Module):
                 "label": "FOV X",
                 "description": "Field of View X in degrees"
             },
+            "pxy_div": {    
+                "type": "int",
+                "default": self.pxy_div,
+                "min": 20,
+                "max": 60,
+                "label": "Vert Pixels Per Degree",
+                "description": "Number of pixels per degree divisor"
+            },
             "target_smoothing": {
                 "type": "float",
                 "default": 0.2,
@@ -725,6 +781,14 @@ class horizon_v2(Module):
                 "max": 10,
                 "label": "Horizon Line Thickness",
                 "description": "Thickness of the horizon reference line"
+            },
+            "horizon_smoothing": {
+                "type": "float",
+                "default": 0.15,
+                "min": 0.01,
+                "max": 1.0,
+                "label": "Horizon Smoothing",
+                "description": "Horizon movement smoothing (0.01-1.0, lower = smoother)"
             }
         }
         
@@ -750,53 +814,51 @@ class horizon_v2(Module):
             shared.Dataship.imus[self.source_imu_index2].home(delete=True)
             self.camera_head_imu = shared.Dataship.imus[self.source_imu_index2]
 
-    def draw_horizon_line(self, aircraft, camera_yaw_offset=0, camera_pitch_offset=0, camera_roll_offset=0):
+    def draw_horizon_line(self, aircraft, camera_yaw=0, camera_pitch=0, camera_roll=0):
         """
-        Draw a single line representing the horizon from the camera's perspective.
-        The line's appearance depends on:
-        - Aircraft pitch and roll (which way you're facing)
-        - Camera yaw, pitch, roll (which way you're looking - head position)
+        Draw a single line representing the true horizon from the camera's perspective.
+        Takes into account both aircraft attitude and camera head position.
         """
-        
-        # Calculate where the horizon intersects the view plane
+        # Screen center coordinates
         center_x = self.width // 2
         center_y = self.height // 2
         
-        # Convert angles to radians
-        camera_yaw_rad = math.radians(camera_yaw_offset)
-        camera_pitch_rad = math.radians(camera_pitch_offset)
-        camera_roll_rad = math.radians(camera_roll_offset)
-        aircraft_pitch_rad = math.radians(aircraft.pitch)
-        aircraft_roll_rad = math.radians(aircraft.roll)
+        # Convert all angles to radians
+        pitch_rad = math.radians(aircraft.pitch)
+        roll_rad = math.radians(aircraft.roll)
+        cam_yaw_rad = math.radians(camera_yaw)
+        cam_pitch_rad = math.radians(camera_pitch) 
+        cam_roll_rad = math.radians(camera_roll)
+
+        # Calculate effective pitch angle (how far horizon appears from center)
+        # When looking straight ahead, aircraft pitch directly affects horizon position
+        # When looking to the side, pitch effect diminishes with cos of yaw angle
+        effective_pitch = aircraft.pitch * math.cos(cam_yaw_rad) - camera_pitch
         
-        # Calculate total pitch effect (aircraft + camera)
-        # Invert pitch since positive pitch should move horizon line down
-        pitch_effect = -(aircraft.pitch - camera_pitch_offset) * math.cos(camera_yaw_rad)
+        # Calculate vertical offset in pixels
+        pixels_per_degree = self.height / self.pxy_div
+        pitch_offset = effective_pitch * pixels_per_degree
         
-        # Calculate roll effect
-        # When looking sideways, aircraft pitch creates apparent roll
-        # Invert roll to match aircraft orientation
-        roll_effect = -(aircraft.roll - camera_roll_offset) * math.cos(camera_yaw_rad) - \
-                     aircraft.pitch * math.sin(camera_yaw_rad)
+        # Calculate effective roll angle
+        # When looking straight ahead, use aircraft roll minus camera roll
+        # When looking to the side (90°), horizon appears level regardless of aircraft roll
+        effective_roll = (aircraft.roll - camera_roll) * math.cos(cam_yaw_rad)
         
-        # Convert pitch to screen pixels
-        pitch_pixels = (pitch_effect * self.height) / self.pxy_div
+        # When looking up/down, horizon line should curve
+        # This creates the effect of horizon curvature when looking up/down
+        pitch_induced_curve = camera_pitch * math.sin(cam_yaw_rad) * 0.5
+        effective_roll += pitch_induced_curve
         
-        # Calculate horizon line center point
-        horizon_y = center_y + pitch_pixels
+        # Calculate line endpoints based on effective roll
+        roll_rad = math.radians(effective_roll)
+        line_length = self.width * self.horizon_line_length / 2
         
-        # Calculate line angle based on total roll effect
-        roll_rad = math.radians(roll_effect)
-        
-        # Calculate line endpoints
-        dx = math.cos(roll_rad) * self.width * self.horizon_line_length
-        dy = math.sin(roll_rad) * self.width * self.horizon_line_length
-        
-        x1 = center_x - dx
-        y1 = horizon_y - dy
-        x2 = center_x + dx
-        y2 = horizon_y + dy
-        
+        # Calculate endpoints with roll rotation
+        x1 = center_x - (line_length * math.cos(roll_rad))
+        y1 = (center_y + pitch_offset) - (line_length * math.sin(roll_rad))
+        x2 = center_x + (line_length * math.cos(roll_rad))
+        y2 = (center_y + pitch_offset) + (line_length * math.sin(roll_rad))
+
         # Draw the horizon line
         pygame.draw.line(
             self.surface,

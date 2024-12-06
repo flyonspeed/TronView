@@ -13,6 +13,14 @@ else # else Linux we have to do everything as sudo so the app gets access to the
     RUN_PREFIX="sudo"
 fi
 
+# get version
+VERSION=$(python3 -c "from lib.version import __version__; print(__version__)")
+BUILD=$(python3 -c "from lib.version import __build__; print(__build__)")
+BUILD_DATE=$(python3 -c "from lib.version import __build_date__; print(__build_date__)")
+BUILD_TIME=$(python3 -c "from lib.version import __build_time__; print(__build_time__)")
+
+RUN_MENU_AGAIN=true
+
 # Create data directory if it doesn't exist
 $RUN_PREFIX mkdir -p "$TRONVIEW_DIR/data"
 $RUN_PREFIX mkdir -p "$TRONVIEW_DIR/data/system"
@@ -48,7 +56,6 @@ run_python() {
     echo "Using Python: $(which python3)"
     eval "$RUN_PREFIX python3 $TRONVIEW_DIR/main.py $* $ADD_ARGS"
 }
-
 
 # Check if dialog is installed
 if ! command -v dialog &> /dev/null; then
@@ -111,6 +118,20 @@ handle_menu_exit() {
     return 0
 }
 
+# Get a single character input without waiting for return
+get_char() {
+    # Save current terminal settings
+    old_tty=$(stty -g)
+    # Set terminal to raw mode
+    stty raw -echo
+    # Read single character
+    char=$(dd if=/dev/tty bs=1 count=1 2>/dev/null)
+    # Restore terminal settings
+    stty "$old_tty"
+    # Output the character
+    echo "$char"
+}
+
 ################################################################################
 ################################################################################
 ## AUTO-RUN ???
@@ -148,357 +169,438 @@ fi
 ## MAIN MENU
 # Show 1st level main menu
 # Create menu options array
-declare -a menu_options=(
-    "MGL Demos" "MGL related demos and tests" 
-    "Dynon Demos" "Dynon related demos"
-    "Stratux Demos" "Stratux only demos"
-    "IMU Tests" "IMU related tests (Pi only)"
-    "Virtual IMU" "Virtual IMU demos"
-    "Tests" "Tests"
-)
+    declare -a menu_options=(
+        "MGL Demos" "MGL related demos and tests" 
+        "Dynon Demos" "Dynon related demos"
+        "Stratux Demos" "Stratux only demos"
+        "IMU Tests" "IMU related tests (Pi only)"
+        "Virtual IMU" "Virtual IMU demos"
+        "Tests" "Test scripts, Serial, Joystick, I2c, WIFI"
+        "Update" "Update TronView & View Changelog"
+    )
 if [ -f "$LAST_RUN_FILE" ]; then
-    menu_options=("Last Run" "Run last: $LAST_NAME" "${menu_options[@]}")
+    # check if the 1st option is "Last Run"
+    if [[ "${menu_options[0]}" != "Last Run" ]]; then
+        menu_options=("Last Run" "Run last: $LAST_NAME" "${menu_options[@]}")
+    fi
 fi
 
-while true; do
-    exec 3>&1
-    DIALOG_TIMEOUT=0
-    choice=$(dialog --clear \
-                    --title "Startup script" \
-                    --menu '\n
- _____             __     ___               \n
+ASCII_ART='
+_____             __     ___               \n
 |_   _| __ ___  _ _\ \   / (_) _____      __\n
   | || '"'"'__/ _ \| '"'"'_ \ \ / /| |/ _ \ \ /\ / /\n
   | || | | (_) | | | \ V / | |  __/\ V  V / \n
   |_||_|  \___/|_| |_|\_/  |_|\___| \_/\_/  \n
-\n
-                    Choose option:' 22 70 10 \
-                    "${menu_options[@]}" \
-                    2>&1 1>&3)
-    exit_status=$?
-    exec 3>&-
-    
-    handle_menu_exit $exit_status "main" || exit 0
+'
 
-    # Handle main menu selection
-    case $choice in
-        ############################################################################
-        "MGL Demos")
-            SHOW_ADDITIONAL_OPTIONS=true
-            while true; do
-                exec 3>&1
-                subchoice=$(dialog --clear --title "MGL Demos" \
-                                  --menu "Choose a demo:" 20 60 10 \
-                                  "1" "MGL + Stratux + vIMU - chasing traffic" \
-                                  "2" "MGL - G430 CDI" \
-                                  "3" "MGL - Gyro Test" \
-                                  "4" "MGL + Stratux RV6 Chase 1" \
-                                  "5" "MGL + Stratux RV6 Chase 2" \
-                                  "6" "MGL + Stratux RV6 Chase 3" \
-                                  2>&1 1>&3)
-                exit_status=$?
-                exec 3>&-
-                
-                if handle_menu_exit $exit_status "sub"; then
-                    selected_name=""
-                    case $subchoice in
-                        1) 
-                            choice="-i serial_mgl --playfile1 mgl_8.dat --in2 stratux_wifi --playfile2 stratux_8.dat --in3 gyro_virtual"
-                            selected_name="MGL + Stratux + vIMU - chasing traffic"
-                            ;;
-                        2) 
-                            choice="-i serial_mgl -c MGL_G430_Data_3Feb19_v7_Horz_Vert_Nedl_come_to_center.bin"
-                            selected_name="MGL - G430 CDI"
-                            ;;
-                        3) 
-                            choice="-i serial_mgl -c mgl_data1.bin"
-                            selected_name="MGL - Gyro Test"
-                            ;;
-                        4) 
-                            choice="-i serial_mgl --playfile1 mgl_chase_rv6_1.dat --in2 stratux_wifi --playfile2 stratux_chase_rv6_1.dat --in3 gyro_virtual"
-                            selected_name="MGL + Stratux RV6 Chase 1"
-                            ;;
-                        5) 
-                            choice="-i serial_mgl --playfile1 mgl_chase_rv6_2.dat --in2 stratux_wifi --playfile2 stratux_chase_rv6_2.dat --in3 gyro_virtual"
-                            selected_name="MGL + Stratux RV6 Chase 2"
-                            ;;
-                        6) 
-                            choice="-i serial_mgl --playfile1 mgl_chase_rv6_3.dat --in2 stratux_wifi --playfile2 stratux_chase_rv6_3.dat --in3 gyro_virtual"
-                            selected_name="MGL + Stratux RV6 Chase 3"
-                            ;;
-                    esac
-                    break
-                else
-                    choice=""
-                    break
-                fi
-            done
-            ;;
-        ############################################################################
-        "Dynon Demos")
-            SHOW_ADDITIONAL_OPTIONS=true
-            while true; do
-                exec 3>&1
-                subchoice=$(dialog --clear --title "Dynon Demos" \
-                                  --menu "Choose a demo:" 20 60 10 \
-                                  "1" "Dynon D100" \
-                                  "2" "Dynon Skyview" \
-                                  2>&1 1>&3)
-                exit_status=$?
-                exec 3>&-
-                
-                if handle_menu_exit $exit_status "sub"; then
-                    case $subchoice in
-                        1) 
-                            choice="-i serial_d100 -e"
-                            selected_name="Dynon D100"
-                            ;;
-                        2) 
-                            choice="-i serial_skyview -e"
-                            selected_name="Dynon Skyview"
-                            ;;
-                    esac
-                    break  # Break just the inner loop
-                else
-                    choice=""  # Clear the choice
-                    break  # Break the inner loop to return to main menu
-                fi
-            done
-            ;;
-        ############################################################################
-        "Stratux Demos")
-            SHOW_ADDITIONAL_OPTIONS=true
-            while true; do
-                exec 3>&1
-                subchoice=$(dialog --clear --title "Stratux Demos" \
-                                  --menu "Choose a demo:" 20 60 10 \
-                                  "1" "Demo 54" \
-                                  "2" "Demo 57 (Bad pitch/roll)" \
-                                  "3" "Demo stratux_8 - Traffic targets only" \
-                                  2>&1 1>&3)
-                exit_status=$?
-                exec 3>&-
-                
-                if handle_menu_exit $exit_status "sub"; then
-                    case $subchoice in
-                        1) 
-                            choice="-i stratux_wifi -c stratux_54.dat"
-                            selected_name="Demo 54"
-                            ;;
-                        2) 
-                            choice="-i stratux_wifi -c stratux_57.dat"
-                            selected_name="Demo 57 (Bad pitch/roll)"
-                            ;;
-                        3) 
-                            choice="-i stratux_wifi -c stratux_8.dat"
-                            selected_name="Demo stratux_8 - Traffic targets only"
-                            ;;
-                    esac
-                    break  # Break just the inner loop
-                else
-                    choice=""  # Clear the choice
-                    break  # Break the inner loop to return to main menu
-                fi
-            done
-            ;;
-        ############################################################################
-        "IMU Tests")
-            SHOW_ADDITIONAL_OPTIONS=true
-            while true; do
-                exec 3>&1
-                subchoice=$(dialog --clear --title "IMU Tests" \
-                                  --menu "Choose a test:" 20 60 10 \
-                                  "1" "Live BNO055 IMU" \
-                                  "2" "Live BNO055 IMU & MGL" \
-                                  "3" "Live BNO055 IMU + MGL + Stratux" \
-                                  "4" "Live dual BNO055 IMUs" \
-                                  "5" "Live BNO085 IMU" \
-                                  "6" "Live dual BNO085 IMUs" \
-                                  "7" "Live BNO085 IMU + MGL + Stratux" \
-                                  2>&1 1>&3)
-                exit_status=$?
-                exec 3>&-
-                
-                if handle_menu_exit $exit_status "sub"; then
-                    case $subchoice in
-                        1) choice="-i gyro_i2c_bno055"
-                            selected_name="Live BNO055"
-                            ;;
-                        2) choice="--in1 gyro_i2c_bno055 --in1 serial_mgl --playfile1 mgl_data1.bin"
-                            selected_name="Live BNO055 & MGL"
-                            ;;
-                        3) choice="-i serial_mgl --playfile1 mgl_chase_rv6_1.dat --in2 stratux_wifi --playfile2 stratux_chase_rv6_1.dat --in3 gyro_i2c_bno055"
-                            selected_name="Live BNO055 + MGL + Stratux"
-                            ;;
-                        4) choice="-i gyro_i2c_bno055 --in2 gyro_i2c_bno055"
-                            selected_name="Live dual BNO055"
-                            ;;
-                        5) choice="-i gyro_i2c_bno085"
-                            selected_name="Live BNO085"
-                            ;;
-                        6) choice="--in1 gyro_i2c_bno085 --in2 gyro_i2c_bno085"
-                            selected_name="Live dual BNO085"
-                            ;;
-                        7) choice="-i serial_mgl --playfile1 mgl_chase_rv6_1.dat --in3 stratux_wifi --playfile3 stratux_chase_rv6_1.dat --in2 gyro_i2c_bno085"
-                            selected_name="Live BNO085 + MGL + Stratux"
-                            ;;
-                    esac
-                    break  # Break just the inner loop
-                else
-                    choice=""  # Clear the choice
-                    break  # Break the inner loop to return to main menu
-                fi
-            done
-            ;;
-        ############################################################################
-        "Virtual IMU")
-            SHOW_ADDITIONAL_OPTIONS=true
-            while true; do
-                exec 3>&1
-                subchoice=$(dialog --clear --title "Virtual IMU" \
-                                  --menu "Choose a demo:" 20 60 10 \
-                                  "1" "1 Virtual IMU" \
-                                  "2" "2 Virtual IMUs" \
-                                  "3" "Joystick vIMU + Virtual IMU" \
-                                  2>&1 1>&3)
-                exit_status=$?
-                exec 3>&-
-                
-                if handle_menu_exit $exit_status "sub"; then
-                    case $subchoice in
-                        1) choice="--in1 gyro_virtual"
-                            selected_name="1 Virtual IMU"
-                            ;;
-                        2) choice="--in1 gyro_virtual --in2 gyro_virtual"
-                            selected_name="2 Virtual IMUs"
-                            ;;
-                        3) choice="--in1 gyro_joystick --in2 gyro_virtual"
-                            selected_name="Joystick vIMU + Virtual IMU"
-                            ;;
-                    esac
-                    break  # Break just the inner loop
-                else
-                    choice=""  # Clear the choice
-                    break  # Break the inner loop to return to main menu
-                fi
-            done
-            ;;
-        ############################################################################
-        "Tests")
-            SHOW_ADDITIONAL_OPTIONS=false
-            while true; do
-                exec 3>&1
-                subchoice=$(dialog --clear --title "Tests" \
-                                  --menu "Choose a test:" 20 60 10 \
-                                  "1" "Test Joystick" \
-                                  "2" "Raw Serial Read" \
-                                  "3" "Read Serial MGL" \
-                                  "4" "Read Serial Dynon Skyview" \
-                                  "5" "Read Serial Garmin G3x" \
-                                  2>&1 1>&3)
-                exit_status=$?
-                exec 3>&-
-                
-                if handle_menu_exit $exit_status "sub"; then
-                    case $subchoice in
-                        1) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/joystick.py" ;;
-                        2) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/serial_raw.py" ;;
-                        3) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/serial_read.py -m" ;;
-                        4) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/serial_read.py -s" ;;
-                        5) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/serial_read.py -g" ;;
-                    esac
-                    echo "Running: $FULL_COMMAND"
-                    #exit 0
-                    # goto the end of the loop
-                    break 2
-                else
+# Check if glow is installed
+if ! command -v glow &> /dev/null; then
+    echo "glow is not installed. Installing..."
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        brew install glow
+    elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        sudo mkdir -p /etc/apt/keyrings
+        curl -fsSL https://repo.charm.sh/apt/gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/charm.gpg
+        echo "deb [signed-by=/etc/apt/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *" | sudo tee /etc/apt/sources.list.d/charm.list
+        sudo apt update && sudo apt install glow
+    fi
+fi
 
-                    break  # Break the inner loop to return to main menu
-                fi
-            done
-            ;;
-        "Last Run")
-            choice="$LAST_ARGS"
-            SHOW_ADDITIONAL_OPTIONS=false
-            break
-            ;;
-    esac
+while $RUN_MENU_AGAIN; do
 
-    ############################################################################
-    # Additional Options Menu
-    # If we have a valid choice, show additional options
-    if [ ! -z "$choice"  ] && $SHOW_ADDITIONAL_OPTIONS; then
-        # Clear the dialog window
-        #clear
-
-        # Additional options dialog
+    ################################################################################
+    ################################################################################
+    ## MAIN MENU
+    # Show 1st level main menu
+    while true; do
         exec 3>&1
-        options=$(dialog --clear --title "Additional Options" \
-                        --checklist "Select additional options:" 20 60 10 \
-                        "text" "Run in text mode" OFF \
-                        "multi" "Run multiple threads" OFF \
-                        "debug" "Record debug output" OFF \
-                        "auto" "Auto-run next time" OFF \
+        DIALOG_TIMEOUT=0
+        choice=$(dialog --clear \
+                        --title "Startup script" \
+                        --menu "$ASCII_ART\nVersion: $VERSION Build: $BUILD $BUILD_DATE $BUILD_TIME" 22 70 10 \
+                        "${menu_options[@]}" \
                         2>&1 1>&3)
         exit_status=$?
         exec 3>&-
+        
+        handle_menu_exit $exit_status "main" || exit 0
 
-        # If escape was pressed, go back to main menu
-        if ! handle_menu_exit $exit_status "sub"; then
-            choice=""
-            continue  # Continue the main menu loop
-        fi
+        # Handle main menu selection
+        case $choice in
+            ############################################################################
+            "MGL Demos")
+                SHOW_ADDITIONAL_OPTIONS=true
+                while true; do
+                    exec 3>&1
+                    subchoice=$(dialog --clear --title "MGL Demos" \
+                                      --menu "Choose a demo:" 20 60 10 \
+                                      "1" "MGL + Stratux + vIMU - chasing traffic" \
+                                      "2" "MGL - G430 CDI" \
+                                      "3" "MGL - Gyro Test" \
+                                      "4" "MGL + Stratux RV6 Chase 1" \
+                                      "5" "MGL + Stratux RV6 Chase 2" \
+                                      "6" "MGL + Stratux RV6 Chase 3" \
+                                      2>&1 1>&3)
+                    exit_status=$?
+                    exec 3>&-
+                    
+                    if handle_menu_exit $exit_status "sub"; then
+                        selected_name=""
+                        case $subchoice in
+                            1) 
+                                choice="-i serial_mgl --playfile1 mgl_8.dat --in2 stratux_wifi --playfile2 stratux_8.dat --in3 gyro_virtual"
+                                selected_name="MGL + Stratux + vIMU - chasing traffic"
+                                ;;
+                            2) 
+                                choice="-i serial_mgl -c MGL_G430_Data_3Feb19_v7_Horz_Vert_Nedl_come_to_center.bin"
+                                selected_name="MGL - G430 CDI"
+                                ;;
+                            3) 
+                                choice="-i serial_mgl -c mgl_data1.bin"
+                                selected_name="MGL - Gyro Test"
+                                ;;
+                            4) 
+                                choice="-i serial_mgl --playfile1 mgl_chase_rv6_1.dat --in2 stratux_wifi --playfile2 stratux_chase_rv6_1.dat --in3 gyro_virtual"
+                                selected_name="MGL + Stratux RV6 Chase 1"
+                                ;;
+                            5) 
+                                choice="-i serial_mgl --playfile1 mgl_chase_rv6_2.dat --in2 stratux_wifi --playfile2 stratux_chase_rv6_2.dat --in3 gyro_virtual"
+                                selected_name="MGL + Stratux RV6 Chase 2"
+                                ;;
+                            6) 
+                                choice="-i serial_mgl --playfile1 mgl_chase_rv6_3.dat --in2 stratux_wifi --playfile2 stratux_chase_rv6_3.dat --in3 gyro_virtual"
+                                selected_name="MGL + Stratux RV6 Chase 3"
+                                ;;
+                        esac
+                        break
+                    else
+                        choice=""
+                        break
+                    fi
+                done
+                ;;
+            ############################################################################
+            "Dynon Demos")
+                SHOW_ADDITIONAL_OPTIONS=true
+                while true; do
+                    exec 3>&1
+                    subchoice=$(dialog --clear --title "Dynon Demos" \
+                                      --menu "Choose a demo:" 20 60 10 \
+                                      "1" "Dynon D100" \
+                                      "2" "Dynon Skyview" \
+                                      2>&1 1>&3)
+                    exit_status=$?
+                    exec 3>&-
+                    
+                    if handle_menu_exit $exit_status "sub"; then
+                        case $subchoice in
+                            1) 
+                                choice="-i serial_d100 -e"
+                                selected_name="Dynon D100"
+                                ;;
+                            2) 
+                                choice="-i serial_skyview -e"
+                                selected_name="Dynon Skyview"
+                                ;;
+                        esac
+                        break  # Break just the inner loop
+                    else
+                        choice=""  # Clear the choice
+                        break  # Break the inner loop to return to main menu
+                    fi
+                done
+                ;;
+            ############################################################################
+            "Stratux Demos")
+                SHOW_ADDITIONAL_OPTIONS=true
+                while true; do
+                    exec 3>&1
+                    subchoice=$(dialog --clear --title "Stratux Demos" \
+                                      --menu "Choose a demo:" 20 60 10 \
+                                      "1" "Demo 54" \
+                                      "2" "Demo 57 (Bad pitch/roll)" \
+                                      "3" "Demo stratux_8 - Traffic targets only" \
+                                      2>&1 1>&3)
+                    exit_status=$?
+                    exec 3>&-
+                    
+                    if handle_menu_exit $exit_status "sub"; then
+                        case $subchoice in
+                            1) 
+                                choice="-i stratux_wifi -c stratux_54.dat"
+                                selected_name="Demo 54"
+                                ;;
+                            2) 
+                                choice="-i stratux_wifi -c stratux_57.dat"
+                                selected_name="Demo 57 (Bad pitch/roll)"
+                                ;;
+                            3) 
+                                choice="-i stratux_wifi -c stratux_8.dat"
+                                selected_name="Demo stratux_8 - Traffic targets only"
+                                ;;
+                        esac
+                        break  # Break just the inner loop
+                    else
+                        choice=""  # Clear the choice
+                        break  # Break the inner loop to return to main menu
+                    fi
+                done
+                ;;
+            ############################################################################
+            "IMU Tests")
+                SHOW_ADDITIONAL_OPTIONS=true
+                while true; do
+                    exec 3>&1
+                    subchoice=$(dialog --clear --title "IMU Tests" \
+                                      --menu "Choose a test:" 20 60 10 \
+                                      "1" "Live BNO055 IMU" \
+                                      "2" "Live BNO055 IMU & MGL" \
+                                      "3" "Live BNO055 IMU + MGL + Stratux" \
+                                      "4" "Live dual BNO055 IMUs" \
+                                      "5" "Live BNO085 IMU" \
+                                      "6" "Live dual BNO085 IMUs" \
+                                      "7" "MGL + Stratux + Live BNO085" \
+                                      "8" "vIMU + Live BNO085" \
+                                      "9" "joystick vIMU + Live BNO085" \
+                                      2>&1 1>&3)
+                    exit_status=$?
+                    exec 3>&-
+                    
+                    if handle_menu_exit $exit_status "sub"; then
+                        case $subchoice in
+                            1) choice="-i gyro_i2c_bno055"
+                                selected_name="Live BNO055"
+                                ;;
+                            2) choice="--in1 gyro_i2c_bno055 --in1 serial_mgl --playfile1 mgl_data1.bin"
+                                selected_name="Live BNO055 & MGL"
+                                ;;
+                            3) choice="-i serial_mgl --playfile1 mgl_chase_rv6_1.dat --in2 stratux_wifi --playfile2 stratux_chase_rv6_1.dat --in3 gyro_i2c_bno055"
+                                selected_name="Live BNO055 + MGL + Stratux"
+                                ;;
+                            4) choice="-i gyro_i2c_bno055 --in2 gyro_i2c_bno055"
+                                selected_name="Live dual BNO055"
+                                ;;
+                            5) choice="-i gyro_i2c_bno085"
+                                selected_name="Live BNO085"
+                                ;;
+                            6) choice="--in1 gyro_i2c_bno085 --in2 gyro_i2c_bno085"
+                                selected_name="Live dual BNO085"
+                                ;;
+                            7) choice="-i serial_mgl --playfile1 mgl_chase_rv6_1.dat --in3 stratux_wifi --playfile3 stratux_chase_rv6_1.dat --in2 gyro_i2c_bno085"
+                                selected_name="MGL + Stratux + Live BNO085"
+                                ;;
+                            8) choice="-i gyro_virtual --in2 gyro_i2c_bno085"
+                                selected_name="vIMU + Live BNO085"
+                                ;;
+                            9) choice="-i gyro_joystick --in2 gyro_i2c_bno085"
+                                selected_name="joystick vIMU + Live BNO085"
+                                ;;
+                        esac
+                        break  # Break just the inner loop
+                    else
+                        choice=""  # Clear the choice
+                        break  # Break the inner loop to return to main menu
+                    fi
+                done
+                ;;
+            ############################################################################
+            "Virtual IMU")
+                SHOW_ADDITIONAL_OPTIONS=true
+                while true; do
+                    exec 3>&1
+                    subchoice=$(dialog --clear --title "Virtual IMU" \
+                                      --menu "Choose a demo:" 20 60 10 \
+                                      "1" "1 Virtual IMU" \
+                                      "2" "2 Virtual IMUs" \
+                                      "3" "Joystick vIMU + Virtual IMU" \
+                                      2>&1 1>&3)
+                    exit_status=$?
+                    exec 3>&-
+                    
+                    if handle_menu_exit $exit_status "sub"; then
+                        case $subchoice in
+                            1) choice="--in1 gyro_virtual"
+                                selected_name="1 Virtual IMU"
+                                ;;
+                            2) choice="--in1 gyro_virtual --in2 gyro_virtual"
+                                selected_name="2 Virtual IMUs"
+                                ;;
+                            3) choice="--in1 gyro_joystick --in2 gyro_virtual"
+                                selected_name="Joystick vIMU + Virtual IMU"
+                                ;;
+                        esac
+                        break  # Break just the inner loop
+                    else
+                        choice=""  # Clear the choice
+                        break  # Break the inner loop to return to main menu
+                    fi
+                done
+                ;;
+            ############################################################################
+            "Tests")
+                SHOW_ADDITIONAL_OPTIONS=false
+                choice=""
+                while true; do
+                    exec 3>&1
+                    subchoice=$(dialog --clear --title "Tests" \
+                                      --menu "Choose a test:" 20 60 10 \
+                                      "1" "Test Joystick" \
+                                      "2" "Raw Serial Read" \
+                                      "3" "Read Serial MGL" \
+                                      "4" "Read Serial Dynon Skyview" \
+                                      "5" "Read Serial Garmin G3x" \
+                                      "6" "Test Stratux and iLevil WiFi connection" \
+                                      2>&1 1>&3)
+                    exit_status=$?
+                    exec 3>&-
+                    
+                    if handle_menu_exit $exit_status "sub"; then
+                        case $subchoice in
+                            1) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/joystick.py" ;;
+                            2) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/serial_raw.py" ;;
+                            3) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/serial_read.py -m" ;;
+                            4) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/serial_read.py -s" ;;
+                            5) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/serial_read.py -g" ;;
+                            6) FULL_COMMAND="$TRONVIEW_DIR/util/tests/test_stratux_wifi.sh" ;;
+                        esac
+                        echo "Running: $FULL_COMMAND"
+                        #exit 0
+                        # goto the end of the loop
+                        break 2
+                    else
 
-        # Process additional options
-        ADD_ARGS=""
-        [[ $options == *"text"* ]] && ADD_ARGS="-t" || ADD_ARGS=""
-        [[ $options == *"multi"* ]] && ADD_ARGS="$ADD_ARGS --input-threads"
-        if [[ $options == *"debug"* ]]; then
-            today=$(date +%Y-%m-%d)
-            log_file="data/console_logs/$today-console.txt"
-            mkdir -p data/console_logs
-            touch $log_file
-            if command -v tee &> /dev/null; then
-                ADD_ARGS="$ADD_ARGS 2>&1 | tee -a $log_file"
-            else
-                ADD_ARGS="$ADD_ARGS >> $log_file 2>&1"
+                        break  # Break the inner loop to return to main menu
+                    fi
+                done
+                ;;
+            ############################################################################
+            "Update")
+                SHOW_ADDITIONAL_OPTIONS=false
+                choice=""
+                # get current branch
+                current_branch=$(git rev-parse --abbrev-ref HEAD)
+                # get latest branch by date
+                latest_branch=$(git branch -r --sort=-committerdate | head -n 1 | sed 's/origin\///')
+                while true; do
+                    exec 3>&1
+                    subchoice=$(dialog --clear --title "Update" \
+                                      --menu "Choose:" 20 60 10 \
+                                      "1" "Update TronView (current branch: $current_branch)" \
+                                      "2" "Update latest branch: $latest_branch)" \
+                                      "3" "View Changelog" \
+                                      2>&1 1>&3)
+                    exit_status=$?
+                    exec 3>&-
+
+                    if handle_menu_exit $exit_status "sub"; then
+                        case $subchoice in
+                            1) FULL_COMMAND="git pull " ;;
+                            2) FULL_COMMAND="git pull && git checkout $latest_branch " ;;
+                            3) 
+                                if command -v glow &> /dev/null; then
+                                    FULL_COMMAND="glow $TRONVIEW_DIR/CHANGELOG.md"
+                                else
+                                    # Fallback to less if glow is not available
+                                    FULL_COMMAND="less $TRONVIEW_DIR/CHANGELOG.md"
+                                fi
+                                ;;
+                        esac 
+                        break 2
+                    else
+                        break
+                    fi
+                done
+                ;;
+            ############################################################################
+            "Last Run")
+                choice="$LAST_ARGS"
+                SHOW_ADDITIONAL_OPTIONS=false
+                break
+                ;;
+        esac
+
+        ############################################################################
+        # Additional Options Menu
+        # If we have a valid choice, show additional options
+        if [ ! -z "$choice"  ] && $SHOW_ADDITIONAL_OPTIONS; then
+            # Clear the dialog window
+            #clear
+
+            # Additional options dialog
+            exec 3>&1
+            options=$(dialog --clear --title "Additional Options" \
+                            --checklist "Use space bar to select 1 or more options :" 20 60 10 \
+                            "text" "Run in text mode" OFF \
+                            "multi" "Run multiple threads" OFF \
+                            "debug" "Record debug output" OFF \
+                            "auto" "Auto-run next time" OFF \
+                            2>&1 1>&3)
+            exit_status=$?
+            exec 3>&-
+
+            # If escape was pressed, go back to main menu
+            if ! handle_menu_exit $exit_status "sub"; then
+                choice=""
+                continue  # Continue the main menu loop
             fi
-        fi  
 
-        if [[ $options == *"auto"* ]]; then
-            # make sure we are on linux
-            selected_auto_run="true"
+            # Process additional options
+            ADD_ARGS=""
+            [[ $options == *"text"* ]] && ADD_ARGS="-t" || ADD_ARGS=""
+            [[ $options == *"multi"* ]] && ADD_ARGS="$ADD_ARGS --input-threads"
+            if [[ $options == *"debug"* ]]; then
+                today=$(date +%Y-%m-%d)
+                log_file="data/console_logs/$today-console.txt"
+                mkdir -p data/console_logs
+                touch $log_file
+                if command -v tee &> /dev/null; then
+                    ADD_ARGS="$ADD_ARGS 2>&1 | tee -a $log_file"
+                else
+                    ADD_ARGS="$ADD_ARGS >> $log_file 2>&1"
+                fi
+            fi  
+
+            if [[ $options == *"auto"* ]]; then
+                # make sure we are on linux
+                selected_auto_run="true"
+            else
+                selected_auto_run="false"
+            fi
+
+            # Before running the command, save the configuration
+            if [ ! -z "$choice" ] && [ "$choice" != "$LAST_ARGS" ]; then
+                save_last_run "$selected_name" "$choice $ADD_ARGS" "$selected_auto_run"
+            fi
+
+            # Break the main loop to run the command
+            break
+        fi
+    done
+
+    # Only run if we have a valid choice
+    if [ ! -z "$choice" ]; then
+        # Clear the dialog window
+        #clear
+        # Run the selected command
+        if [[ "$OSTYPE" == "linux-gnu"* ]] || [[ ! "$choice" =~ "bno" ]]; then
+            run_python "$choice"
+            # clear $choice
+            choice=""
         else
-            selected_auto_run="false"
+            echo "IMU options only supported on Linux/Raspberry Pi"
         fi
-
-        # Before running the command, save the configuration
-        if [ ! -z "$choice" ] && [ "$choice" != "$LAST_ARGS" ]; then
-            save_last_run "$selected_name" "$choice $ADD_ARGS" "$selected_auto_run"
-        fi
-
-        # Break the main loop to run the command
-        break
     fi
+
+    # Run the full command if it was set. example: python3 $TRONVIEW_DIR/util/tests/joystick.py
+    if [ ! -z "$FULL_COMMAND" ]; then
+        eval "$FULL_COMMAND"
+        echo "[Press any key to go back to the TronView menu]"
+        get_char
+        # clear $FULL_COMMAND
+        FULL_COMMAND=""
+    fi
+
 done
-
-# Only run if we have a valid choice
-if [ ! -z "$choice" ]; then
-    # Clear the dialog window
-    #clear
-    # Run the selected command
-    if [[ "$OSTYPE" == "linux-gnu"* ]] || [[ ! "$choice" =~ "bno" ]]; then
-        run_python "$choice"
-    else
-        echo "IMU options only supported on Linux/Raspberry Pi"
-    fi
-fi
-
-# Run the full command if it was set. example: python3 $TRONVIEW_DIR/util/tests/joystick.py
-if [ ! -z "$FULL_COMMAND" ]; then
-    eval "$FULL_COMMAND"
-fi
-
 
 echo "To run again type: ./util/run.sh (make sure you are in the TronView directory)"
 

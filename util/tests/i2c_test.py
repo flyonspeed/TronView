@@ -2,8 +2,6 @@
 
 # i2c test
 
-from ...lib.inputs._input import Input
-from lib import hud_utils
 import time
 import math
 import binascii

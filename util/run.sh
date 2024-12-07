@@ -13,11 +13,11 @@ else # else Linux we have to do everything as sudo so the app gets access to the
     RUN_PREFIX="sudo"
 fi
 
-# get version
-VERSION=$(python3 -c "from lib.version import __version__; print(__version__)")
-BUILD=$(python3 -c "from lib.version import __build__; print(__build__)")
-BUILD_DATE=$(python3 -c "from lib.version import __build_date__; print(__build_date__)")
-BUILD_TIME=$(python3 -c "from lib.version import __build_time__; print(__build_time__)")
+# get version (updated to use TRONVIEW_DIR)
+VERSION=$(PYTHONPATH=$TRONVIEW_DIR python3 -c "from lib.version import __version__; print(__version__)")
+BUILD=$(PYTHONPATH=$TRONVIEW_DIR python3 -c "from lib.version import __build__; print(__build__)")
+BUILD_DATE=$(PYTHONPATH=$TRONVIEW_DIR python3 -c "from lib.version import __build_date__; print(__build_date__)")
+BUILD_TIME=$(PYTHONPATH=$TRONVIEW_DIR python3 -c "from lib.version import __build_time__; print(__build_time__)")
 
 RUN_MENU_AGAIN=true
 
@@ -552,25 +552,25 @@ while $RUN_MENU_AGAIN; do
                 SHOW_ADDITIONAL_OPTIONS=false
                 choice=""
                 # get current branch
-                current_branch=$(git rev-parse --abbrev-ref HEAD)
+                current_branch=$(git -C "$TRONVIEW_DIR" rev-parse --abbrev-ref HEAD)
                 # get latest branch by date
-                git fetch --all
+                git -C "$TRONVIEW_DIR" fetch --all
                 # remove HEAD -> from branch name (with extra spaces) if it exists 
                 # and remove /origin/ from the beginning of the branch name
-                latest_branch=$(git branch -r --sort=-committerdate | head -n 1 | sed 's/^.*origin\///' | sed 's/^HEAD -> //')
+                latest_branch=$(git -C "$TRONVIEW_DIR" branch -r --sort=-committerdate | head -n 1 | sed 's/^.*origin\///' | sed 's/^HEAD -> //')
                 # get date of latest branch
-                latest_branch_date=$(git show -s --format=%ci $latest_branch)
+                latest_branch_date=$(git -C "$TRONVIEW_DIR" show -s --format=%ci $latest_branch)
 
                 # get 3 latest branches
-                latest_branch2nd=$(git branch -r --sort=-committerdate | head -n 2 | tail -n 1 | sed 's/^.*origin\///' | sed 's/^HEAD -> //')
-                latest_branch2nd_date=$(git show -s --format=%ci $latest_branch2nd)
+                latest_branch2nd=$(git -C "$TRONVIEW_DIR" branch -r --sort=-committerdate | head -n 2 | tail -n 1 | sed 's/^.*origin\///' | sed 's/^HEAD -> //')
+                latest_branch2nd_date=$(git -C "$TRONVIEW_DIR" show -s --format=%ci $latest_branch2nd)
 
-                latest_branch3rd=$(git branch -r --sort=-committerdate | head -n 3 | tail -n 1 | sed 's/^.*origin\///' | sed 's/^HEAD -> //')
-                latest_branch3rd_date=$(git show -s --format=%ci $latest_branch3rd)
+                latest_branch3rd=$(git -C "$TRONVIEW_DIR" branch -r --sort=-committerdate | head -n 3 | tail -n 1 | sed 's/^.*origin\///' | sed 's/^HEAD -> //')
+                latest_branch3rd_date=$(git -C "$TRONVIEW_DIR" show -s --format=%ci $latest_branch3rd)
 
                 # get 4th latest branch
-                latest_branch4th=$(git branch -r --sort=-committerdate | head -n 4 | tail -n 1 | sed 's/^.*origin\///' | sed 's/^HEAD -> //')
-                latest_branch4th_date=$(git show -s --format=%ci $latest_branch4th)
+                latest_branch4th=$(git -C "$TRONVIEW_DIR" branch -r --sort=-committerdate | head -n 4 | tail -n 1 | sed 's/^.*origin\///' | sed 's/^HEAD -> //')
+                latest_branch4th_date=$(git -C "$TRONVIEW_DIR" show -s --format=%ci $latest_branch4th)
 
                 while true; do
                     exec 3>&1

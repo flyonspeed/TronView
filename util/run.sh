@@ -139,33 +139,37 @@ get_char() {
 ## AUTO-RUN ???
 # If there was a last run, show dialog to run it again
 load_last_run
-if [ -f "$LAST_RUN_FILE" ] && [ "$LAST_AUTO_RUN" = "true" ]; then
-    exec 3>&1
-    dialog --clear \
-           --title "TronView Auto-Run in 10 seconds" \
-           --pause "\nRun TronView: $LAST_NAME\n\nPress OK to run again\nPress Cancel or ESC for menu" \
-           12 60 10
-    exit_status=$?
-    exec 3>&-
-    #echo "Last run exit status: $exit_status"
-    case $exit_status in
-        0)  # OK pressed or timeout
-            choice="$LAST_ARGS"
-            selected_name="$LAST_NAME"
-            SHOW_ADDITIONAL_OPTIONS=false
-            # Run the command immediately
-            if [ ! -z "$choice" ]; then
-                run_python "$choice"
-            fi
-            exit 0
-            ;;
-        255)  # ESC pressed
-            ;;
-        1|*)    # Cancel/ESC pressed or any other result
-            # Continue to main menu
-            ;;
-    esac
+# check if --skiplastrun is in the command line arguments
+if [[ ! " $* " =~ "--skiplastrun" ]]; then
+    if [ -f "$LAST_RUN_FILE" ] && [ "$LAST_AUTO_RUN" = "true" ]; then
+        exec 3>&1
+        dialog --clear \
+               --title "TronView Auto-Run in 10 seconds" \
+               --pause "\nRun TronView: $LAST_NAME\n\nPress OK to run again\nPress Cancel or ESC for menu" \
+               12 60 10
+        exit_status=$?
+        exec 3>&-
+        #echo "Last run exit status: $exit_status"
+        case $exit_status in
+            0)  # OK pressed or timeout
+                choice="$LAST_ARGS"
+                selected_name="$LAST_NAME"
+                SHOW_ADDITIONAL_OPTIONS=false
+                # Run the command immediately
+                if [ ! -z "$choice" ]; then
+                    run_python "$choice"
+                fi
+                exit 0
+                ;;
+            255)  # ESC pressed
+                ;;
+            1|*)    # Cancel/ESC pressed or any other result
+                # Continue to main menu
+                ;;
+            esac
+    fi
 fi
+
 
 ################################################################################
 ################################################################################
@@ -312,27 +316,27 @@ while $RUN_MENU_AGAIN; do
                         selected_name=""
                         case $subchoice in
                             1) 
-                                choice="-i serial_mgl --playfile1 mgl_8.dat --in2 stratux_wifi --playfile2 stratux_8.dat --in3 gyro_virtual"
+                                choice="--in1 serial_mgl --playfile1 mgl_8.dat --in2 stratux_wifi --playfile2 stratux_8.dat --in3 gyro_virtual"
                                 selected_name="MGL + Stratux + vIMU - chasing traffic"
                                 ;;
                             2) 
-                                choice="-i serial_mgl -c MGL_G430_Data_3Feb19_v7_Horz_Vert_Nedl_come_to_center.bin"
+                                choice="--in1 serial_mgl -c MGL_G430_Data_3Feb19_v7_Horz_Vert_Nedl_come_to_center.bin"
                                 selected_name="MGL - G430 CDI"
                                 ;;
                             3) 
-                                choice="-i serial_mgl -c mgl_data1.bin"
+                                choice="--in1 serial_mgl -c mgl_data1.bin"
                                 selected_name="MGL - Gyro Test"
                                 ;;
                             4) 
-                                choice="-i serial_mgl --playfile1 mgl_chase_rv6_1.dat --in2 stratux_wifi --playfile2 stratux_chase_rv6_1.dat --in3 gyro_virtual"
+                                choice="--in1 serial_mgl --playfile1 mgl_chase_rv6_1.dat --in2 stratux_wifi --playfile2 stratux_chase_rv6_1.dat --in3 gyro_virtual"
                                 selected_name="MGL + Stratux RV6 Chase 1"
                                 ;;
                             5) 
-                                choice="-i serial_mgl --playfile1 mgl_chase_rv6_2.dat --in2 stratux_wifi --playfile2 stratux_chase_rv6_2.dat --in3 gyro_virtual"
+                                choice="--in1 serial_mgl --playfile1 mgl_chase_rv6_2.dat --in2 stratux_wifi --playfile2 stratux_chase_rv6_2.dat --in3 gyro_virtual"
                                 selected_name="MGL + Stratux RV6 Chase 2"
                                 ;;
                             6) 
-                                choice="-i serial_mgl --playfile1 mgl_chase_rv6_3.dat --in2 stratux_wifi --playfile2 stratux_chase_rv6_3.dat --in3 gyro_virtual"
+                                choice="--in1 serial_mgl --playfile1 mgl_chase_rv6_3.dat --in2 stratux_wifi --playfile2 stratux_chase_rv6_3.dat --in3 gyro_virtual"
                                 selected_name="MGL + Stratux RV6 Chase 3"
                                 ;;
                         esac
@@ -359,11 +363,11 @@ while $RUN_MENU_AGAIN; do
                     if handle_menu_exit $exit_status "sub"; then
                         case $subchoice in
                             1) 
-                                choice="-i serial_d100 -e"
+                                choice="--in1 serial_d100 -e"
                                 selected_name="Dynon D100"
                                 ;;
                             2) 
-                                choice="-i serial_skyview -e"
+                                choice="--in1 serial_skyview -e"
                                 selected_name="Dynon Skyview"
                                 ;;
                         esac
@@ -391,19 +395,19 @@ while $RUN_MENU_AGAIN; do
                     
                     if handle_menu_exit $exit_status "sub"; then
                         case $subchoice in
-                            1)  choice="--in1 stratux_wifi"
+                            1) choice="--in1 stratux_wifi"
                                 selected_name="Live Stratux Connection"
                                 ;;
                             2) 
-                                choice="-i stratux_wifi -c stratux_54.dat"
+                                choice="--in1 stratux_wifi -c stratux_54.dat"
                                 selected_name="Demo 54"
                                 ;;
                             3) 
-                                choice="-i stratux_wifi -c stratux_57.dat"
+                                choice="--in1 stratux_wifi -c stratux_57.dat"
                                 selected_name="Demo 57 (Bad pitch/roll)"
                                 ;;
                             4) 
-                                choice="-i stratux_wifi -c stratux_8.dat"
+                                choice="--in1 stratux_wifi -c stratux_8.dat"
                                 selected_name="Demo stratux_8 - Traffic targets only"
                                 ;;
                         esac
@@ -436,31 +440,31 @@ while $RUN_MENU_AGAIN; do
                     
                     if handle_menu_exit $exit_status "sub"; then
                         case $subchoice in
-                            1) choice="-i gyro_i2c_bno055"
+                            1) choice="--in1 gyro_i2c_bno055"
                                 selected_name="Live BNO055"
                                 ;;
                             2) choice="--in1 gyro_i2c_bno055 --in1 serial_mgl --playfile1 mgl_data1.bin"
                                 selected_name="Live BNO055 & MGL"
                                 ;;
-                            3) choice="-i serial_mgl --playfile1 mgl_chase_rv6_1.dat --in2 stratux_wifi --playfile2 stratux_chase_rv6_1.dat --in3 gyro_i2c_bno055"
+                            3) choice="--in1 serial_mgl --playfile1 mgl_chase_rv6_1.dat --in2 stratux_wifi --playfile2 stratux_chase_rv6_1.dat --in3 gyro_i2c_bno055"
                                 selected_name="Live BNO055 + MGL + Stratux"
                                 ;;
-                            4) choice="-i gyro_i2c_bno055 --in2 gyro_i2c_bno055"
+                            4) choice="--in1 gyro_i2c_bno055 --in2 gyro_i2c_bno055"
                                 selected_name="Live dual BNO055"
                                 ;;
-                            5) choice="-i gyro_i2c_bno085"
+                            5) choice="--in1 gyro_i2c_bno085"
                                 selected_name="Live BNO085"
                                 ;;
                             6) choice="--in1 gyro_i2c_bno085 --in2 gyro_i2c_bno085 --in3 stratux_wifi"
                                 selected_name="Live dual BNO085"
                                 ;;
-                            7) choice="-i serial_mgl --playfile1 mgl_chase_rv6_1.dat --in3 stratux_wifi --playfile3 stratux_chase_rv6_1.dat --in2 gyro_i2c_bno085"
+                            7) choice="--in1 serial_mgl --playfile1 mgl_chase_rv6_1.dat --in3 stratux_wifi --playfile3 stratux_chase_rv6_1.dat --in2 gyro_i2c_bno085"
                                 selected_name="MGL + Stratux + Live BNO085"
                                 ;;
-                            8) choice="-i gyro_virtual --in2 gyro_i2c_bno085"
+                            8) choice="--in1 gyro_virtual --in2 gyro_i2c_bno085"
                                 selected_name="vIMU + Live BNO085"
                                 ;;
-                            9) choice="-i gyro_joystick --in2 gyro_i2c_bno085"
+                            9) choice="--in1 gyro_joystick --in2 gyro_i2c_bno085"
                                 selected_name="joystick vIMU + Live BNO085"
                                 ;;
                         esac
@@ -568,10 +572,10 @@ while $RUN_MENU_AGAIN; do
 
                 while true; do
                     exec 3>&1
-                    subchoice=$(dialog --clear --title "Update" \
+                    subchoice=$(dialog --clear --title "Update (via github)" \
                                       --menu "Choose:" 20 60 10 \
                                       "1" "Update TronView (current branch: $current_branch)" \
-                                      "2" "View Changelog" \
+                                      "2" "View CHANGELOG.md" \
                                       "3" "Branch: $latest_branch ($latest_branch_date)" \
                                       "4" "Branch: $latest_branch2nd ($latest_branch2nd_date)" \
                                       "5" "Branch: $latest_branch3rd ($latest_branch3rd_date)" \
@@ -581,8 +585,11 @@ while $RUN_MENU_AGAIN; do
                     exec 3>&-
 
                     if handle_menu_exit $exit_status "sub"; then
+                        RUN_AGAIN=false
                         case $subchoice in
-                            1) FULL_COMMAND="git pull && . $0" ;;
+                            1) FULL_COMMAND="git pull" 
+                                RUN_AGAIN=true
+                                ;;
                             2) 
                                 if command -v glow &> /dev/null; then
                                     FULL_COMMAND="glow $TRONVIEW_DIR/CHANGELOG.md"
@@ -591,11 +598,19 @@ while $RUN_MENU_AGAIN; do
                                 fi
                                 break 2
                                 ;;
-                            3) FULL_COMMAND="git checkout $latest_branch && git pull && . $0" ;;
-                            4) FULL_COMMAND="git checkout $latest_branch2nd && git pull && . $0" ;;
-                            5) FULL_COMMAND="git checkout $latest_branch3rd && git pull && . $0" ;;
-                            6) FULL_COMMAND="git checkout $latest_branch4th && git pull && . $0" ;;
-                        esac 
+                            3) FULL_COMMAND="git checkout $latest_branch && git pull" 
+                                RUN_AGAIN=true
+                                ;;
+                            4) FULL_COMMAND="git checkout $latest_branch2nd && git pull" 
+                                RUN_AGAIN=true
+                                ;;
+                            5) FULL_COMMAND="git checkout $latest_branch3rd && git pull" 
+                                RUN_AGAIN=true
+                                ;;
+                            6) FULL_COMMAND="git checkout $latest_branch4th && git pull" 
+                                RUN_AGAIN=true
+                                ;;
+                        esac
                         break 2
                     else
                         break
@@ -640,7 +655,7 @@ while $RUN_MENU_AGAIN; do
             [[ $options == *"text"* ]] && ADD_ARGS="-t" || ADD_ARGS=""
             [[ $options == *"multi"* ]] && ADD_ARGS="$ADD_ARGS --input-threads"
             if [[ $options == *"debug"* ]]; then
-                today=$(date +%Y-%m-%d)
+                today=$(date +%Y-%m-%d_%H-%M-%S)
                 log_file="data/console_logs/$today-console.txt"
                 mkdir -p data/console_logs
                 touch $log_file
@@ -696,6 +711,10 @@ while $RUN_MENU_AGAIN; do
         get_char
         # clear $FULL_COMMAND
         FULL_COMMAND=""
+        if $RUN_AGAIN; then  # if we need to run again, skip the last run
+            exec "$0" "--skiplastrun"
+            exit 0
+        fi
     fi
 
 done

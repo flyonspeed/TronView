@@ -589,7 +589,7 @@ while $RUN_MENU_AGAIN; do
                     if handle_menu_exit $exit_status "sub"; then
                         RUN_AGAIN=false
                         case $subchoice in
-                            1) FULL_COMMAND="git pull" 
+                            1) FULL_COMMAND="git -C $TRONVIEW_DIR pull" 
                                 RUN_AGAIN=true
                                 ;;
                             2) 
@@ -600,16 +600,16 @@ while $RUN_MENU_AGAIN; do
                                 fi
                                 break 2
                                 ;;
-                            3) FULL_COMMAND="git checkout $latest_branch && git pull" 
+                            3) FULL_COMMAND="git -C $TRONVIEW_DIR checkout $latest_branch && git -C $TRONVIEW_DIR pull" 
                                 RUN_AGAIN=true
                                 ;;
-                            4) FULL_COMMAND="git checkout $latest_branch2nd && git pull" 
+                            4) FULL_COMMAND="git -C $TRONVIEW_DIR checkout $latest_branch2nd && git -C $TRONVIEW_DIR pull" 
                                 RUN_AGAIN=true
                                 ;;
-                            5) FULL_COMMAND="git checkout $latest_branch3rd && git pull" 
+                            5) FULL_COMMAND="git -C $TRONVIEW_DIR checkout $latest_branch3rd && git -C $TRONVIEW_DIR pull" 
                                 RUN_AGAIN=true
                                 ;;
-                            6) FULL_COMMAND="git checkout $latest_branch4th && git pull" 
+                            6) FULL_COMMAND="git -C $TRONVIEW_DIR checkout $latest_branch4th && git -C $TRONVIEW_DIR pull" 
                                 RUN_AGAIN=true
                                 ;;
                         esac

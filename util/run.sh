@@ -582,18 +582,19 @@ while $RUN_MENU_AGAIN; do
 
                     if handle_menu_exit $exit_status "sub"; then
                         case $subchoice in
-                            1) FULL_COMMAND="git pull" ;;
+                            1) FULL_COMMAND="git pull && . $0" ;;
                             2) 
                                 if command -v glow &> /dev/null; then
                                     FULL_COMMAND="glow $TRONVIEW_DIR/CHANGELOG.md"
                                 else
                                     FULL_COMMAND="less $TRONVIEW_DIR/CHANGELOG.md"
                                 fi
+                                break 2
                                 ;;
-                            3) FULL_COMMAND="git checkout $latest_branch && git pull" ;;
-                            4) FULL_COMMAND="git checkout $latest_branch2nd && git pull" ;;
-                            5) FULL_COMMAND="git checkout $latest_branch3rd && git pull" ;;
-                            6) FULL_COMMAND="git checkout $latest_branch4th && git pull" ;;
+                            3) FULL_COMMAND="git checkout $latest_branch && git pull && . $0" ;;
+                            4) FULL_COMMAND="git checkout $latest_branch2nd && git pull && . $0" ;;
+                            5) FULL_COMMAND="git checkout $latest_branch3rd && git pull && . $0" ;;
+                            6) FULL_COMMAND="git checkout $latest_branch4th && git pull && . $0" ;;
                         esac 
                         break 2
                     else

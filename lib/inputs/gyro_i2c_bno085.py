@@ -34,12 +34,15 @@ class gyro_i2c_bno085(Input):
 
         # read address from config.
         self.id = hud_utils.readConfig("bno085", "device"+str(self.num_bno085)+"_id", "bno085_"+str(self.num_bno085))
-        self.address = hud_utils.readConfigInt("bno085", "device"+str(self.num_bno085)+"_address", 0x4A)
+        default_address = 0x4A    # default address for 1st imu
+        if self.num_bno085 == 2:
+            default_address = 0x4B    # default address for 2nd imu
+        self.address = hud_utils.readConfigInt("bno085", "device"+str(self.num_bno085)+"_address", default_address)
+
         # should this imu feed into aircraft roll/pitch/yaw? if num is 0 then default is true.
         self.feed_into_aircraft = hud_utils.readConfigBool("bno085", "device"+str(self.num_bno085)+"_aircraft", self.num_imus == 0)
         print("init bno085("+str(self.num_bno085)+") id: "+str(self.id)+" address: "+str(self.address))
 
-        
         # Check if we're in playback mode
         if self.PlayFile is not None and self.PlayFile is not False:
             # if in playback mode then load example data file

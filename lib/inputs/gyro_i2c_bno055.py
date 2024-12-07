@@ -36,7 +36,10 @@ class gyro_i2c_bno055(Input):
 
         # read address from config.
         self.id = hud_utils.readConfig("bno055", "device"+str(self.num_bno055)+"_id", "bno055_"+str(self.num_bno055))
-        self.address = hud_utils.readConfigInt("bno055", "device"+str(self.num_bno055)+"_address", 40)
+        default_address = 40    # default address for 1st imu
+        if self.num_bno055 == 2:
+            default_address = 41    # default address for 2nd imu
+        self.address = hud_utils.readConfigInt("bno055", "device"+str(self.num_bno055)+"_address", default_address)
 
         # should this imu feed into aircraft roll/pitch/yaw? if num is 0 then default is true.
         self.feed_into_aircraft = hud_utils.readConfigBool("bno055", "device"+str(self.num_bno055)+"_aircraft", self.num_imus == 0)

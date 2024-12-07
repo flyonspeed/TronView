@@ -6,7 +6,7 @@
 - new live input picker menu
 - update from git. and reload run.sh
 - main.py fixes for 100 inputs
-
+- added i2c test script
 
 
 

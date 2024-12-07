@@ -80,28 +80,30 @@ fi
 # kill any running python3 processes
 #$RUN_PREFIX pkill -f 'python3'
 
-# Load last run configuration if it exists
-LAST_RUN_FILE="$TRONVIEW_DIR/data/system/last_run.json"
-if [ -f "$LAST_RUN_FILE" ]; then
-    # if jq in not installed then install it on linux
-    if ! command -v jq &> /dev/null; then
-        if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-            echo "jq is not installed. Installing..."
-            sudo apt-get install jq -y
+# Function to load last run configuration
+load_last_run() {
+    LAST_RUN_FILE="$TRONVIEW_DIR/data/system/last_run.json"
+    if [ -f "$LAST_RUN_FILE" ]; then
+        # if jq in not installed then install it on linux
+        if ! command -v jq &> /dev/null; then
+            if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+                echo "jq is not installed. Installing..."
+                sudo apt-get install jq -y
+            fi
+            if [[ "$OSTYPE" == "darwin"* ]]; then
+                brew install jq
+            fi
         fi
-        if [[ "$OSTYPE" == "darwin"* ]]; then
-            brew install jq
-        fi
-    fi
 
-    # Add "Last Run" as first menu option
-    if command -v jq &> /dev/null; then
-        LAST_NAME=$(jq -r '.name' "$LAST_RUN_FILE")
-        LAST_ARGS=$(jq -r '.args' "$LAST_RUN_FILE")
-        LAST_TIME=$(jq -r '.timestamp' "$LAST_RUN_FILE")
-        LAST_AUTO_RUN=$(jq -r '.auto_run' "$LAST_RUN_FILE")
+        # Load last run configuration
+        if command -v jq &> /dev/null; then
+            LAST_NAME=$(jq -r '.name' "$LAST_RUN_FILE")
+            LAST_ARGS=$(jq -r '.args' "$LAST_RUN_FILE")
+            LAST_TIME=$(jq -r '.timestamp' "$LAST_RUN_FILE")
+            LAST_AUTO_RUN=$(jq -r '.auto_run' "$LAST_RUN_FILE")
+        fi
     fi
-fi
+}
 
 # Function to handle menu exit codes
 handle_menu_exit() {
@@ -136,6 +138,7 @@ get_char() {
 ################################################################################
 ## AUTO-RUN ???
 # If there was a last run, show dialog to run it again
+load_last_run
 if [ -f "$LAST_RUN_FILE" ] && [ "$LAST_AUTO_RUN" = "true" ]; then
     exec 3>&1
     dialog --clear \
@@ -170,6 +173,7 @@ fi
 # Show 1st level main menu
 # Create menu options array
     declare -a menu_options=(
+        "Live Setup" "Live input setup options"
         "MGL Demos" "MGL related demos and tests" 
         "Dynon Demos" "Dynon related demos"
         "Stratux Demos" "Stratux only demos"
@@ -178,12 +182,7 @@ fi
         "Tests" "Test scripts, Serial, Joystick, I2c, WIFI"
         "Update" "Update TronView & View Changelog"
     )
-if [ -f "$LAST_RUN_FILE" ]; then
-    # check if the 1st option is "Last Run"
-    if [[ "${menu_options[0]}" != "Last Run" ]]; then
-        menu_options=("Last Run" "Run last: $LAST_NAME" "${menu_options[@]}")
-    fi
-fi
+
 
 ASCII_ART='
 _____             __     ___               \n
@@ -208,6 +207,15 @@ fi
 
 while $RUN_MENU_AGAIN; do
 
+    # make sure the last run is updated.  They could have just ran something and updated the json file
+    load_last_run
+    if [ -f "$LAST_RUN_FILE" ]; then
+        menu_options_with_last_run=("Last Run" "$LAST_NAME" "${menu_options[@]}")
+    else
+        # else just use the normal menu options
+        menu_options_with_last_run=("${menu_options[@]}")
+    fi
+
     ################################################################################
     ################################################################################
     ## MAIN MENU
@@ -218,7 +226,7 @@ while $RUN_MENU_AGAIN; do
         choice=$(dialog --clear \
                         --title "Startup script" \
                         --menu "$ASCII_ART\nVersion: $VERSION Build: $BUILD $BUILD_DATE $BUILD_TIME" 22 70 10 \
-                        "${menu_options[@]}" \
+                        "${menu_options_with_last_run[@]}" \
                         2>&1 1>&3)
         exit_status=$?
         exec 3>&-
@@ -227,6 +235,62 @@ while $RUN_MENU_AGAIN; do
 
         # Handle main menu selection
         case $choice in
+            ############################################################################
+            "Live Setup")
+                SHOW_ADDITIONAL_OPTIONS=true
+                choice=""
+                InputNum=0
+                while [ $InputNum -lt 1 ]; do
+                    exec 3>&1
+                    options=$(dialog --clear --title "Input Options" \
+                                --checklist "Use space bar to select 1 or more Inputs :" 20 60 10 \
+                                "serial_mgl" "MGL Serial" OFF \
+                                "serial_d100" "Dynon D100 Serial" OFF \
+                                "serial_skyview" "Dynon Skyview Serial" OFF \
+                                "serial_g3x" "Garmin G3x Serial" OFF \
+                                "serial_grt_eis" "Grand Rapids EIS Serial" OFF \
+                                "serial_nmea" "NMEA Serial" OFF \
+                                "gyro_i2c_bno055" "BNO055 IMU i2c (Pi only)" OFF \
+                                "gyro_i2c_bno055" "2nd BNO055 IMU i2c (Pi only)" OFF \
+                                "gyro_i2c_bno085" "BNO085 IMU i2c (Pi only)" OFF \
+                                "gyro_i2c_bno085" "2nd BNO085 IMU i2c (Pi only)" OFF \
+                                "stratux_wifi" "Stratux WIFI Compatible Device" OFF \
+                                "levil_wifi" "iLevil B.O.M WiFi (UDP)" OFF \
+                                "gyro_virtual" "Virtual IMU" OFF \
+                                "gyro_virtual" "2nd Virtual IMU" OFF \
+                                "gyro_joystick" "Joystick vIMU" OFF \
+                                "adc_ads1115" "Analog Input ADS1115 (Pi only)" OFF \
+                                2>&1 1>&3)
+                    exit_status=$?
+                    exec 3>&-
+
+                    if handle_menu_exit $exit_status "sub"; then
+                        # check if user selected any options
+                        if [ -z "$options" ]; then
+                            dialog --clear --title "Error" --msgbox "No inputs selected.  TronView needs at least one input selected." 10 60
+                            choice=""                        
+                        fi
+
+                        InputNum=0
+                        # Convert options to array using more compatible syntax
+                        selected_opts=( $(echo "$options" | sed 's/"//g') )
+                        
+                        for opt in "${selected_opts[@]}"; do
+                            # Skip if empty
+                            [ -z "$opt" ] && continue
+                            InputNum=$((InputNum+1))
+                            choice="$choice --in$InputNum $opt"
+                            selected_name="$selected_name $opt"
+                        done
+                        break
+                    else
+                        choice=""
+                        break
+                    fi
+
+                done
+                ;;
+
             ############################################################################
             "MGL Demos")
                 SHOW_ADDITIONAL_OPTIONS=true
@@ -610,10 +674,17 @@ while $RUN_MENU_AGAIN; do
         # Run the selected command
         if [[ "$OSTYPE" == "linux-gnu"* ]] || [[ ! "$choice" =~ "bno" ]]; then
             run_python "$choice"
+            exit_status=$?
+            if [ $exit_status -ne 0 ]; then
+                echo "[Error occurred. Press any key to continue...]"
+                get_char
+            fi
             # clear $choice
             choice=""
         else
             echo "IMU options only supported on Linux/Raspberry Pi"
+            echo "[Press any key to continue...]"
+            get_char
         fi
     fi
 

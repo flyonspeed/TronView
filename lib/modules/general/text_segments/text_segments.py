@@ -34,6 +34,48 @@ import math
         #    d1      d2
         
 class text_segments(Module):
+    # Define segment patterns as class variable
+    segments = {
+        '0': (1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0),
+        '1': (0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0),
+        '2': (1,1,1,0,1,1,0,1,1,1,0,0,0,0,0,0),
+        '3': (1,1,1,1,1,1,0,0,1,1,0,0,0,0,0,0),
+        '4': (0,0,1,1,0,0,1,0,1,1,0,0,0,0,0,0),
+        '5': (1,1,0,1,1,1,1,0,1,1,0,0,0,0,0,0),
+        '6': (1,1,0,1,1,1,1,1,1,1,0,0,0,0,0,0),
+        '7': (1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0),
+        '8': (1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0),
+        '9': (1,1,1,1,1,1,1,0,1,1,0,0,0,0,0,0),
+        'A': (1,1,1,1,0,0,1,1,1,1,0,0,0,0,0,0),
+        'B': (1,1,1,1,1,1,0,0,0,1,1,1,0,0,0,0),
+        'C': (1,1,0,0,1,1,1,1,0,0,0,0,0,0,0,0),
+        'D': (1,1,1,1,1,1,0,0,0,0,1,1,0,0,0,0),
+        'E': (1,1,0,0,1,1,1,1,1,0,0,0,0,0,0,0),
+        'F': (1,1,0,0,0,0,1,1,1,0,0,0,0,0,0,0),
+        'G': (1,1,0,1,1,1,1,1,0,1,0,0,0,0,0,0),
+        'H': (0,0,1,1,0,0,1,1,1,1,0,0,0,0,0,0),
+        'I': (1,1,0,0,1,1,0,0,0,0,1,1,0,0,0,0),
+        'J': (0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0),
+        'K': (0,0,0,0,0,0,1,1,1,0,0,0,0,1,0,1),
+        'L': (0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0),
+        'M': (0,0,1,1,0,0,1,1,0,0,0,0,1,1,0,0),
+        'N': (0,0,1,1,0,0,1,1,0,0,0,0,1,0,0,1),
+        'O': (1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0),
+        'P': (1,1,1,0,0,0,1,1,1,1,0,0,0,0,0,0),
+        'Q': (1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,1),
+        'R': (1,1,1,0,0,0,1,1,1,1,0,0,0,0,0,1),
+        'S': (1,1,0,1,1,1,1,0,1,1,0,0,0,0,0,0),
+        'T': (1,1,0,0,0,0,0,0,0,0,1,1,0,0,0,0),
+        'U': (0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0),
+        'V': (0,0,0,0,0,0,1,1,0,0,0,0,0,1,1,0),
+        'W': (0,0,1,1,0,0,1,1,0,0,0,0,0,0,1,1),
+        'X': (0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1),
+        'Y': (0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0),
+        'Z': (1,1,0,0,1,1,0,0,0,0,0,0,0,1,1,0),
+        '-': (0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0),
+        ' ': (0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)
+    }
+
     def __init__(self):
         Module.__init__(self)
         self.name = "Text Segments"
@@ -50,6 +92,10 @@ class text_segments(Module):
         self.bad = False
         self.old = False
         self.template = ""  # Add template support
+        
+        # Add cache for pre-rendered digits
+        self.digit_cache = {}
+        self.inactive_digit_surface = None
 
     def initMod(self, pygamescreen, width=None, height=None):
         if width is None:
@@ -67,20 +113,17 @@ class text_segments(Module):
         self.digit_width = self.width // self.total_decimals - self.digit_spacing
         self.digit_height = self.height
         self.segment_thickness = max(2, self.digit_height // 10)
-
-    def draw_segment(self, surface, points, color):
-        """Draw a segment using polygon"""
-        pygame.draw.polygon(surface, color, points)
-
-    def draw_digit(self, digit):
-        """Draw a single digit/letter on digit_surface"""
-        self.digit_surface.fill((0,0,0,0))  # Clear with transparency
         
+        # Pre-render inactive segments
+        self._create_inactive_segments()
+
+    def _create_inactive_segments(self):
+        """Pre-render the inactive segments surface"""
         w = self.digit_width
         h = self.digit_height
         t = self.segment_thickness
         
-        # Calculate key points for better segment alignment
+        # Calculate key points
         left = t
         right = w - t
         center = w/2
@@ -88,10 +131,9 @@ class text_segments(Module):
         bottom = h - t
         middle = h/2
         
-        # Add overlap factor to eliminate gaps
-        overlap = t/2  # Adjust this value to control gap filling
+        self.inactive_digit_surface = pygame.Surface((w, h), pygame.SRCALPHA)
         
-        # Define segment coordinates for 16-segment display
+        # Define all segments
         segs = [
             # Top segments (a1, a2)
             [(left, 0), (center-t/2, 0), (center-t/2, t), (left, t)],      # a1
@@ -123,63 +165,46 @@ class text_segments(Module):
             [(left+t, bottom-t), (center-t, middle+t/2), (center-t-t/2, middle), (left, bottom-2*t)],        # l
             [(center+t, middle+t/2), (right-t, bottom-t), (right, bottom-2*t), (center+t+t/2, middle)]   # m
         ]
+        
+        # Draw all segments in inactive color
+        for seg in segs:
+            self.draw_segment(self.inactive_digit_surface, seg, self.not_active_color)
 
-        # Update segment patterns to match the image layout (a1,a2,b1,b2,d1,d2,f1,f2,g1,g2,h,i,j,k,l,m)
-        segments = {
-            '0': (1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0),
-            '1': (0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0),
-            '2': (1,1,1,0,1,1,0,1,1,1,0,0,0,0,0,0),
-            '3': (1,1,1,1,1,1,0,0,1,1,0,0,0,0,0,0),
-            '4': (0,0,1,1,0,0,1,0,1,1,0,0,0,0,0,0),
-            '5': (1,1,0,1,1,1,1,0,1,1,0,0,0,0,0,0),
-            '6': (1,1,0,1,1,1,1,1,1,1,0,0,0,0,0,0),
-            '7': (1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0),
-            '8': (1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0),
-            '9': (1,1,1,1,1,1,1,0,1,1,0,0,0,0,0,0),
-            'A': (1,1,1,1,0,0,1,1,1,1,0,0,0,0,0,0),
-            'B': (1,1,1,1,1,1,0,0,0,1,1,1,0,0,0,0),
-            'C': (1,1,0,0,1,1,1,1,0,0,0,0,0,0,0,0),
-            'D': (1,1, 1,1, 1,1, 0,0, 0,0, 1,1, 0,0,0,0),
-            'E': (1,1,0,0,1,1,1,1,1,0,0,0,0,0,0,0),
-            'F': (1,1,0,0,0,0,1,1,1,0,0,0,0,0,0,0),
-            'G': (1,1,0,1,1,1,1,1,0,1,0,0,0,0,0,0),
-            'H': (0,0,1,1,0,0,1,1,1,1,0,0,0,0,0,0),
-            'I': (1,1,0,0,1,1,0,0,0,0,1,1,0,0,0,0),
-            'J': (0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0),
-            'K': (0,0,0,0,0,0,1,1,1,0,0,0,0,1,0,1),
-            'L': (0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0),
-            'M': (0,0,1,1,0,0,1,1,0,0,0,0,1,1,0,0),
-            'N': (0,0,1,1,0,0,1,1,0,0,0,0,1,0,0,1),
-            'O': (1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0),
-            'P': (1,1,1,0,0,0,1,1,1,1,0,0,0,0,0,0),
-            'Q': (1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,1),
-            'R': (1,1,1,0,0,0,1,1,1,1,0,0,0,0,0,1),
-            'S': (1,1,0,1,1,1,1,0,1,1,0,0,0,0,0,0),
-            'T': (1,1,0,0,0,0,0,0,0,0,1,1,0,0,0,0),
-            'U': (0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0),
-            'V': (0,0,0,0,0,0,1,1,0,0,0,0,0,1,1,0),
-            'W': (0,0,1,1,0,0,1,1,0,0,0,0,0,0,1,1),
-            'X': (0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1),
-            'Y': (0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0),
-            'Z': (1,1,0,0,1,1,0,0,0,0,0,0,0,1,1,0),
-            '-': (0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0),
-            ' ': (0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)
-        }
+        # Store segs as instance variable
+        self.segs = segs
 
-        # Get the segment pattern for this digit
-        if str(digit).upper() not in segments:
+    def draw_segment(self, surface, points, color):
+        """Draw a segment using polygon"""
+        pygame.draw.polygon(surface, color, points)
+
+    def draw_digit(self, digit):
+        """Draw a single digit/letter on digit_surface with caching"""
+        # Check cache first - use only immutable types for cache key
+        cache_key = (str(digit).upper(), 
+                    tuple(self.text_color), 
+                    tuple(self.not_active_color))
+        
+        if cache_key in self.digit_cache:
+            self.digit_surface.blit(self.digit_cache[cache_key], (0, 0))
             return
-        pattern = segments[str(digit).upper()]
-
-        # Draw all inactive segments first
-        for i, (seg, on) in enumerate(zip(segs, pattern)):
-            if not on:
-                self.draw_segment(self.digit_surface, seg, self.not_active_color)
-
-        # Then draw all active segments on top
-        for i, (seg, on) in enumerate(zip(segs, pattern)):
+            
+        # Clear surface and draw inactive segments
+        self.digit_surface.fill((0,0,0,0))
+        self.digit_surface.blit(self.inactive_digit_surface, (0, 0))
+        
+        # If digit not recognized, return early
+        if str(digit).upper() not in self.segments:
+            return
+            
+        pattern = self.segments[str(digit).upper()]
+        
+        # Draw only active segments
+        for i, (seg, on) in enumerate(zip(self.segs, pattern)):
             if on:
                 self.draw_segment(self.digit_surface, seg, self.text_color)
+        
+        # Cache the result
+        self.digit_cache[cache_key] = self.digit_surface.copy()
 
     def parse_text(self, aircraft):
         def get_nested_attr(obj, attr):
@@ -273,32 +298,31 @@ class text_segments(Module):
             fail_text = font.render('XXX', True, (255,0,0))
             text_rect = fail_text.get_rect(center=(self.width//2, self.height//2))
             self.surface.blit(fail_text, text_rect)
-        else:
-            # Parse template/text first
-            parsed_text = self.parse_text(aircraft)
-            # Format input - handle both numbers and text
-            text = str(parsed_text).upper()  # Convert to uppercase for letters
-            if len(text) < self.total_decimals:
-                text = text.ljust(self.total_decimals)  # Pad with spaces
-            elif len(text) > self.total_decimals:
-                text = text[:self.total_decimals]  # Truncate if too long
+            return
 
-            # Draw each character
-            for i, char in enumerate(text):
-                self.draw_digit(char)
-                digit_x = i * (self.digit_width + self.digit_spacing)
-                self.surface.blit(self.digit_surface, (digit_x, 0))
+        # Parse template/text first
+        parsed_text = self.parse_text(aircraft)
+        # Format input - handle both numbers and text
+        text = str(parsed_text).upper()[:self.total_decimals].ljust(self.total_decimals)
 
-            # Draw border if needed
-            if self.box_weight > 0:
-                pygame.draw.rect(self.surface, self.box_color, 
-                               (0,0,self.width,self.height), self.box_weight)
+        # Draw each character
+        for i, char in enumerate(text):
+            self.draw_digit(char)
+            digit_x = i * (self.digit_width + self.digit_spacing)
+            self.surface.blit(self.digit_surface, (digit_x, 0))
+
+        # Draw border if needed
+        if self.box_weight > 0:
+            pygame.draw.rect(self.surface, self.box_color, 
+                           (0,0,self.width,self.height), self.box_weight)
 
         # Draw to screen
         self.pygamescreen.blit(self.surface, (x,y))
 
     def clear(self):
-        pass
+        """Clear the cache when module is cleared"""
+        self.digit_cache.clear()
+        super().clear()
 
     def get_module_options(self):
         data_fields = shared.Dataship._get_all_fields()

@@ -31,13 +31,13 @@ import math
         #   | /l   m \  |
         #   |/    i   \ |
         #   ------ ------
-        #    d1      d2
+        #    d1   p  d2
         
 class text_segments(Module):
     # Define segment patterns at class level
     SEGMENTS = {
-        '0': (1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0),
-        '1': (0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0),
+        '0': (1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0),
+        '1': (0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0),
         '2': (1,1,1,0,1,1,0,1,1,1,0,0,0,0,0,0),
         '3': (1,1,1,1,1,1,0,0,1,1,0,0,0,0,0,0),
         '4': (0,0,1,1,0,0,1,0,1,1,0,0,0,0,0,0),
@@ -73,7 +73,9 @@ class text_segments(Module):
         'Y': (0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0),
         'Z': (1,1,0,0,1,1,0,0,0,0,0,0,0,1,1,0),
         '-': (0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0),
-        ' ': (0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)
+        ' ': (0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0),
+        ':': (0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1), 
+        '.': (0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1)  # Only period segment
     }
 
     def __init__(self):
@@ -193,7 +195,11 @@ class text_segments(Module):
             [(center, middle),              # top left
              (center+t, middle),            # top right
              (right, bottom),               # bottom right
-             (right-t, bottom)]             # bottom left
+             (right-t, bottom)],            # bottom left
+             
+            # Period segment (p)
+            [(center-t/2, bottom-t), (center+t/2, bottom-t),
+             (center+t/2, bottom), (center-t/2, bottom)]  # small square at bottom center
         ]
         
         # Draw all segments in inactive color

@@ -83,7 +83,7 @@ class text_segments(Module):
         self.scroll_decimal = 1  # Number of scrolling digits
         self.text = "0"  # Default text
         self.text_color = (242,242,24)  # Default color
-        self.not_active_color = (45,45,45)  # Not active color
+        self.not_active_color = (31,31,31)  # Not active color
         self.box_color = (45,45,45)  # Border color
         self.box_weight = 0  # Border thickness
         self.digit_spacing = 2  # Spacing between digits
@@ -93,6 +93,7 @@ class text_segments(Module):
         self.bad = False
         self.old = False
         self.template = ""  # Add template support
+        self.justify = 'left'  # Add default justification
         
         # Add cache-related variables
         self._char_cache = {}  # Cache for rendered characters
@@ -308,7 +309,10 @@ class text_segments(Module):
             
             # Format text length
             if len(text) < self.total_decimals:
-                text = text.ljust(self.total_decimals)
+                if self.justify == 'right':
+                    text = text.rjust(self.total_decimals)
+                else:  # left justify
+                    text = text.ljust(self.total_decimals)
             elif len(text) > self.total_decimals:
                 text = text[:self.total_decimals]
             
@@ -354,7 +358,8 @@ class text_segments(Module):
                 "type": "text",
                 "default": self.text,
                 "label": "Custom",
-                "description": "Text to display"
+                "description": "Text to display",
+                "post_change_function": "valueChanged"
             },
             "width_ratio": {
                 "type": "float",
@@ -362,7 +367,8 @@ class text_segments(Module):
                 "min": 0.1,
                 "max": 2.0,
                 "label": "Width Ratio",
-                "description": "Width to height ratio of digits"
+                "description": "Width to height ratio of digits",
+                "post_change_function": "valueChanged"
             },
             "total_decimals": {
                 "type": "int",
@@ -370,19 +376,31 @@ class text_segments(Module):
                 "min": 1,
                 "max": 50,
                 "label": "Total Slots",
-                "description": "Total number of digits to display"
+                "description": "Total number of digits to display",
+                "post_change_function": "valueChanged"
             },
+            "justify": {
+                "type": "dropdown",
+                "default": self.justify,
+                "options": ["left", "right"],
+                "label": "Justify",
+                "description": "Text justification",
+                "post_change_function": "valueChanged"
+            },
+
             "text_color": {
                 "type": "color",
                 "default": self.text_color,
                 "label": "Segment Color",
-                "description": "Color of the digit segments"
+                "description": "Color of the digit segments",
+                "post_change_function": "valueChanged"
             },
             "not_active_color": {
                 "type": "color",
                 "default": self.not_active_color,
                 "label": "Not Active Color",
-                "description": "Color of the digit segments when not active"
+                "description": "Color of the digit segments when not active",
+                "post_change_function": "valueChanged"
             },
             "box_color": {
                 "type": "color",
@@ -406,30 +424,11 @@ class text_segments(Module):
     def processEvent(self, event, aircraft, smartdisplay):
         pass
 
-    # Add cache reset to option setters
-    def set_text_color(self, color):
-        self.text_color = color
+    def valueChanged(self):
+        self.initMod(self.pygamescreen, self.width, self.height)
         self._needs_reset = True
-        
-    def set_not_active_color(self, color):
-        self.not_active_color = color
-        self._needs_reset = True
-        
-    def set_box_color(self, color):
-        self.box_color = color
-        self._needs_reset = True
-        
-    def set_box_weight(self, weight):
-        self.box_weight = weight
-        self._needs_reset = True
-        
-    def set_total_decimals(self, decimals):
-        self.total_decimals = decimals
-        self._needs_reset = True
-        
-    def set_width_ratio(self, ratio):
-        self.width_ratio = ratio
-        self._needs_reset = True
+
+
 
 
 

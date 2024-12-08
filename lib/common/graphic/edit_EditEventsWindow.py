@@ -2,6 +2,7 @@ import pygame
 import pygame_gui
 from pygame_gui.elements import UIWindow, UIButton, UILabel, UITextEntryLine, UIDropDownMenu
 from lib.common import shared
+from lib.common.graphic.growl_manager import GrowlManager, GrowlPosition
 
 class EditEventsWindow:
     def __init__(self, screen_object, pygame_gui_manager, smartdisplay):
@@ -24,7 +25,8 @@ class EditEventsWindow:
             pygame.Rect(x, y, window_width, window_height),
             self.pygame_gui_manager,
             window_display_title=f"Event Handlers: {screen_object.title}",
-            object_id="#events_window"
+            object_id="#events_window",
+            draggable=False 
         )
 
         self.add_button = UIButton(
@@ -39,7 +41,8 @@ class EditEventsWindow:
             manager=self.pygame_gui_manager,
             container=self.window,
             anchors={'left': 'left', 'right': 'right', 'top': 'top', 'bottom': 'bottom'},
-            allow_scroll_x=False
+            allow_scroll_x=False,
+            
         )
 
         self.build_ui()
@@ -79,7 +82,7 @@ class EditEventsWindow:
     def handle_event(self, event):
         #print("EditEventsWindow handle_event %s type %s" % (self.screen_object.title, event.type))
         if event.type == pygame_gui.UI_BUTTON_PRESSED:
-            #print("EditEventsWindow handle_event UI_BUTTON_PRESSED %s type %s" % (self.screen_object.title, event.ui_element))
+            print("EditEventsWindow handle_event UI_BUTTON_PRESSED %s type %s" % (self.screen_object.title, event.ui_element))
             if self.details_window:
                 self.details_window.handle_event(event) # pass the event to the details window
             elif event.ui_element == self.add_button:
@@ -90,6 +93,16 @@ class EditEventsWindow:
                     if isinstance(element, UIButton) and event.ui_element == element:
                         if hasattr(element, 'handler_index'):
                             self.show_handler_details(self.screen_object.event_handlers[element.handler_index])
+        elif event.type == pygame_gui.UI_WINDOW_CLOSE:
+            print("Window closed:", event.ui_element)
+            if event.ui_element == self.window:
+                if self.details_window: 
+                    self.details_window.window.kill()
+                    self.details_window = None
+                self.hide()
+                return
+            if self.details_window and event.ui_element == self.details_window.window:
+                self.details_window = None
 
     def show_handler_details(self, handler=None):
         self.details_window = HandlerDetailsWindow(self.screen_object, handler, self.pygame_gui_manager, self.smartdisplay, self)
@@ -229,8 +242,10 @@ class HandlerDetailsWindow:
                                     text="Save",
                                     manager=self.pygame_gui_manager,
                                     container=self.window)
-
-        self.delete_button = UIButton(relative_rect=pygame.Rect(100, y_offset, 80, 30),
+        
+        # if we are editing an existing handler, add a delete button
+        if self.handler:
+            self.delete_button = UIButton(relative_rect=pygame.Rect(100, y_offset, 80, 30),
                                       text="Delete",
                                       manager=self.pygame_gui_manager,
                                       container=self.window)
@@ -247,10 +262,24 @@ class HandlerDetailsWindow:
             print("HandlerDetailsWindow handle_event UI_BUTTON_PRESSED %s type %s" % (self.screen_object.title, event.ui_element))
             if event.ui_element == self.save_button:
                 self.save_handler()
-            elif event.ui_element == self.delete_button:
+            elif self.handler and event.ui_element == self.delete_button:
                 self.delete_handler()
 
     def save_handler(self):
+        # make sure the id is unique
+        new_id = self.id_entry.get_text()
+        # if editing an existing handler, don't allow the same id
+        if (new_id in [handler['id'] for handler in self.screen_object.event_handlers]):
+            if self.handler and new_id == self.handler['id']:   
+                pass
+            else:
+                shared.GrowlManager.add_message("Existing Event Handler found with this ID: %s" % new_id,position=GrowlPosition.CENTER)
+                return
+        if new_id == '':
+            shared.GrowlManager.add_message("ID cannot be blank",position=GrowlPosition.CENTER)
+            return
+
+        # save the new handler
         new_handler = {
             'id': self.id_entry.get_text(),
             'field': self.field_entry.get_text(),
@@ -260,6 +289,7 @@ class HandlerDetailsWindow:
             'target_id': self.target_id_entry.get_text()
         }
 
+        # if we are editing an existing handler, replace it
         if self.handler:
             index = self.screen_object.event_handlers.index(self.handler)
             self.screen_object.event_handlers[index] = new_handler

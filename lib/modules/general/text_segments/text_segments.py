@@ -132,7 +132,7 @@ class text_segments(Module):
         
         w, h, t = self.digit_width, self.digit_height, self.segment_thickness
         
-        # Calculate key points for better segment alignment
+        # Calculate key points
         left = t
         right = w - t
         center = w/2
@@ -332,7 +332,9 @@ class text_segments(Module):
         self.pygamescreen.blit(self.surface, (x,y))
 
     def clear(self):
-        pass
+        """Clear the cache when module is cleared"""
+        self.digit_cache.clear()
+        super().clear()
 
     def get_module_options(self):
         data_fields = shared.Dataship._get_all_fields()

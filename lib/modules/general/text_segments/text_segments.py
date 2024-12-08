@@ -87,6 +87,7 @@ class text_segments(Module):
         self.box_color = (45,45,45)  # Border color
         self.box_weight = 0  # Border thickness
         self.digit_spacing = 2  # Spacing between digits
+        self.width_ratio = 0.71  # Width to height ratio
         self.value = 0  # Current value to display
         self.fail = False
         self.bad = False
@@ -108,13 +109,14 @@ class text_segments(Module):
         
         # Create surfaces
         self.surface = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
-        self.digit_surface = pygame.Surface((self.width//self.total_decimals - self.digit_spacing, 
-                                           self.height), pygame.SRCALPHA)
         
-        # Calculate digit dimensions
-        self.digit_width = self.width // self.total_decimals - self.digit_spacing
+        # Calculate digit dimensions using ratio
+        self.digit_width = int(self.height * self.width_ratio)
         self.digit_height = self.height
         self.segment_thickness = max(2, self.digit_height // 10)
+        
+        # Adjust surface based on calculated width
+        self.digit_surface = pygame.Surface((self.digit_width, self.height), pygame.SRCALPHA)
         
         # Reset caches since dimensions changed
         self._reset_caches()
@@ -354,6 +356,14 @@ class text_segments(Module):
                 "label": "Custom",
                 "description": "Text to display"
             },
+            "width_ratio": {
+                "type": "float",
+                "default": self.width_ratio,
+                "min": 0.1,
+                "max": 2.0,
+                "label": "Width Ratio",
+                "description": "Width to height ratio of digits"
+            },
             "total_decimals": {
                 "type": "int",
                 "default": self.total_decimals,
@@ -415,6 +425,10 @@ class text_segments(Module):
         
     def set_total_decimals(self, decimals):
         self.total_decimals = decimals
+        self._needs_reset = True
+        
+    def set_width_ratio(self, ratio):
+        self.width_ratio = ratio
         self._needs_reset = True
 
 

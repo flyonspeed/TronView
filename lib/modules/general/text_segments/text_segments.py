@@ -86,14 +86,15 @@ class text_segments(Module):
         self.not_active_color = (31,31,31)  # Not active color
         self.box_color = (45,45,45)  # Border color
         self.box_weight = 0  # Border thickness
-        self.digit_spacing = 2  # Spacing between digits
-        self.width_ratio = 0.71  # Width to height ratio
+        self.digit_spacing = 5  # Spacing between digits
+        self.width_ratio = 71  # Width to height ratio (71 = 0.71)
         self.value = 0  # Current value to display
         self.fail = False
         self.bad = False
         self.old = False
         self.template = ""  # Add template support
         self.justify = 'left'  # Add default justification
+        self.padding = 5  # Padding between segments and border
         
         # Add cache-related variables
         self._char_cache = {}  # Cache for rendered characters
@@ -111,13 +112,13 @@ class text_segments(Module):
         # Create surfaces
         self.surface = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
         
-        # Calculate digit dimensions using ratio
-        self.digit_width = int(self.height * self.width_ratio)
-        self.digit_height = self.height
+        # Calculate digit dimensions using ratio (convert from int to decimal)
+        self.digit_width = int((self.height - 2*self.padding) * (self.width_ratio / 100))
+        self.digit_height = self.height - 2*self.padding
         self.segment_thickness = max(2, self.digit_height // 10)
         
         # Adjust surface based on calculated width
-        self.digit_surface = pygame.Surface((self.digit_width, self.height), pygame.SRCALPHA)
+        self.digit_surface = pygame.Surface((self.digit_width, self.digit_height), pygame.SRCALPHA)
         
         # Reset caches since dimensions changed
         self._reset_caches()
@@ -150,8 +151,8 @@ class text_segments(Module):
             [(center+t/2, 0), (right, 0), (right, t), (center+t/2, t)],    # a2
             
             # Right segments (b1, b2)
-            [(right-t, t), (right, t), (right, middle-t/2), (right-t, middle-t/2)],          # b1
-            [(right-t, middle+t/2), (right, middle+t/2), (right, bottom-t), (right-t, bottom-t)],  # b2
+            [(right, t), (right+t, t), (right+t, middle-t/2), (right, middle-t/2)],          # b1
+            [(right, middle+t/2), (right+t, middle+t/2), (right+t, bottom-t), (right, bottom-t)],  # b2
             
             # Bottom segments (d1, d2)
             [(left, bottom-t), (center-t/2, bottom-t), (center-t/2, bottom), (left, bottom)],   # d1
@@ -169,11 +170,30 @@ class text_segments(Module):
             [(center-t/2, t), (center+t/2, t), (center+t/2, middle-t/2), (center-t/2, middle-t/2)],          # h
             [(center-t/2, middle+t/2), (center+t/2, middle+t/2), (center+t/2, bottom-t), (center-t/2, bottom-t)], # i
             
-            # Diagonal segments (j, k, l, m)
-            [(left+t, t), (center-t, middle-t/2), (center-t-t/2, middle), (left, t+t)],                    # j
-            [(center+t, middle-t/2), (right-t, t), (right, t+t), (center+t+t/2, middle)],               # k
-            [(left+t, bottom-t), (center-t, middle+t/2), (center-t-t/2, middle), (left, bottom-2*t)],        # l
-            [(center+t, middle+t/2), (right-t, bottom-t), (right, bottom-2*t), (center+t+t/2, middle)]   # m
+            # Modified diagonal segments - from corners to center
+            # j - top left diagonal
+            [(left, t),                     # top left
+             (left+t, t),                   # top right
+             (center, middle),              # bottom right
+             (center-t, middle)],           # bottom left
+            
+            # k - top right diagonal
+            [(right-t, t),                  # top left
+             (right, t),                    # top right
+             (center+t, middle),            # bottom left
+             (center, middle)],             # bottom right
+            
+            # l - bottom left diagonal
+            [(center-t, middle),            # top left
+             (center, middle),              # top right
+             (left+t, bottom),              # bottom right
+             (left, bottom)],               # bottom left
+            
+            # m - bottom right diagonal
+            [(center, middle),              # top left
+             (center+t, middle),            # top right
+             (right, bottom),               # bottom right
+             (right-t, bottom)]             # bottom left
         ]
         
         # Draw all segments in inactive color
@@ -321,11 +341,11 @@ class text_segments(Module):
                 # Clear surface
                 self.surface.fill((0,0,0,0))
 
-                # Draw each character
+                # Draw each character with padding offset
                 for i, char in enumerate(text):
                     digit_surface = self.draw_digit(char)
-                    digit_x = i * (self.digit_width + self.digit_spacing)
-                    self.surface.blit(digit_surface, (digit_x, 0))
+                    digit_x = self.padding + i * (self.digit_width + self.digit_spacing)
+                    self.surface.blit(digit_surface, (digit_x, self.padding))
                 
                 # Draw border if needed
                 if self.box_weight > 0:
@@ -361,13 +381,22 @@ class text_segments(Module):
                 "description": "Text to display",
                 "post_change_function": "valueChanged"
             },
+            "digit_spacing": {
+                "type": "int",
+                "default": self.digit_spacing,
+                "min": 0,
+                "max": 20,
+                "label": "Character Spacing",
+                "description": "Space between characters",
+                "post_change_function": "valueChanged"
+            },
             "width_ratio": {
-                "type": "float",
+                "type": "int",
                 "default": self.width_ratio,
-                "min": 0.1,
-                "max": 2.0,
+                "min": 1,
+                "max": 100,
                 "label": "Width Ratio",
-                "description": "Width to height ratio of digits",
+                "description": "Width to height ratio of digits (in percent)",
                 "post_change_function": "valueChanged"
             },
             "total_decimals": {
@@ -415,6 +444,15 @@ class text_segments(Module):
                 "max": 10,
                 "label": "Border Weight",
                 "description": "Thickness of the border"
+            },
+            "padding": {
+                "type": "int",
+                "default": self.padding,
+                "min": 0,
+                "max": 20,
+                "label": "Border Padding",
+                "description": "Space between segments and border",
+                "post_change_function": "valueChanged"
             }
         }
 

@@ -34,6 +34,48 @@ import math
         #    d1      d2
         
 class text_segments(Module):
+    # Define segment patterns at class level
+    SEGMENTS = {
+        '0': (1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0),
+        '1': (0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0),
+        '2': (1,1,1,0,1,1,0,1,1,1,0,0,0,0,0,0),
+        '3': (1,1,1,1,1,1,0,0,1,1,0,0,0,0,0,0),
+        '4': (0,0,1,1,0,0,1,0,1,1,0,0,0,0,0,0),
+        '5': (1,1,0,1,1,1,1,0,1,1,0,0,0,0,0,0),
+        '6': (1,1,0,1,1,1,1,1,1,1,0,0,0,0,0,0),
+        '7': (1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0),
+        '8': (1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0),
+        '9': (1,1,1,1,1,1,1,0,1,1,0,0,0,0,0,0),
+        'A': (1,1,1,1,0,0,1,1,1,1,0,0,0,0,0,0),
+        'B': (1,1,1,1,1,1,0,0,0,1,1,1,0,0,0,0),
+        'C': (1,1,0,0,1,1,1,1,0,0,0,0,0,0,0,0),
+        'D': (1,1,1,1,1,1,0,0,0,0,1,1,0,0,0,0),
+        'E': (1,1,0,0,1,1,1,1,1,0,0,0,0,0,0,0),
+        'F': (1,1,0,0,0,0,1,1,1,0,0,0,0,0,0,0),
+        'G': (1,1,0,1,1,1,1,1,0,1,0,0,0,0,0,0),
+        'H': (0,0,1,1,0,0,1,1,1,1,0,0,0,0,0,0),
+        'I': (1,1,0,0,1,1,0,0,0,0,1,1,0,0,0,0),
+        'J': (0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0),
+        'K': (0,0,0,0,0,0,1,1,1,0,0,0,0,1,0,1),
+        'L': (0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0),
+        'M': (0,0,1,1,0,0,1,1,0,0,0,0,1,1,0,0),
+        'N': (0,0,1,1,0,0,1,1,0,0,0,0,1,0,0,1),
+        'O': (1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0),
+        'P': (1,1,1,0,0,0,1,1,1,1,0,0,0,0,0,0),
+        'Q': (1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,1),
+        'R': (1,1,1,0,0,0,1,1,1,1,0,0,0,0,0,1),
+        'S': (1,1,0,1,1,1,1,0,1,1,0,0,0,0,0,0),
+        'T': (1,1,0,0,0,0,0,0,0,0,1,1,0,0,0,0),
+        'U': (0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0),
+        'V': (0,0,0,0,0,0,1,1,0,0,0,0,0,1,1,0),
+        'W': (0,0,1,1,0,0,1,1,0,0,0,0,0,0,1,1),
+        'X': (0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1),
+        'Y': (0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0),
+        'Z': (1,1,0,0,1,1,0,0,0,0,0,0,0,1,1,0),
+        '-': (0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0),
+        ' ': (0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)
+    }
+
     def __init__(self):
         Module.__init__(self)
         self.name = "Text Segments"
@@ -50,6 +92,12 @@ class text_segments(Module):
         self.bad = False
         self.old = False
         self.template = ""  # Add template support
+        
+        # Add cache-related variables
+        self._char_cache = {}  # Cache for rendered characters
+        self._last_text = ""   # Track last rendered text
+        self._background = None # Pre-rendered background with inactive segments
+        self._needs_reset = True # Flag to track if cache needs reset
 
     def initMod(self, pygamescreen, width=None, height=None):
         if width is None:
@@ -67,18 +115,22 @@ class text_segments(Module):
         self.digit_width = self.width // self.total_decimals - self.digit_spacing
         self.digit_height = self.height
         self.segment_thickness = max(2, self.digit_height // 10)
-
-    def draw_segment(self, surface, points, color):
-        """Draw a segment using polygon"""
-        pygame.draw.polygon(surface, color, points)
-
-    def draw_digit(self, digit):
-        """Draw a single digit/letter on digit_surface"""
-        self.digit_surface.fill((0,0,0,0))  # Clear with transparency
         
-        w = self.digit_width
-        h = self.digit_height
-        t = self.segment_thickness
+        # Reset caches since dimensions changed
+        self._reset_caches()
+
+    def _reset_caches(self):
+        """Reset all caches when dimensions or colors change"""
+        self._char_cache = {}
+        self._last_text = ""
+        self._create_background()
+        self._needs_reset = False
+
+    def _create_background(self):
+        """Pre-render background with all inactive segments"""
+        self._background = pygame.Surface((self.digit_width, self.digit_height), pygame.SRCALPHA)
+        
+        w, h, t = self.digit_width, self.digit_height, self.segment_thickness
         
         # Calculate key points for better segment alignment
         left = t
@@ -88,11 +140,8 @@ class text_segments(Module):
         bottom = h - t
         middle = h/2
         
-        # Add overlap factor to eliminate gaps
-        overlap = t/2  # Adjust this value to control gap filling
-        
-        # Define segment coordinates for 16-segment display
-        segs = [
+        # Define segment coordinates
+        self.segs = [
             # Top segments (a1, a2)
             [(left, 0), (center-t/2, 0), (center-t/2, t), (left, t)],      # a1
             [(center+t/2, 0), (right, 0), (right, t), (center+t/2, t)],    # a2
@@ -123,63 +172,36 @@ class text_segments(Module):
             [(left+t, bottom-t), (center-t, middle+t/2), (center-t-t/2, middle), (left, bottom-2*t)],        # l
             [(center+t, middle+t/2), (right-t, bottom-t), (right, bottom-2*t), (center+t+t/2, middle)]   # m
         ]
+        
+        # Draw all segments in inactive color
+        for seg in self.segs:
+            self.draw_segment(self._background, seg, self.not_active_color)
 
-        # Update segment patterns to match the image layout (a1,a2,b1,b2,d1,d2,f1,f2,g1,g2,h,i,j,k,l,m)
-        segments = {
-            '0': (1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0),
-            '1': (0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0),
-            '2': (1,1,1,0,1,1,0,1,1,1,0,0,0,0,0,0),
-            '3': (1,1,1,1,1,1,0,0,1,1,0,0,0,0,0,0),
-            '4': (0,0,1,1,0,0,1,0,1,1,0,0,0,0,0,0),
-            '5': (1,1,0,1,1,1,1,0,1,1,0,0,0,0,0,0),
-            '6': (1,1,0,1,1,1,1,1,1,1,0,0,0,0,0,0),
-            '7': (1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0),
-            '8': (1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0),
-            '9': (1,1,1,1,1,1,1,0,1,1,0,0,0,0,0,0),
-            'A': (1,1,1,1,0,0,1,1,1,1,0,0,0,0,0,0),
-            'B': (1,1,1,1,1,1,0,0,0,1,1,1,0,0,0,0),
-            'C': (1,1,0,0,1,1,1,1,0,0,0,0,0,0,0,0),
-            'D': (1,1, 1,1, 1,1, 0,0, 0,0, 1,1, 0,0,0,0),
-            'E': (1,1,0,0,1,1,1,1,1,0,0,0,0,0,0,0),
-            'F': (1,1,0,0,0,0,1,1,1,0,0,0,0,0,0,0),
-            'G': (1,1,0,1,1,1,1,1,0,1,0,0,0,0,0,0),
-            'H': (0,0,1,1,0,0,1,1,1,1,0,0,0,0,0,0),
-            'I': (1,1,0,0,1,1,0,0,0,0,1,1,0,0,0,0),
-            'J': (0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0),
-            'K': (0,0,0,0,0,0,1,1,1,0,0,0,0,1,0,1),
-            'L': (0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0),
-            'M': (0,0,1,1,0,0,1,1,0,0,0,0,1,1,0,0),
-            'N': (0,0,1,1,0,0,1,1,0,0,0,0,1,0,0,1),
-            'O': (1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0),
-            'P': (1,1,1,0,0,0,1,1,1,1,0,0,0,0,0,0),
-            'Q': (1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,1),
-            'R': (1,1,1,0,0,0,1,1,1,1,0,0,0,0,0,1),
-            'S': (1,1,0,1,1,1,1,0,1,1,0,0,0,0,0,0),
-            'T': (1,1,0,0,0,0,0,0,0,0,1,1,0,0,0,0),
-            'U': (0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0),
-            'V': (0,0,0,0,0,0,1,1,0,0,0,0,0,1,1,0),
-            'W': (0,0,1,1,0,0,1,1,0,0,0,0,0,0,1,1),
-            'X': (0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1),
-            'Y': (0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0),
-            'Z': (1,1,0,0,1,1,0,0,0,0,0,0,0,1,1,0),
-            '-': (0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0),
-            ' ': (0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)
-        }
+    def draw_segment(self, surface, points, color):
+        """Draw a segment using polygon"""
+        pygame.draw.polygon(surface, color, points)
 
-        # Get the segment pattern for this digit
-        if str(digit).upper() not in segments:
-            return
-        pattern = segments[str(digit).upper()]
-
-        # Draw all inactive segments first
-        for i, (seg, on) in enumerate(zip(segs, pattern)):
-            if not on:
-                self.draw_segment(self.digit_surface, seg, self.not_active_color)
-
-        # Then draw all active segments on top
-        for i, (seg, on) in enumerate(zip(segs, pattern)):
-            if on:
-                self.draw_segment(self.digit_surface, seg, self.text_color)
+    def draw_digit(self, digit):
+        """Draw a single digit/letter, using cache if available"""
+        digit = str(digit).upper()
+        
+        # Return cached version if available
+        if digit in self._char_cache:
+            return self._char_cache[digit]
+            
+        # Create new surface starting from background
+        new_surface = self._background.copy()
+        
+        # Only draw active segments
+        if digit in self.SEGMENTS:
+            pattern = self.SEGMENTS[digit]
+            for i, (seg, on) in enumerate(zip(self.segs, pattern)):
+                if on:
+                    self.draw_segment(new_surface, seg, self.text_color)
+        
+        # Cache and return
+        self._char_cache[digit] = new_surface
+        return new_surface
 
     def parse_text(self, aircraft):
         def get_nested_attr(obj, attr):
@@ -254,6 +276,10 @@ class text_segments(Module):
         return result
 
     def draw(self, aircraft, smartdisplay, pos=(None,None)):
+        # Reset caches if needed
+        if self._needs_reset:
+            self._reset_caches()
+            
         if pos[0] is None:
             x = smartdisplay.x_center
         else:
@@ -264,7 +290,7 @@ class text_segments(Module):
             y = pos[1]
 
         # Clear main surface
-        self.surface.fill((0,0,0,0))
+        
 
         if self.fail:
             # Draw fail indication
@@ -274,25 +300,33 @@ class text_segments(Module):
             text_rect = fail_text.get_rect(center=(self.width//2, self.height//2))
             self.surface.blit(fail_text, text_rect)
         else:
-            # Parse template/text first
+            # Parse template/text
             parsed_text = self.parse_text(aircraft)
-            # Format input - handle both numbers and text
-            text = str(parsed_text).upper()  # Convert to uppercase for letters
+            text = str(parsed_text).upper()
+            
+            # Format text length
             if len(text) < self.total_decimals:
-                text = text.ljust(self.total_decimals)  # Pad with spaces
+                text = text.ljust(self.total_decimals)
             elif len(text) > self.total_decimals:
-                text = text[:self.total_decimals]  # Truncate if too long
+                text = text[:self.total_decimals]
+            
+            # Only redraw if text changed
+            if text != self._last_text:
+                # Clear surface
+                self.surface.fill((0,0,0,0))
 
-            # Draw each character
-            for i, char in enumerate(text):
-                self.draw_digit(char)
-                digit_x = i * (self.digit_width + self.digit_spacing)
-                self.surface.blit(self.digit_surface, (digit_x, 0))
-
-            # Draw border if needed
-            if self.box_weight > 0:
-                pygame.draw.rect(self.surface, self.box_color, 
-                               (0,0,self.width,self.height), self.box_weight)
+                # Draw each character
+                for i, char in enumerate(text):
+                    digit_surface = self.draw_digit(char)
+                    digit_x = i * (self.digit_width + self.digit_spacing)
+                    self.surface.blit(digit_surface, (digit_x, 0))
+                
+                # Draw border if needed
+                if self.box_weight > 0:
+                    pygame.draw.rect(self.surface, self.box_color, 
+                                   (0,0,self.width,self.height), self.box_weight)
+                                   
+                self._last_text = text
 
         # Draw to screen
         self.pygamescreen.blit(self.surface, (x,y))
@@ -359,6 +393,27 @@ class text_segments(Module):
 
     def processEvent(self, event, aircraft, smartdisplay):
         pass
+
+    # Add cache reset to option setters
+    def set_text_color(self, color):
+        self.text_color = color
+        self._needs_reset = True
+        
+    def set_not_active_color(self, color):
+        self.not_active_color = color
+        self._needs_reset = True
+        
+    def set_box_color(self, color):
+        self.box_color = color
+        self._needs_reset = True
+        
+    def set_box_weight(self, weight):
+        self.box_weight = weight
+        self._needs_reset = True
+        
+    def set_total_decimals(self, decimals):
+        self.total_decimals = decimals
+        self._needs_reset = True
 
 
 

@@ -523,6 +523,7 @@ while $RUN_MENU_AGAIN; do
                                       "5" "Read Serial Garmin G3x" \
                                       "6" "Test Stratux and iLevil WiFi connection" \
                                       "7" "I2C Test (Pi only)" \
+                                      "8" "3D Sphere" \
                                       2>&1 1>&3)
                     exit_status=$?
                     exec 3>&-
@@ -536,6 +537,7 @@ while $RUN_MENU_AGAIN; do
                             5) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/serial_read.py -g" ;;
                             6) FULL_COMMAND="$TRONVIEW_DIR/util/tests/test_stratux_wifi.sh" ;;
                             7) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/i2c_test.py" ;;
+                            8) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/3d/sphere.py" ;;
                         esac
                         echo "Running: $FULL_COMMAND"
                         #exit 0

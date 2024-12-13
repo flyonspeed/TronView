@@ -45,6 +45,9 @@ class Horizon3D(Widget):
         self.last_mouse_pos = None
         self.camera_distance = 20
         self.camera_sensitivity = 0.3
+        self.min_zoom = 5  # Minimum zoom distance
+        self.max_zoom = 50  # Maximum zoom distance
+        self.zoom_speed = 1  # Zoom speed multiplier
         
         # Set up the mesh and initialize the scene
         self.setup_gl()
@@ -127,53 +130,68 @@ void main() {
             self.roll_rotation = Rotate(0, 0, 1, 0)   # roll around y-axis
             self.yaw_rotation = Rotate(0, 0, 0, 1)    # yaw around z-axis
             
-            # Create horizon line and reference geometry
-            Color(1, 1, 1, 1)  # Set color to white
-            self.create_horizon()
+            # Create sphere grid
+            Color(0.5, 0.5, 1, 1)  # Set color to light blue
+            self.create_sphere()
             
             PopMatrix()
             self.cb = Callback(self.reset_gl)
 
-    def create_horizon(self):
-        """Create the horizon line and reference geometry"""
-        # Create a simple horizon line for now
+    def create_sphere(self):
+        """Create a sphere using latitude and longitude lines"""
         vertices = []
         indices = []
+        vertex_count = 0
+        radius = 10.0
         
-        # Create a grid of lines for the horizon
-        size = 10
-        step = 1
-        for x in range(-size, size + 1, step):
-            # Lines along X axis
-            vertices.extend([
-                x, 0, -size,  # position
-                1, 1, 1, 1,   # color
-                0, 0,         # texture coordinates
-            ])
-            vertices.extend([
-                x, 0, size,   # position
-                1, 1, 1, 1,   # color
-                1, 0,         # texture coordinates
-            ])
-            
-            # Lines along Z axis
-            vertices.extend([
-                -size, 0, x,  # position
-                1, 1, 1, 1,   # color
-                0, 1,         # texture coordinates
-            ])
-            vertices.extend([
-                size, 0, x,   # position
-                1, 1, 1, 1,   # color
-                1, 1,         # texture coordinates
-            ])
+        # Create latitude lines
+        lat_steps = 20
+        lon_steps = 40
         
-        # Create indices for the lines
-        for i in range(0, len(vertices) // 9, 2):  # 9 values per vertex (3 pos + 4 color + 2 tex)
-            indices.extend([i, i + 1])
+        # Create longitude lines
+        for lon in range(lon_steps):
+            phi = (lon / lon_steps) * 2 * math.pi
+            for lat in range(lat_steps + 1):
+                theta = (lat / lat_steps) * math.pi
+                
+                # Calculate point on sphere
+                x = radius * math.sin(theta) * math.cos(phi)
+                y = radius * math.cos(theta)
+                z = radius * math.sin(theta) * math.sin(phi)
+                
+                vertices.extend([
+                    x, y, z,           # position
+                    0.5, 0.5, 1, 1,    # color
+                    phi/(2*math.pi), theta/math.pi  # texture coordinates
+                ])
+                
+                if lat < lat_steps:
+                    indices.extend([vertex_count, vertex_count + 1])
+                vertex_count += 1
+        
+        # Create latitude lines
+        for lat in range(1, lat_steps):
+            theta = (lat / lat_steps) * math.pi
+            for lon in range(lon_steps + 1):
+                phi = (lon / lon_steps) * 2 * math.pi
+                
+                # Calculate point on sphere
+                x = radius * math.sin(theta) * math.cos(phi)
+                y = radius * math.cos(theta)
+                z = radius * math.sin(theta) * math.sin(phi)
+                
+                vertices.extend([
+                    x, y, z,           # position
+                    0.5, 0.5, 1, 1,    # color
+                    phi/(2*math.pi), theta/math.pi  # texture coordinates
+                ])
+                
+                if lon < lon_steps:
+                    indices.extend([vertex_count, vertex_count + 1])
+                vertex_count += 1
         
         # Create and draw the mesh
-        self.horizon_mesh = Mesh(
+        self.sphere_mesh = Mesh(
             vertices=vertices,
             indices=indices,
             mode='lines',
@@ -185,7 +203,7 @@ void main() {
         )
         
         # Add the mesh to the canvas
-        self.canvas.add(self.horizon_mesh)
+        self.canvas.add(self.sphere_mesh)
 
     def update(self, dt):
         """Update the scene"""
@@ -193,6 +211,15 @@ void main() {
         self.pitch_rotation.angle = self.pitch
         self.roll_rotation.angle = self.roll
         self.yaw_rotation.angle = self.yaw
+        
+        # Update camera position based on spherical coordinates
+        pitch_rad = math.radians(self.camera_rotation[0])
+        yaw_rad = math.radians(self.camera_rotation[1])
+        
+        # Calculate new camera position
+        self.camera_pos[0] = self.camera_distance * math.cos(pitch_rad) * math.sin(yaw_rad)
+        self.camera_pos[1] = self.camera_distance * math.sin(pitch_rad)
+        self.camera_pos[2] = self.camera_distance * math.cos(pitch_rad) * math.cos(yaw_rad)
         
         # Update modelview matrix for camera position
         look_at = Matrix().look_at(
@@ -210,6 +237,17 @@ void main() {
             self.is_mouse_dragging = True
             self.last_mouse_pos = touch.pos
             return True
+        elif 'button' in touch.profile:
+            if touch.button == 'scrollup':
+                # Zoom in
+                self.camera_distance = max(self.min_zoom, 
+                    self.camera_distance - self.zoom_speed)
+                return True
+            elif touch.button == 'scrolldown':
+                # Zoom out
+                self.camera_distance = min(self.max_zoom, 
+                    self.camera_distance + self.zoom_speed)
+                return True
         return super().on_touch_down(touch)
 
     def on_touch_move(self, touch):

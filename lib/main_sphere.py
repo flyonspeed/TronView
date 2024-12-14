@@ -3,9 +3,42 @@ from kivy.uix.widget import Widget
 from kivy.core.window import Window
 from kivy.clock import Clock
 from kivy.graphics import *
+from kivy.graphics.transformation import Matrix
+from kivy.graphics.opengl import *
+from kivy.graphics import Mesh, RenderContext
 from kivy.uix.label import Label
 import math
 import numpy as np
+
+# Vertex shader - handles 3D transformations
+VERTEX_SHADER = '''
+#ifdef GL_ES
+    precision highp float;
+#endif
+
+attribute vec3 v_pos;
+uniform mat4 modelview_mat;
+uniform mat4 projection_mat;
+uniform float scale;
+
+void main(void) {
+    vec4 pos = modelview_mat * vec4(v_pos * scale, 1.0);
+    gl_Position = projection_mat * pos;
+}
+'''
+
+# Fragment shader - handles coloring
+FRAGMENT_SHADER = '''
+#ifdef GL_ES
+    precision highp float;
+#endif
+
+uniform vec4 color;
+
+void main(void) {
+    gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);  // Red color
+}
+'''
 
 class Sphere3D(Widget):
     def __init__(self, **kwargs):
@@ -21,8 +54,8 @@ class Sphere3D(Widget):
         # Camera parameters
         self.camera_x = 0
         self.camera_y = 0
-        self.camera_z = 200  # Initial camera distance
-        self.target_x = 0    # Look-at point (sphere center)
+        self.camera_z = 200
+        self.target_x = 0
         self.target_y = 0
         self.target_z = 0
 
@@ -30,15 +63,79 @@ class Sphere3D(Widget):
         self.info_label = Label(pos=(10, 10), size_hint=(None, None))
         self.add_widget(self.info_label)
 
+        # Set up shader
+        with self.canvas:
+            self.canvas = RenderContext()
+            self.canvas.shader.fs = FRAGMENT_SHADER
+            self.canvas.shader.vs = VERTEX_SHADER
+
         # Make widget receive all input events
         self._keyboard = Window.request_keyboard(self._on_keyboard_closed, self)
         self._keyboard.bind(on_key_down=self._on_key_down)
         
         # Create points for the sphere
-        self.points_3d = self.create_sphere_points()
+        self.create_sphere_points()
         
         # Schedule updates
         Clock.schedule_interval(self.update, 1.0 / 60.0)
+
+    def create_sphere_points(self, radius=100, segments=20):
+        vertices = []
+        indices = []
+        vertex_count = 0
+
+        # Create vertices
+        for i in range(segments + 1):
+            lat = math.pi * (-0.5 + float(i) / segments)
+            for j in range(segments + 1):
+                lon = 2 * math.pi * float(j) / segments
+                x = math.cos(lat) * math.cos(lon)
+                y = math.sin(lat)
+                z = math.cos(lat) * math.sin(lon)
+                vertices.extend([x * radius, y * radius, z * radius])
+
+                # Create indices for lines
+                if i < segments and j < segments:
+                    # Horizontal lines
+                    indices.extend([vertex_count, vertex_count + 1])
+                    # Vertical lines
+                    indices.extend([vertex_count, vertex_count + segments + 1])
+                vertex_count += 1
+
+        with self.canvas:
+            self.mesh = Mesh(
+                vertices=vertices,
+                indices=indices,
+                fmt=[('v_pos', 3, 'float')],
+                mode='lines'
+            )
+
+    def update(self, dt):
+        aspect = self.width / float(self.height)
+        projection_mat = Matrix()
+        projection_mat.perspective(45, aspect, 0.1, 1000.0)
+
+        modelview_mat = Matrix()
+        modelview_mat.look_at(
+            self.camera_x, self.camera_y, self.camera_z,  # Camera position
+            self.target_x, self.target_y, self.target_z,  # Look at point
+            0, 1, 0  # Up vector
+        )
+        modelview_mat.rotate(self.rotation_x, 1, 0, 0)
+        modelview_mat.rotate(self.rotation_y, 0, 1, 0)
+
+        # Update shader matrices
+        self.canvas['projection_mat'] = projection_mat
+        self.canvas['modelview_mat'] = modelview_mat
+        self.canvas['scale'] = float(self.scale)
+
+        # Update info label
+        self.info_label.text = f'Camera Position:\nX: {self.camera_x:.1f}\nY: {self.camera_y:.1f}\nZ: {self.camera_z:.1f}'
+
+        # Clear and draw
+        self.canvas.clear()
+        with self.canvas:
+            self.mesh
 
     def get_camera_position(self):
         return self.camera_x, self.camera_y, self.camera_z
@@ -132,105 +229,6 @@ class Sphere3D(Widget):
             print("Scale:", self.scale)
             return True
         return super(Sphere3D, self).on_touch_move(touch)
-
-    def create_sphere_points(self, radius=100, segments=20):
-        # Store points and indices for lines
-        self.vertices = []
-        self.indices = []
-        vertex_count = 0
-
-        # Create vertices
-        for i in range(segments + 1):
-            lat = math.pi * (-0.5 + float(i) / segments)
-            for j in range(segments + 1):
-                lon = 2 * math.pi * float(j) / segments
-                x = math.cos(lat) * math.cos(lon)
-                y = math.sin(lat)
-                z = math.cos(lat) * math.sin(lon)
-                self.vertices.append([x * radius, y * radius, z * radius])
-
-                # Create indices for lines
-                if i < segments and j < segments:
-                    # Horizontal lines
-                    self.indices.extend([
-                        vertex_count,
-                        vertex_count + 1
-                    ])
-                    # Vertical lines
-                    self.indices.extend([
-                        vertex_count,
-                        vertex_count + segments + 1
-                    ])
-                vertex_count += 1
-
-        return np.array(self.vertices)
-
-    def update(self, dt):
-        # Calculate camera position
-        cam_x, cam_y, cam_z = self.get_camera_position()
-        
-        # Update info label
-        self.info_label.text = f'Camera Position:\nX: {cam_x:.1f}\nY: {cam_y:.1f}\nZ: {cam_z:.1f}\nDistance: {self.camera_z/self.scale:.1f}'
-        
-        # Transform the 3D points
-        points = self.points_3d.copy()
-        points = points - np.array([self.camera_x, self.camera_y, self.camera_z])
-        
-        # Convert angles to radians
-        rx = math.radians(self.rotation_x)
-        ry = math.radians(self.rotation_y)
-        
-        # Apply rotations
-        rot_x = np.array([
-            [1, 0, 0],
-            [0, math.cos(rx), -math.sin(rx)],
-            [0, math.sin(rx), math.cos(rx)]
-        ])
-        
-        rot_y = np.array([
-            [math.cos(ry), 0, math.sin(ry)],
-            [0, 1, 0],
-            [-math.sin(ry), 0, math.cos(ry)]
-        ])
-        
-        points = points @ rot_y @ rot_x
-        
-        # Project points to 2D
-        projected_points = []
-        for point in points:
-            x, y, z = point
-            z_offset = z + 1000
-            if abs(z_offset) < 0.0001:
-                z_offset = 0.0001
-            factor = 1000 / z_offset
-            px = x * factor
-            py = y * factor
-            projected_points.extend([px, py])
-        
-        self.canvas.clear()
-        with self.canvas:
-            # Set the background color
-            Color(0, 0, 0, 1)  # Black background
-            Rectangle(pos=self.pos, size=self.size)
-            
-            # Move to center of window
-            PushMatrix()
-            Translate(self.center_x, self.center_y, 0)
-            
-            # Apply scale
-            Scale(self.scale, self.scale, 1)
-
-            # Draw wireframe sphere
-            Color(1, 0, 0, 1)  # Red color
-            
-            # Draw lines using the indices
-            for i in range(0, len(self.indices), 2):
-                idx1, idx2 = self.indices[i], self.indices[i + 1]
-                x1, y1 = projected_points[idx1*2:idx1*2+2]
-                x2, y2 = projected_points[idx2*2:idx2*2+2]
-                Line(points=[x1, y1, x2, y2])
-            
-            PopMatrix()
 
     def _on_keyboard_closed(self):
         self._keyboard.unbind(on_key_down=self._on_key_down)

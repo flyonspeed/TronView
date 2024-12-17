@@ -6,7 +6,6 @@ from kivy.core.window import Window
 from kivy3 import Scene, Renderer, PerspectiveCamera
 from kivy3.loaders import OBJLoader
 from kivy.uix.floatlayout import FloatLayout
-from kivy.core.window import Window
 from kivy.uix.label import Label
 
 # Resources pathes
@@ -41,21 +40,34 @@ class ObjectTrackball(FloatLayout):
         # Add labels for object and camera info
         self.obj_info = Label(
             text='Object Info',
-            pos_hint={'x': 0.02, 'top': 0.98},
+            pos_hint={'x': 0.06, 'top': 0.98},
             size_hint=(None, None),
             halign='left',
             valign='top'
         )
         self.camera_info = Label(
             text='Camera Info',
-            pos_hint={'x': 0.02, 'y': 0.02},
+            pos_hint={'x': 0.06, 'y': 0.02},
             size_hint=(None, None),
             halign='left',
             valign='bottom'
         )
+        # Add shift status label
+        self.shift_status = Label(
+            text='Shift: Off',
+            pos_hint={'x': 0.85, 'top': 0.98},
+            size_hint=(None, None),
+            halign='right',
+            valign='top'
+        )
         self.add_widget(self.obj_info)
         self.add_widget(self.camera_info)
+        self.add_widget(self.shift_status)
         Clock.schedule_interval(self._update_info, 1.0/30.0)
+        # Bind to keyboard for shift status
+        Window.bind(on_key_down=self._on_keyboard_down)
+        Window.bind(on_key_up=self._on_keyboard_up)
+        self.shift_pressed = False
 
     def _on_keyboard_closed(self):
         self._keyboard.unbind(on_key_down=self._on_key_down)
@@ -103,6 +115,21 @@ class ObjectTrackball(FloatLayout):
             self.camera.pos.y -= direction[1] * (self.zoom_speed / length)
             self.camera.pos.z -= direction[2] * (self.zoom_speed / length)
         return True
+
+    def _on_keyboard_down(self, instance, keyboard, keycode, text, modifiers):
+        if 'shift' in modifiers:
+            self.shift_pressed = True
+            self.shift_status.text = 'Shift: On'
+        
+    def _on_keyboard_up(self, instance, keyboard, keycode, *args):
+        if isinstance(keycode, tuple):
+            keycode_name = keycode[1]
+        else:
+            keycode_name = keyboard
+            
+        if keycode_name in ['shift', 'lshift', 'rshift']:
+            self.shift_pressed = False
+            self.shift_status.text = 'Shift: Off'
 
     def _update_rotation(self, dt):
         if self.auto_rotate and self.obj3d:
@@ -179,7 +206,8 @@ class ObjectTrackball(FloatLayout):
             if self.obj3d:
                 self.initial_obj_pos = (self.obj3d.pos.x, self.obj3d.pos.y, self.obj3d.pos.z)
             self.initial_camera_pos = (self.camera.pos.x, self.camera.pos.y, self.camera.pos.z)
-        return True
+            return True
+        return super().on_touch_down(touch)
 
     def on_touch_up(self, touch):
         if touch.grab_current is self:
@@ -190,7 +218,8 @@ class ObjectTrackball(FloatLayout):
             self.initial_touch_pos = None
             self.initial_obj_pos = None
             self.initial_camera_pos = None
-        return True
+            return True
+        return super().on_touch_up(touch)
 
     def on_touch_move(self, touch):
         if touch in self._touches and touch.grab_current == self:
@@ -202,7 +231,7 @@ class ObjectTrackball(FloatLayout):
                 else:
                     self.do_rotate_object(touch)
             return True
-        return False
+        return super().on_touch_move(touch)
 
     def do_rotate_camera(self, touch):
         if not self.initial_touch_pos or not self.initial_camera_pos:
@@ -228,39 +257,44 @@ class ObjectTrackball(FloatLayout):
         self.camera.look_at(self.look_at_point)
 
     def do_rotate_object(self, touch):
-        if not self.initial_touch_pos or not self.initial_obj_pos:
+        if not self.obj3d:
             return
-            
-        # Calculate movement relative to initial touch position
-        dx = (touch.x - self.initial_touch_pos[0]) / self.width
-        dy = (touch.y - self.initial_touch_pos[1]) / self.height
+
+        d_phi, d_theta = self.define_rotate_angle(touch)
         
-        # Convert to angles (scale the movement)
-        d_theta = dx * 360  # Increased from 180
-        d_phi = dy * 360   # Increased from 180
+        # Create rotation matrices
+        from kivy.graphics.transformation import Matrix
+        rot_mat = Matrix()
         
-        if self.obj3d:
-            # Convert angles to radians
-            phi = math.radians(d_phi)
-            theta = math.radians(d_theta)
-            
-            # Calculate new position relative to initial position
-            radius = 5.0  # Increased from 3.0 for more dramatic movement
-            self.obj3d.pos.x = self.initial_obj_pos[0] + radius * math.sin(theta)
-            self.obj3d.pos.z = self.initial_obj_pos[2] + radius * (1 - math.cos(theta))
-            self.obj3d.pos.y = self.initial_obj_pos[1] + radius * math.sin(phi)
-            
-            # Create rotation matrices
-            from kivy.graphics.transformation import Matrix
-            rot_mat = Matrix()
+        if self.shift_pressed:
+            # When shift is pressed, rotate around Z axis
+            # Use the larger movement (d_phi or d_theta) for Z rotation
+            z_rotation = d_theta if abs(d_theta) > abs(d_phi) else d_phi
+            rot_mat = rot_mat.rotate(z_rotation, 0, 0, 1)  # Z-axis rotation
+        else:
+            # Normal X and Y axis rotation
             rot_mat = rot_mat.rotate(d_phi, 1, 0, 0)  # X-axis rotation
             rot_mat = rot_mat.rotate(d_theta, 0, 1, 0)  # Y-axis rotation
-            
-            if not hasattr(self.obj3d, 'current_rot'):
-                self.obj3d.current_rot = Matrix()
-            
-            self.obj3d.current_rot = rot_mat
-            self.obj3d.rot_mat = self.obj3d.current_rot
+        
+        # Apply position changes
+        radius = 31.0
+        if self.shift_pressed:
+            # Keep current position when rotating around Z
+            self.obj3d.pos.x = self.initial_obj_pos[0]
+            self.obj3d.pos.y = self.initial_obj_pos[1]
+            self.obj3d.pos.z = self.initial_obj_pos[2]
+        else:
+            # Normal position updates for X/Y rotation
+            phi = math.radians(d_phi)
+            self.obj3d.pos.x = self.initial_obj_pos[0] + radius * math.cos(phi)
+            self.obj3d.pos.z = self.initial_obj_pos[2] + radius * math.sin(phi)
+            self.obj3d.pos.y = self.initial_obj_pos[1] + radius * math.sin(phi)
+        
+        if not hasattr(self.obj3d, 'current_rot'):
+            self.obj3d.current_rot = Matrix()
+        
+        self.obj3d.current_rot = rot_mat
+        self.obj3d.rot_mat = self.obj3d.current_rot
 
 class MainApp(App):
 

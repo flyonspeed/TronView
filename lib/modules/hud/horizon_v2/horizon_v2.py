@@ -198,7 +198,7 @@ class horizon_v2(Module):
         camera_yaw = 0
         camera_pitch = 0
         camera_roll = 0
-        if self.camera_head_imu is not None:
+        if self.camera_head_imu is not None and self.camera_head_imu.yaw is not None:
             camera_yaw = ((self.camera_head_imu.yaw - aircraft.mag_head + 180) % 360) - 180
             camera_pitch = -self.camera_head_imu.pitch
             camera_roll = self.camera_head_imu.roll
@@ -545,7 +545,7 @@ class horizon_v2(Module):
             camera_roll = 0
             camera_yaw = 0
             
-            if self.camera_head_imu is not None:
+            if self.camera_head_imu is not None and self.camera_head_imu.pitch is not None and self.camera_head_imu.roll is not None:
                 camera_pitch = -self.camera_head_imu.pitch
                 camera_roll = self.camera_head_imu.roll
                 camera_yaw = ((self.camera_head_imu.yaw - aircraft.mag_head + 180) % 360) - 180

@@ -79,9 +79,9 @@ class IMU(object):
         # if not None then adjust all values relative to home.
         if self.home_pitch is not None:
             # Subtract home values and normalize to -180 to 180 range
-            self.pitch = round(((self.org_pitch - self.home_pitch + 180) % 360) - 180,1)
-            self.roll = round(((self.org_roll - self.home_roll + 180) % 360) - 180,1)
-            self.yaw = round(((self.org_yaw - self.home_yaw + 180) % 360) - 180,1)
+            self.pitch = round(((self.org_pitch - self.home_pitch + 180) % 360) - 180,3)
+            self.roll = round(((self.org_roll - self.home_roll + 180) % 360) - 180,3)
+            self.yaw = round(((self.org_yaw - self.home_yaw + 180) % 360) - 180,3)
         else:
             self.pitch = self.org_pitch
             self.roll = self.org_roll

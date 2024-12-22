@@ -281,15 +281,18 @@ class object3d(Module):
         if self.show_xyz:
             # create text for x, y, z.
             if source_imu.pitch is not None:
-                x = round(source_imu.pitch,1)
+                #x = round(source_imu.pitch,3)
+                x = source_imu.pitch        
             else:
                 x = "---"
             if source_imu.roll is not None:
-                y = round(source_imu.roll,1)
+                #y = round(source_imu.roll,3)
+                y = source_imu.roll
             else:
                     y = "---"
             if source_imu.yaw is not None:
-                z = round(source_imu.yaw,1)
+                #z = round(source_imu.yaw,3)
+                z = source_imu.yaw
             else:
                 z = "---"
             text = self.font.render("Pitch: "+str(x)+"\nRoll: "+str(y)+"\nYaw: "+str(z), True, self.MainColor)

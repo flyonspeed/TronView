@@ -58,6 +58,7 @@ def draw_text(text, position, color=WHITE):
 
 calibration_good_at = None
 running = True
+fps = 10  # Initial FPS setting
 
 while running:
     for event in pygame.event.get():
@@ -67,6 +68,10 @@ while running:
             if event.key == pygame.K_s and calibration_good_at and (time.monotonic() - calibration_good_at > 5.0):
                 bno.save_calibration_data()
                 running = False
+            elif event.key == pygame.K_q:  # Add 'q' key to quit
+                running = False
+            elif event.key == pygame.K_p:  # Add 'p' key to toggle FPS
+                fps = 40 if fps == 10 else 10
 
     screen.fill(BLACK)
     
@@ -99,17 +104,34 @@ while running:
     
     # Display calibration status
     status_color = RED if calibration_status < 2 else YELLOW if calibration_status == 2 else GREEN
-    draw_text(f"Calibration Status: {adafruit_bno08x.REPORT_ACCURACY_STATUS[calibration_status]} ({calibration_status})",
-              (400, 20), status_color)
+    draw_text(f"{adafruit_bno08x.REPORT_ACCURACY_STATUS[calibration_status]} ({calibration_status})",
+              (300, 20), status_color)
+    if calibration_status >= 2:
+        draw_text("Calibration Complete", (300, 60), GREEN)
+    elif calibration_status == 1:
+        draw_text("Calibration in Progress", (300, 60), YELLOW)
+    else:
+        draw_text("Calibration Not Started", (300, 60), RED)
     
+    # Display FPS
+    fps_text = f"FPS: {fps}"
+    draw_text(fps_text, (600, 20))
+    
+    # Display "q" key to quit
+    draw_text("Press 'Q' to quit", (600, 60))
+    
+    # Display "p" key to toggle FPS
+    draw_text("Press 'P' to toggle FPS", (600, 100))
+    
+
     if not calibration_good_at and calibration_status >= 2:
         calibration_good_at = time.monotonic()
     
     if calibration_good_at and (time.monotonic() - calibration_good_at > 5.0):
-        draw_text("Press 'S' to save calibration", (400, 60), GREEN)
+        draw_text("Press 'S' to save calibration", (300, 60), GREEN)
     
     pygame.display.flip()
-    clock.tick(10)  # 10 FPS to match the sensor update rate
+    clock.tick(fps)  # Use variable fps instead of fixed value
 
 pygame.quit()
 print("Calibration complete")

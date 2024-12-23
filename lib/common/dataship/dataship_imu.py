@@ -83,7 +83,7 @@ class IMU(object):
             self.roll = round(((self.org_roll - self.home_roll + 180) % 360) - 180,3)
             self.yaw = round(((self.org_yaw - self.home_yaw + 180) % 360) - 180,3)
         else:
-            self.pitch = self.org_pitch
-            self.roll = self.org_roll
-            self.yaw = self.org_yaw
+            self.pitch = round(self.org_pitch,3)
+            self.roll = round(self.org_roll,3)
+            self.yaw = round(self.org_yaw,3)
 

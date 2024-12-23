@@ -7,6 +7,7 @@ import busio
 import pygame
 import adafruit_bno08x
 from adafruit_bno08x.i2c import BNO08X_I2C
+from digitalio import DigitalInOut
 
 # Initialize Pygame
 pygame.init()

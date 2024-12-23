@@ -72,6 +72,10 @@ while running:
                 running = False
             elif event.key == pygame.K_p:  # Add 'p' key to toggle FPS
                 fps = 40 if fps == 10 else 10
+            elif event.key == pygame.K_1:  # Add '1' key for soft reset
+                bno.soft_reset()
+            elif event.key == pygame.K_2:  # Add '2' key for hard reset
+                bno.hard_reset()
 
     screen.fill(BLACK)
     
@@ -124,6 +128,9 @@ while running:
     # Display "p" key to toggle FPS
     draw_text("Press 'P' to toggle FPS", (300, 140))
     
+    # Display reset options
+    draw_text("Press '1' for soft reset", (300, 180))
+    draw_text("Press '2' for hard reset", (300, 200))
 
     if not calibration_good_at and calibration_status >= 2:
         calibration_good_at = time.monotonic()

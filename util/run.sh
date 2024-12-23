@@ -524,7 +524,7 @@ while $RUN_MENU_AGAIN; do
                                       "6" "Test Stratux and iLevil WiFi connection" \
                                       "7" "I2C Test (Pi only)" \
                                       "8" "3D Sphere" \
-                                      "9" "bno085 calibration" \
+                                      "9" "bno085 calibration (Pi only)" \
                                       2>&1 1>&3)
                     exit_status=$?
                     exec 3>&-

@@ -90,7 +90,7 @@ while running:
     draw_text(f"Z: {mag_z:0.6f}", (20, 140))
     
     # Display quaternion data
-    draw_text("Game Rotation Vector Quaternion:", (20, 200))
+    draw_text("Vector Quaternion:", (20, 200))
     draw_text(f"I: {game_quat_i:0.6f}", (20, 240))
     draw_text(f"J: {game_quat_j:0.6f}", (20, 280))
     draw_text(f"K: {game_quat_k:0.6f}", (20, 320))
@@ -106,6 +106,7 @@ while running:
     status_color = RED if calibration_status < 2 else YELLOW if calibration_status == 2 else GREEN
     draw_text(f"{adafruit_bno08x.REPORT_ACCURACY_STATUS[calibration_status]} ({calibration_status})",
               (300, 20), status_color)
+
     if calibration_status >= 2:
         draw_text("Calibration Complete", (300, 60), GREEN)
     elif calibration_status == 1:
@@ -115,20 +116,20 @@ while running:
     
     # Display FPS
     fps_text = f"FPS: {fps}"
-    draw_text(fps_text, (600, 20))
+    draw_text(fps_text, (300, 80))
     
     # Display "q" key to quit
-    draw_text("Press 'Q' to quit", (600, 60))
+    draw_text("Press 'Q' to quit", (300, 100))
     
     # Display "p" key to toggle FPS
-    draw_text("Press 'P' to toggle FPS", (600, 100))
+    draw_text("Press 'P' to toggle FPS", (300, 140))
     
 
     if not calibration_good_at and calibration_status >= 2:
         calibration_good_at = time.monotonic()
     
     if calibration_good_at and (time.monotonic() - calibration_good_at > 5.0):
-        draw_text("Press 'S' to save calibration", (300, 60), GREEN)
+        draw_text("Press 'S' to save calibration", (300, 160), GREEN)
     
     pygame.display.flip()
     clock.tick(fps)  # Use variable fps instead of fixed value

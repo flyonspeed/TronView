@@ -377,11 +377,24 @@ class NavData(object):
         self.HSISource = 0
         self.VNAVSource = 0
         self.SourceDesc = ""
-        self.AP = 0
         self.HSINeedle = 0
         self.HSIRoseHeading = 0
         self.HSIHorzDev = 0
         self.HSIVertDev = 0
+
+        self.AP = None # AP enabled? 0 = off, 1 = on
+
+        self.AP_RollForce = None
+        self.AP_RollPos = None
+        self.AP_RollSlip = None
+
+        self.AP_PitchForce = None
+        self.AP_PitchPos = None
+        self.AP_PitchSlip = None
+
+        self.AP_YawForce = None
+        self.AP_YawPos = None
+        self.AP_YawSlip = None
 
         self.HeadBug = 0
         self.AltBug = 0
@@ -397,6 +410,12 @@ class NavData(object):
         self.GLSHoriz = 0
         self.GLSVert = 0
 
+        self.XPDR_Status = None
+        self.XPDR_Reply = None
+        self.XPDR_Code = None
+
+
+
         self.msg_count = 0
         self.msg_last = ""
 
@@ -407,16 +426,24 @@ class EngineData(object):
     def __init__(self):
         self.NumberOfCylinders = 0
         self.RPM = 0
-        self.ManPress = 0
-        self.OilPress = 0
-        self.OilPress2 = 0
-        self.OilTemp = 0
-        self.OilTemp2 = 0
-        self.CoolantTemp = 0
-        self.FuelFlow = 0
-        self.FuelPress = 0
-        self.EGT = [0,0,0,0,0,0,0,0]
-        self.CHT = [0,0,0,0,0,0,0,0]
+        self.ManPress = 0   # manifold pressure in PSI
+        self.OilPress = 0   # oil pressure in PSI
+        self.OilPress2 = 0  # oil pressure in PSI
+        self.OilTemp = 0    # oil temperature in F
+        self.OilTemp2 = 0    # oil temperature in F
+        self.CoolantTemp = 0 # coolant temperature in F
+        self.FuelFlow = 0    # fuel flow in lbs/hr
+        self.FuelPress = 0    # fuel pressure in PSI
+        self.EGT = [0,0,0,0,0,0,0,0] # EGT in F
+        self.CHT = [0,0,0,0,0,0,0,0] # CHT in F
+
+        self.volts1 = None
+        self.volts2 = None
+        self.amps = None
+        
+        self.hobbs_time = None
+        self.tach_time = None
+
 
         self.msg_count = 0
         self.msg_last = ""
@@ -427,6 +454,8 @@ class FuelData(object):
     def __init__(self):
 
         self.FuelLevels = [0,0,0,0]
+
+        self.FuelRemain = None
 
         self.msg_count = 0
         self.msg_last = ""

@@ -81,9 +81,15 @@ class IMU(object):
             # Subtract home values and normalize to -180 to 180 range
             self.pitch = round(((self.org_pitch - self.home_pitch + 180) % 360) - 180,3)
             self.roll = round(((self.org_roll - self.home_roll + 180) % 360) - 180,3)
-            self.yaw = round(((self.org_yaw - self.home_yaw + 180) % 360) - 180,3)
+            if self.org_yaw is not None:
+                self.yaw = round(((self.org_yaw - self.home_yaw + 180) % 360) - 180,3)
+            else:
+                self.yaw = None
         else:
             self.pitch = round(self.org_pitch,3)
             self.roll = round(self.org_roll,3)
-            self.yaw = round(self.org_yaw,3)
+            if self.org_yaw is not None:
+                self.yaw = round(self.org_yaw,3)
+            else:
+                self.yaw = None
 

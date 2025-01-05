@@ -196,7 +196,7 @@ _____             __     ___               \n
   |_||_|  \___/|_| |_|\_/  |_|\___| \_/\_/  \n
 '
 
-# Check if glow is installed
+# Check if glow is installed.  This is used to render markdown files in the terminal
 if ! command -v glow &> /dev/null; then
     echo "glow is not installed. Installing..."
     if [[ "$OSTYPE" == "darwin"* ]]; then
@@ -698,7 +698,10 @@ while $RUN_MENU_AGAIN; do
             run_python "$choice"
             exit_status=$?
             if [ $exit_status -ne 0 ]; then
-                echo "[Error occurred. Press any key to continue...]"
+                echo "[Error detected. Press any key to continue...]"
+                get_char
+            else
+                echo "[Press any key to go back to the TronView menu]"
                 get_char
             fi
             # clear $choice

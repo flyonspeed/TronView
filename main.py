@@ -278,6 +278,7 @@ if __name__ == "__main__":
     shared.GrowlManager.add_message("By running this software you agree to the terms of the license.", position=GrowlPosition.CENTER, duration=8)
     shared.GrowlManager.add_message("Use at own risk!", position=GrowlPosition.CENTER, duration=8)
     shared.GrowlManager.add_message("TronView.org", position=GrowlPosition.CENTER, duration=8)
+    shared.GrowlManager.add_message("Press ? for help menu", position=GrowlPosition.CENTER, duration=8)
 
     # start main loop.
     while not shared.Dataship.errorFoundNeedToExit:

@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.0.23] - 2025-01-05
+
+- 3d tests added
+- update for default screen json
+- dynon skyview input updates. nav and engine
+- fix for yaw in imu of stratux
+- fix for bouy if mag_head is None
+
+
 ## [0.0.22] - 2024-12-08
 
 - New 16 segment style text module for retro text.

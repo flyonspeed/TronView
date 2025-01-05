@@ -440,7 +440,7 @@ class EngineData(object):
         self.volts1 = None
         self.volts2 = None
         self.amps = None
-        
+
         self.hobbs_time = None
         self.tach_time = None
 
@@ -606,7 +606,13 @@ class TrafficData(object):
         if(direction=="ahead"):
             if(distance!=None): distance = distance * 1609.344 # convert to meters.
             else: distance = 1 * 1609.344 # default to 1 mile. (1609.344 meters)
-            solve = Geodesic.WGS84.Direct(aircraft.gps.LatDeg,aircraft.gps.LonDeg,aircraft.mag_head,distance)  
+            direction = aircraft.mag_head
+            if direction is None:
+                if aircraft.gps.GndTrack is not None:
+                    direction = aircraft.gps.GndTrack
+                else:
+                    direction = 0
+            solve = Geodesic.WGS84.Direct(aircraft.gps.LatDeg,aircraft.gps.LonDeg,direction,distance)  
             t.lat = solve['lat2']
             t.lon = solve['lon2']
         else:

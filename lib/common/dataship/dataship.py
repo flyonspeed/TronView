@@ -413,6 +413,7 @@ class NavData(object):
         self.XPDR_Status = None
         self.XPDR_Reply = None
         self.XPDR_Code = None
+        self.XPDR_Ident = None
 
 
 
@@ -432,7 +433,8 @@ class EngineData(object):
         self.OilTemp = 0    # oil temperature in F
         self.OilTemp2 = 0    # oil temperature in F
         self.CoolantTemp = 0 # coolant temperature in F
-        self.FuelFlow = 0    # fuel flow in lbs/hr
+        self.FuelFlow = 0    # fuel flow in GPH
+        self.FuelFlow2 = 0    # fuel flow in GPH
         self.FuelPress = 0    # fuel pressure in PSI
         self.EGT = [0,0,0,0,0,0,0,0] # EGT in F
         self.CHT = [0,0,0,0,0,0,0,0] # CHT in F

@@ -11,7 +11,7 @@ def main():
     # Set the size of the screen (width, height), and name the window.
     size = (500, 700)
     screen = pygame.display.set_mode(size)
-    pygame.display.set_caption("Joystick example")
+    pygame.display.set_caption("Joystick Test")
 
     # Used to manage how fast the screen updates.
     clock = pygame.Clock()
@@ -24,6 +24,7 @@ def main():
     # pygame.JOYDEVICEADDED event for every joystick connected
     # at the start of the program.
     joysticks = {}
+    selected_joystick = None  # Track which joystick to monitor (None = all)
 
     done = False
     while not done:
@@ -31,10 +32,23 @@ def main():
         # Possible joystick events: JOYAXISMOTION, JOYBALLMOTION, JOYBUTTONDOWN,
         # JOYBUTTONUP, JOYHATMOTION, JOYDEVICEADDED, JOYDEVICEREMOVED
         for event in pygame.event.get():
-            # check for keyboard quit
+            # check for keyboard quit and joystick selection
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE or event.key == pygame.K_q:
                     done = True  # Flag that we are done so we exit this loop.
+                # Check for number keys 1-9
+                elif event.key in range(pygame.K_1, pygame.K_9 + 1):
+                    requested_id = event.key - pygame.K_1  # Convert to 0-based index
+                    # Find joystick with matching index if it exists
+                    joystick_ids = list(joysticks.keys())
+                    if requested_id < len(joystick_ids):
+                        selected_joystick = joystick_ids[requested_id]
+                        print(f"Now monitoring only joystick {selected_joystick}")
+                    else:
+                        print(f"No joystick at index {requested_id}")
+                elif event.key == pygame.K_0:  # Use 0 to reset to monitoring all joysticks
+                    selected_joystick = None
+                    print("Now monitoring all joysticks")
 
             if event.type == pygame.QUIT:
                 done = True  # Flag that we are done so we exit this loop.
@@ -76,11 +90,15 @@ def main():
 
         # Get count of joysticks.
         joystick_count = pygame.joystick.get_count()
-        lines.append(indent(f"Number of joysticks: {joystick_count}", indentation))
+        lines.append(indent(f"{joystick_count} joysticks found . Press 1-9 to select a joystick. Press 0 to select all joysticks.", indentation))
         indentation += 1
 
         # For each joystick:
         for joystick in joysticks.values():
+            # Skip if we're monitoring a specific joystick and this isn't it
+            if selected_joystick is not None and joystick.get_instance_id() != selected_joystick:
+                continue
+                
             jid = joystick.get_instance_id()
 
             lines.append(indent(f"Joystick {jid}", indentation))

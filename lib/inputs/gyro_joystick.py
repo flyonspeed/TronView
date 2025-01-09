@@ -88,9 +88,9 @@ class gyro_joystick(Input):
                     # Read joystick axis
                     if self.freeze == False:
                         # Map each axis to full 180 degree range (-180 to +180)
-                        pitch = round(-self.joystick.get_axis(self.axis_pitch) * 180,2)  # Up/Down on left stick (-180 to 180 degrees)
-                        roll = round(self.joystick.get_axis(self.axis_roll) * 180,2)    # Left/Right on left stick (-180 to 180 degrees)
-                        yaw = round(self.joystick.get_axis(self.axis_yaw) * 180,2)     # Left/Right on right stick (-180 to 180 degrees)
+                        pitch = round(-self.joystick.get_axis(self.axis_pitch) * 180,3)  # Up/Down on left stick (-180 to 180 degrees)
+                        roll = round(self.joystick.get_axis(self.axis_roll) * 180,3)    # Left/Right on left stick (-180 to 180 degrees)
+                        yaw = round(self.joystick.get_axis(self.axis_yaw) * 180,3)     # Left/Right on right stick (-180 to 180 degrees)
                         # convert yaw to 0-360 degrees
                         if yaw < 0:
                             yaw += 360

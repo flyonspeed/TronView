@@ -1,5 +1,5 @@
 # TronView
-Project for connecting efis or any external sensor data to a Screen, HUD, or AR glasses.  This was created for the aviation community but can be used for any application where you want to display data in a custom GUI (and interact with it).
+Project for connecting EFIS or any external sensor data to a Screen, HUD, or AR glasses.  This was created for the aviation community but can be used for any application where you want to display data in a custom GUI (and interact with it).
 
 ![cockpit1](docs/efis_cockpit1.jpeg?raw=true)
 ## Active development! (Jan 2025!)
@@ -30,7 +30,7 @@ We are working on several new features.
 - Display flight data in Knots, Standard, Metric, F or C
 - Designed for Raspberry Pi 4/5 but also runs on Mac OSx, Windows, and other linux systems.
 - Show NAV needles for approaches. (If NAV data is available)
-- Use multiple data input sources, (MGL, G3x, Dynon, iLevil, stratux, Analog CDI via ADS1115, IMU BNO055 & BNO085, Generic Serial Logger)
+- Use multiple data input sources, (MGL, G3x, Dynon, GRT EIS, iLevil BOM, Stratux, Analog CDI via ADS1115, IMU BNO055 & BNO085, Generic Serial Logger, Joystick)
 
 
 # Quick Start for Raspberry Pi and Mac OS
@@ -82,6 +82,8 @@ Dynon Skyview
 
 Dynon D10/100
 
+GRT EIS
+
 Levil BOM (wifi)
 
 Stratux or any stratux compatiable device (wifi)
@@ -92,9 +94,11 @@ BNO055 IMU (9DOF) and BNO085 (9DOF)
 
 Generic serial logger (Used for recording any serial data)
 
-We are using the rapberry pi 4B, or 5 for taking serial data from a EFIS (MGL,Dynon,G3x,etc) and displaying a graphical Display out the hdmi output on the pi.  This can be displayed on a screen (touchscreen, etc) or a HUD, or glasses.  
+Joystick (USB or Bluetooth)
 
-Code is written in Python 3.7 and the Pygame 2.0 module for handling the graphics.
+We are using the rapberry pi 4, or 5 for taking serial data from a EFIS (MGL,Dynon,G3x,etc) and displaying a graphical Display out the hdmi output on the pi.  This can be displayed on a screen (touchscreen, etc) ,a HUD, or glasses.  
+
+Code is written in Python 3.7 and the Pygame-CE 2.0 module for handling the graphics.
 
 
 # More details

@@ -8,6 +8,7 @@
 from lib.common.dataship import dataship
 from lib import smartdisplay
 from lib.common.graphic.growl_manager import GrowlManager
+from lib.common.event_manager import EventManager
 
 ####################################
 ## DataShip object
@@ -60,6 +61,11 @@ Change_history = None
 ## Growl Manager
 ## This is a global object that is used to manage the growl messages.
 GrowlManager = GrowlManager()
+
+####################################
+## Event Manager
+## This is a global object that is used to manage events.
+EventManager = EventManager()
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python
 

@@ -96,14 +96,17 @@ class gyro_i2c_bno085(Input):
 
     def quaternion_to_euler(self, x, y, z, w):
         roll = math.atan2(2.0 * (w * x + y * z), 1.0 - 2.0 * (x * x + y * y))
-        roll = round(math.degrees(roll), 1)
+        #roll = round(math.degrees(roll), 4)
+        roll = math.degrees(roll)
 
         pitch_raw = 2.0 * (w * y - z * x)
         pitch = math.asin(max(-1.0, min(1.0, pitch_raw)))  # Clamp value within -1 and 1
-        pitch = round(math.degrees(pitch), 1)
+        #pitch = round(math.degrees(pitch), 4)
+        pitch = math.degrees(pitch)
 
         yaw = -math.atan2(2.0 * (w * z + x * y), 1.0 - 2.0 * (y * y + z * z))
-        yaw = round(math.degrees(yaw), 1)
+        #yaw = round(math.degrees(yaw), 4)
+        yaw = math.degrees(yaw)
 
         if yaw > 180:
             yaw -= 360

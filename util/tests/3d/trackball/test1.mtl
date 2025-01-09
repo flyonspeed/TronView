@@ -1,0 +1,24 @@
+newmtl default
+# Ambient color - bluish
+Ka 0.0 0.1 0.2
+
+# Diffuse color - metallic blue
+Kd 0.1 0.4 0.8
+
+# Specular color - bright white for shininess
+Ks 1.0 1.0 1.0
+
+# Specular exponent - high for metallic look
+Ns 90.0
+
+# Transparency - fully opaque
+d 1.0
+
+# Optical density (index of refraction)
+Ni 1.45
+
+# Illumination model: 3 = highlights on and ray trace on
+illum 3
+
+# Adding slight emission for glow effect
+Ke 0.05 0.05 0.1

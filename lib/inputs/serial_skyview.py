@@ -15,6 +15,7 @@ from lib import hud_text
 import time
 from lib.common.dataship.dataship import IMU
 import traceback
+from lib.common.dataship.dataship import Dataship
 
 class serial_skyview(Input):
     def __init__(self):
@@ -67,9 +68,9 @@ class serial_skyview(Input):
 
     #############################################
     ## Function: readMessage
-    def readMessage(self, aircraft):
-        if aircraft.errorFoundNeedToExit:
-            return aircraft;
+    def readMessage(self, dataship: Dataship):
+        if dataship.errorFoundNeedToExit:
+            return dataship;
         try:
             x = 0
             while x != 33:  # 33(!) is start of dynon skyview.
@@ -79,7 +80,7 @@ class serial_skyview(Input):
                 else:
                     if self.isPlaybackMode:  # if no bytes read and in playback mode.  then reset the file pointer to the start of the file.
                         self.ser.seek(0)
-                    return aircraft
+                    return dataship
             dataType = self.ser.read(1)
             dataVer  = self.ser.read(1)
 
@@ -104,52 +105,52 @@ class serial_skyview(Input):
                     
                     #print("time: "+aircraft.sys_time_string)
                     #print("pitch:"+str(pitch))
-                    aircraft.pitch = Input.cleanInt(self,pitch) / 10
+                    dataship.pitch = Input.cleanInt(self,pitch) / 10
                     #print("roll:"+str(roll))
-                    aircraft.roll = Input.cleanInt(self,roll) / 10
+                    dataship.roll = Input.cleanInt(self,roll) / 10
                     #print("HeadingMAG:"+str(HeadingMAG))
-                    aircraft.mag_head = Input.cleanInt(self,HeadingMAG)
+                    dataship.mag_head = Input.cleanInt(self,HeadingMAG)
 
                     # Update IMU data
-                    self.imuData.heading = aircraft.mag_head
-                    if aircraft.debug_mode > 0:
+                    self.imuData.heading = dataship.mag_head
+                    if dataship.debug_mode > 0:
                         current_time = time.time() # calculate hz.
                         self.imuData.hz = round(1 / (current_time - self.last_read_time), 1)
                         self.last_read_time = current_time
                     # Update the IMU in the aircraft's imu list
-                    self.imuData.updatePos(aircraft.pitch, aircraft.roll, aircraft.mag_head)
-                    aircraft.imus[self.imu_index] = self.imuData
+                    self.imuData.updatePos(dataship.pitch, dataship.roll, dataship.mag_head)
+                    dataship.imus[self.imu_index] = self.imuData
 
                     #print("IAS:"+str(IAS))
-                    aircraft.ias = Input.cleanInt(self,IAS) * 0.1
+                    dataship.ias = Input.cleanInt(self,IAS) * 0.1
                     #print("PALT:"+str(PresAlt))
-                    aircraft.PALT = Input.cleanInt(self,PresAlt)
+                    dataship.PALT = Input.cleanInt(self,PresAlt)
                     #print("TurnRate:"+str(TurnRate))
                     #print("OAT:"+str(OAT))
-                    aircraft.oat = (Input.cleanInt(self,OAT) * 1.8) + 32 # c to f
+                    dataship.oat = (Input.cleanInt(self,OAT) * 1.8) + 32 # c to f
                     #print("TAS:"+str(TAS))
-                    aircraft.tas = Input.cleanInt(self,TAS) * 0.1
+                    dataship.tas = Input.cleanInt(self,TAS) * 0.1
                     #print("AOA:"+str(AOA))
                     if AOA == b'XX':
                         aircraft.aoa = 0
                     else:
-                        aircraft.aoa = Input.cleanInt(self,AOA)
+                        dataship.aoa = Input.cleanInt(self,AOA)
                     #print("baro:"+str(Baro))
-                    aircraft.baro = (Input.cleanInt(self,Baro) + 2750.0) / 100
-                    aircraft.baro_diff = aircraft.baro - 29.921
-                    aircraft.DA = Input.cleanInt(self,DA)
-                    aircraft.alt = int( Input.cleanInt(self,PresAlt) + (aircraft.baro_diff / 0.00108) )  # 0.00108 of inches of mercury change per foot.
-                    aircraft.BALT = aircraft.alt
-                    aircraft.turn_rate = Input.cleanInt(self,TurnRate) * 0.1
-                    aircraft.vsi = Input.cleanInt(self,VertSpd) * 10
-                    aircraft.vert_G = Input.cleanInt(self,VertAccel) * 0.1
+                    dataship.baro = (Input.cleanInt(self,Baro) + 2750.0) / 100
+                    dataship.baro_diff = dataship.baro - 29.921
+                    dataship.DA = Input.cleanInt(self,DA)
+                    dataship.alt = int( Input.cleanInt(self,PresAlt) + (dataship.baro_diff / 0.00108) )  # 0.00108 of inches of mercury change per foot.
+                    dataship.BALT = dataship.alt
+                    dataship.turn_rate = Input.cleanInt(self,TurnRate) * 0.1
+                    dataship.vsi = Input.cleanInt(self,VertSpd) * 10
+                    dataship.vert_G = Input.cleanInt(self,VertAccel) * 0.1
                     try:
-                        aircraft.wind_dir = Input.cleanInt(self,WD)
-                        aircraft.wind_speed = Input.cleanInt(self,WS)
-                        aircraft.norm_wind_dir = (aircraft.mag_head - aircraft.wind_dir) % 360 #normalize the wind direction to the airplane heading
+                        dataship.wind_dir = Input.cleanInt(self,WD)
+                        dataship.wind_speed = Input.cleanInt(self,WS)
+                        dataship.norm_wind_dir = (dataship.mag_head - dataship.wind_dir) % 360 #normalize the wind direction to the airplane heading
                         # compute Gnd Speed when Gnd Speed is unknown (not provided in data)
-                        aircraft.gndspeed = math.sqrt(math.pow(aircraft.tas,2) + math.pow(aircraft.wind_speed,2) + (2 * aircraft.tas * aircraft.wind_speed * math.cos(math.radians(180 - (aircraft.wind_dir - aircraft.mag_head)))))
-                        aircraft.gndtrack = aircraft.mag_head 
+                        dataship.gndspeed = math.sqrt(math.pow(dataship.tas,2) + math.pow(dataship.wind_speed,2) + (2 * dataship.tas * dataship.wind_speed * math.cos(math.radians(180 - (dataship.wind_dir - dataship.mag_head)))))
+                        dataship.gndtrack = dataship.mag_head 
                     except ValueError as ex:
                         # if error trying to parse wind then must not have that info.
                         aircraft.wind_dir = 0
@@ -236,16 +237,16 @@ class serial_skyview(Input):
                 else:
                     aircraft.msg_unknown += 1 # unknown message found.
         except ValueError:
-            aircraft.msg_bad += 1
+            dataship.msg_bad += 1
             #print("bad:"+str(msg))
             pass
         except struct.error:
-            aircraft.msg_bad += 1
+            dataship.msg_bad += 1
             pass
         except serial.serialutil.SerialException:
             print("skyview serial exception")
             traceback.print_exc()
-            aircraft.errorFoundNeedToExit = True
+            dataship.errorFoundNeedToExit = True
 
         if self.isPlaybackMode:  #if play back mode then add a delay.  Else reading a file is way to fast.
             time.sleep(.05)

@@ -1,9 +1,16 @@
 import pygame
 import pygame_gui
 from pygame_gui.elements import UIWindow, UITextBox
+from lib.version import __version__, __build_date__, __build__, __build_time__
 
 def show_help_dialog(pygame_gui_manager):
-    help_text = """
+    help_text = f"""
+    TronView {__version__}
+    Build: {__build__} {__build_date__} {__build_time__}
+    By running this software you agree to the terms of the license.
+    Use at own risk!
+    TronView.org
+
     Key Commands:
     ? - Show this help dialog
     E - Exit Edit Mode (goto normal mode)
@@ -19,9 +26,9 @@ def show_help_dialog(pygame_gui_manager):
     B - Toggle boundary boxes
     C - Clone selected object(s) 
        
-    S - Save screen to JSON
+    S - Save current screen to JSON
     L - Load last saved screen from JSON
-    Cntrl L - Load template screen
+    Ctrl L - Load template screen
     F - Toggle FPS and draw time display
     R - Toggle ruler mode and grid display mode
     Arrow keys - Move selected object(s)
@@ -31,7 +38,7 @@ def show_help_dialog(pygame_gui_manager):
     Ctrl Z - Undo last change
     """
 
-    window_width = 450
+    window_width = 500
     window_height = 550
     screen_width, screen_height = pygame.display.get_surface().get_size()
     x = (screen_width - window_width) // 2

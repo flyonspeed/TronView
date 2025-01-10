@@ -279,6 +279,15 @@ if __name__ == "__main__":
     shared.GrowlManager.add_message("Use at own risk!", position=GrowlPosition.CENTER, duration=8)
     shared.GrowlManager.add_message("TronView.org", position=GrowlPosition.CENTER, duration=8)
 
+    shared.GrowlManager.add_message("Press ? for help menu", position=GrowlPosition.BOTTOM_MIDDLE, duration=12)
+    shared.GrowlManager.add_message("Press Ctrl+L to show available screen templates", position=GrowlPosition.BOTTOM_MIDDLE, duration=12)
+    shared.GrowlManager.add_message("Press Q to quit", position=GrowlPosition.BOTTOM_MIDDLE, duration=12)
+
+    shared.GrowlManager.add_message("USE AT YOUR OWN RISK!", position=GrowlPosition.BOTTOM_LEFT, duration=8)
+    shared.GrowlManager.add_message("USE AT YOUR OWN RISK!", position=GrowlPosition.BOTTOM_RIGHT, duration=8)
+    shared.GrowlManager.add_message("USE AT YOUR OWN RISK!", position=GrowlPosition.TOP_LEFT, duration=8)
+    shared.GrowlManager.add_message("USE AT YOUR OWN RISK!", position=GrowlPosition.TOP_RIGHT, duration=8)
+
     # start main loop.
     while not shared.Dataship.errorFoundNeedToExit:
         if shared.Dataship.editMode == True:

@@ -196,7 +196,7 @@ _____             __     ___               \n
   |_||_|  \___/|_| |_|\_/  |_|\___| \_/\_/  \n
 '
 
-# Check if glow is installed
+# Check if glow is installed.  This is used to render markdown files in the terminal
 if ! command -v glow &> /dev/null; then
     echo "glow is not installed. Installing..."
     if [[ "$OSTYPE" == "darwin"* ]]; then
@@ -523,6 +523,8 @@ while $RUN_MENU_AGAIN; do
                                       "5" "Read Serial Garmin G3x" \
                                       "6" "Test Stratux and iLevil WiFi connection" \
                                       "7" "I2C Test (Pi only)" \
+                                      "8" "3D Sphere" \
+                                      "9" "bno085 calibration (Pi only)" \
                                       2>&1 1>&3)
                     exit_status=$?
                     exec 3>&-
@@ -536,6 +538,8 @@ while $RUN_MENU_AGAIN; do
                             5) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/serial_read.py -g" ;;
                             6) FULL_COMMAND="$TRONVIEW_DIR/util/tests/test_stratux_wifi.sh" ;;
                             7) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/i2c_test.py" ;;
+                            8) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/3d/sphere.py" ;;
+                            9) FULL_COMMAND="python3 $TRONVIEW_DIR/util/rpi/i2c/calibrate_bno085.py" ;;
                         esac
                         echo "Running: $FULL_COMMAND"
                         #exit 0
@@ -694,7 +698,10 @@ while $RUN_MENU_AGAIN; do
             run_python "$choice"
             exit_status=$?
             if [ $exit_status -ne 0 ]; then
-                echo "[Error occurred. Press any key to continue...]"
+                echo "[Error detected. Press any key to continue...]"
+                get_char
+            else
+                echo "[Press any key to go back to the TronView menu]"
                 get_char
             fi
             # clear $choice

@@ -27,7 +27,7 @@ from lib.common.graphic.edit_EditOptionsBar import EditOptionsBar
 from lib.common.graphic.edit_TronViewScreenObject import GridAnchorManager
 from lib.common.graphic.edit_EditEventsWindow import EditEventsWindow, save_event_handlers_to_json, load_event_handlers_from_json
 from lib.common.graphic.edit_dropdown import DropDown
-from lib.common.graphic.growl_manager import GrowlManager
+from lib.common.graphic.growl_manager import GrowlManager, GrowlPosition
 
 #############################################
 ## Function: main edit loop
@@ -471,17 +471,19 @@ def main_edit_loop():
                                     gui_handled = True
                                     if action == "delete":
                                         shared.CurrentScreen.ScreenObjects.remove(sObject)
-                                    elif action == "move_up":
-                                        index = shared.CurrentScreen.ScreenObjects.index(sObject)
-                                        if index < len(shared.CurrentScreen.ScreenObjects) - 1:
-                                            shared.CurrentScreen.ScreenObjects[index], shared.CurrentScreen.ScreenObjects[index+1] = shared.CurrentScreen.ScreenObjects[index+1], shared.CurrentScreen.ScreenObjects[index]
                                     elif action == "move_down":
-                                        index = shared.CurrentScreen.ScreenObjects.index(sObject)
-                                        if index > 0:
-                                            shared.CurrentScreen.ScreenObjects[index], shared.CurrentScreen.ScreenObjects[index-1] = shared.CurrentScreen.ScreenObjects[index-1], shared.CurrentScreen.ScreenObjects[index]
+                                        shared.CurrentScreen.ScreenObjects.remove(sObject)
+                                        shared.CurrentScreen.ScreenObjects.insert(0, sObject)
+                                        shared.GrowlManager.add_message("Moved to back: %s" % sObject.title)
+                                    elif action == "move_up":
+                                        # move to the front
+                                        shared.CurrentScreen.ScreenObjects.remove(sObject)
+                                        shared.CurrentScreen.ScreenObjects.append(sObject)
+                                        shared.GrowlManager.add_message("Moved to front: %s" % sObject.title)
                                     elif action == "center":
                                         shared.Change_history.add_change("move", {"object": sObject, "old_pos": (sObject.x, sObject.y), "new_pos": sObject.center()})
                                         sObject.center()
+                                        shared.GrowlManager.add_message("Centered: %s" % sObject.title)
                                     elif action == "align_left":
                                         sObject.align_left()
                                     elif action == "align_right":
@@ -717,6 +719,17 @@ def main_edit_loop():
             pygamescreen.blit(overlay, (0, 0))            
             active_dropdown.draw(pygamescreen)
         else:
+            # if event details window is visible, create a semi transparent overlay
+            if edit_events_window and edit_events_window.details_window :
+                # create a semi transparent overlay
+                screen_width = shared.smartdisplay.x_end
+                screen_height = shared.smartdisplay.y_end
+                overlay = pygame.Surface((screen_width, screen_height))
+                overlay.fill((0,0,0))
+                overlay.set_alpha(200)
+                pygamescreen.blit(overlay, (0,0))
+
+            # give some draw time to the gui manager
             pygame_gui_manager.draw_ui(pygamescreen)
 
         # Draw Growl messages

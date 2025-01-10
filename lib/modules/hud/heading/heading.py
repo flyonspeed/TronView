@@ -34,18 +34,16 @@ class heading(Module):
     # called once for setup
     def initMod(self, pygamescreen, width=None, height=None):
         if width is None:
-            width = 500 # default width
+            width = 500  # default width
         if height is None:
-            height = 200 # default height
-        Module.initMod(
-            self, pygamescreen, width, height
-        )  # call parent init screen.
-        if shared.Dataship.debug_mode > 0:  # only print if debug mode is on.
-            print(("Init Mod: %s %dx%d"%(self.name,self.width,self.height)))
+            height = 200  # default height
+        Module.initMod(self, pygamescreen, width, height)
+        print(f"Heading module initialized with screen: {pygamescreen}, width: {width}, height: {height}")
 
 
     # setup must have defaults for all parameters
     def setup(self):
+        print(f"Setting up heading module with dimensions: {self.width}x{self.height}")
         self.myfont = pygame.font.SysFont("monospace", self.font1_size, bold=True)  
         self.myfont1 = pygame.font.SysFont("monospace", self.font2_size, bold=True) 
 
@@ -152,18 +150,22 @@ class heading(Module):
 
     # called every redraw for the mod
     def draw(self, aircraft, smartdisplay, pos=(None, None)):
+        #print(f"mag_head: {aircraft.mag_head}, gndtrack: {aircraft.gndtrack}")
         x = pos[0] if pos[0] is not None else 0
         y = pos[1] if pos[1] is not None else 0
 
-        hdg_hdg = aircraft.mag_head
-        gnd_trk = self.roint(aircraft.gndtrack)
-        if aircraft.mag_head is None and aircraft.gndtrack is not None:
+        # Get heading value, preferring magnetic heading but falling back to ground track
+        hdg_hdg = None
+        gnd_trk = None
+
+        if aircraft.mag_head is not None:
+            hdg_hdg = aircraft.mag_head
+            gnd_trk = aircraft.gndtrack if aircraft.gndtrack is not None else aircraft.mag_head
+        elif aircraft.gndtrack is not None:
             hdg_hdg = aircraft.gndtrack
-        elif aircraft.gndtrack is None and aircraft.mag_head is not None:
-            gnd_trk = aircraft.mag_head
+            gnd_trk = aircraft.gndtrack
         else:
-            # can't use either so don't draw it.
-            # draw a x in the center of the screen.
+            # Draw X if no valid heading data
             pygame.draw.line(self.pygamescreen, (255, 0, 0), [self.width // 2 - 10, self.height // 2], [self.width // 2 + 10, self.height // 2], 3)
             pygame.draw.line(self.pygamescreen, (255, 0, 0), [self.width // 2, self.height // 2 - 10], [self.width // 2, self.height // 2 + 10], 3)
             return
@@ -228,7 +230,11 @@ class heading(Module):
 
             # draw the hdg_hdg value under the heading indicator and center it.  pad it to always show 3 digits.
             if self.show_track:
-                hdg_hdg_text = self.myfont.render(f"{self.roint(self.current_display_hdg):03d}", False, self.label_color)
+                hdg_text = f"{self.roint(self.current_display_hdg):03d}"
+                # Add "GND TRK" label if we're using ground track instead of magnetic heading
+                if aircraft.mag_head is None and aircraft.gndtrack is not None:
+                    hdg_text += " GND TRK"
+                hdg_hdg_text = self.myfont.render(hdg_text, False, self.label_color)
                 hdg_hdg_rect = hdg_hdg_text.get_rect()
                 hdg_hdg_rect.center = (center_x, 100)
                 self.hdg.blit(hdg_hdg_text, hdg_hdg_rect)

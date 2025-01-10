@@ -30,7 +30,8 @@ class EditOptionsBar:
             pygame.Rect(x, y, window_width, window_height),
             self.pygame_gui_manager,
             window_display_title=f"Options: {screen_object.title}",
-            object_id="#options_window"
+            object_id="#options_window",
+            draggable=False 
         )
         
         # Create a scrollable container inside the window

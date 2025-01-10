@@ -2,10 +2,10 @@
 Project for connecting EFIS or any external sensor data to a Screen, HUD, or AR glasses.  This was created for the aviation community but can be used for any application where you want to display data in a custom GUI (and interact with it).
 
 ![cockpit1](docs/efis_cockpit1.jpeg?raw=true)
-## Active development! (Dec 2024!)
+## Active development! (Jan 2025!)
 If you want to help with development or testing please join our [Join Discord](https://discord.gg/pdnxWa32aW) sever.
 We are working on several new features. 
-- XReal glasses support or other AR glasses (head tracking using IMU/gyro)
+- XReal and Viture AR glasses support
 - Editor to make creating or editing your own screen very easy.
 - Better G3x support
 - Show/Hide screen modules based on key commands or other inputs. (event handlers)
@@ -40,7 +40,13 @@ We are working on several new features.
 
 [Quick Start for Mac OS](docs/quick_start_macos.MD)
 
-Currently not supported on Windows.  But looking for developers to help get that working if there is interest.
+## 3d wire frame terrain view through AR glasses (work in progress)
+
+![3d_mesh](docs/screenshots/tv_mesh.png?raw=true)
+
+## 3d synthetic world (work in progress)
+
+![3d_world](docs/screenshots/tv3d.png?raw=true)
 
 ## Use as backup display screen on dash
 

@@ -14,8 +14,7 @@ We are working on several new features.
 - Moving Map.
 - More external sensors (Pressure, Voltage, GPS, etc)
 - Touch screen support (New Raspberry Pi Touchscreen v2)
-- Dual Screen support (Main + AR Glasses)
-- Easy setup and config for new users.
+
 
 ## Features Include:
 - Build custom efis or hud screens or AR glasses screen. (or any kinda of screen you want)

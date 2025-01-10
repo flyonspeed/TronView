@@ -3,7 +3,8 @@
 # Serial input source
 # Skyview
 # 1/23/2019  Topher
-# 11/6/2024  Added IMU data.
+# 11/6/2024  Added IMU data
+# 11/30/2024 Added NAV, Autopilot and EMS data   Zap
 
 from ._input import Input
 from lib import hud_utils
@@ -94,6 +95,26 @@ class serial_skyview(Input):
                     msg = self.ser.read(71)
                     if(isinstance(msg,str)): msg = msg.encode() # if read from file then convert to bytes
                     HH, MM, SS, FF, pitch, roll, HeadingMAG, IAS, PresAlt, TurnRate, LatAccel, VertAccel, AOA, VertSpd, OAT, TAS, Baro, DA, WD, WS, Checksum, CRLF = struct.unpack(
+                         # Format string breakdown:
+                         # 8s - System time (8 bytes)
+                         # 4s - Pitch (4 bytes)
+                         # 5s - Roll bug (5 bytes)
+                         # 3s - Heading bug (3 bytes)
+                         # 4s - IAS (4 bytes)
+                         # 6s - Pres Alt (6 bytes)
+                         # 4s - Turn Rate (4 bytes)
+                         # 3s - Lat Accel (3 bytes)
+                         # 3s - Vert Accel (3 bytes)
+                         # 2s - AOA (2 bytes)
+                         # 4s - Vertical Speed (4 bytes)
+                         # 3s - OAT (3 bytes)
+                         # 4s - TAS (4 bytes)
+                         # 3s - Baro Setting (3 bytes)
+                         # 6s - Density Altitude (6 bytes)
+                         # 3s - Wind Direction (3 bytes)
+                         # 2s - Wind Speed (2 bytes)
+                         # 2s - Checksum (2 bytes)
+                         # 2s - CRLF (2 bytes)                            
                         "2s2s2s2s4s5s3s4s6s4s3s3s2s4s3s4s3s6s3s2s2s2s", msg
                     ) 
                     #print(msg)
@@ -103,11 +124,8 @@ class serial_skyview(Input):
                     self.time_stamp_sec = int(SS)
                     
                     #print("time: "+aircraft.sys_time_string)
-                    #print("pitch:"+str(pitch))
                     dataship.pitch = Input.cleanInt(self,pitch) / 10
-                    #print("roll:"+str(roll))
                     dataship.roll = Input.cleanInt(self,roll) / 10
-                    #print("HeadingMAG:"+str(HeadingMAG))
                     dataship.mag_head = Input.cleanInt(self,HeadingMAG)
 
                     # Update IMU data
@@ -120,21 +138,14 @@ class serial_skyview(Input):
                     self.imuData.updatePos(dataship.pitch, dataship.roll, dataship.mag_head)
                     dataship.imus[self.imu_index] = self.imuData
 
-                    #print("IAS:"+str(IAS))
                     dataship.ias = Input.cleanInt(self,IAS) * 0.1
-                    #print("PALT:"+str(PresAlt))
                     dataship.PALT = Input.cleanInt(self,PresAlt)
-                    #print("TurnRate:"+str(TurnRate))
-                    #print("OAT:"+str(OAT))
                     dataship.oat = (Input.cleanInt(self,OAT) * 1.8) + 32 # c to f
-                    #print("TAS:"+str(TAS))
                     dataship.tas = Input.cleanInt(self,TAS) * 0.1
-                    #print("AOA:"+str(AOA))
-                    if AOA == "XX":
+                    if AOA == b'XX':
                         dataship.aoa = 0
                     else:
                         dataship.aoa = Input.cleanInt(self,AOA)
-                    #print("baro:"+str(Baro))
                     dataship.baro = (Input.cleanInt(self,Baro) + 2750.0) / 100
                     dataship.baro_diff = dataship.baro - 29.921
                     dataship.DA = Input.cleanInt(self,DA)
@@ -165,16 +176,10 @@ class serial_skyview(Input):
                         Input.addToLog(self,self.output_logFile,msg)
 
                 elif dataType == b'2': #Dynon System message (nav,AP, etc)
-                    msg = self.ser.read(27)  # Read 27 fields of system data
-                    if isinstance(msg, str):
-                        msg = msg.encode()  # Convert to bytes if read from file
-
-                    # Unpack the system data using struct
-                    (sys_time, hdg_bug, alt_bug, air_bug, vs_bug, course,
-                     cdi_src_type, cdi_src_port, cdi_scale, cdi_deflect, gs,
-                     ap_eng, ap_roll_mode, not_used1, ap_roll_force, ap_roll_pos, ap_roll_slip,
-                     ap_pitch_force, ap_pitch_pos, ap_pitch_slip, ap_yaw_force, ap_yaw_pos, ap_yaw_slip,
-                     xpdr_status, xpdr_reply, xpdr_code, not_used2) = struct.unpack(
+                    dataship.nav.msg_count += 1
+                    msg = self.ser.read(90)
+                    if isinstance(msg, str): msg = msg.encode()  # if read from file then convert to bytes
+                    HH,MM,SS,FF,HBug,AltBug, ASIBug,VSBug,Course,CDISrcType,CDISourePort,CDIScale,CDIDeflection,GS,APEng,APRollMode,Not1,APPitch,Not2,APRollF,APRollP,APRollSlip,APPitchF, APPitchP,APPitchSlip,APYawF,APYawP,APYawSlip,TransponderStatus,TransponderReply,TransponderIdent,TransponderCode,DynonUnused,Checksum,CRLF= struct.unpack(
                          # Format string breakdown:
                          # 8s - System time (8 bytes)
                          # 3s - Heading bug (3 bytes)
@@ -186,83 +191,87 @@ class serial_skyview(Input):
                          # c  - CDI source port (1 byte)
                          # 2s - CDI scale (2 bytes)
                          # 3s - CDI deflection (3 bytes)
-                         # 3s - Glide slope (3 bytes)
+                         # 3s - Glide slope % (3 bytes)
                          # c  - Autopilot engaged (1 byte)
                          # c  - AP roll mode (1 byte)
                          # c  - Not used (1 byte)
-                         # c  - AP roll force (1 byte)
-                         # c  - AP roll position (1 byte)
+                         # c  - AP pitch mode (1 byte)
+                         # c  - Not used (1 byte)
+                         # 3s - AP roll force (3 bytes)
+                         # 5s - AP roll position (5 bytes)
                          # c  - AP roll slip (1 byte)
-                         # c  - AP pitch force (1 byte)
-                         # c  - AP pitch position (1 byte)
+                         # 3s - AP pitch force (3 byte)
+                         # 5s - AP pitch position (5 bytes)
                          # c  - AP pitch slip (1 byte)
-                         # c  - AP yaw force (1 byte)
-                         # c  - AP yaw position (1 byte)
+                         # 3s - AP yaw force (3 bytes)
+                         # 5s - AP yaw position (5 bytes)
                          # c  - AP yaw slip (1 byte)
                          # c  - Transponder status (1 byte)
                          # c  - Transponder reply (1 byte)
-                         # c  - Transponder code (1 byte)
-                         # c  - Not used (1 byte)
-                         "8s3s5s4s4s3scc2s3s3sccccccccccccccc", msg)
+                         # c  - Transponder Ident (1 byte)
+                         # 4s - Transponder code (4 bytes)
+                         # 10s- Not used (10 bytes)
+                         # 2s - Checksum (2 bytes)
+                         # 2s - CRLF (2 bytes)
+                        "2s2s2s2s3s5s4s4s3scc2s3s3sccccc3s5sc3s5sc3s5scccc4s10s2s2s", msg
+                    )
+                    #print("NAV & System Message !2:", msg)
+                    dataship.sys_time_string = "%d:%d:%d"%(int(HH),int(MM),int(SS))
+                    self.time_stamp_string = dataship.sys_time_string
+                    self.time_stamp_min = int(MM)
+                    self.time_stamp_sec = int(SS)
 
-                    # Update aircraft navigation and autopilot data
-                    dataship.nav.msg_count += 1
-                    dataship.nav.HeadBug = Input.cleanInt(self, hdg_bug)
-                    dataship.nav.AltBug = Input.cleanInt(self, alt_bug) * 10
-                    dataship.nav.ASIBug = Input.cleanInt(self, air_bug) / 10
-                    dataship.nav.VSBug = Input.cleanInt(self, vs_bug) / 10
-                    dataship.nav.WPTrack = Input.cleanInt(self, course)
+                    if HBug != b'XXX': dataship.nav.HeadBug = Input.cleanInt(self, HBug)
+                    if AltBug != b'XXXXX': dataship.nav.AltBug = Input.cleanInt(self,AltBug) * 10
+                    if ASIBug != b'XXXX': dataship.nav.ASIBug = Input.cleanInt(self,ASIBug) / 10
+                    if VSBug != b'XXXX': dataship.nav.VSBug = Input.cleanInt(self,VSBug) / 10
+                    if CDIDeflection != b'XXX': dataship.nav.ILSDev = Input.cleanInt(self,CDIDeflection)
+                    if GS != b'XXX': dataship.nav.GSDev = Input.cleanInt(self,GS)
+                    dataship.nav.HSISource = Input.cleanInt(self,CDISourePort)
+                    if CDISrcType == b'0':
+                        navSourceType = 'GPS'
+                    elif CDISrcType == b'1':
+                        navSourceType = 'NAV'
+                    elif CDISrcType == b'2':
+                        navSourceType = 'LOC'
+                    dataship.nav.SourceDesc = navSourceType + str(Input.cleanInt(self,CDISourePort))
+                    dataship.nav.GLSHoriz = Input.cleanInt(self,CDIScale) / 10
+                    if APEng == b'0': dataship.nav.APeng = 0
+                    if APEng == b'1' or APEng == b'2' or APEng == b'3' or APEng == b'4' or APEng == b'5' or APEng == b'6' or APEng == b'7': dataship.nav.APeng = 1
+                    dataship.nav.AP_RollForce = Input.cleanInt(self,APRollF)
+                    dataship.nav.AP_RollPos = Input.cleanInt(self,APRollP)
+                    dataship.nav.AP_RollSlip = Input.cleanInt(self,APRollSlip)
+                    dataship.nav.AP_PitchForce = Input.cleanInt(self,APPitchF)
+                    dataship.nav.AP_PitchPos = Input.cleanInt(self,APPitchP)
+                    dataship.nav.AP_PitchSlip = Input.cleanInt(self,APPitchSlip)
+                    dataship.nav.AP_YawForce = Input.cleanInt(self,APYawF)
+                    dataship.nav.AP_YawPos = Input.cleanInt(self,APYawP)
+                    dataship.nav.AP_YawSlip = Input.cleanInt(self,APYawSlip)
+                    if TransponderStatus == b'0':
+                        dataship.nav.XPDR_Status = 'SBY'
+                    elif TransponderStatus == b'1':
+                        dataship.nav.XPDR_Status = 'GND'
+                    elif TransponderStatus == b'2':
+                        dataship.nav.XPDR_Status = 'ON'
+                    elif TransponderStatus == b'3':
+                        dataship.nav.XPDR_Status = 'ALT'
+                    dataship.nav.XPDR_Reply = Input.cleanInt(self,TransponderReply)
+                    dataship.nav.XPDR_Ident = Input.cleanInt(self,TransponderIdent)
+                    dataship.nav.XPDR_Code = Input.cleanInt(self,TransponderCode)
                     
-                    # CDI (Course Deviation Indicator) data
-                    dataship.nav.HSISource = ord(cdi_src_type) if isinstance(cdi_src_type, bytes) else cdi_src_type
-                    dataship.nav.HSISource = ord(cdi_src_port) if isinstance(cdi_src_port, bytes) else cdi_src_port
-                    #dataship.nav. = Input.cleanInt(self, cdi_scale) / 10
-                    #dataship.nav. = Input.cleanInt(self, cdi_deflect)
-                    dataship.nav.GLSVert = Input.cleanInt(self, gs)
+                    if self.output_logFile != None:
+                        Input.addToLog(self,self.output_logFile,bytes([33,int(dataType),int(dataVer)]))
+                        Input.addToLog(self,self.output_logFile,msg)
 
-                    # Autopilot data
-                    dataship.nav.AP = ord(ap_eng) if isinstance(ap_eng, bytes) else ap_eng
-                    #dataship.nav. = ord(ap_roll_mode) if isinstance(ap_roll_mode, bytes) else ap_roll_mode
-                    
-                    # Autopilot forces and positions
-                    dataship.nav.AP_RollForce = ord(ap_roll_force) if isinstance(ap_roll_force, bytes) else ap_roll_force
-                    dataship.nav.AP_RollPos = ord(ap_roll_pos) if isinstance(ap_roll_pos, bytes) else ap_roll_pos
-                    dataship.nav.AP_RollSlip = ord(ap_roll_slip) if isinstance(ap_roll_slip, bytes) else ap_roll_slip
-                    
-                    dataship.nav.AP_PitchForce = ord(ap_pitch_force) if isinstance(ap_pitch_force, bytes) else ap_pitch_force
-                    dataship.nav.AP_PitchPos = ord(ap_pitch_pos) if isinstance(ap_pitch_pos, bytes) else ap_pitch_pos
-                    dataship.nav.AP_PitchSlip = ord(ap_pitch_slip) if isinstance(ap_pitch_slip, bytes) else ap_pitch_slip
-                    
-                    dataship.nav.AP_YawForce = ord(ap_yaw_force) if isinstance(ap_yaw_force, bytes) else ap_yaw_force
-                    dataship.nav.AP_YawPos = ord(ap_yaw_pos) if isinstance(ap_yaw_pos, bytes) else ap_yaw_pos
-                    dataship.nav.AP_YawSlip = ord(ap_yaw_slip) if isinstance(ap_yaw_slip, bytes) else ap_yaw_slip
-
-                    # Transponder data
-                    dataship.nav.XPDR_Status = ord(xpdr_status) if isinstance(xpdr_status, bytes) else xpdr_status
-                    dataship.nav.XPDR_Reply = ord(xpdr_reply) if isinstance(xpdr_reply, bytes) else xpdr_reply
-                    dataship.nav.XPDR_Code = xpdr_code.decode() if isinstance(xpdr_code, bytes) else xpdr_code
-
-                    if self.output_logFile is not None:
-                        Input.addToLog(self, self.output_logFile, bytes([33, int(dataType), int(dataVer)]))
-                        Input.addToLog(self, self.output_logFile, msg)
-
-                elif dataType == b'3': #Engine data message EMS
-                    msg = self.ser.read(47)  # Read 47 fields of engine data
-                    if isinstance(msg, str): 
-                        msg = msg.encode()  # Convert to bytes if read from file
-                        
-                    # Unpack the engine data using struct
-                    (system_time, oil_press, oil_temp, rpm_l, rpm_r, map_press, 
-                     fuel_flow1, fuel_flow2, fuel_press, fuel_l, fuel_r, fuel_rem,
-                     volts1, volts2, amps, hobbs, tach, 
-                     thermo1, thermo2, thermo3, thermo4, thermo5, thermo6, thermo7,
-                     thermo8, thermo9, thermo10, thermo11, thermo12, thermo13, thermo14,
-                     gp1, gp2, gp3, gp4, gp5, gp6, gp7, gp8, gp9, gp10, gp11, gp12, gp13,
-                     contacts, pwr_pct, egt_status, checksum) = struct.unpack(
-                         # First part - Engine parameters (47 bytes total):
+                elif dataType == b'3': #Dynon EMS Engine data message
+                    dataship.engine.msg_count += 1
+                    msg = self.ser.read(222)
+                    if isinstance(msg,str):msg = msg.encode() # if read from file then convert to bytes
+                    HH,MM,SS,FF,OilPress,OilTemp, RPM_L,RPM_R,MAP,FF1,FF2,FP,FL_L,FL_R,Frem,V1,V2,AMPs,Hobbs,Tach,TC1,TC2,TC3,TC4,TC5,TC6,TC7,TC8,TC9,TC10,TC11,TC12,TC13,TC14,GP1,GP2,GP3,GP4,GP5,GP6,GP7,GP8,GP9,GP10,GP11,GP12,GP13,Contacts,Pwr,EGTstate,Checksum,CRLF= struct.unpack(
+                                                  # First part - Engine parameters (47 bytes total):
                          # 8s - System time (8 bytes)
                          # 3s - Oil pressure (3 bytes)
-                         # 3s - Oil temperature (3 bytes)
+                         # 4s - Oil temperature (4 bytes)
                          # 4s - Left RPM (4 bytes)
                          # 4s - Right RPM (4 bytes)
                          # 3s - Manifold pressure (3 bytes)
@@ -274,86 +283,85 @@ class serial_skyview(Input):
                          # 3s - Fuel remaining (3 bytes)
                          # 3s - Voltage 1 (3 bytes)
                          # 3s - Voltage 2 (3 bytes)
-                         # 3s - Amperage (3 bytes)
+                         # 4s - Amperage (4 bytes)
                          # 5s - Hobbs time (5 bytes)
                          # 5s - Tach time (5 bytes)
-                         # 14 thermocouples, each 3 bytes:
-                         # 3s - Thermocouple 1 (3 bytes)
-                         # 3s - Thermocouple 2 (3 bytes)
-                         # 3s - Thermocouple 3 (3 bytes)
-                         # 3s - Thermocouple 4 (3 bytes)
-                         # 3s - Thermocouple 5 (3 bytes)
-                         # 3s - Thermocouple 6 (3 bytes)
-                         # 3s - Thermocouple 7 (3 bytes)
-                         # 3s - Thermocouple 8 (3 bytes)
-                         # 3s - Thermocouple 9 (3 bytes)
-                         # 3s - Thermocouple 10 (3 bytes)
-                         # 3s - Thermocouple 11 (3 bytes)
-                         # 3s - Thermocouple 12 (3 bytes)
-                         # 3s - Thermocouple 13 (3 bytes)
-                         # 3s - Thermocouple 14 (3 bytes)
+                         # 14 Thermocouples, each 4 bytes:
+                         # 4s - Thermocouple 1 (4 bytes)
+                         # 4s - Thermocouple 2 (4 bytes)
+                         # 4s - Thermocouple 3 (4 bytes)
+                         # 4s - Thermocouple 4 (4 bytes)
+                         # 4s - Thermocouple 5 (4 bytes)
+                         # 4s - Thermocouple 6 (4 bytes)
+                         # 4s - Thermocouple 7 (4 bytes)
+                         # 4s - Thermocouple 8 (4 bytes)
+                         # 4s - Thermocouple 9 (4 bytes)
+                         # 4s - Thermocouple 10 (4 bytes)
+                         # 4s - Thermocouple 11 (4 bytes)
+                         # 4s - Thermocouple 12 (4 bytes)
+                         # 4s - Thermocouple 13 (4 bytes)
+                         # 4s - Thermocouple 14 (4 bytes)
                          # Second part - General purpose inputs and status:
-                         # c - General purpose input 1 (1 byte)
-                         # c - General purpose input 2 (1 byte)
-                         # c - General purpose input 3 (1 byte)
-                         # c - General purpose input 4 (1 byte)
-                         # c - General purpose input 5 (1 byte)
-                         # c - General purpose input 6 (1 byte)
-                         # c - General purpose input 7 (1 byte)
-                         # c - General purpose input 8 (1 byte)
-                         # c - General purpose input 9 (1 byte)
-                         # c - General purpose input 10 (1 byte)
-                         # c - General purpose input 11 (1 byte)
-                         # c - General purpose input 12 (1 byte)
-                         # c - General purpose input 13 (1 byte)
-                         # c - Contact inputs status (1 byte)
-                         # 2s - Power percentage (2 bytes)
-                         # 2 - Checksum (2 bytes)
-                         "8s3s3s4s4s3s3s3s3s3s3s3s3s3s3s5s5s3s3s3s3s3s3s3s3s3s3s3s3s3s3s" +
-                         "cccccccccccccc2s2", msg)
+                         # 6s- General purpose input 1 (6 bytes)
+                         # 6s- General purpose input 2 (6 bytes)
+                         # 6s- General purpose input 3 (6 bytes)
+                         # 6s- General purpose input 4 (6 bytes)
+                         # 6s- General purpose input 5 (6 bytes)
+                         # 6s- General purpose input 6 (6 bytes)
+                         # 6s- General purpose input 7 (6 bytes)
+                         # 6s- General purpose input 8 (6 bytes)
+                         # 6s- General purpose input 9 (6 bytes)
+                         # 6s- General purpose input 10 (6 bytes)
+                         # 6s- General purpose input 11 (6 bytes)
+                         # 6s- General purpose input 12 (6 bytes)
+                         # 6s- General purpose input 13 (6 bytes)
+                         # 16c- Contact inputs status (Not Used) (16 bytes)
+                         # 3s - Power percentage (3 bytes)
+                         # 2s - Checksum (2 bytes)
+                         "2s2s2s2s3s4s4s4s3s3s3s3s3s3s3s3s3s4s5s5s4s4s4s4s4s4s4s4s4s4s4s4s4s4s6s6s6s6s6s6s6s6s6s6s6s6s6s16s3s1s2s2s", msg
+                    )
+                    #print("EMS Message !3:", msg)
+                    dataship.sys_time_string = "%d:%d:%d"%(int(HH),int(MM),int(SS))
+                    self.time_stamp_string = dataship.sys_time_string
+                    self.time_stamp_min = int(MM)
+                    self.time_stamp_sec = int(SS)
 
-                    # Update aircraft engine data
-                    dataship.engine.OilPress = Input.cleanInt(self, oil_press)
-                    dataship.engine.OilTemp = Input.cleanInt(self, oil_temp)
-                    dataship.engine.RPM = Input.cleanInt(self, rpm_l)
-                    #dataship.engine.RPM_Right = Input.cleanInt(self, rpm_r)
-                    dataship.engine.ManPress = Input.cleanInt(self, map_press) / 10
-                    dataship.engine.FuelFlow = Input.cleanInt(self, fuel_flow1) / 10
-                    #dataship.engine.fuel_flow2 = Input.cleanInt(self, fuel_flow2) / 10
-                    dataship.engine.FuelPress = Input.cleanInt(self, fuel_press) / 10
+                    dataship.engine.OilPress = Input.cleanInt(self,OilPress)
+                    dataship.engine.OilTemp = Input.cleanInt(self,OilTemp)
+                    dataship.engine.RPM = max(Input.cleanInt(self,RPM_L), Input.cleanInt(self,RPM_R))
+                    dataship.engine.ManPress = Input.cleanInt(self,MAP) / 10
+                    dataship.engine.FuelFlow = Input.cleanInt(self,FF1) / 10
+                    dataship.engine.FuelFlow2 = Input.cleanInt(self,FF2) / 10
+                    dataship.engine.FuelPress = Input.cleanInt(self,FP) / 10
+                    fuel_level_left  = Input.cleanInt(self, FL_L) / 10
+                    fuel_level_right = Input.cleanInt(self, FL_R) / 10
+                    dataship.fuel.FuelLevels = [fuel_level_left, fuel_level_right, 0, 0]
+                    dataship.fuel.FuelRemain = Input.cleanInt(self,Frem) / 10
+                    dataship.engine.volts1 = Input.cleanInt(self,V1) / 10
+                    dataship.engine.volts2 = Input.cleanInt(self,V2) / 10
+                    if AMPs != b'XXXX': dataship.engine.amps = Input.cleanInt(self,AMPs) / 10
+                    dataship.engine.hobbs_time = Input.cleanInt(self,Hobbs) / 10
+                    dataship.engine.tach_time = Input.cleanInt(self,Tach) / 10
 
-                    # Fuel levels and remaining
-                    dataship.fuel.FuelLevels[0] = Input.cleanInt(self, fuel_l) / 10
-                    dataship.fuel.FuelLevels[1] = Input.cleanInt(self, fuel_r) / 10
-                    dataship.fuel.FuelRemain = Input.cleanInt(self, fuel_rem) / 10
+                    if TC12 != b'XXXX': dataship.engine.EGT[0] = round(((Input.cleanInt(self, TC12)) * 1.8) + 32)  # convert from C to F
+                    if TC10 != b'XXXX': dataship.engine.EGT[1] = round(((Input.cleanInt(self, TC10)) * 1.8) + 32)  # convert from C to F
+                    if TC8 != b'XXXX': dataship.engine.EGT[2] = round(((Input.cleanInt(self, TC8)) * 1.8) + 32)  # convert from C to F
+                    if TC6 != b'XXXX': dataship.engine.EGT[3] = round(((Input.cleanInt(self, TC6)) * 1.8) + 32)  # convert from C to F
+                    if TC4 != b'XXXX': dataship.engine.EGT[4] = round(((Input.cleanInt(self, TC4)) * 1.8) + 32)  # convert from C to F
+                    if TC2 != b'XXXX': dataship.engine.EGT[5] = round(((Input.cleanInt(self, TC2)) * 1.8) + 32)  # convert from C to F
 
-                    dataship.engine.volts1 = Input.cleanInt(self, volts1) / 10
-                    dataship.engine.volts2 = Input.cleanInt(self, volts2) / 10
-                    dataship.engine.amps = Input.cleanInt(self, amps) / 10
-                    dataship.engine.hobbs_time = Input.cleanInt(self, hobbs) / 10
-                    dataship.engine.tach_time = Input.cleanInt(self, tach) / 10
+                    if TC11 != b'XXXX': dataship.engine.CHT[0] = round(((Input.cleanInt(self, TC11)) * 1.8) + 32)  # convert from C to F
+                    if TC9 != b'XXXX': dataship.engine.CHT[1] = round(((Input.cleanInt(self, TC9)) * 1.8) + 32)  # convert from C to F
+                    if TC7 != b'XXXX': dataship.engine.CHT[2] = round(((Input.cleanInt(self, TC7)) * 1.8) + 32)  # convert from C to F
+                    if TC5 != b'XXXX': dataship.engine.CHT[3] = round(((Input.cleanInt(self, TC5)) * 1.8) + 32)  # convert from C to F
+                    if TC3 != b'XXXX': dataship.engine.EGT[4] = round(((Input.cleanInt(self, TC3)) * 1.8) + 32)  # convert from C to F
+                    if TC1 != b'XXXX': dataship.engine.EGT[5] = round(((Input.cleanInt(self, TC1)) * 1.8) + 32)  # convert from C to F
 
-                    # Update engine temperatures (thermocouples)
-                    temps = [thermo1, thermo2, thermo3, thermo4, thermo5, thermo6, thermo7,
-                             thermo8, thermo9, thermo10, thermo11, thermo12, thermo13, thermo14]
-
-                    # EGT (Exhaust Gas Temperature) (first 8 thermocouples)
-                    dataship.engine.EGT = [Input.cleanInt(self, t) for t in temps[:8]]
-
-                    # CHT (Cylinder Head Temperature) (last 8 thermocouples)
-                    dataship.engine.CHT = [Input.cleanInt(self, t) for t in temps[8:]]
-
-                    dataship.engine.msg_count += 1
-
-                    if self.output_logFile is not None:
-                        Input.addToLog(self, self.output_logFile, bytes([33, int(dataType), int(dataVer)]))
-                        Input.addToLog(self, self.output_logFile, msg)
-
+                    if self.output_logFile != None:
+                        Input.addToLog(self,self.output_logFile,bytes([33,int(dataType),int(dataVer)]))
+                        Input.addToLog(self,self.output_logFile,msg)
                 else:
                     dataship.msg_unknown += 1 # unknown message found.
-
-            else:
-                dataship.msg_bad += 1 # count this as a bad message
         except ValueError:
             dataship.msg_bad += 1
             #print("bad:"+str(msg))
@@ -366,13 +374,11 @@ class serial_skyview(Input):
             traceback.print_exc()
             dataship.errorFoundNeedToExit = True
 
-
         if self.isPlaybackMode:  #if play back mode then add a delay.  Else reading a file is way to fast.
             time.sleep(.05)
         else:
             #pass
             self.ser.flushInput()  # flush the serial after every message else we see delays
-
 
         return dataship
 

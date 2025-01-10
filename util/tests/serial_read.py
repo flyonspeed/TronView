@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# Expanded Dynon Skyview test   Zap 12/28/2024
 
 
 import time
@@ -210,69 +211,153 @@ def readSkyviewMessage():
         while x != 33:  # 33(!) is start of dynon skyview.
             t = ser.read(1)
             sinceLastGoodMessage += 1
-            print_xy(3, 0, "SinceGood: %d" % (sinceLastGoodMessage))
-            print_xy(3, 24, "Bad msgHead: %d" % (badmessageheaderCount))
-            print_xy(3, 49, "Good msgHead: %d " % (goodmessageheaderCount))
-            print_xy(3, 74, "Unknown Msg: %d " % (unknownMsgCount))
+            print_xy(2, 0,  "SinceGood: %d" % (sinceLastGoodMessage))
+            print_xy(2, 24, "Bad msgHead: %d" % (badmessageheaderCount))
+            print_xy(2, 49, "Good msgHead: %d " % (goodmessageheaderCount))
+            print_xy(2, 74, "Unknown Msg: %d " % (unknownMsgCount))
 
             if len(t) != 0:
                 x = ord(t)
 
-        msg = ser.read(73)
-        if len(msg) == 73:
-            sinceLastGoodMessage = 0
-            msg = (msg[:73]) if len(msg) > 73 else msg
-            dataType, DataVer, SysTime, pitch, roll, HeadingMAG, IAS, PresAlt, TurnRate, LatAccel, VertAccel, AOA, VertSpd, OAT, TAS, Baro, DA, WD, WS, Checksum, CRLF = struct.unpack(
-                "cc8s4s5s3s4s6s4s3s3s2s4s3s4s3s6s3s2s2s2s", msg
-            )
-            # dataType,DataVer,SysTime = struct.unpack("cc8s", msg)
+        dataType = ser.read(1)
+        if dataType.decode() == "1":        # ADHARS Data Message
+            goodmessageheaderCount += 1
+            msg = ser.read(72)
+            #skyview_data.write("!1" + msg.decode())
+            if len(msg) == 72:
+                sinceLastGoodMessage = 0
+                msg = (msg[:72]) if len(msg) > 72 else msg
+                DataVer, SysTime, pitch, roll, HeadingMAG, IAS, PresAlt, TurnRate, LatAccel, VertAccel, AOA, VertSpd, OAT, TAS, Baro, DA, WD, WS, Checksum, CRLF = struct.unpack(
+                    "c8s4s5s3s4s6s4s3s3s2s4s3s4s3s6s3s2s2s2s", msg
+                )
+            # DataVer,SysTime = struct.unpack("c8s", msg)
 
-            if (CRLF[0]) == 13 or (CRLF[0]) == "\r":
-                intCheckSum = int("0x%s" % (Checksum.decode()), 0)
-                print_xy(4, 0, msg.decode())
-                calcChecksum = 33 + (sum(map(ord, msg[:69].decode())) % 256)
-                calcChecksumHex = "0x{:02x}".format(calcChecksum)
-                if dataType.decode() == "1":
-                    goodmessageheaderCount += 1
-                    print_xy(5, 0, bcolors.OKGREEN + "ADHRS(1)" + bcolors.ENDC)
-                    print_xy(6, 0, "DataType:   %s" % (dataType.decode()))
-                    print_xy(7, 0, "Ver:        %s" % (DataVer.decode()))
-                    print_xy(8, 0, "SysTime:    %s" % (SysTime.decode()))
-                    print_xy(9, 0, "Pitch:      %s" % (pitch.decode()))
-                    print_xy(10, 0, "Roll:       %s" % (roll.decode()))
-                    print_xy(11, 0, "HeadMag:    %s" % (HeadingMAG.decode()))
-                    print_xy(12, 0, "IAS:        %s" % (IAS.decode()))
-                    print_xy(13, 0, "PresAlt:    %s" % (PresAlt.decode()))
-                    print_xy(14, 0, "TurnRate:   %s" % (TurnRate.decode()))
-                    print_xy(15, 0, "LatAccel:   %s" % (LatAccel.decode()))
-                    print_xy(16, 0, "VertAccel:  %s" % (VertAccel.decode()))
-                    print_xy(17, 0, "AOA:        %s" % (AOA.decode()))
-                    print_xy(18, 0, "VertSpd:    %s" % (VertSpd.decode()))
-                    print_xy(19, 0, "OAT:        %s" % (OAT.decode()))
-                    print_xy(20, 0, "TAS:        %s" % (TAS.decode()))
+                if (CRLF[0]) == 13 or (CRLF[0]) == "\r":
+                    intCheckSum = int("0x%s" % (Checksum.decode()), 0)
+                    #print_xy(4, 0, msg.decode())
+                    calcChecksum = 33 + (sum(map(ord, msg[:68].decode())) % 256)
+                    calcChecksumHex = "0x{:02x}".format(calcChecksum)
+                    print_xy(3, 0, bcolors.OKGREEN + "  ADHRS (Type:" + (dataType.decode()) + ")" + bcolors.ENDC)
+                    #print_xy(4, 0, "DataType:  %s" % (dataType.decode()))
+                    print_xy(4, 0, "Ver:       %s" % (DataVer.decode()))
+                    print_xy(5, 0, "SysTime:   %s" % (SysTime.decode()))
+                    print_xy(6, 0, "Pitch:     %s" % (pitch.decode()))
+                    print_xy(7, 0, "Roll:      %s" % (roll.decode()))
+                    print_xy(8, 0, "HeadMag:   %s" % (HeadingMAG.decode()))
+                    print_xy(9, 0, "IAS:       %s" % (IAS.decode()))
+                    print_xy(10, 0, "PresAlt:   %s" % (PresAlt.decode()))
+                    print_xy(11, 0, "TurnRate:  %s" % (TurnRate.decode()))
+                    print_xy(12, 0, "LatAccel:  %s" % (LatAccel.decode()))
+                    print_xy(13, 0, "VertAccel: %s" % (VertAccel.decode()))
+                    print_xy(14, 0, "AOA:       %s" % (AOA.decode()))
+                    print_xy(15, 0, "VertSpd:   %s" % (VertSpd.decode()))
+                    print_xy(16, 0, "OAT:       %s" % (OAT.decode()))
+                    print_xy(17, 0, "TAS:       %s" % (TAS.decode()))
                     converted_Baro = (int(Baro) + 2750.0) / 100
                     baro_diff = converted_Baro - 29.921
                     converted_alt = int(int(PresAlt) + ((baro_diff) / 0.00108))
                      #0.00108 of inches of mercury change per foot.
-                    print_xy(21, 0, "Baro:       %0.2f  Alt:  %d ft   " % (converted_Baro, converted_alt))
-                    print_xy(22, 0, "DensitAlt:  %s" % (DA.decode()))
-                    print_xy(23, 0, "WndDir:     %s" % (WD.decode()))
-                    print_xy(24, 0, "WndSpd:     %s" % (WS.decode()))
-                    print_xy(25, 0, "ChkSum:     0x%s   int:%d " % (Checksum.decode(), intCheckSum))
-                    print_xy(26, 0, "CalChkSum:  %s   int:%d " % (calcChecksumHex, calcChecksum))
+                    print_xy(18, 0, "Baro:      %0.2f Alt:%d""ft" % (converted_Baro, converted_alt))
+                    print_xy(19, 0, "DensitAlt: %s" % (DA.decode()))
+                    print_xy(20, 0, "WndDir:    %s" % (WD.decode()))
+                    print_xy(21, 0, "WndSpd:    %s" % (WS.decode()))
+                    print_xy(22, 0, "ChkSum:    0x%s   int:%d " % (Checksum.decode(), intCheckSum))
+                    print_xy(23, 0, "CalChkSum: %s   int:%d " % (calcChecksumHex, calcChecksum))
                     nextByte = ser.read(1)
-                    print_xy(27, 0, "endbyte:    %s " % (repr(CRLF[0])))
+                    print_xy(24, 0, "endbyte:   %s " % (repr(CRLF[0])))
             else:
                 badmessageheaderCount += 1
             ser.flushInput()
-
+        elif  dataType.decode() == "2":        # Dynon NAV, AP, etc Data Message:
+            goodmessageheaderCount += 1
+            msg = ser.read(91)
+            #skyview_data.write("!2" + msg.decode())
+            if len(msg) == 91:
+                sinceLastGoodMessage = 0
+                msg = (msg[:91]) if len(msg) > 91 else msg
+                (DataVer, SysTime, HBug, AltBug, AirBug, VSBug, Course, CDISrcType, CDISourePort, CDIScale, CDIDeflection, GS, APEng, APRollMode, UnUsed1, APPitch, UnUsed2, APRollF, APRollP, APRollSlip, APPitchF, APPitchP, APPitchSlip, APYawF, APYawP, APYawSlip, TransponderStatus, TransponderReply, TransponderIdent, TransponderCode, UnUsed3, Checksum, CRLF) = struct.unpack(
+                    "c8s3s5s4s4s3scc2s3s3sccccc3s5sc3s5sc3s5scccc4s10s2s2s", msg
+                )
+                if (CRLF[0]) == 13 or (CRLF[0]) == "\r":
+                    intCheckSum = int("0x%s" % (Checksum.decode()), 0)
+                    #print_xy(4, 0, msg.decode())
+                    calcChecksum = 33 + (sum(map(ord, msg[:87].decode())) % 256)
+                    calcChecksumHex = "0x{:02x}".format(calcChecksum)
+                    print_xy(3, 30, bcolors.OKGREEN + "NAV, AP, Misc (Type:" + (dataType.decode()) + ")" + bcolors.ENDC)
+                    #print_xy(4, 30, "DataType:     %s" % (dataType.decode()))
+                    print_xy(4, 30, "Ver:          %s" % (DataVer.decode()))
+                    print_xy(5, 30, "SysTime:      %s" % (SysTime.decode()))
+                    print_xy(6, 30, "Heading Bug:  %s" % (HBug.decode()))
+                    print_xy(7, 30, "Alt Bug:      %s" % (AltBug.decode()))
+                    print_xy(8, 30, "AS Bug:       %s" % (AirBug.decode()))
+                    print_xy(9, 30, "VS Bug:       %s" % (VSBug.decode()))
+                    print_xy(10, 30, "Course:       %s" % (Course.decode()))
+                    print_xy(11, 30, "CDI Type:     %s" % (CDISrcType.decode()))
+                    print_xy(12, 30, "CDI Port:     %s" % (CDISourePort.decode()))
+                    print_xy(13, 30, "CDI Scale:    %s" % (CDIScale.decode()))
+                    print_xy(14, 30, "CDI Deflect   %s" % (CDIDeflection.decode()))
+                    print_xy(15, 30, "VertSpd:      %s" % (GS.decode()))
+                    print_xy(16, 30, "AP Engaged:   %s" % (APEng.decode()))
+                    print_xy(17, 30, "AP Roll Mode: %s" % (APRollMode.decode()))
+                    print_xy(18, 30, "AP Pitch Mode:%s" % (APPitch.decode()))
+                    print_xy(19, 30, "AP Roll Slip: %s" % (APRollSlip.decode()))
+                    print_xy(20, 30, "APPitchSlip:  %s" % (APPitchSlip.decode()))
+                    print_xy(21, 30, "Xpnder Status:%s" % (TransponderStatus.decode()))
+                    print_xy(22, 30, "Squawk Code:  %s" % (TransponderCode.decode()))
+                    print_xy(23, 30, "ChkSum:       0x%s   int:%d " % (Checksum.decode(), intCheckSum))
+                    print_xy(24, 30, "CalChkSum:    %s   int:%d " % (calcChecksumHex, calcChecksum))
+                    nextByte = ser.read(1)
+                    print_xy(25, 30, "endbyte:      %s " % (repr(CRLF[0])))
+        elif  dataType.decode() == "3":        # Engine Data Message
+            goodmessageheaderCount += 1
+            msg = ser.read(223)
+            #skyview_data.write("!3" + msg.decode())
+            if len(msg) == 223:
+                sinceLastGoodMessage = 0
+                msg = (msg[:223]) if len(msg) > 223 else msg
+                DataVer, SysTime, OilPress, OilTemp, RPM_L, RPM_R, MAP, FF1, FF2, FP, FL_L, FL_R, Frem, V1, V2, AMPs, Hobbs, Tach, TC1, TC2, TC3, TC4, TC5, TC6, TC7, TC8, TC9, TC10, TC11, TC12, TC13, TC14, GP1, GP2, GP3, GP4, GP5, GP6, GP7, GP8, GP9, GP10, GP11, GP12, GP13, Contacts, Pwr, EGTstate, Checksum, CRLF = struct.unpack(
+                    "c8s3s4s4s4s3s3s3s3s3s3s3s3s3s4s5s5s4s4s4s4s4s4s4s4s4s4s4s4s4s4s6s6s6s6s6s6s6s6s6s6s6s6s6s16s3s1s2s2s", msg
+                )
+                # print("EMS Message !3:", msg)
+                if (CRLF[0]) == 13 or (CRLF[0]) == "\r":
+                    intCheckSum = int("0x%s" % (Checksum.decode()), 0)
+                    #print_xy(4, 0, msg.decode())
+                    calcChecksum = 33 + (sum(map(ord, msg[:219].decode())) % 256)
+                    calcChecksumHex = "0x{:02x}".format(calcChecksum)
+                    print_xy(3, 60, bcolors.OKGREEN + "  Engine (Type:" + (dataType.decode()) + ")" + bcolors.ENDC)
+                    #print_xy(4, 60,  "DataType:     %s" % (dataType.decode()))
+                    print_xy(4, 60,  "Ver:          %s" % (DataVer.decode()))
+                    print_xy(5, 60,  "SysTime:      %s" % (SysTime.decode()))
+                    print_xy(6, 60,  "Oil Pressure: %s" % (OilPress.decode()))
+                    print_xy(7, 60,  "Oil Temp:     %s" % (OilTemp.decode()))
+                    print_xy(8, 60,  "RPM Left:     %s" % (RPM_L.decode()))
+                    print_xy(9, 60,  "MAP:          %s" % (MAP.decode()))
+                    print_xy(10, 60, "Fuel Flow:    %s" % (FF1.decode()))
+                    print_xy(11, 60, "Fuel Pres:    %s" % (FP.decode()))
+                    print_xy(12, 60, "Fuel Left:    %s" % (FL_L.decode()))
+                    print_xy(13, 60, "Fuel Right:   %s" % (FL_R.decode()))
+                    print_xy(14, 60, "Fuel Rem      %s" % (Frem.decode()))
+                    print_xy(15, 60, "Voltage-1:    %s" % (V1.decode()))
+                    print_xy(16, 60, "Voltage-2:    %s" % (V2.decode()))
+                    print_xy(17, 60, "AMPs:         %s" % (AMPs.decode()))
+                    print_xy(18, 60, "Hobbs:        %s" % (Hobbs.decode()))
+                    print_xy(24, 60, "Eng Power:    %s" % (Pwr.decode()))
+                    print_xy(19, 60, "EGT1-4: %s" % (TC12.decode()) + " " + (TC10.decode()) + " " +  (TC8.decode()) + " " +  (TC6.decode()))
+                    print_xy(20, 60, "CHT1-4: %s" % (TC11.decode()) + " " + (TC9.decode()) + " "  +  (TC7.decode()) + " " +  (TC5.decode()))
+                    print_xy(21, 60, "GP1-4:  %s" % (GP1.decode()) + " " + (GP2.decode()) + " "  +  (GP3.decode()) + " " +  (GP4.decode()))
+                    print_xy(22, 60, "GP5-8:  %s" % (GP5.decode()) + " " + (GP6.decode()) + " "  +  (GP7.decode()) + " " +  (GP8.decode()))
+                    print_xy(23, 60, "GP9-13: %s" % (GP9.decode()) + " " + (GP10.decode()) + " "  +  (GP11.decode()) + " " +  (GP12.decode()) + " " +  (GP13.decode()))
+                    print_xy(25, 60, "ChkSum:      0x%s   int:%d " % (Checksum.decode(), intCheckSum))
+                    print_xy(26, 60, "CalChkSum:     %s   int:%d " % (calcChecksumHex, calcChecksum))
+                    nextByte = ser.read(1)
+                    print_xy(27, 60, "endbyte:      %s " % (repr(CRLF[0])))
         else:
             badmessageheaderCount += 1
             ser.flushInput()
             return
     except serial.serialutil.SerialException:
         print("exception")
-  
+        #skyview_data.close()
 
 def readG3XMessage():
     global ser
@@ -367,8 +452,6 @@ def readG3XMessage():
             return
     except serial.serialutil.SerialException:
         print("exception")
-
-
 
 def showArgs():
     print("TronView Serial monitor tool. Version: %s" % (version))
@@ -469,12 +552,16 @@ except:
         list_serial_ports(True)
         sys.exit()
 
-print(f"Opened port: {port} @115200 baud (cntrl-c to quit)")
+print_xy(1,0,f"Opened port: {port} @115200 baud (cntrl-c to quit)")
 
 if readType == "skyview":
-    print_xy(2, 0, "Data format: " + bcolors.OKBLUE + "Dynon Skyview" + bcolors.ENDC)
+    print_xy(1, 65, "Data format: " + bcolors.OKBLUE + "Dynon Skyview" + bcolors.ENDC)
+    print_xy(2, 0, "                                        ")  # clear line 2
+    print_xy(3, 0, "                                        ")  # clear line 3
+    #skyview_data = open('skyview_data_x.txt','a')
     while 1:
         readSkyviewMessage()
+    #skyview_data.close()
 elif readType == "mgl":
     print_xy(2, 0, "Data format: " + bcolors.OKBLUE + "MGL" + bcolors.ENDC)
     while 1:

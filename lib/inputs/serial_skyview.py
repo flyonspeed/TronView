@@ -30,7 +30,7 @@ class serial_skyview(Input):
         if(self.PlayFile!=None and self.PlayFile!=False):
             # load playback file.
             if self.PlayFile==True:
-                defaultTo = "dynon_skyview_data1.txt"
+                defaultTo = "dynon_skyview_data2.txt"
                 self.PlayFile = hud_utils.readConfig(self.name, "playback_file", defaultTo)
             self.ser,self.input_logFileName = Input.openLogFile(self,self.PlayFile,"r")
             self.isPlaybackMode = True

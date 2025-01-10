@@ -174,9 +174,11 @@ if __name__ == "__main__":
     
     # Replace individual input arguments with dynamic argument handling
     input_args = {}
-    for i in range(1, 100):  # Support up to 99 inputs
-        parser.add_argument(f'--in{i}', type=str, help=f'Input source {i}')
-        parser.add_argument(f'--playfile{i}', type=str, help=f'Playback file for input {i}')
+    parser.add_argument(f'--in1', type=str, help="--in1-100 input to use")
+    parser.add_argument(f'--playfile1', type=str, help="--playfile1-100 playback file to use for this input")
+    for i in range(2, 100):  # Support up to 99 inputs
+        parser.add_argument(f'--in{i}', type=str, help=argparse.SUPPRESS)
+        parser.add_argument(f'--playfile{i}', type=str, help=argparse.SUPPRESS)
     
     args = parser.parse_args()
     

@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/imgs/tronview_thumb.png?raw=true" alt="logo">
+</p>
+
 # TronView
 Project for connecting EFIS or any external sensor data to a Screen, HUD, or AR glasses.  This was created for the aviation community but can be used for any application where you want to display data in a custom GUI (and interact with it).
 

@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/imgs/tronview_thumb.png?raw=true" alt="logo">
+  <img src="docs/imgs/logo_black.png?raw=true" alt="logo">
 </p>
 
 # TronView

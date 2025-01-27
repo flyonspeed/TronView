@@ -5,6 +5,7 @@
 # To create your own screen duplicate this file and rename class DefaultScreen to your new filename (without the .py)
 # for example MyHud.py would have a class name of MyHud in it.
 # 7/9/2021 Topher.
+# 1/27/2025 removed menu module... this default.py is no longer used.. we now use the json to define the screens.
 
 from ._screen import Screen
 from .. import hud_graphics
@@ -15,7 +16,7 @@ from lib.modules.efis.artificalhorz import artificalhorz
 from lib.modules.hud.horizon import horizon
 from lib.modules.hud.aoa import aoa
 from lib.modules.hud.slipskid import slipskid
-from lib.modules.gui.menu import _menu
+#from lib.modules.gui.menu import _menu    # no longer used
 from lib.modules.efis.trafficscope import trafficscope
 
 class Default(Screen):
@@ -62,8 +63,8 @@ class Default(Screen):
         self.slipskid = slipskid.slipskid()
         self.slipskid.initMod(self.pygamescreen, 250, 50)
 
-        self.menu = _menu.menu()
-        self.menu.initMod(self.pygamescreen, 400, 300, "Options")
+        #self.menu = _menu.menu()
+        #self.menu.initMod(self.pygamescreen, 400, 300, "Options")
 
         self.trafficScope = trafficscope.trafficscope()
         self.trafficScope.initMod(self.pygamescreen, 400, 400)

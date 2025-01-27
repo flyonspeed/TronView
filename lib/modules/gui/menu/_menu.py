@@ -11,7 +11,7 @@ from lib import smartdisplay
 from lib.common.dataship import dataship
 import pygame
 import math
-import pygame_menu
+#import pygame_menu
 from typing import Tuple, Any
 
 class menu(Module):

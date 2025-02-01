@@ -7,4 +7,5 @@ serial        == 0.0.97
 kivy          == 2.1.0
 numpy-stl>=2.17.1 
 https://github.com/kivy/kivy3/archive/master.zip
+pynmea2      == 2.5.0
 

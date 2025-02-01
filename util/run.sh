@@ -521,10 +521,11 @@ while $RUN_MENU_AGAIN; do
                                       "3" "Read Serial MGL" \
                                       "4" "Read Serial Dynon Skyview" \
                                       "5" "Read Serial Garmin G3x" \
-                                      "6" "Test Stratux and iLevil WiFi connection" \
-                                      "7" "I2C Test (Pi only)" \
-                                      "8" "3D Sphere" \
-                                      "9" "bno085 calibration (Pi only)" \
+                                      "6" "Read NMEA GPS data" \
+                                      "7" "Test Stratux and iLevil WiFi connection" \
+                                      "8" "I2C Test (Pi only)" \
+                                      "9" "3D Sphere" \
+                                      "10" "bno085 calibration (Pi only)" \
                                       2>&1 1>&3)
                     exit_status=$?
                     exec 3>&-
@@ -536,10 +537,11 @@ while $RUN_MENU_AGAIN; do
                             3) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/serial_read.py -m" ;;
                             4) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/serial_read.py -s" ;;
                             5) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/serial_read.py -g" ;;
-                            6) FULL_COMMAND="$TRONVIEW_DIR/util/tests/test_stratux_wifi.sh" ;;
-                            7) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/i2c_test.py" ;;
-                            8) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/3d/sphere.py" ;;
-                            9) FULL_COMMAND="python3 $TRONVIEW_DIR/util/rpi/i2c/calibrate_bno085.py" ;;
+                            6) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/nmea_gps.py -a" ;;
+                            7) FULL_COMMAND="$TRONVIEW_DIR/util/tests/test_stratux_wifi.sh" ;;
+                            8) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/i2c_test.py" ;;
+                            9) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/3d/sphere.py" ;;
+                            10) FULL_COMMAND="python3 $TRONVIEW_DIR/util/rpi/i2c/calibrate_bno085.py" ;;
                         esac
                         echo "Running: $FULL_COMMAND"
                         #exit 0

@@ -87,7 +87,7 @@ if [ $(cat /etc/os-release | grep "Debian GNU/Linux 12" | wc -l) -eq 1 ]; then
 	sudo pip3 install numpy-stl --break-system-packages
 	sudo pip3 install kivy --break-system-packages
 	sudo pip3 install https://github.com/kivy/kivy3/archive/master.zip --break-system-packages
-
+	sudo pip3 install pynmea2 --break-system-packages
 	pip_args="--break-system-packages"
 
 fi
@@ -111,6 +111,7 @@ if [ $(cat /etc/os-release | grep "GNU/Linux 11" | wc -l) -eq 1 ]; then
 	sudo pip3 install numpy-stl
 	sudo pip3 install kivy
 	sudo pip3 install https://github.com/kivy/kivy3/archive/master.zip
+	sudo pip3 install pynmea2
 
 	# check if python 3.9.2 is installed
 	if [ $(python3 --version | grep "3.9.2" | wc -l) -eq 1 ]; then

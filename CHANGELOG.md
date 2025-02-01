@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.0.24] - 2025-02-01
+
+- nmea gps test script added
+
+
+
 ## [0.0.23] - 2025-01-05
 
 - 3d tests added

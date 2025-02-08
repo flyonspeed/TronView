@@ -5,43 +5,58 @@
 # 1/23/2019 Topher
 # 11/4/2024 - Adding debug, and working on AHRS message parsing. 
 # 11/6/2024  Added IMU data.
-
-from ._input import Input
-from lib import hud_utils
+# 1/3/2025  Added dataship refacor
+# 2/9/2025  Added gpsData object to the module.
 import struct
-from lib import hud_text
 import binascii
 import time
 import socket
 import re
-import sys
 import traceback
-from lib.common.dataship.dataship import Target
 import time
 import math
 from geographiclib.geodesic import Geodesic
 import datetime
-from lib.common.dataship.dataship import IMU
+from ..common.dataship.dataship import Dataship
+from ..common.dataship.dataship_imu import IMUData
+from ..common.dataship.dataship_gps import GPSData
+from ..common.dataship.dataship_air import AirData
+from ..common.dataship.dataship_targets import TargetData, Target
+from ._input import Input
+from ..common import shared
+from . import _input_file_utils
+
 
 class stratux_wifi(Input):
     def __init__(self):
         self.name = "stratux"
         self.version = 1.0
         self.inputtype = "network"
+        self.PlayFile = None
+        self.imu_index = 0
+        self.imuData = None
+        self.gps_index = 0
+        self.gpsData = None
+        self.airdata_index = 0
+        self.airData = None
+        self.targetData_index = 0
+        self.targetData = None
+        self.dataship = None
 
-    def initInput(self,num,aircraft):
-        Input.initInput( self,num, aircraft )  # call parent init Input.
+    def initInput(self, num, dataship: Dataship):
+        Input.initInput( self,num, dataship )  # call parent init Input.
+        self.dataship = dataship
 
         if(self.PlayFile!=None and self.PlayFile!=False):
             # if in playback mode then load example data file.
             # get file to read from config.  else default to..
             if self.PlayFile==True:
                 defaultTo = "stratux_9.dat"
-                self.PlayFile = hud_utils.readConfig(self.name, "playback_file", defaultTo)
+                self.PlayFile = "../data/stratux/"+defaultTo
             self.ser,self.input_logFileName = Input.openLogFile(self,self.PlayFile,"rb")
             self.isPlaybackMode = True
         else:
-            self.udpport = hud_utils.readConfigInt("Stratux", "udpport", "4000")
+            self.udpport = _input_file_utils.readConfigInt("Stratux", "udpport", "4000")
 
             # open udp connection.
             self.ser = socket.socket(socket.AF_INET, #Internet
@@ -62,18 +77,43 @@ class stratux_wifi(Input):
             defaultUseAHRS = True
         else: 
             defaultUseAHRS = False
-        self.use_ahrs = hud_utils.readConfigBool("Stratux", "use_ahrs", defaultUseAHRS)
+        self.use_ahrs = _input_file_utils.readConfigBool("Stratux", "use_ahrs", defaultUseAHRS)
         if(self.use_ahrs==False):
             print("Skipping AHRS data from Stratux")
 
         # create a empty imu object.
-        self.imuData = IMU()
+        self.imuData = IMUData()
         self.imuData.id = "stratux_imu"
         self.imuData.name = self.name
-        self.imu_index = len(aircraft.imus)  # Start at 0
+        self.imu_index = len(dataship.imuData)  # Start at 0
         print("new stratux imu "+str(self.imu_index)+": "+str(self.imuData))
-        aircraft.imus[self.imu_index] = self.imuData
+        dataship.imuData.append(self.imuData)
         self.last_read_time = time.time()
+
+        # create a empty gps object.
+        self.gpsData = GPSData()
+        self.gpsData.id = "stratux_gps"
+        self.gpsData.name = self.name
+        self.gps_index = len(dataship.gpsData)  # Start at 0
+        print("new stratux gps "+str(self.gps_index)+": "+str(self.gpsData))
+        dataship.gpsData.append(self.gpsData)
+
+        # create a empty aircraft object.
+        self.airData = AirData()
+        self.airData.id = "stratux_aircraft"
+        self.airData.name = self.name
+        self.airdata_index = len(dataship.airData)  # Start at 0
+        print("new stratux airData "+str(self.airdata_index)+": "+str(self.airData))
+        dataship.airData.append(self.airData)
+
+        # create a empty targets object.
+        self.targetData = TargetData()
+        self.targetData.id = "stratux_targets"
+        self.targetData.source = "stratux"
+        self.targetData.name = self.name
+        self.targetData_index = len(dataship.targetData)  # Start at 0
+        print("new stratux targets "+str(self.targetData_index)+": "+str(self.targetData))
+        dataship.targetData.append(self.targetData)
 
 
     def closeInput(self,aircraft):
@@ -132,15 +172,17 @@ class stratux_wifi(Input):
 
     #############################################
     ## Function: readMessage
-    def readMessage(self, aircraft):
-        if self.shouldExit == True: aircraft.errorFoundNeedToExit = True
-        if aircraft.errorFoundNeedToExit: return aircraft
-        if self.skipReadInput == True: return aircraft
-        msg = self.getNextChunck(aircraft)
+    def readMessage(self, dataship: Dataship):
+        if self.shouldExit == True: dataship.errorFoundNeedToExit = True
+        if dataship.errorFoundNeedToExit: return dataship
+        if self.skipReadInput == True: return dataship
+        msg = self.getNextChunck(dataship)
         #count = msg.count(b'~~')
         #print("-----------------------------------------------\nNEW Chunk len:"+str(len(msg))+" seperator count:"+str(count))
-        if(aircraft.debug_mode>1):
-            print("stratux: "+str(msg[1])+" "+str(msg[2])+" "+str(msg[3])+" "+str(len(msg))+" "+str(msg))
+        if(dataship.debug_mode>2):
+            if len(msg) >= 4:
+                print("stratux: "+str(msg[1])+" "+str(msg[2])+" "+str(msg[3])+" "+str(len(msg))+" "+str(msg))
+            
 
         for line in msg.split(b'~~'):
             theLen = len(line)
@@ -152,20 +194,15 @@ class stratux_wifi(Input):
                     newline = line
                 if(newline[theLen-1]!=126): # add ~ on the end if not there.
                     newline = b''.join([newline,b'~'])
-                aircraft = self.processSingleMessage(newline,aircraft)
+                dataship = self.processSingleMessage(newline,dataship)
 
                 if self.output_logFile != None:
                     Input.addToLog(self,self.output_logFile,newline)
 
-            #key = wait_key()
-            #if(key=='q'): aircraft.errorFoundNeedToExit = True
-
-
-
-        return aircraft
+        return dataship
 
     #############################################
-    def processSingleMessage(self, msg, aircraft):
+    def processSingleMessage(self, msg, dataship):
         try:
             
             if(len(msg)<1):
@@ -173,11 +210,8 @@ class stratux_wifi(Input):
             elif(msg[0]==126 and msg[1]==ord('L') and msg[2]==ord('E')):  # Check for Levil specific messages ~LE
                 #print(msg)
                 #print("Len:"+str(len(msg)))
-                if(aircraft.debug_mode>0):
-                    print("Message ID "+format(msg[3]));
-                # check if we want to read in ahrs data input.
-                # if(self.use_ahrs == False):
-                #     return aircraft
+                #if(dataship.debug_mode>0):
+                #    print("Message ID "+format(msg[3]));
 
                 if(msg[3]==0): # status message
                     #print(msg)
@@ -188,13 +222,12 @@ class stratux_wifi(Input):
                     self.Battery = Batt
                     if(msg[4]==2):
                         if(WAAS==1):
-                            aircraft.gps.GPSWAAS = 1
+                            self.gpsData.GPSWAAS = True
                         else:
-                            aircraft.gps.GPSWAAS = 0
-
+                            self.gpsData.GPSWAAS = False
 
                 elif(msg[3]==1): # ahrs and air data.
-                    if(aircraft.debug_mode>0):
+                    if(dataship.debug_mode>2):
                         print("ahrs levil :"+str(len(msg))+" "+str(msg[len(msg)-1]))
                     if(len(msg)==28):
                         # //###########################################################################################################################
@@ -209,57 +242,54 @@ class stratux_wifi(Input):
                         Roll,Pitch,Yaw,Inclin,TurnCoord,GLoad,ias,pressAlt,vSpeed,AOA,OAT = struct.unpack(">hhhhhhhHhBB",msg[5:25]) 
 
                         # Update IMU data
-                        self.imuData.roll = None if Roll == 32767 else Roll / 10
-                        self.imuData.pitch = None if Pitch == 32767 else Pitch / 10
-                        self.imuData.yaw = None if Yaw == 32767 else Yaw / 10
-                        self.imuData.heading = self.imuData.yaw
-                        self.imuData.updatePos(self.imuData.pitch, self.imuData.roll, self.imuData.heading)
+                        roll = None if Roll == 32767 else Roll / 10
+                        pitch = None if Pitch == 32767 else Pitch / 10
+                        yaw = None if Yaw == 32767 else Yaw / 10
+                        self.imuData.updatePos(pitch, roll, yaw)
 
-                        self.imuData.slip_skid = None if TurnCoord == 32767 else TurnCoord / 100
-                        self.imuData.vert_G = None if GLoad == 32767 else GLoad / 10
+                        self.imuData.Slip_Skid = None if TurnCoord == 32767 else TurnCoord / 100
+                        self.imuData.Vert_G = None if GLoad == 32767 else GLoad / 10
 
-                        if aircraft.debug_mode > 0:
+                        if dataship.debug_mode > 0:
                             current_time = time.time() # calculate hz.
                             self.imuData.hz = round(1 / (current_time - self.last_read_time), 1)
                             self.last_read_time = current_time
-                        # Update the IMU in the aircraft's imus dictionary
-                        aircraft.imus[self.imu_index] = self.imuData                        
 
-                        if self.use_ahrs or self.imu_index == 0:
-                            aircraft.roll = self.imuData.roll
-                            aircraft.pitch = self.imuData.pitch
-                            aircraft.mag_head = self.imuData.heading
-                            aircraft.slip_skid = self.imuData.slip_skid
-                            aircraft.vert_G = self.imuData.vert_G
-                            aircraft.ias = ias # if ias is 32767 then no airspeed given?
-                            aircraft.PALT = pressAlt -5000 # 5000 is sea level.
-                            aircraft.vsi = vSpeed
-                            if(msg[4]==2): # if version is 2 then read AOA and OAT
-                                aircraft.aoa = AOA
-                                aircraft.oat = OAT
-                        if(self.textMode_showRaw==True): aircraft.msg_last = msg
-                        aircraft.msg_count += 1
+                        if(ias != 32767):
+                            self.airData.IAS = ias # if ias is 32767 then no airspeed given?
+                            self.airData.PALT = pressAlt -5000 # 5000 is sea level.
+                            self.airData.vsi = vSpeed
+
+                        if(msg[4]==2): # if version is 2 then read AOA and OAT
+                            self.airData.AOA = AOA
+                            self.airData.OAT = OAT
+
+                        self.imuData.msg_count += 1
 
                     else:
-                        aircraft.msg_bad +=1
+                        self.imuData.msg_bad +=1
                         #aircraft.msg_len = len(msg)
 
                 elif(msg[3]==2): # more metrics.. 
                     #print("additonal metrics message len:"+str(len(msg)))
                     AOA,OAT = struct.unpack(">BB",msg[5:7]) 
-                    aircraft.aoa = AOA
-                    aircraft.oat = OAT
+                    self.airData.AOA = AOA
+                    self.airData.OAT = OAT
 
-                elif(msg[3]==7):
+                elif(msg[3]==7): # WAAS status
                     #print("additonal metrics message len:"+str(len(msg)))
                     WAASstatus, Sats, Power, OutRate = struct.unpack(">BBHB",msg[5:10]) 
-                    aircraft.gps.SatsTracked = Sats
-                    aircraft.gps.msg_count += 1
+                    self.gpsData.SatsTracked = Sats
+                    self.gpsData.msg_count += 1
+                    self.gpsData.GPSWAAS = WAASstatus
+
+                    if(dataship.debug_mode>1):
+                        print(f"GPS status: {WAASstatus} Sats:{Sats} Power:{Power} OutRate:{OutRate}")
 
                 else:
                     #print("unkown message id:"+str(msg[3])+" len:"+str(len(msg)))
                     #print(msg)
-                    aircraft.msg_unknown += 1 #else unknown message.
+                    self.imuData.msg_unknown += 1 #else unknown message.
                     
                 if self.isPlaybackMode:  #if playback mode then add a delay.  Else reading a file is way to fast.
                     time.sleep(.02)
@@ -268,9 +298,6 @@ class stratux_wifi(Input):
                     #else reading realtime data via udp connection
                     pass
 
-                if(self.textMode_showRaw==True): aircraft.msg_last = binascii.hexlify(msg) # save last message.
-
-                return aircraft
 
             else:
                 #print("GDL 90 message id:"+str(msg[1])+" "+str(msg[2])+" "+str(msg[3])+" len:"+str(len(msg)))
@@ -278,61 +305,101 @@ class stratux_wifi(Input):
                 #aircraft.msg_bad += 1 #bad message found.
                 if(msg[1]==0): # GDL heart beat. 
                     #print("GDL 90 HeartBeat message id:"+str(msg[1])+" len:"+str(len(msg)))
-                    #print(msg.hex())
-                    #Status1,Status2 = struct.unpack(">BB",msg[2:4]) 
-                    #Time = struct.unpack(">H",msg[4:6]) 
-                    #print("Time "+str(Time))
                     if(len(msg)==11):
                         statusByte2 = msg[3]
                         timeStamp = _unsigned16(msg[4:], littleEndian=True)
                         if (statusByte2 & 0b10000000) != 0:
                             timeStamp += (1 << 16)
-                        aircraft.traffic.lcl_time_string = str(datetime.timedelta(seconds=int(timeStamp)))   # get time stamp for gdl hearbeat.
-                        self.time_stamp_string = aircraft.traffic.lcl_time_string
-                        timeObj = datetime.datetime.strptime(aircraft.traffic.lcl_time_string, "%H:%M:%S")
-                        self.time_stamp_min = int(timeObj.minute)
-                        self.time_stamp_sec = int(timeObj.second)
+                        self.gpsData.GPSTime_string = str(datetime.timedelta(seconds=int(timeStamp)))   # get time stamp for gdl hearbeat.
+                        timeObj = datetime.datetime.strptime(self.gpsData.GPSTime_string, "%H:%M:%S")
+                        self.gpsData.GPSTime = timeObj.time
 
-                    if(self.use_ahrs==True): 
-                        aircraft.sys_time_string = aircraft.traffic.lcl_time_string
+                elif(msg[1]==10): # GDL ownership (Latitude, Longitude, Altitude, Speed, Heading)
+                    '''
+                    The GDL 90 will always output an Ownship Report message once per second. The message
+                    uses the same format as the Traffic Report, with the Message ID set to the value 10
 
-                elif(msg[1]==10): # GDL ownership
+                    The Ownship Report is output by the GDL 90 regardless of whether a valid GPS position fix is
+                    available. If the ownship GPS position fix is invalid, the Latitude, Longitude, and NIC fields in
+                    the Ownship Report all have the ZERO value.
+                    Ownship geometric altitude is provided in a separate message (SW Mod C).
+
+                    Traffic Report data = st aa aa aa ll ll ll nn nn nn dd dm ia hh hv vv tt ee cc cc cc cc cc cc cc cc px
+                    Field Definition:
+                    s Traffic Alert Status. s = 1 indicates that a Traffic Alert is active for this target.
+                    t Address Type: Describes the type of address conveyed in the Participant Address field:
+                    aa aa aa Participant Address (24 bits).
+                    ll ll ll Latitude: 24-bit signed binary fraction. Resolution = 180 / 223 degrees.
+                    nn nn nn Longitude: 24-bit signed binary fraction. Resolution = 180 / 223 degrees.
+                    ddd Altitude: 12-bit offset integer. Resolution = 25 feet. Altitude (ft) = ("ddd" * 25) - 1,000
+                    m Miscellaneous indicators: (see text)
+                    i Navigation Integrity Category (NIC):
+                    a Navigation Accuracy Category for Position (NACp):
+                    hhh Horizontal velocity. Resolution = 1 kt.
+                    vvv Vertical Velocity: Signed integer in units of 64 fpm.
+                    tt Track/Heading: 8-bit angular weighted binary. Resolution = 360/256 degrees. 0 = North, 128 = South. See Miscellaneous field for Track/Heading indication.
+                    ee Emitter Category
+                    cc cc cc cc
+                    cc cc cc cc Call Sign: 8 ASCII characters, '0' through '9' and 'A' through 'Z'.
+                    p Emergency/Priority Code:
+                    x Spare (reserved for future use)
+                    
+                    '''
                     #print("GDL 90 owership id:"+str(msg[1])+" len:"+str(len(msg)))
                     if(len(msg)==32):
 
                         # save gps data coming from traffic source..
-                        latLongIncrement = 180.0 / (2**23)
-                        aircraft.traffic.src_lat = _signed24(msg[6:]) * latLongIncrement
-                        aircraft.traffic.src_lon = _signed24(msg[9:]) * latLongIncrement
-                        alt = _thunkByte(msg[12], 0xff, 4) + _thunkByte(msg[13], 0xf0, -4)
-                        aircraft.traffic.src_alt = (alt * 25) - 1000
+                        latLongIncrement = 180.0 / (2**23) # == 0.0000001490116119384765625
+                        src_lat = _signed24(msg[6:]) * latLongIncrement
+                        src_lon = _signed24(msg[9:]) * latLongIncrement
+                        alt = _thunkByte(msg[12], 0xff, 4) + _thunkByte(msg[13], 0xf0, -4) # alt in feet MSL
+                        src_alt = (alt * 25) - 1000 # convert to feet MSL (from GDL90 format
+
+                        self.gpsData.set_gps_location(src_lat, src_lon, src_alt)
+
+                        # set source lat/lon/alt. this is what is used to calculate distance to target.
+                        self.targetData.src_lat = src_lat
+                        self.targetData.src_lon = src_lon
+                        self.targetData.src_alt = src_alt
 
                         horzVelo = _thunkByte(msg[15], 0xff, 4) + _thunkByte(msg[16], 0xf0, -4)
                         if horzVelo == 0xfff:  # no info available
-                            horzVelo = None
-                        aircraft.traffic.src_gndspeed = int(horzVelo)
+                            self.gpsData.GndSpeed = None
+                        else:
+                            self.gpsData.GndSpeed = int(horzVelo) # ground speed in knots
 
-                        trackIncrement = 360.0 / 256
-                        aircraft.traffic.src_gndtrack = int(msg[18] * trackIncrement)  # track/heading, 0-358.6 degrees
+                        if(msg[18] != 255):
+                            self.gpsData.GndTrack = int(msg[18] * 1.40625)  # track/heading, 0-358.6 degrees
+                        else:
+                            self.gpsData.GndTrack = None
 
-                        # if no gps data is currently being tracked then use it from GDL source.
-                        if(aircraft.gps.Source == None or aircraft.gps.Source == self.name):
-                            aircraft.gps.Source = self.name
-                            aircraft.gps.LatDeg = aircraft.traffic.src_lat
-                            aircraft.gps.LonDeg = aircraft.traffic.src_lon
-                            aircraft.gps.GPSAlt = aircraft.traffic.src_alt
-                            aircraft.gps.GPSStatus = 3
-                            aircraft.gps.GndSpeed = aircraft.traffic.src_gndspeed
-                            aircraft.gndtrack = aircraft.traffic.src_gndtrack
-                            aircraft.gps.GndTrack = aircraft.traffic.src_gndtrack
+                        # get NIC
+                        self.gpsData.Accuracy = _thunkByte(msg[14], 0xf0, -4)
+
+                        self.gpsData.msg_count += 1
+
+                        if(dataship.debug_mode>0):
+                            print(f"GPS Data: {self.gpsData.GPSTime_string} {self.gpsData.Lat} {self.gpsData.Lon} {self.gpsData.GndSpeed} {self.gpsData.GndTrack}")
+
 
                 elif(msg[1]==11): # GDL OwnershipGeometricAltitude
-                    if(self.use_ahrs==False): return aircraft
                     # get alt from GDL90
-                    aircraft.alt = _signed16(msg[2:]) * 5
+                    self.gpsData.AltPressure = _signed16(msg[2:]) * 5
+                    if(dataship.debug_mode>1):
+                        print(f"GPS Altitude: {self.gpsData.AltPressure}m")
 
                 elif(msg[1]==20): # Traffic report
-                    #print("GDL 90 Traffic message id:"+str(msg[1])+" len:"+str(len(msg)))
+                    '''
+                    The Traffic Report data consists of 27 bytes of binary data as shown in Figure 2. Each field that
+                    makes up the report is a multiple of 4 bits. Each lower case character represents a 4-bit value.
+                    Each pair of lower-case characters represents a single byte value.
+                    For example, Byte 2 of this message is the first byte of the Traffic Report data, and contains the
+                    value "0xst", where "s" represents the Traffic Alert Status and occupies Byte 2 bits 7..4, and 't'
+                    represents the Address Type and occupies Byte 2 bits 3..0. Similarly, Byte 28 contains the value
+                    "0xpx".
+                    '''
+                    #if(dataship.debug_mode>0):
+                    #    print("GDL 90 Traffic message id:"+str(msg[1])+" len:"+str(len(msg)))
                     if(len(msg)==32): 
                         #print(msg.hex())
 
@@ -350,7 +417,7 @@ class stratux_wifi(Input):
                         target.lon = _signed24(msg[9:]) * latLongIncrement
                         # alt of target.
                         alt = _thunkByte(msg[12], 0xff, 4) + _thunkByte(msg[13], 0xf0, -4)
-                        target.alt = (alt * 25) - 1000
+                        target.alt = (alt * 25) - 1000 # alt in feet MSL (from GDL90 format)
 
                         target.misc = _thunkByte(msg[13], 0x0f) # misc
                         target.NIC = _thunkByte(msg[14], 0xf0, -4) # NIC
@@ -360,7 +427,7 @@ class stratux_wifi(Input):
                         horzVelo = _thunkByte(msg[15], 0xff, 4) + _thunkByte(msg[16], 0xf0, -4)
                         if horzVelo == 0xfff:  # no hvelocity info available
                             horzVelo = 0
-                        target.speed = int(horzVelo * 1.15078) # convert to mph
+                        target.speed = round(horzVelo * 1.15078,1) # convert to mph
                         # heading
                         trackIncrement = 360.0 / 256
                         target.track = int(msg[18] * trackIncrement)  # track/heading, 0-358.6 degrees
@@ -376,50 +443,34 @@ class stratux_wifi(Input):
 
                         target.cat = int(msg[19]) # emitter category (type/size of aircraft)
 
-                        # # check distance and brng to target. if we know our location..
-                        # if(aircraft.gps.LatDeg != None and aircraft.gps.LonDeg != None and target.lat != 0 and target.lon != 0):
-                        #     target.dist = _distance(aircraft.gps.LatDeg,aircraft.gps.LonDeg,target.lat,target.lon)
-                        #     if(target.dist<500):
-                        #         brng = Geodesic.WGS84.Inverse(aircraft.gps.LatDeg,aircraft.gps.LonDeg,target.lat,target.lon)['azi1']
-                        #         if(brng<0): target.brng = int(360 - (abs(brng))) # convert foward azimuth to bearing to.
-                        #         elif(brng!=brng):
-                        #             #its NaN.
-                        #             target.brng = None
-                        #         else: target.brng = int(brng)
-                        # # check difference in altitude from self.
-                        # if(aircraft.gps.GPSAlt != None and target.alt != None):
-                        #     target.altDiff = target.alt - aircraft.gps.GPSAlt
+                        self.targetData.addTarget(target) # add/update target to traffic list.
+                        if(dataship.debug_mode>0):
+                            print(f"GDL 90 Target: {target.callsign} {target.type} {target.address} {target.lat} {target.lon} {target.alt} {target.speed} {target.track} {target.vspeed}")
 
-                        aircraft.traffic.addTarget(target,aircraft) # add/update target to traffic list.
-
-                        aircraft.traffic.msg_count += 1
+                        self.targetData.msg_count += 1
                     else:
-                        aircraft.traffic.msg_bad += 1
-
-                    if(self.textMode_showRaw==True): 
-                        aircraft.traffic.msg_last = binascii.hexlify(msg)
-                        aircraft.traffic.msg_len = len(msg)
+                        self.targetData.msg_bad += 1
 
                 elif(msg[1]==101): # Foreflight id?
                     pass
                 
                 else: # unknown message id
-                    if(aircraft.debug_mode>0):
-                        print("stratuxmessage id:"+str(msg[1])+" "+str(msg[2])+" "+str(msg[3])+" len:"+str(len(msg)))
+                    if(self.dataship.debug_mode>0):
+                        print("stratuxmessage unkown id:"+str(msg[1])+" "+str(msg[2])+" "+str(msg[3])+" len:"+str(len(msg)))
                     pass
 
-                if(self.textMode_showRaw==True): 
-                    aircraft.gdl_msg_last = binascii.hexlify(msg) # save last message.
-                    msgNum = int(msg[1])
-                    if(msgNum!=20 and msgNum != 10 and msgNum != 11 and msgNum != 83):
-                        aircraft.gdl_msg_last_id = " "+str(msgNum)+" "
+                # if(self.textMode_showRaw==True): 
+                #     dataship.gdl_msg_last = binascii.hexlify(msg) # save last message.
+                #     msgNum = int(msg[1])
+                #     if(msgNum!=20 and msgNum != 10 and msgNum != 11 and msgNum != 83):
+                #         dataship.gdl_msg_last_id = " "+str(msgNum)+" "
 
 
 
-            return aircraft
+            return dataship
         except ValueError as e :
             print("stratux value error exception")
-            aircraft.errorFoundNeedToExit = True
+            dataship.errorFoundNeedToExit = True
             print(e)
             print(traceback.format_exc())
         except struct.error:
@@ -427,10 +478,10 @@ class stratux_wifi(Input):
             #print("Error with read in length")
             pass
         except Exception as e:
-            aircraft.errorFoundNeedToExit = True
+            dataship.errorFoundNeedToExit = True
             print(e)
             print(traceback.format_exc())
-        return aircraft
+        return dataship
 
 
 def _unsigned24(data, littleEndian=False):

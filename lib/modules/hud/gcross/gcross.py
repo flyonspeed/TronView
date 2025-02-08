@@ -9,7 +9,10 @@ from lib.modules._module import Module
 from lib import hud_graphics
 from lib import hud_utils
 from lib import smartdisplay
-from lib.common.dataship import dataship
+from lib.common.dataship.dataship import Dataship
+from lib.common.dataship.dataship_imu import IMUData
+from lib.common.dataship.dataship_air import AirData
+from lib.common import shared
 import pygame
 import math
 import time
@@ -21,6 +24,9 @@ class gcross(Module):
         self.name = "HUD gcross"  # set name
         self.GunSightMode = 4 # Visual mode this gun sight is in.
         self.TargetWingSpan = 0 # value to show user of target wing span.
+
+        self.imuData = IMUData()
+        self.airData = AirData()
 
     # called once for setup
     def initMod(self, pygamescreen, width=None, height=None):
@@ -50,15 +56,22 @@ class gcross(Module):
 
         self.TargetWingSpan - 0
 
+        self.imuData = IMUData()
+        self.airData = AirData()
+        if len(shared.Dataship.imuData) > 0:
+            self.imuData = shared.Dataship.imuData[0]
+        if len(shared.Dataship.airData) > 0:
+            self.airData = shared.Dataship.airData[0]
+
     # called every redraw for the mod
-    def draw(self, aircraft, smartdisplay, pos):
+    def draw(self, dataship, smartdisplay, pos):
         # clear the surface transparent
         self.surface.fill((0, 0, 0, 0))  # clear surface
 
         x, y = pos
 
         # Adjust all drawing operations to use self.surface instead of smartdisplay.pygamescreen or self.pygamescreen
-        pipper_posn = (int(self.width / 2), int((self.height / 2 + self.y_offset) - (aircraft.vsi / 4)))
+        pipper_posn = (int(self.width / 2), int((self.height / 2 + self.y_offset) - (self.airData.VSI / 4)))
         color = self.GColor_color   
         traffic_nm = 0.95
         

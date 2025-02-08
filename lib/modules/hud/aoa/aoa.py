@@ -10,11 +10,13 @@ from lib.modules._module import Module
 from lib import hud_graphics
 from lib import hud_utils
 from lib import smartdisplay
-from lib.common.dataship import dataship
+from lib.common.dataship.dataship import Dataship
+from lib.common.dataship.dataship_imu import IMUData
+from lib.common.dataship.dataship_air import AirData
 import pygame
 import math
 import numpy as np
-
+from lib.common import shared
 
 class aoa(Module):
     # called only when object is first created.
@@ -65,23 +67,28 @@ class aoa(Module):
 
         self.aoa_color = (255, 255, 255)  # start with white.
 
-    # called every redraw for the mod
-    def draw(self, aircraft, smartdisplay, pos):
+        self.imuData = IMUData()
+        self.airData = AirData()
+        if len(shared.Dataship.imuData) > 0:
+            self.imuData = shared.Dataship.imuData[0]
+        if len(shared.Dataship.airData) > 0:
+            self.airData = shared.Dataship.airData[0]
 
+    # called every redraw for the mod
+    def draw(self, dataship, smartdisplay, pos):
         self.surface.fill((0, 0, 0))  # clear surface
         x,y = pos
 
-        #------------------------------------------
         # Get the current time in milliseconds
         current_time = pygame.time.get_ticks()      
         # Call above AOA array data to adjust display for changing aoa input
-        adjusted_aoa = self.adjust_aoa(aircraft.aoa)
+        adjusted_aoa = self.adjust_aoa(self.airData.AOA)
         
-        # Define the flashing interval in milliseconds (e.g., flash every 500 ms)
+        # Define the flashing interval in milliseconds
         flash_interval = 500   # AOA Flash interval for dangerous AOA/stall condition
           
-        # AOA Graphic Color changes per AOA input ---        if aircraft.aoa is not None and aircraft.aoa > 89 and (current_time // flash_interval) % 2 == 0:----------------------------------------------
-        if aircraft.aoa is not None and aircraft.aoa > 89 and (current_time // flash_interval) % 2 == 0: #aircraft.aoa is not None and 
+        # AOA Graphic Color changes per AOA input
+        if self.airData.AOA is not None and self.airData.AOA > 89 and (current_time // flash_interval) % 2 == 0:
             hud_graphics.hud_draw_circle(
                 self.pygamescreen, 
                 (127, 127, 127), # color Gray
@@ -117,7 +124,7 @@ class aoa(Module):
                 (x, y ),
                 8,
             )
-        elif aircraft.aoa is not None and aircraft.aoa > 68 and aircraft.aoa <= 89:   #-------------------------------------------------
+        elif self.airData.AOA is not None and self.airData.AOA > 68 and self.airData.AOA <= 89:
             hud_graphics.hud_draw_circle(
                 self.pygamescreen, 
                 ( 127, 127, 127), # color Gray
@@ -153,7 +160,7 @@ class aoa(Module):
                 (x, y ),
                 8,
             )
-        elif aircraft.aoa is not None and aircraft.aoa > 63 and aircraft.aoa <= 68:   #-------------------------------------------------
+        elif self.airData.AOA is not None and self.airData.AOA > 63 and self.airData.AOA <= 68:
             hud_graphics.hud_draw_circle(
                 self.pygamescreen, 
                 ( 0, 176, 80), # color Green
@@ -189,7 +196,7 @@ class aoa(Module):
                 (x, y ),
                 8,
             )
-        elif aircraft.aoa is not None and aircraft.aoa > 54 and aircraft.aoa <= 62:   #-------------------------------------------------
+        elif self.airData.AOA is not None and self.airData.AOA > 54 and self.airData.AOA <= 62:
             hud_graphics.hud_draw_circle(
                 self.pygamescreen, 
                 ( 0, 176, 80), # color Green
@@ -225,7 +232,7 @@ class aoa(Module):
                 (x, y ),
                 8,
             )
-        elif aircraft.aoa is not None and aircraft.aoa > 49 and aircraft.aoa <=54:   #draw center circle----------------------
+        elif self.airData.AOA is not None and self.airData.AOA > 49 and self.airData.AOA <=54:
             hud_graphics.hud_draw_circle(
                 self.pygamescreen, 
                 (127, 127, 127), # color gray
@@ -261,7 +268,7 @@ class aoa(Module):
                 (x, y ),
                 8,
             )
-        elif aircraft.aoa is not None and aircraft.aoa>0:
+        elif self.airData.AOA is not None and self.airData.AOA > 0:
             hud_graphics.hud_draw_circle(    #draw center circle. 
                 self.pygamescreen, 
                 (127, 127, 127), # color gray
@@ -300,8 +307,8 @@ class aoa(Module):
             )
 
       #-------------------------------------------------
-        if aircraft.aoa is not None and aircraft.aoa > 0:  #if self.showLDMax == True:if aircraft.aoa != None and aircraft.aoa > 0:
-              # white circles L/D Max Dots. (Carson’s Number)
+        if self.airData.AOA is not None and self.airData.AOA > 0:  #if self.showLDMax == True:if aircraft.aoa != None and aircraft.aoa > 0:
+              # white circles L/D Max Dots. (Carson's Number)
             hud_graphics.hud_draw_circle(
                 self.pygamescreen,
                 (255, 255, 255), 
@@ -319,7 +326,7 @@ class aoa(Module):
 
         #-------------------------------
             #draw Solid Center DOT when OnSpeed 
-            if aircraft.aoa is not None and aircraft.aoa > 57 and aircraft.aoa <63:
+            if self.airData.AOA is not None and self.airData.AOA > 57 and self.airData.AOA <63:
                 hud_graphics.hud_draw_circle(
                 self.pygamescreen, 
                 ( 0, 176, 80), # color Green
@@ -330,7 +337,7 @@ class aoa(Module):
 
             #  This function draws AOA indicator bar.
 
-        if aircraft.aoa is not None and aircraft.aoa > 0:
+        if self.airData.AOA is not None and self.airData.AOA > 0:
             pygame.draw.line(
                 self.pygamescreen,
                 self.aoa_color,

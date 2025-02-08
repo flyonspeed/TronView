@@ -10,7 +10,9 @@ from time import sleep
 import math
 import traceback
 import binascii
-from lib.common.dataship.dataship_imu import IMU
+from lib.common.dataship.dataship_imu import IMUData
+from lib.common.dataship.dataship import Dataship
+from lib.common.dataship.dataship_gps import GPSData
 
 class gyro_virtual(Input):
     def __init__(self):
@@ -20,15 +22,15 @@ class gyro_virtual(Input):
         self.values = []
         self.isPlaybackMode = False
 
-    def initInput(self,num,aircraft):
-        Input.initInput( self,num, aircraft )  # call parent init Input.
+    def initInput(self,num,dataship: Dataship):
+        Input.initInput( self,num, dataship )  # call parent init Input.
 
         # get this num of imu
-        self.num_imus = len(aircraft.imus) # 0 is first imu.
+        self.num_imus = len(dataship.imuData) # 0 is first imu.
 
         # check how many imus are named the same as this one. get next number for this one.
         self.num_imu = 1
-        for index, imu in aircraft.imus.items():
+        for imu in dataship.imuData:
             if imu.name == self.name:   
                 self.num_imu += 1
 
@@ -46,10 +48,11 @@ class gyro_virtual(Input):
                 defaultTo = "imu_virtual1.dat"
                 self.PlayFile = hud_utils.readConfig(self.name, "playback_file", defaultTo)
             self.ser, self.input_logFileName = Input.openLogFile(self,self.PlayFile,"rb")
-            self.isPlaybackMode = True
+            if self.ser is not None:
+                self.isPlaybackMode = True
 
         # create a empty imu object.
-        self.imuData = IMU()
+        self.imuData = IMUData()
         self.imuData.id = self.id
         self.imuData.name = self.name
         self.imuData.home_pitch = None
@@ -57,8 +60,8 @@ class gyro_virtual(Input):
         self.imuData.home_yaw = None
         self.imuData.input = self
 
-        # create imu in dataship object. append to dict with key as num_imus.
-        aircraft.imus[self.num_imus] = self.imuData
+        # create imu in dataship object by appending to list
+        dataship.imuData.append(self.imuData)
 
         self.last_read_time = time.time()
         self.start_time = time.time()

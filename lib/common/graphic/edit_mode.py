@@ -28,6 +28,7 @@ from lib.common.graphic.edit_TronViewScreenObject import GridAnchorManager
 from lib.common.graphic.edit_EditEventsWindow import EditEventsWindow, save_event_handlers_to_json, load_event_handlers_from_json
 from lib.common.graphic.edit_dropdown import DropDown
 from lib.common.graphic.growl_manager import GrowlManager, GrowlPosition
+from lib.common.dataship.dataship import Interface
 
 #############################################
 ## Function: main edit loop
@@ -211,7 +212,7 @@ def main_edit_loop():
 
                     # Exit Edit Mode
                     elif event.key == pygame.K_e:
-                        shared.Dataship.editMode = False  # exit edit mode
+                        shared.Dataship.interface = Interface.GRAPHIC_2D  # exit edit mode
                         exit_edit_mode = True
 
                     # UNGROUP
@@ -349,7 +350,7 @@ def main_edit_loop():
 
                     # Toggle FPS display when 'F' is pressed
                     elif event.key == pygame.K_f:
-                        shared.Dataship.show_FPS = not shared.Dataship.show_FPS
+                        shared.CurrentScreen.show_FPS = not shared.CurrentScreen.show_FPS
 
                     # Toggle ruler when 'R' is pressed
                     elif event.key == pygame.K_r:
@@ -687,7 +688,7 @@ def main_edit_loop():
         pygame_gui_manager.update(time_delta)
 
         # Draw FPS if enabled
-        if shared.Dataship.show_FPS:
+        if shared.CurrentScreen.show_FPS:
             fps = clock.get_fps()
             fps_text = fps_font.render(f"FPS: {fps:.2f}", True, (255, 255, 255), (0, 0, 0, 0), pygame.SRCALPHA)
             fps_rect = fps_text.get_rect(topright=(shared.smartdisplay.x_end - 10, 10))

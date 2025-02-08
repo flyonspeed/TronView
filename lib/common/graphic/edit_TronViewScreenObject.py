@@ -49,7 +49,7 @@ class TronViewScreenObject:
             for module in self.childScreenObjects:
                 module.showBounds = self.showBounds
 
-    def draw(self, aircraft, smartdisplay, showToolBar = True):
+    def draw(self, dataship, smartdisplay, showToolBar = True):
         # if no module then draw a red box around the screen object
         if self.module is None and self.type == 'module':
             boxColor = (140, 0, 0)
@@ -76,11 +76,11 @@ class TronViewScreenObject:
 
             # Draw contained modules
             for module in self.childScreenObjects:
-                module.draw(aircraft, smartdisplay)
+                module.draw(dataship, smartdisplay)
         else:
-            if aircraft.show_FPS:
+            if shared.CurrentScreen.show_FPS:
                 start_time = time.time()
-                self.module.draw(aircraft, smartdisplay, (self.x, self.y))
+                self.module.draw(dataship, smartdisplay, (self.x, self.y))
                 end_time = time.time()
                 self.draw_time = (end_time - start_time) * 1000  # Convert to milliseconds
                 time_text = f"{self.draw_time:.2f}ms"
@@ -88,7 +88,7 @@ class TronViewScreenObject:
                 time_rect = time_surface.get_rect(bottomleft=(self.x + 5, self.y + self.height - 5))
                 self.pygamescreen.blit(time_surface, time_rect)
             else:
-                self.module.draw(aircraft, smartdisplay, (self.x, self.y))
+                self.module.draw(dataship, smartdisplay, (self.x, self.y))
 
 
         # Draw selection box and title

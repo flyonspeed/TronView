@@ -1,24 +1,33 @@
-from lib.common import shared
+from enum import Enum
+
+## Enum: Purpose
+class IMU_Purpose(Enum):
+    NONE    = 0
+    CAMERA  = 1
+    AHRS    = 2
+
 
 #############################################
 ## Class: IMU
-class IMU(object):
+class IMUData(object):
     def __init__(self):
+        self.inputSrcName = None
+        self.inputSrcNum = None
+
         self.id = ""
         self.name = ""
+        self.purpose: IMU_Purpose = None # IMU_Purpose
         self.address = 0
         self.hz = 0
 
         self.pitch = None
         self.roll = None
         self.yaw = None
-
-        self.quat = [0,0,0,0]
-        self.gyro = [0,0,0]
-        self.accel = [0,0,0]
-        self.mag = [0,0,0]
-        self.temp = 0
-
+        self.turn_rate = None
+        self.slip_skid = None
+        self.mag_head = None
+        self.vert_G = None
+        
         self.cali_mag = None
         self.cali_accel = None
         self.cali_gyro = None
@@ -32,6 +41,16 @@ class IMU(object):
         self.org_yaw = None
 
         self.input = None
+
+        self.Vert_G = None # Vertical G force.
+        self.Slip_Skid = None # -99 to +99.  (-99 is full right)
+        self.Turn_Rate = None # Turn rate in 10th of a degree per second
+
+        self.msg_count = 0
+        self.msg_last = None
+        self.msg_bad = 0
+        self.msg_unknown = 0
+
     
     def home(self, delete=False):
         '''
@@ -46,7 +65,6 @@ class IMU(object):
             self.home_pitch = self.org_pitch
             self.home_roll = self.org_roll
             self.home_yaw = self.org_yaw
-            shared.GrowlManager.add_message(self.id + ": Set home position")
     
     def updatePos(self, pitch, roll, yaw):
         '''
@@ -61,16 +79,6 @@ class IMU(object):
         else:
             self.org_pitch = pitch
             self.org_roll = roll
-
-        # check if pitch and roll are within -180 to 180 degrees
-        # if self.org_pitch > 180:
-        #     self.org_pitch = 360 - self.org_pitch
-        # if self.org_roll > 180:
-        #     self.org_roll = 360 - self.org_roll
-        # if self.org_pitch < -180:
-        #     self.org_pitch = 360 + self.org_pitch
-        # if self.org_roll < -180:
-        #     self.org_roll = 360 + self.org_roll
         
         # convert yaw from 0-360 to -180 to 180.
         if yaw is not None:
@@ -81,15 +89,9 @@ class IMU(object):
             # Subtract home values and normalize to -180 to 180 range
             self.pitch = round(((self.org_pitch - self.home_pitch + 180) % 360) - 180,3)
             self.roll = round(((self.org_roll - self.home_roll + 180) % 360) - 180,3)
-            if self.org_yaw is not None:
-                self.yaw = round(((self.org_yaw - self.home_yaw + 180) % 360) - 180,3)
-            else:
-                self.yaw = None
+            self.yaw = round(((self.org_yaw - self.home_yaw + 180) % 360) - 180,3)
         else:
-            self.pitch = round(self.org_pitch,3)
-            self.roll = round(self.org_roll,3)
-            if self.org_yaw is not None:
-                self.yaw = round(self.org_yaw,3)
-            else:
-                self.yaw = None
+            self.pitch = self.org_pitch
+            self.roll = self.org_roll
+            self.yaw = self.org_yaw
 

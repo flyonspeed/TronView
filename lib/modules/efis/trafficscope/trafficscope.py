@@ -9,7 +9,11 @@ from lib.modules._module import Module
 from lib import hud_graphics
 from lib import hud_utils
 from lib import smartdisplay
-from lib.common.dataship import dataship
+from lib.common.dataship.dataship import Dataship
+from lib.common.dataship.dataship_targets import TargetData
+from lib.common.dataship.dataship_gps import GPSData
+from lib.common.dataship.dataship_imu import IMUData
+
 import pygame
 import math
 import time
@@ -40,6 +44,12 @@ class trafficscope(Module):
         # Add tracking of previous positions
         self.target_positions = {} # Store previous positions for smoothing
 
+        # store the target data and gps data to use in the draw method.
+        self.targetData = TargetData()
+        self.gpsData = GPSData()
+        self.imuData = IMUData()
+
+
     # called once for setup
     def initMod(self, pygamescreen, width=None, height=None):
         if width is None:
@@ -60,6 +70,18 @@ class trafficscope(Module):
         self.font_target = pygame.font.SysFont("monospace", target_font_size, bold=False)
 
         self.setScaleInMiles()
+
+        self.targetData = TargetData()
+        self.gpsData = GPSData()
+        self.imuData = IMUData()
+
+        # set the target data and gps data to the first item in the list.
+        if len(shared.Dataship.targetData) > 0:
+            self.targetData = shared.Dataship.targetData[0]
+        if len(shared.Dataship.gpsData) > 0:
+            self.gpsData = shared.Dataship.gpsData[0]
+        if len(shared.Dataship.imuData) > 0:
+            self.imuData = shared.Dataship.imuData[0]
 
 
     def buildBaseSurface(self):
@@ -129,14 +151,14 @@ class trafficscope(Module):
         self.buildBaseSurface()
 
     # called every redraw for the mod
-    def draw(self, aircraft, smartdisplay, pos):
+    def draw(self, dataship:Dataship, smartdisplay, pos):
         # clear the surface
         self.surface2.fill((0,0,0,0))
         # Clear using the base surface.
         self.surface2.blit(self.surfaceBase, (0, 0))
 
-        # Get aircraft heading or ground track
-        target_heading = aircraft.mag_head if aircraft.mag_head is not None else aircraft.gps.GndTrack
+        # Get aircraft heading or ground track, if both are None then use 0
+        target_heading = self.imuData.yaw if self.imuData.yaw is not None else self.gpsData.GndTrack if self.gpsData.GndTrack is not None else 0
 
         def draw_target(t):
             if t.dist is None or t.dist >= 100 or t.brng is None:
@@ -199,7 +221,7 @@ class trafficscope(Module):
                 label_rect = pygame.Rect(0, 0, 0, 0)
 
             if self.show_details:
-                self.draw_target_details(t, target_x, target_y, x_text, y_text, label_rect, target_heading, aircraft)
+                self.draw_target_details(t, target_x, target_y, x_text, y_text, label_rect, target_heading)
 
             # store the x,y position of the target in the local targetDetails dictionary.
             if t.callsign not in self.targetDetails:
@@ -211,11 +233,11 @@ class trafficscope(Module):
                 self.targetDetails[t.callsign]["y"] = target_y
 
         # Use map() to apply draw_target to all targets
-        list(map(draw_target, filter(lambda t: t.dist is not None and t.dist < 100 and t.brng is not None, aircraft.traffic.targets)))
+        list(map(draw_target, filter(lambda t: t.dist is not None and t.dist < 100 and t.brng is not None, self.targetData.targets)))
 
         self.pygamescreen.blit(self.surface2, pos)
 
-    def draw_target_details(self, t, xx, yy, x_text, y_text, label_rect, target_heading, aircraft):
+    def draw_target_details(self, t, xx, yy, x_text, y_text, label_rect, target_heading):
         if t.speed is not None and t.speed > -1 and t.track is not None:
             t.targetBrngToUse = (t.track - target_heading) % 360
             radianTargetTrack = math.radians(t.targetBrngToUse - 90)
@@ -249,49 +271,6 @@ class trafficscope(Module):
                 self.surface2.blit(labelUpdate, (x_text, y_text + label_rect.height + labelSpeed_rect.height))
                 next_text_y_offset = labelUpdate.get_rect().height
 
-            # # calculate position of this target above horizontal line using the following:
-            # # shared.Dataship.pitch : my pitch above horizon
-            # # shared.Dataship.roll : my roll around that axis.
-            # # t.altDiff : height difference between us and the target.
-            # # t.brng : my heading to the target.
-            # # t.dist : distance to the target.
-            # # Calculate the target's position relative to the viewer's perspective
-            # if t.altDiff is not None and aircraft.pitch is not None and aircraft.roll is not None:
-            #     # Convert distances to meters
-            #     alt_diff_meters = t.altDiff * 0.3048  # Convert feet to meters
-            #     dist_meters = t.dist * 1609.34  # Convert miles to meters
-
-            #     # Calculate the angle to the target relative to the horizon in radians
-            #     angle_to_target = math.atan2(alt_diff_meters, dist_meters)
-
-            #     # Adjust for aircraft pitch
-            #     adjusted_angle = angle_to_target - math.radians(aircraft.pitch)
-
-            #     # Calculate the vertical position on the screen
-            #     screen_height = self.height
-            #     vertical_position = self.yCenter - (math.tan(adjusted_angle) * (screen_height / 2))
-
-            #     # Adjust for aircraft roll
-            #     roll_radians = math.radians(aircraft.roll)
-            #     rotated_x = (xx - self.xCenter) * math.cos(roll_radians) - (vertical_position - self.yCenter) * math.sin(roll_radians) + self.xCenter
-            #     rotated_y = (xx - self.xCenter) * math.sin(roll_radians) + (vertical_position - self.yCenter) * math.cos(roll_radians) + self.yCenter
-
-            #     xx, yy = rotated_x, rotated_y
-            #     # draw a dot at the target's position
-            #     pygame.draw.circle(self.surface2, (200,255,255), (xx, yy), 6, 0)
-            #     # draw the callsign at the target's position
-            #     labelCallsign = self.font_target.render(t.callsign, False, (200,255,255), (0,0,0))
-            #     labelCallsign_rect = labelCallsign.get_rect()
-            #     self.surface2.blit(labelCallsign, (xx, yy))
-            #     # draw angle to target on the next line. 
-            #     labelAngle = self.font_target.render(f"angle: {adjusted_angle:.2f}", False, (200,255,255), (0,0,0))
-            #     self.surface2.blit(labelAngle, (xx, yy + labelCallsign_rect.height))
-            #     # show the targets adjusted_angle
-            #     next_text_y_offset = next_text_y_offset +label_rect.height + labelSpeed_rect.height + (self.font_target.get_height() if hasattr(t, 'time') else 0)
-            #     labelAngle = self.font_target.render(f"angle: {adjusted_angle:.2f}", False, (200,255,255), (0,0,0))
-            #     self.surface2.blit(labelAngle, (x_text, y_text + next_text_y_offset))
-            #     labelAngle_rect = labelAngle.get_rect()
-            #     next_text_y_offset = next_text_y_offset + labelAngle_rect.height
 
             if self.target_show_lat_lon:
                 labelLat = self.font_target.render(f"{t.lat:.6f}", False, (200,255,255), (0,0,0))
@@ -458,13 +437,13 @@ class trafficscope(Module):
             }
         }
 
-    def processClick(self, aircraft, mx, my):
-        if aircraft.debug_mode > 0:
+    def processClick(self, dataship, mx, my):
+        if dataship.debug_mode > 0:
             print("TrafficScope processClick: %d x %d" % (mx, my))
         # clear any selected targets from self.targetDetails
         for target in self.targetDetails:
             self.targetDetails[target]["selected"] = False
-        aircraft.traffic.selected_target = None
+        self.targetData.selected_target = None
 
         # # translate mx,my to same coordinate system as self.targetDetails.  which is based of the center of the surface is 0,0.
         # mx = mx - self.xCenter
@@ -479,7 +458,7 @@ class trafficscope(Module):
                 #print("target: %s, x: %d, y: %d" % (target, self.targetDetails[target]["x"], self.targetDetails[target]["y"]))
             if mx >= self.targetDetails[target]["x"] - self.icon_scale and mx <= self.targetDetails[target]["x"] + self.icon_scale and my >= self.targetDetails[target]["y"] - self.icon_scale and my <= self.targetDetails[target]["y"] + self.icon_scale:
                 self.targetDetails[target]["selected"] = True
-                aircraft.traffic.selected_target = target # save the callsign of selected target in aircraft.traffic.selected_target
+                dataship.traffic.selected_target = target # save the callsign of selected target in aircraft.traffic.selected_target
                 if shared.Dataship.debug_mode > 0:
                     print("selected target: %s" % target)
                 break
@@ -506,130 +485,6 @@ class trafficscope(Module):
         pass
 
 
-    # def draw_triangle(screen,color,center, radius, mouse_position):
-    #     # calculate the normalized vector pointing from center to mouse_position
-    #     length = math.hypot(mouse_position[0] - center[0], mouse_position[1] - center[1])
-    #     # (note we only need the x component since y falls 
-    #     # out of the dot product, so we won't bother to calculate y)
-    #     angle_vector_x = (mouse_position[0] - center[0]) / length
-
-    #     # calculate the angle between that vector and the x axis vector (aka <1,0> or i)
-    #     angle = math.acos(angle_vector_x)
-
-    #     # list of un-rotated point locations
-    #     t = [0, (3 * math.pi / 4), (5 * math.pi / 4)]
-
-    #     # apply the circle formula
-    #     x1 = center[0] + radius * math.cos(t[0] + angle)
-    #     y1 = center[1] + radius * math.sin(t[0] + angle)
-
-    #     x2 = center[0] + radius * math.cos(t[1] + angle)
-    #     y2 = center[1] + radius * math.sin(t[1] + angle)
-
-    #     x3 = center[0] + radius * math.cos(t[2] + angle)
-    #     y3 = center[1] + radius * math.sin(t[2] + angle)
-
-    #     pygame.draw.polygon(screen, color, [(x1,y1),(x2,y2),(x3,y3)], 1)
-
-    #     return
-
-
-'''
-        (boxLat1,boxLon2),(boxLat2,boxLon2) = getLatLonAreaAroundPoint(aircraft.gps.LatDeg, aircraft.gps.LonDeg, 50)
-
-        # Calculate global X and Y for top-left reference point        
-        p0 = referencePoint(0, 0, boxLat1, boxLon2)
-        # Calculate global X and Y for bottom-right reference point
-        p1 = referencePoint(self.width, self.height, boxLat2, boxLon2) 
-
-        pos = latlngToScreenXY(p0,p1,52.525607, 13.404572);
-'''
-
-'''
-        #draw center circle.
-        hud_graphics.hud_draw_circle(
-            newSurface, 
-            ( 0, 155, 79), 
-            (self.xCenter, self.yCenter), 
-            50, 
-            8,
-        )
-'''
-
-
-    
-'''
-class referencePoint:
-    def __init__(self, scrX, scrY, lat, lng):
-        self.scrX = scrX
-        self.scrY = scrY
-        self.lat = lat
-        self.lng = lng
-        self.pos = latlngToGlobalXY(lat,lng)
-
-
-# This function converts lat and lng coordinates to GLOBAL X and Y positions
-def latlngToGlobalXY(p0,p1,lat, lng):
-    radius = 6371    #Earth Radius in KM
-    # Calculates x based on cos of average of the latitudes
-    x = radius*lng*math.cos((p0.lat + p1.lat)/2)
-    # Calculates y based on latitude
-    y = radius*lat
-    return {'x': x, 'y': y}
-
-
-# This function converts lat and lng coordinates to SCREEN X and Y positions
-def latlngToScreenXY(p0,p1, lat, lng):
-    # Calculate global X and Y for projection point
-    pos = latlngToGlobalXY(p0,p1,lat, lng)
-    # Calculate the percentage of Global X position in relation to total global width
-    perX = ((pos['x']-p0.pos['x'])/(p1.pos['x'] - p0.pos['x']))
-    # Calculate the percentage of Global Y position in relation to total global height
-    perY = ((pos['y']-p0.pos['y'])/(p1.pos['y'] - p0.pos['y']))
-
-    # Returns the screen position based on reference points
-    return {
-        'x': p0.scrX + (p1.scrX - p0.scrX)*perX,
-        'y': p0.scrY + (p1.scrY - p0.scrY)*perY
-    }
-
-
-
-# get square milage around a lat lon point
-def getLatLonAreaAroundPoint(lat,lon,distanceMile):
-    coords =  (lat, lon)
-    # convert point to albers so we can add a distance to the point.
-    albersXY = convertCoords(coords, 4326, 5070) # 4326 is WGS84 http://spatialreference.org/ref/epsg/4326/ ,  5070 is albers https://epsg.io/5070
-
-    # add subtract distance after in albers format
-    distanceKM = distanceMile * 1609.344
-    albersXMax = albersXY[0] + distanceKM
-    albersYMax = albersXY[1] + distanceKM
-    albersXMin = albersXY[0] - distanceKM
-    albersYMin = albersXY[1] - distanceKM
-
-    # convert back to WGS84
-    newlonlatMax = convertCoords((albersXMax,albersYMax), 5070, 4326) 
-    newlonlatMin = convertCoords((albersXMin,albersYMin), 5070, 4326) 
-
-    return(newlonlatMin,newlonlatMax)
-
-def convertCoords(xy, src='', targ=''):
-    srcproj = osr.SpatialReference()
-    srcproj.ImportFromEPSG(src)
-    targproj = osr.SpatialReference()
-    if isinstance(targ, str):
-        targproj.ImportFromProj4(targ)
-    else:
-        targproj.ImportFromEPSG(targ)
-    transform = osr.CoordinateTransformation(srcproj, targproj)
-
-    pt = ogr.Geometry(ogr.wkbPoint)
-    pt.AddPoint(xy[0], xy[1])
-    pt.Transform(transform)
-
-    return([pt.GetX(), pt.GetY()])
-'''
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python
 

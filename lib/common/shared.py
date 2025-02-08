@@ -36,7 +36,11 @@ smartdisplay = smartdisplay.SmartDisplay()
 ####################################
 ## Screen Obect
 ## This is the current graphical screen object that is being displayed.
-CurrentScreen = None
+class Screen2d(object):
+    def __init__(self):
+        self.ScreenObjects = []
+        self.show_FPS = False
+CurrentScreen = Screen2d()
 
 
 ####################################

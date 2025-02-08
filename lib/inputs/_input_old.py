@@ -3,9 +3,12 @@
 # Input class.
 # All input types should inherit from this class.
 
-from . import _input_file_utils
+from lib import hud_text
+from lib import hud_utils
+from lib.util import rpi_hardware
 import re
 import os
+from lib.common import shared # global shared objects stored here.
 from datetime import datetime
 
 class Input:
@@ -15,13 +18,12 @@ class Input:
         self.version = 1.0
         self.inputtype = ""
         self.path_datarecorder = ""
-        self.PlayFile = None
 
     def initInput(self, num, aircraft):
         self.ser = None # is is the input source... File, serial device, network connection...
 
-        self.path_datarecorder = "../data/"
-        self.datarecorder_check_usb = _input_file_utils.readConfigBool("DataRecorder", "check_usb_drive", True)
+        self.path_datarecorder = hud_utils.readConfig("DataRecorder", "path", shared.DefaultFlightLogDir)
+        self.datarecorder_check_usb = hud_utils.readConfigBool("DataRecorder", "check_usb_drive", True)
 
         self.shouldExit = False
 
@@ -73,7 +75,7 @@ class Input:
             self.input_logFileSize = os.path.getsize(openFileName)
             self.input_logFilePercent = 0
             print("Opening Logfile: "+openFileName+" size="+str(self.input_logFileSize))
-            #shared.GrowlManager.add_message(self.id + ": Playing " + openFileName)
+            shared.GrowlManager.add_message(self.id + ": Playing " + openFileName)
             return logFile,openFileName
         except :
             print("Error openLogFile() "+self.name)
@@ -91,8 +93,6 @@ class Input:
             return logFile,openFileName
         except :
             pass
-        
-        return None,None
 
     #############################################
     ## Method: createLogFile
@@ -103,8 +103,8 @@ class Input:
             if (rpi_hardware.mount_usb_drive() == True and self.datarecorder_check_usb == True):
                 openFileName = self.getNextLogFile("/mnt/usb/",fileExtension)
             else:
-                DataRecorderPath = _input_file_utils.getDataRecorderDir()
-                log_path_format = _input_file_utils.readConfig("DataRecorder", "log_path_format", "%Y/%m/")
+                DataRecorderPath = hud_utils.getDataRecorderDir()
+                log_path_format = hud_utils.readConfig("DataRecorder", "log_path_format", "%Y/%m/")
                 # get todays year and month. create a folder YYYY/MM/
                 today = datetime.now()
                 # replace the %Y and %m in the log_path_format with the current year and month.
@@ -118,7 +118,7 @@ class Input:
                 logFile = open(openFileName, "w+b")
             else:
                 logFile = open(openFileName, "w")
-            #.GrowlManager.add_message(self.name + ": Created log file: " + openFileName)
+            shared.GrowlManager.add_message(self.name + ": Created log file: " + openFileName)
             return logFile,openFileName
         except Exception as e: 
             print(e)
@@ -156,7 +156,7 @@ class Input:
     def getNextLogFile(self,dirname,fileExtension):
         from os.path import exists
         #print("getNextLogFile() "+dirname+" "+fileExtension)
-        file_format = _input_file_utils.readConfig("DataRecorder", "log_file_format", "%Y_%m_%d_%INPUT")
+        file_format = hud_utils.readConfig("DataRecorder", "log_file_format", "%Y_%m_%d_%INPUT")
 
         #fullpath = hud_utils.getDataRecorderDir()
         fullpath = dirname
@@ -169,6 +169,74 @@ class Input:
         #print("using filename %s"%(newFilename))
         return newFilename
 
+    #############################################
+    ## Function: printTextModeData
+    def printTextModeData(self, aircraft):
+        hud_text.print_header("Decoded data from Input Module: %s (Keys: space=cycle data, r=raw)"%(self.name))
+        if self.PlayFile!=None:
+            hud_text.print_header("Playing Log1: %s"%(self.PlayFile))
+        if len(shared.Inputs) > 1 and shared.Inputs[1].PlayFile!=None:
+            hud_text.print_header("Playing Log2: %s"%(shared.Inputs[1].PlayFile))
+        if(self.isPaused==True):
+            hud_text.print_header("PLAYBACK PAUSED!")
+
+        if(self.textMode_whatToShow==0): showHowManyListItems = 1
+        else: showHowManyListItems = -1
+
+        if self.textMode_whatToShow==0 or self.textMode_whatToShow==1:
+            hud_text.print_object(aircraft,showHowManyListItems=showHowManyListItems)
+
+        if self.textMode_whatToShow==0 or self.textMode_whatToShow==2:
+            if self.textMode_whatToShow==0: hud_text.changePos(2,34)
+            hud_text.print_header("Nav Data")
+            hud_text.print_object(aircraft.nav)
+
+        if self.textMode_whatToShow==0 or self.textMode_whatToShow==3:
+            hud_text.print_header("Traffic Data")
+            hud_text.print_object(aircraft.traffic,showHowManyListItems=showHowManyListItems)
+
+        if self.textMode_whatToShow==0 or self.textMode_whatToShow==3:
+            hud_text.print_header("Analog")
+            hud_text.print_object(aircraft.analog,showHowManyListItems=showHowManyListItems)
+
+        if self.textMode_whatToShow==0 or self.textMode_whatToShow==4:
+            hud_text.print_header("GPS Data")
+            hud_text.print_object(aircraft.gps)
+
+        if self.textMode_whatToShow==0 or self.textMode_whatToShow==5:
+            if self.textMode_whatToShow==0: hud_text.changePos(2,62)
+            hud_text.print_header("Engine Data")
+            hud_text.print_object(aircraft.engine)
+
+        if self.textMode_whatToShow==0 or self.textMode_whatToShow==6:
+            hud_text.print_header("Fuel Data")
+            hud_text.print_object(aircraft.fuel)
+            hud_text.print_header("Input 1")
+            hud_text.print_object(self)
+            if(len(shared.Inputs) > 1):
+                hud_text.print_header("Input 2")
+                hud_text.print_object(shared.Inputs[1])                
+            hud_text.print_header("Internal Data")
+            hud_text.print_object(aircraft.internal)
+
+        hud_text.print_DoneWithPage()
+
+    #############################################
+    ## Function: textModeKeyInput
+    ## this is only called when in text mode. And is used to changed text mode options.
+    def textModeKeyInput(self, key, aircraft):
+        if key==ord(' '):
+            self.textMode_whatToShow = self.textMode_whatToShow + 1
+            if self.textMode_whatToShow > 6: self.textMode_whatToShow=0
+            hud_text.print_Clear()
+            return 0,0
+        elif key==ord('r'):
+            if self.textMode_showRaw == True: self.textMode_showRaw = False
+            else: self.textMode_showRaw = True
+            hud_text.print_Clear()
+            return 0,0
+        else:
+            return 'quit',"%s Input: Key code not supported: %d ... Exiting \r\n"%(self.name,key)
 
     #############################################
     ## Function: startLog

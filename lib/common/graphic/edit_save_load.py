@@ -30,6 +30,8 @@ def save_screen_to_json():
     print(f"Screen saved to {filename}")
 
 def load_screen_from_json(filename,from_templates=False):
+    if not hasattr(shared.CurrentScreen, "ScreenObjects"):
+        shared.CurrentScreen.ScreenObjects = []    
     shared.CurrentScreen.ScreenObjects = []
 
     try:

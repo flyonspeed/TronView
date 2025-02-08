@@ -3,12 +3,15 @@
 #################################################
 # Module: object3d
 # Topher 2024
+# 2/9/2025 - added imuData object to the module.
 
 from lib.modules._module import Module
 import pygame
 import math
 from lib.common import shared
 from lib.common.dataship.dataship import Dataship
+from lib.common.dataship.dataship_targets import TargetData, Target
+from lib.common.dataship.dataship_imu import IMUData
 
 class object3d(Module):
     # called only when object is first created.
@@ -30,6 +33,8 @@ class object3d(Module):
         self.source_imu_index2 = None  # index of the secondary imu. (optional)
 
         self.show_xyz = False
+
+        self.imuData = IMUData()
 
     # called once for setup
     def initMod(self, pygamescreen, width=None, height=None):
@@ -54,7 +59,7 @@ class object3d(Module):
         # update self.source_imu_index_name with the correct name using the index.
         # this can happen because we load a screen that used a imu id that is not in the list or moved
         # we only care about the index.
-        for imu_index, imu in shared.Dataship.imus.items():
+        for imu_index, imu in shared.Dataship.imuData.items():
             if self.source_imu_index == imu_index:
                 self.source_imu_index_name = imu.id
 

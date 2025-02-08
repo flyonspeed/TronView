@@ -15,7 +15,8 @@ class Screen:
         self.height = 480
         self.pygamescreen = 0
         self.debug = False
-
+        self.show_FPS = False
+        
     def initDisplay(self, pygamescreen, width, height):
         #print("init screen parent")
         self.pygamescreen = pygamescreen

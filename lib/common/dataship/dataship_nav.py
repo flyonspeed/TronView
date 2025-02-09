@@ -9,6 +9,8 @@ import time
 ## Class: NavData
 class NavData(object):
     def __init__(self):
+        self.id = None
+        self.name = None
         self.inputSrcName = None
         self.inputSrcNum = None
 

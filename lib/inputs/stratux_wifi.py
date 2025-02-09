@@ -7,6 +7,7 @@
 # 11/6/2024  Added IMU data.
 # 1/3/2025  Added dataship refacor
 # 2/9/2025  Added gpsData object to the module.
+
 import struct
 import binascii
 import time
@@ -57,6 +58,7 @@ class stratux_wifi(Input):
             self.isPlaybackMode = True
         else:
             self.udpport = _input_file_utils.readConfigInt("Stratux", "udpport", "4000")
+            # levil bom using port 43211
 
             # open udp connection.
             self.ser = socket.socket(socket.AF_INET, #Internet

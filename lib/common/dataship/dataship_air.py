@@ -13,6 +13,8 @@ class AirData(object):
         self.inputSrcName = None
         self.inputSrcNum = None
 
+        self.sys_time_string = None
+
         self.IAS = None # Indicated Air Speed in mph
         self.TAS = None # True Air Speed in mph
         self.Alt = None # Altitude in Ft

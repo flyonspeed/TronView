@@ -24,9 +24,9 @@ class IMUData(object):
         self.roll = None
         self.yaw = None
         self.turn_rate = None
-        self.slip_skid = None
-        self.mag_head = None
-        self.vert_G = None
+        self.slip_skid = None # -99 to +99.  (-99 is full right)
+        self.mag_head = None # Turn rate in 10th of a degree per second
+        self.vert_G = None # Vertical G force.
         
         self.cali_mag = None
         self.cali_accel = None
@@ -41,10 +41,6 @@ class IMUData(object):
         self.org_yaw = None
 
         self.input = None
-
-        self.Vert_G = None # Vertical G force.
-        self.Slip_Skid = None # -99 to +99.  (-99 is full right)
-        self.Turn_Rate = None # Turn rate in 10th of a degree per second
 
         self.msg_count = 0
         self.msg_last = None

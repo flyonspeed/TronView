@@ -3,6 +3,7 @@
 # Serial input source
 # GRT EIS engine data
 # 11/22/2024  Created GRT EIS input. Topher
+# 2/9/2025   Dataship refactor. Topher
 
 from ._input import Input
 from lib import hud_utils
@@ -13,15 +14,24 @@ from lib import hud_text
 import binascii
 import time
 import traceback
+from lib.common.dataship.dataship_imu import IMUData
+from lib.common.dataship.dataship import Dataship
+from lib.common.dataship.dataship_nav import NavData
+from lib.common.dataship.dataship_engine_fuel import EngineData, FuelData
+from lib.common.dataship.dataship_gps import GPSData
+from lib.common.dataship.dataship_air import AirData
+import struct  # Add this import at the top with other imports
+
 
 class serial_grt_eis(Input):
     def __init__(self):
         self.name = "grt_eis"
         self.version = 1.0
         self.inputtype = "serial"
+        self.engineData = EngineData()
 
-    def initInput(self,num,aircraft):
-        Input.initInput(self,num,aircraft)  # call parent init Input.
+    def initInput(self,num,dataship: Dataship):
+        Input.initInput(self,num,dataship)  # call parent init Input.
         print("initInput %d: %s playfile: %s"%(num,self.name,self.PlayFile))
         if(self.PlayFile!=None and self.PlayFile!=False):
             # Get playback file.
@@ -31,10 +41,10 @@ class serial_grt_eis(Input):
             self.ser,self.input_logFileName = Input.openLogFile(self,self.PlayFile,"rb")
             self.isPlaybackMode = True
         else:
-            self.efis_data_format = hud_utils.readConfig("DataInput", "format", "none")
-            self.efis_data_port = hud_utils.readConfig("DataInput", "port", "/dev/ttyS0")
+            self.efis_data_format = hud_utils.readConfig("serial_grt_eis", "format", "none")
+            self.efis_data_port = hud_utils.readConfig("serial_grt_eis", "port", "/dev/ttyS0")
             self.efis_data_baudrate = hud_utils.readConfigInt(
-                "DataInput", "baudrate", 9600  # GRT EIS uses 9600 baud
+                "serial_grt_eis", "baudrate", 9600  # GRT EIS uses 9600 baud
             )
 
             # open serial connection
@@ -47,16 +57,24 @@ class serial_grt_eis(Input):
                 timeout=1,
             )
 
+        # create a empty engine data object.
+        self.engineData = EngineData()
+        self.engineData.id = "grt_eis_engine"+str(len(dataship.engineData))
+        self.engineData.name = self.name
+        self.engine_index = len(dataship.engineData)  # Start at 0
+        print("new grt_eis engine "+str(self.engine_index)+": "+str(self.engineData))
+        dataship.engineData.append(self.engineData)
+
     def closeInput(self,aircraft):
         if self.isPlaybackMode:
             self.ser.close()
         else:
             self.ser.close()
 
-    def readMessage(self, aircraft):
-        if self.shouldExit == True: aircraft.errorFoundNeedToExit = True
-        if aircraft.errorFoundNeedToExit: return aircraft
-        if self.skipReadInput == True: return aircraft
+    def readMessage(self, dataship: Dataship):
+        if self.shouldExit == True: dataship.errorFoundNeedToExit = True
+        if dataship.errorFoundNeedToExit: return dataship
+        if self.skipReadInput == True: return dataship
         
         try:
             # Look for header sequence FE FF FE
@@ -66,7 +84,7 @@ class serial_grt_eis(Input):
                     if self.isPlaybackMode:
                         self.ser.seek(0)
                         print("GRT EIS file reset")
-                    return aircraft
+                    return dataship
                 
                 if b1[0] != 0xFE:
                     continue
@@ -84,7 +102,7 @@ class serial_grt_eis(Input):
             # Read the rest of the frame (63 bytes)
             frame = self.ser.read(63)
             if len(frame) != 63:
-                return aircraft
+                return dataship
 
             # Validate checksum
             checksum = 0
@@ -93,8 +111,8 @@ class serial_grt_eis(Input):
             checksum = (~checksum) & 0xFF
             
             if checksum != frame[-1]:
-                aircraft.msg_bad += 1
-                return aircraft
+                dataship.msg_bad += 1
+                return dataship
 
             ## example line data:
             ## 
@@ -109,31 +127,25 @@ class serial_grt_eis(Input):
              end_hrs, end_mins, baro, mag_head, spare) = struct.unpack(
                 '>H6H6H2HhHHBbbhHB4HHHHBBBHHB', frame[:-1])
             
-            
-
             # Update aircraft engine data
-            aircraft.engine.RPM = tach
-            aircraft.engine.OilTemp = oil_temp
-            aircraft.engine.OilPress = oil_press
-            aircraft.engine.FuelFlow = round(fuel_flow * 0.1, 1)  # Adjust units as needed
+            self.engineData.RPM = tach
+            self.engineData.OilTemp = oil_temp
+            self.engineData.OilPress = oil_press
+            self.engineData.FuelFlow = round(fuel_flow * 0.1, 1)  # Adjust units as needed
             
             # Update CHTs
             for i, cht in enumerate([cht1, cht2, cht3, cht4, cht5, cht6]):
-                aircraft.engine.CHT[i] = cht
+                self.engineData.CHT[i] = cht
                 
             # Update EGTs
             for i, egt in enumerate([egt1, egt2, egt3, egt4, egt5, egt6]):
-                aircraft.engine.EGT[i] = egt
+                self.engineData.EGT[i] = egt
 
-            aircraft.engine.CoolantTemp = coolant
-            aircraft.oat = oat
+            self.engineData.CoolantTemp = coolant
+            #self.engineData.oat = oat
             
             # Update message counts
-            aircraft.engine.msg_count += 1
-            if self.textMode_showRaw:
-                aircraft.engine.msg_last = binascii.hexlify(frame)
-            else:
-                aircraft.engine.msg_last = None
+            self.engineData.msg_count += 1
 
             if self.isPlaybackMode:
                 time.sleep(0.01)  # Add delay in playback mode
@@ -143,14 +155,14 @@ class serial_grt_eis(Input):
                 Input.addToLog(self, self.output_logFile, header)
                 Input.addToLog(self, self.output_logFile, frame)
 
-            return aircraft
+            return dataship
 
         except serial.serialutil.SerialException as e:
             print(e)
             print("grt_eis serial exception")
             traceback.print_exc()
-            aircraft.errorFoundNeedToExit = True
+            dataship.errorFoundNeedToExit = True
             
-        return aircraft
+        return dataship
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

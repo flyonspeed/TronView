@@ -14,8 +14,8 @@ class GPSData(object):
 
         self.Source = None # Source Name.
 
-        self.Lat = None        
-        self.Lon = None
+        self.Lat = None   # latitude in decimal degrees
+        self.Lon = None   # longitude in decimal degrees
         self.Alt = None   # in feet MSL
         self.GPSTime = None
         self.GPSTime_string = None
@@ -29,12 +29,12 @@ class GPSData(object):
 
         self.Mag_Decl = None # Magnetic variation 10th/deg West = Neg
 
-        # self.EWVelDir = None  # E or W
-        # self.EWVelmag = None  # x.x m/s
-        # self.NSVelDir = None  # N or S
-        # self.NSVelmag = None  # x.x m/s
-        # self.VVelDir = None  # U or D
-        # self.VVelmag = None  # x.xx m/s
+        self.EWVelDir = None  # E or W
+        self.EWVelmag = None  # x.x m/s
+        self.NSVelDir = None  # N or S
+        self.NSVelmag = None  # x.x m/s
+        self.VVelDir = None  # U or D
+        self.VVelmag = None  # x.xx m/s
 
         self.SatsTracked = None
         self.SatsVisible = None

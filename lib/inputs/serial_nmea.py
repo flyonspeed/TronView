@@ -11,8 +11,7 @@ import struct
 from lib.common.dataship.dataship import Dataship
 from lib.common.dataship.dataship_gps import GPSData
 from lib.common.dataship.dataship_nav import NavData
-import airportsdata
-from timezonefinder import TimezoneFinder
+#import airportsdata
 import traceback
 import hud_utils
 
@@ -117,7 +116,7 @@ class serial_nmea(Input):
     #############################################
     ## Function: readMessage
     def readMessage(self, dataship: Dataship):
-        airports = airportsdata.load()
+        #airports = airportsdata.load()
         def mean(nums):
             return float(sum(nums)) / max(len(nums), 1)
 

@@ -5,7 +5,8 @@ from lib import hud_utils
 import time
 import traceback
 import pygame
-from lib.common.dataship.dataship_imu import IMU
+from lib.common.dataship.dataship_imu import IMUData
+from lib.common.dataship.dataship import Dataship
 
 class gyro_joystick(Input):
     def __init__(self):
@@ -21,22 +22,22 @@ class gyro_joystick(Input):
         self.axis_roll = 0
         self.axis_yaw = 2
         self.freeze = False
+        self.imuData = IMUData()
 
-    def initInput(self,num,aircraft):
-        Input.initInput(self,num,aircraft)  # call parent init Input.
+    def initInput(self,num,dataship: Dataship):
+        Input.initInput(self,num,dataship)  # call parent init Input.
 
         # get this num of imu
-        self.num_imus = len(aircraft.imus)
+        self.num_imus = len(dataship.imus)
 
         # check how many imus are named the same as this one. get next number for this one.
         self.num_imu = 1
-        for index, imu in aircraft.imus.items():
+        for index, imu in dataship.imus.items():
             if imu.name == self.name:   
                 self.num_imu += 1
 
         # read address from config.
         self.id = hud_utils.readConfig("imu_joystick", "device"+str(self.num_imu)+"_id", "imu_joystick_"+str(self.num_imu))
-        self.feed_into_aircraft = hud_utils.readConfigBool("imu_joystick", "device"+str(self.num_imu)+"_aircraft", self.num_imus == 0)
         print("init imu_joystick("+str(self.num_imu)+") id: "+str(self.id))
         
         # Playback mode handling
@@ -48,7 +49,7 @@ class gyro_joystick(Input):
             self.isPlaybackMode = True
 
         # create a empty imu object.
-        self.imuData = IMU()
+        self.imuData = IMUData()
         self.imuData.id = self.id
         self.imuData.name = self.name
         self.imuData.home_pitch = None
@@ -57,18 +58,18 @@ class gyro_joystick(Input):
         self.imuData.input = self
 
         # create imu in dataship object
-        aircraft.imus[self.num_imus] = self.imuData
+        dataship.imuData.append(self.imuData)
 
         self.last_read_time = time.time()
         self.start_time = time.time()
 
-    def closeInput(self,aircraft):
+    def closeInput(self,dataship: Dataship):
         print("imu_joystick close")
 
-    def readMessage(self, aircraft):
-        if self.shouldExit == True: aircraft.errorFoundNeedToExit = True
-        if aircraft.errorFoundNeedToExit: return aircraft
-        if self.skipReadInput == True: return aircraft
+    def readMessage(self, dataship: Dataship):
+        if self.shouldExit == True: dataship.errorFoundNeedToExit = True
+        if dataship.errorFoundNeedToExit: return dataship
+        if self.skipReadInput == True: return dataship
 
         try:
             if self.isPlaybackMode:
@@ -80,7 +81,7 @@ class gyro_joystick(Input):
                 # Handle joystick input
                 if self.joystick:
                     
-                    if aircraft.debug_mode > 0:
+                    if dataship.debug_mode > 0:
                         current_time = time.time()
                         self.imuData.hz = round(1 / (current_time - self.last_read_time), 1)
                         self.last_read_time = current_time
@@ -97,13 +98,6 @@ class gyro_joystick(Input):
 
                         # Update IMU data
                         self.imuData.updatePos(pitch, roll, yaw)
-
-                        # Update aircraft if this is the primary IMU
-                        if self.feed_into_aircraft:
-                            aircraft.pitch = self.imuData.pitch
-                            aircraft.roll = self.imuData.roll
-                            aircraft.mag_head = self.imuData.yaw
-                            aircraft.yaw = self.imuData.yaw
                                             
                     # Write to log file if enabled
                     if self.output_logFile is not None:
@@ -133,7 +127,7 @@ class gyro_joystick(Input):
             print(e)
             traceback.print_exc()
 
-        return aircraft
+        return dataship
 
     def setJoystick(self, joystick):
         self.joystick = joystick

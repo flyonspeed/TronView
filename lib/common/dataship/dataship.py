@@ -9,6 +9,7 @@ from lib.common.dataship.dataship_air import AirData
 from lib.common.dataship.dataship_targets import TargetData
 from lib.common.dataship.dataship_engine_fuel import EngineData, FuelData
 from lib.common.dataship.dataship_nav import NavData
+from lib.common.dataship.dataship_analog import AnalogData
 
 class Interface(Enum):
     TEXT = "text"
@@ -36,6 +37,7 @@ class Dataship(object):
         self.fuelData: List[FuelData] = [] # list of Fuel objects
         self.targetData: List[TargetData] = [] # list of Target objects
         self.navData: List[NavData] = [] # list of Nav objects
+        self.analogData: List[AnalogData] = [] # list of Analog objects
         
         self.debug_mode = 0
         self.errorFoundNeedToExit = False

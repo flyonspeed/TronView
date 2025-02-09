@@ -11,6 +11,9 @@ import time
 import Adafruit_ADS1x15
 import statistics
 import traceback
+from lib.common.dataship.dataship import Dataship
+from lib.common.dataship.dataship_analog import AnalogData
+from lib.common.dataship.dataship_nav import NavData
 
 class adc_ads1115(Input):
     def __init__(self):
@@ -22,9 +25,10 @@ class adc_ads1115(Input):
         self.SmoothingAVGMaxCount = 10
         self.smoothingA = []
         self.smoothingB = []
+        self.analogData = AnalogData()
 
-    def initInput(self,num,aircraft):
-        Input.initInput( self,num, aircraft )  # call parent init Input.
+    def initInput(self,num,dataship: Dataship):
+        Input.initInput( self,num, dataship )  # call parent init Input.
         if(self.PlayFile!=None):
             self.isPlaybackMode = True
         else:
@@ -42,24 +46,37 @@ class adc_ads1115(Input):
         #  -  16 = +/-0.256V
         # See table 3 in the ADS1015/ADS1115 datasheet for more info on gain.
         self.GAIN = 2/3 
-        aircraft.analog.Name = "ads1115"
+        dataship.analog.Name = "ads1115"
         self.Amplify = 6.144/32767
         self.values = [0,0,0,0,0,0,0,0]
 
+        # create analog data object.
+        self.analogData = AnalogData()
+        self.analogData.name = self.name
+        self.index = len(dataship.analogData)
+        self.analogData.id = self.name + "_" + str(self.index)
+        dataship.analogData.append(self.analogData)
 
-    def closeInput(self,aircraft):
+        # create nav data object.
+        self.navData = NavData()
+        self.navData.name = self.name
+        self.index = len(dataship.navData)
+        self.navData.id = self.name + "_" + str(self.index)
+        dataship.navData.append(self.navData)
+
+    def closeInput(self,dataship: Dataship):
         print("ads1115 close")
 
 
     #############################################
     ## Function: readMessage
-    def readMessage(self, aircraft):
-        if self.shouldExit == True: aircraft.errorFoundNeedToExit = True
-        if aircraft.errorFoundNeedToExit: return aircraft
-        if self.skipReadInput == True: return aircraft
+    def readMessage(self, dataship: Dataship):
+        if self.shouldExit == True: dataship.errorFoundNeedToExit = True
+        if dataship.errorFoundNeedToExit: return dataship
+        if self.skipReadInput == True: return dataship
 
         try:
-            time.sleep(0.025)
+            time.sleep(0.025) # delay because of i2c read.
             self.values[1] = self.adc.read_adc_difference(0, gain=self.GAIN) * self.Amplify
             time.sleep(0.025)
             self.values[0] = self.adc.read_adc_difference(3, gain=self.GAIN) * self.Amplify
@@ -68,29 +85,28 @@ class adc_ads1115(Input):
             if(self.ApplySmoothing):
                 self.smoothingA.append(self.values[0])
                 if(len(self.smoothingA)>self.SmoothingAVGMaxCount): self.smoothingA.pop(0)
-                aircraft.analog.Data[0] = statistics.mean(self.smoothingA)
-
+                self.analogData.Data[0] = statistics.mean(self.smoothingA)
 
                 self.smoothingB.append(self.values[1])
                 if(len(self.smoothingB)>self.SmoothingAVGMaxCount): self.smoothingB.pop(0)
-                aircraft.analog.Data[1] = statistics.mean(self.smoothingB)
+                self.analogData.Data[1] = statistics.mean(self.smoothingB)
             else:
                 #else don't apply smoothing.
-                aircraft.analog.Data = self.values
+                self.analogData.Data = self.values
 
             # TODO: have config file define what this analog input is for.
 
             # if analog input is for nav needles.. .then.
             # limit the output voltages to be within +/- 0.25V
             # format value to +/- 4095 for needle left/right up/down.
-            aircraft.nav.GSDev = round (16380 * (max(min(aircraft.analog.Data[0], 0.25), -0.25)))
-            aircraft.nav.ILSDev = round (16380 * (max(min(aircraft.analog.Data[1], 0.25), -0.25)))
+            self.navData.GSDev = round (16380 * (max(min(self.analogData.Data[0], 0.25), -0.25)))
+            self.navData.ILSDev = round (16380 * (max(min(self.analogData.Data[1], 0.25), -0.25)))
 
         except Exception as e:
-            aircraft.errorFoundNeedToExit = True
+            dataship.errorFoundNeedToExit = True
             print(e)
             print(traceback.format_exc())
-        return aircraft
+        return dataship
 
 
 

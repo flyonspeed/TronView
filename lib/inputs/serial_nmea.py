@@ -71,7 +71,7 @@ class serial_nmea(Input):
     def initInput(self,num, dataship: Dataship):
         Input.initInput(self,num, dataship)  # call parent init Input.
         self.efis_data_port = hud_utils.readConfig(  # serial input... example: "/dev/cu.PL2303G-USBtoUART110"
-            "serial_nmea", "port", "/dev/ttyS0"
+            "serial_nmea", "port", "/dev/ttyUSB0"
         )
         self.efis_data_baudrate = hud_utils.readConfigInt(
             "serial_nmea", "baudrate", 9600

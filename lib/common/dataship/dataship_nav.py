@@ -45,6 +45,8 @@ class NavData(object):
         self.WPDist = 0
         self.WPTrack = 0
         self.WPName = None
+        self.WPLat = None
+        self.WPLon = None
 
         self.ILSDev = 0
         self.GSDev = 0

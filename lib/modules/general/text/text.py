@@ -71,7 +71,7 @@ class text(Module):
                     name = part[:part.find('[')]
                     # get the value
                     obj = getattr(obj, name)[int(index)]
-                    print(f"obj: {obj}")
+                    #print(f"obj: {obj}")
                 else:
                     obj = getattr(obj, part)
             return obj

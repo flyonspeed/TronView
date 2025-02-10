@@ -180,6 +180,12 @@ class serial_skyview(Input):
                     self.gpsData.msg_count += 1
                 except:
                     self.gpsData.msg_bad += 1
+
+                if self.output_logFile != None:
+                    #write the nmea message to the log file. write out the start character, then the message.
+                    Input.addToLog(self,self.output_logFile,bytes([ord('$')]))
+                    Input.addToLog(self,self.output_logFile,nmea_msg)
+
                 return dataship
 
             # Must be Skyview message (x == 33)

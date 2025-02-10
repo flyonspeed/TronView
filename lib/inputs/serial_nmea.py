@@ -112,6 +112,31 @@ class serial_nmea(Input):
     def closeInput(self, dataship: Dataship):
         self.ser.close()
 
+    def convert_nmea_to_decimal_degrees(self, nmea_string, hemi):
+        # Handle empty or invalid input
+        if not nmea_string:
+            return 0.0
+            
+        try:
+            # For longitude (3 digits), use first 3 chars; for latitude (2 digits) use first 2
+            if hemi in "WE":  # Longitude
+                degrees = float(nmea_string[0:3])
+                minutes = float(nmea_string[3:])
+            else:  # Latitude
+                degrees = float(nmea_string[0:2])
+                minutes = float(nmea_string[2:])
+                
+            decimal_degrees = degrees + (minutes / 60)
+            
+            # Make negative for West/South
+            if hemi in "WS":
+                decimal_degrees = -decimal_degrees
+                
+            return decimal_degrees
+            
+        except (ValueError, IndexError):
+            return 0.0  # Return 0 if conversion fails
+
     #############################################
     ## Function: readMessage
     def readMessage(self, dataship: Dataship):
@@ -154,23 +179,24 @@ class serial_nmea(Input):
                     # print(msg)
                 except:
                    msg = msg.split(",")
-                   dataship.msg_count += 1
+                   self.gpsData.msg_count += 1
                 sentence = msg[0] # break out sentence ID from the list so we can perform a switch action on it
                 match sentence:
                     case "GPRMC": # Recommended Minimum Navigation Info Sentence C
                         utctime = msg[1] # UTC Time in format hhmmss
                         status = msg[2] # GPS Status, A = Acive, V = Warning
-                        lat = msg[3] # Latitude in format ddmm.mmmm
-                        lathemi = msg[4] # Latitude hemisphere in N/S
-                        lon = msg[5] # Longitude in format dddmm.mmmm
-                        lonhemi = msg[6] # Longitude hemisphere in E/W
+                        #lat = msg[3] # Latitude in format ddmm.mmmm (dd = degrees, mm.mmmm = minutes) convert to decimal degrees
+                        lat = self.convert_nmea_to_decimal_degrees(msg[3], msg[4])
+                        #lon = msg[5] # Longitude in format dddmm.mmmm
+                        lon = self.convert_nmea_to_decimal_degrees(msg[5], msg[6])
+
                         gs = msg[7] # GPS Groundspeed
                         truetrack = msg[8] # GPS Track in true heading
                         date = msg[9] # UTC date in ddmmyy
                         magvar = msg[10] # Magnetic variation x.x degrees
                         magvardir = msg[11] # magnetic variation E or W
-                        mode = msg[12] # FAA Mode, explained at top of file
-                        self.gpsData.GPSTime_string = "%d:%d:%d"%(int(utctime[0:1]),int(utctime[2:3]),int(utctime[4:5]))
+                        #mode = msg[12] # FAA Mode, explained at top of file
+                        self.gpsData.GPSTime_string = "%s %d:%d:%d"%(date,int(utctime[0:1]),int(utctime[2:3]),int(utctime[4:5]))
                         self.time_stamp_string = self.gpsData.GPSTime_string
                         # self.time_stamp_min = int(utctime[2:3])
                         # self.time_stamp_sec = int(utctime[4:5])
@@ -180,23 +206,17 @@ class serial_nmea(Input):
                         # dataship.gps.LonHemi = lonhemi
                         # dataship.gps.LonDeg = int(lon[0:2])
                         # dataship.gps.LonMin = int(lon[3:9])
-                        # calculate lat/lon
-                        self.gpsData.Mag_Decl, self.gpsData.Lat, self.gpsData.Lon = _utils.calc_geomag(
-                            lathemi.decode('utf-8'),
-                            int(lat[0:1]),
-                            float(lat[2:8]),
-                            lonhemi.decode('utf-8'),
-                            int(lon[0:2]),
-                            int(lon[3:9]),
-                        )
+                        self.gpsData.Lat = lat
+                        self.gpsData.Lon = lon
+                        #self.gpsData.Mag_Decl = float(magvar)
 
                         self.gpsData.GndSpeed = float(gs)
-                        self.gpsData.GndTrack = float(coursemag)
+                        self.gpsData.GndTrack = float(truetrack)
                         # if magvardir is E, then we need to subtract the magvar from the true track?? need to verify this
                         if(magvardir == "E"):
                             self.gpsData.Mag_Decl = (self.gpsData.Mag_Decl - (self.gpsData.Mag_Decl * 2))
-                        self.gpsData.GndTrack = (truetrack + self.gpsData.Mag_Decl)
-                        self.gpsData.GPSTrack = self.gpsData.GndTrack
+                        # self.gpsData.GndTrack = (truetrack + self.gpsData.Mag_Decl)
+                        # self.gpsData.GndTrack = self.gpsData.GndTrack
 
                     case "GPRMB": # Recommended Minimum Navigation Info Sentence B - Note: Destination waypoint is NOT related to the actual flight plan - it is the waypoint currently being navigated to
                         status = msg[1] # A = Active, V = Invalid
@@ -204,10 +224,8 @@ class serial_nmea(Input):
                         steerdir = msg[3] # Steer left or right for course? L/R
                         originwpt = msg[4] # Origin Waypoint ID xxxxx
                         destwpt = msg[5] # Destination Waypoint ID xxxxx
-                        destlat = msg[6] # Destination waypoint latitude ddmm.mmmm
-                        destlathemi = msg[7] # Destination waypoint latitude hemisphere N/S
-                        destlon = msg[8] # Destination waypoint longitude dddmm.mmmm
-                        destlonhemi = msg[9] # Destination longitude hemisphere E/W
+                        destlat = self.convert_nmea_to_decimal_degrees(msg[6], msg[7])
+                        destlon = self.convert_nmea_to_decimal_degrees(msg[8], msg[9])
                         distwpt = msg[10] # Distance to destination waypoint xx.x
                         destbrg = msg[11] # Bearing in degrees TRUE to destination waypoint xxx.x
                         wptclosure = msg[12] # Closure rate to destination waypoint xxx.x
@@ -217,14 +235,12 @@ class serial_nmea(Input):
                         self.navData.WPName = destwpt
                         self.navData.WPDist = float(distwpt)
                         self.navData.WPTrack = float(destbrg)
-                        self.navData.WPLat = float(destlat)
-                        self.navData.WPLon = float(destlon)
+                        self.navData.WPLat = destlat
+                        self.navData.WPLon = destlon
                     case "GPGGA": # GPS Pos and Altitude
                         utctime = msg[1] # hhmmss
-                        lat = msg[2] # Latitude in format ddmm.mmmm
-                        lathemi = msg[3] # Latitude hemisphere in N/S
-                        lon = msg[4] # Longitude in format dddmm.mmmm
-                        lonhemi = msg[5] # Longitude hemisphere in E/W
+                        lat = self.convert_nmea_to_decimal_degrees(msg[2], msg[3])
+                        lon = self.convert_nmea_to_decimal_degrees(msg[4], msg[5])
                         quality = msg[6] # GPS Quality explained at top of file x
                         satnum = msg[7] # Number of satellites used in solution xx
                         hprecision = msg[8] # Horizontal precision in meters x.x
@@ -238,8 +254,8 @@ class serial_nmea(Input):
                         # self.time_stamp_string = self.gpsData.GPSTime_string
                         # self.time_stamp_min = int(utctime[2:3])
                         # self.time_stamp_sec = int(utctime[4:5])
-                        self.gpsData.Lat = float(lat)
-                        self.gpsData.Lon = float(lon)
+                        self.gpsData.Lat = lat
+                        self.gpsData.Lon = lon
                         self.gpsData.SatsTracked = int(satnum)
                         self.gpsData.Alt = int(round(float(gpsalt)))
                         if(quality == "1"):
@@ -249,10 +265,8 @@ class serial_nmea(Input):
                             self.gpsData.GPSStatus = 3
                             self.gpsData.GPSWAAS = True
                     case "GPGLL": # GPS Lat/Long
-                        lat = msg[1] # Latitude in format ddmm.mmmm
-                        lathemi = msg[2] # Latitude hemisphere in N/S
-                        lon = msg[3] # Longitude in format dddmm.mmmm
-                        lonhemi = msg[4] # Longitude hemisphere in E/W
+                        lat = self.convert_nmea_to_decimal_degrees(msg[1], msg[2])
+                        lon = self.convert_nmea_to_decimal_degrees(msg[3], msg[4])
                         utctime = msg[5] # hhmmss
                         status = msg[6] # A = Active, V = Invalid
                         mode = msg[7] # FAA Mode, explained at top of file
@@ -267,8 +281,8 @@ class serial_nmea(Input):
                         # self.gpsData.LonDeg = int(lon[0:2])
                         # dataship.gps.LonMin = int(lon[3:9])
 
-                        self.gpsData.Lat = float(lat)
-                        self.gpsData.Lon = float(lon)
+                        self.gpsData.Lat = lat
+                        self.gpsData.Lon = lon
 
                         if(mode == "D"):
                             self.gpsData.GPSWAAS = True
@@ -281,10 +295,8 @@ class serial_nmea(Input):
                         originwpt = msg[6] # Origin (from) waypoint XXXX
                     case "GPBWC": # bearing and distance to waypoint - Great Circle
                         utctime = msg[1] # hhmmss
-                        lat = msg[2] # Latitude in format ddmm.mmmm
-                        lathemi = msg[3] # Latitude hemisphere in N/S
-                        lon = msg[4] # Longitude in format dddmm.mmmm
-                        lonhemi = msg[5] # Longitude hemisphere in E/W
+                        lat = self.convert_nmea_to_decimal_degrees(msg[2], msg[3])
+                        lon = self.convert_nmea_to_decimal_degrees(msg[4], msg[5])
                         brgtrue = msg[6] # bearing to next waypoint degrees true xx.x
                         brgmag = msg[8] # bearing to next waypoint degrees magnetic xx.x 
                         distwpt = msg[10] # Distance to next waypoint in nautical miles xx.x
@@ -295,15 +307,6 @@ class serial_nmea(Input):
                         # self.time_stamp_min = int(utctime[2:3])
                         # self.time_stamp_sec = int(utctime[4:5])
 
-                        # calculate lat/lon for waypoint
-                        Mag_Decl, self.navData.WPLat, self.navData.WPLon = _utils.calc_geomag(
-                            lathemi.decode('utf-8'),
-                            int(lat[0:1]),
-                            float(lat[2:8]),
-                            lonhemi.decode('utf-8'),
-                            int(lon[0:2]),
-                            int(lon[3:9]),
-                        )
 
                         # dataship.gps.LatHemi = lathemi
                         # dataship.gps.LatDeg = int(lat[0:1])
@@ -316,6 +319,8 @@ class serial_nmea(Input):
                         self.navData.WPName = nextwpt
                         self.navData.WPDist = float(distwpt)
                         self.navData.WPTrack = float(brgmag)
+                        self.navData.WPLat = float(lat)
+                        self.navData.WPLon = float(lon)
 
                     case "GPVTG": # GPS Track made good and ground speed, Intentionally omitted KM/H Ground speed
                         coursetrue = msg[1] # GPS Course over ground degrees true xxx.x

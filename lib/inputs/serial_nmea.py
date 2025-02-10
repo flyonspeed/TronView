@@ -8,6 +8,7 @@ from ._input import Input
 from . import _utils
 import serial
 import struct
+import time
 from lib.common.dataship.dataship import Dataship
 from lib.common.dataship.dataship_gps import GPSData
 from lib.common.dataship.dataship_nav import NavData
@@ -192,11 +193,16 @@ class serial_nmea(Input):
 
                         gs = msg[7] # GPS Groundspeed
                         truetrack = msg[8] # GPS Track in true heading
-                        date = msg[9] # UTC date in ddmmyy
+                        date = msg[9] # UTC date in ddmmyy (split into day, month, year)
+                        day = date[0:2]
+                        month = date[2:4]
+                        year = date[4:6]
                         magvar = msg[10] # Magnetic variation x.x degrees
                         magvardir = msg[11] # magnetic variation E or W
                         #mode = msg[12] # FAA Mode, explained at top of file
-                        self.gpsData.GPSTime_string = "%s %d:%d:%d"%(date,int(utctime[0:1]),int(utctime[2:3]),int(utctime[4:5]))
+                        self.gpsData.LastUpdate = time.time()
+                        self.gpsData.GPSTime_string = "%s:%s:%s"%(utctime[0:2],utctime[2:4],utctime[4:6])
+                        self.gpsData.GPSDate_string = "%s/%s/%s"%(month,day,year)
                         self.time_stamp_string = self.gpsData.GPSTime_string
                         # self.time_stamp_min = int(utctime[2:3])
                         # self.time_stamp_sec = int(utctime[4:5])
@@ -250,7 +256,8 @@ class serial_nmea(Input):
                         geosepunit = msg[12] # unit of measure for geoidal separation X
                         diffage = msg[13] # Age of differential (WAAS) GPS data in seconds x.x
                         diffstation = msg[14] # Station ID of differential reference station (WAAS Station)
-                        self.gpsData.GPSTime_string = "%d:%d:%d"%(int(utctime[0:1]),int(utctime[2:3]),int(utctime[4:5]))
+                        self.gpsData.LastUpdate = time.time()
+                        #self.gpsData.GPSTime_string = "%s/%s/%s %d:%d:%d"%(month,day,year,int(utctime[0:1]),int(utctime[2:3]),int(utctime[4:5]))
                         # self.time_stamp_string = self.gpsData.GPSTime_string
                         # self.time_stamp_min = int(utctime[2:3])
                         # self.time_stamp_sec = int(utctime[4:5])
@@ -302,7 +309,7 @@ class serial_nmea(Input):
                         distwpt = msg[10] # Distance to next waypoint in nautical miles xx.x
                         nextwpt = msg[12] # Next waypoint ID XXXX
                         mode = msg[13] # FAA Mode, explained at top of file
-                        self.gpsData.GPSTime_string = "%d:%d:%d"%(int(utctime[0:1]),int(utctime[2:3]),int(utctime[4:5]))
+                        #self.gpsData.GPSTime_string = "%d:%d:%d"%(int(utctime[0:1]),int(utctime[2:3]),int(utctime[4:5]))
                         # self.time_stamp_string = self.gpsData.GPSTime_string
                         # self.time_stamp_min = int(utctime[2:3])
                         # self.time_stamp_sec = int(utctime[4:5])

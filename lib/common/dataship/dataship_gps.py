@@ -19,6 +19,7 @@ class GPSData(object):
         self.Alt = None   # in feet MSL
         self.GPSTime = None
         self.GPSTime_string = None
+        self.GPSDate_string = None
         self.LastUpdate = None
         
         self.Alt = None  # ft MSL

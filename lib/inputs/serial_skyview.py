@@ -33,6 +33,7 @@ class serial_skyview(Input):
         self.airData = AirData()
         self.msg_unknown = 0
         self.msg_bad = 0
+        self.nmea_buffer = ""  # Add buffer for NMEA messages
 
     def initInput(self,num,dataship: Dataship):
         Input.initInput( self,num, dataship )  # call parent init Input.
@@ -112,17 +113,78 @@ class serial_skyview(Input):
         if dataship.errorFoundNeedToExit:
             return dataship;
         try:
+            # Read until we find a message start character ($ or !)
             x = 0
-            while x != 33:  # 33(!) is start of dynon skyview.
+            while x != 33 and x != ord('$'):  # Look for ! (33) or $ start characters
                 t = self.ser.read(1)
                 if len(t) != 0:
                     x = ord(t)
                 else:
-                    if self.isPlaybackMode:  # if no bytes read and in playback mode.  then reset the file pointer to the start of the file.
+                    if self.isPlaybackMode:  # if no bytes read and in playback mode, reset file pointer
                         self.ser.seek(0)
                     return dataship
+
+            # Found a start character - handle NMEA or Skyview message
+            if x == ord('$'):  # NMEA message
+                nmea_msg = bytes([x]) + self.ser.readline()
+                try:
+                    # Parse NMEA message
+                    fields = nmea_msg.decode().strip().split(',')
+                    sentence = fields[0]
+
+                    if sentence == "$GPGGA" and len(fields) >= 11 and fields[2] and fields[4]:
+                        # Update position
+                        lat_str, lat_hem = fields[2], fields[3]
+                        lon_str, lon_hem = fields[4], fields[5]
+                        
+                        # Convert latitude
+                        degrees = float(lat_str[:2])
+                        minutes = float(lat_str[2:])
+                        self.gpsData.Lat = -(degrees + minutes/60) if lat_hem == 'S' else (degrees + minutes/60)
+                        
+                        # Convert longitude 
+                        degrees = float(lon_str[:3])
+                        minutes = float(lon_str[3:])
+                        self.gpsData.Lon = -(degrees + minutes/60) if lon_hem == 'W' else (degrees + minutes/60)
+                        
+                        self.gpsData.Alt = float(fields[9]) if fields[9] else 0
+                        self.gpsData.SatsTracked = int(fields[7]) if fields[7] else 0
+                        
+                    elif sentence == "$GPGSA" and len(fields) >= 18:
+                        pass
+                        
+                    elif sentence == "$GPRMC" and len(fields) >= 12 and fields[3] and fields[5]:
+                        lat_str, lat_hem = fields[3], fields[4]
+                        lon_str, lon_hem = fields[5], fields[6]
+                        
+                        # Convert latitude
+                        degrees = float(lat_str[:2])
+                        minutes = float(lat_str[2:])
+                        self.gpsData.Lat = -(degrees + minutes/60) if lat_hem == 'S' else (degrees + minutes/60)
+                        
+                        # Convert longitude
+                        degrees = float(lon_str[:3])
+                        minutes = float(lon_str[3:])
+                        self.gpsData.Lon = -(degrees + minutes/60) if lon_hem == 'W' else (degrees + minutes/60)
+                        
+                        self.gpsData.GndSpeed = float(fields[7])*1.15078 if fields[7] else 0  # Convert knots to mph
+                        self.gpsData.GndTrack = float(fields[8]) if fields[8] else 0
+                        
+                    elif sentence == "$GPVTG" and len(fields) >= 8:
+                        self.gpsData.GndTrack = float(fields[1]) if fields[1] else 0
+                        self.gpsData.GndSpeed = float(fields[5])*0.621371 if fields[5] else 0  # Convert km/h to mph
+                        
+                    elif sentence == "$GPGSV" and len(fields) >= 4:
+                        self.gpsData.SatsVisible = int(fields[3]) if fields[3] else 0
+
+                    self.gpsData.msg_count += 1
+                except:
+                    self.gpsData.msg_bad += 1
+                return dataship
+
+            # Must be Skyview message (x == 33)
             dataType = self.ser.read(1)
-            dataVer  = self.ser.read(1)
+            dataVer = self.ser.read(1)
 
             if isinstance(dataType,str):
                 dataType = dataType.encode() # if read from file then convert to bytes
@@ -410,6 +472,5 @@ class serial_skyview(Input):
             self.ser.flushInput()  # flush the serial after every message else we see delays
 
         return dataship
-
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

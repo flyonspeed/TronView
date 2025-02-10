@@ -213,7 +213,7 @@ class TargetData(object):
         return nearest
 
     # go through targets, update,  and remove old ones.
-    def cleanUp(self,aircraft):
+    def cleanUp(self,dataship):
         for i, t in enumerate(self.targets):
             self.targets[i].age = int(time.time() - self.targets[i].time) # track age last time this target was updated.
             # check if it's a buoy we dropped.. if so update it.

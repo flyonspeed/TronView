@@ -13,9 +13,8 @@ from lib.common.dataship.dataship_gps import GPSData
 from lib.common.dataship.dataship_nav import NavData
 #import airportsdata
 import traceback
-import hud_utils
+from lib import hud_utils
 
-tf = TimezoneFinder()
 
 #######################################
 ###     FAA Mode indicator decoder  ###

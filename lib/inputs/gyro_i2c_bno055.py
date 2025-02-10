@@ -27,11 +27,11 @@ class gyro_i2c_bno055(Input):
     def initInput(self,num,dataship: Dataship):
         Input.initInput( self,num, dataship )  # call parent init Input.
         # check how many imus are already in aircraft.imus. 
-        self.num_imus = len(dataship.imus)
+        self.num_imus = len(dataship.imuData)
 
         # check how many imus are named the same as this one. get next number for this one.
         self.num_bno055 = 1
-        for index, imu_obj in dataship.imus.items():
+        for index, imu_obj in enumerate(dataship.imuData):
             if imu_obj.name == self.name:
                 self.num_bno055 += 1
 

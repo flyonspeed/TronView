@@ -340,7 +340,7 @@ class hsi(Module):
                              (x_pos - self.hsi_size / 2, y_pos + 40 - self.hsi_size / 2))
 
         # Draw ground track and heading labels using target values
-        gnd_trk_label = self.myfont1.render(f"trk:{gnd_trk:03d}", False, self.label_color)
+        gnd_trk_label = self.myfont1.render(f"trk:{int(gnd_trk):03d}", False, self.label_color)
         hdg_label = self.myfont1.render(f"hdg:{target_heading:03.0f}", False, self.label_color)
         
         self.pygamescreen.blit(

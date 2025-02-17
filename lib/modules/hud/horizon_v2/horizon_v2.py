@@ -645,18 +645,18 @@ class horizon_v2(Module):
         if abs(relative_bearing) > self.fov_x / 2:
             return  # Target is outside the field of view, don't draw it
 
-        if t.altDiff is not None and dataship.pitch is not None and dataship.roll is not None:
+        if t.altDiff is not None and self.imuData.pitch is not None and self.imuData.roll is not None:
             # Convert distances to meters
             alt_diff_meters = t.altDiff * 0.3048
             dist_meters = t.dist * 1609.34
             # Calculate the angle to the target relative to the horizon in radians
             angle_to_target = math.atan2(alt_diff_meters, dist_meters)
             # Adjust for aircraft pitch
-            adjusted_angle = angle_to_target - math.radians(dataship.pitch)
+            adjusted_angle = angle_to_target - math.radians(self.imuData.pitch)
             # Calculate the vertical position on the screen
             vertical_position = self.yCenter - (math.tan(adjusted_angle) * (self.height / 2))
             # Adjust for aircraft roll
-            roll_radians = math.radians(dataship.roll)
+            roll_radians = math.radians(self.imuData.roll)
             
             xx = self.xCenter + relative_bearing * (self.width / self.fov_x)
             

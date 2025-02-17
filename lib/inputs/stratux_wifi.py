@@ -314,6 +314,7 @@ class stratux_wifi(Input):
                             timeStamp += (1 << 16)
                         self.gpsData.GPSTime_string = str(datetime.timedelta(seconds=int(timeStamp)))   # get time stamp for gdl hearbeat.
                         timeObj = datetime.datetime.strptime(self.gpsData.GPSTime_string, "%H:%M:%S")
+                        self.gpsData.GPSDate_string = datetime.datetime.now().strftime("%m/%d/%y")
                         self.gpsData.GPSTime = timeObj.time
 
                 elif(msg[1]==10): # GDL ownership (Latitude, Longitude, Altitude, Speed, Heading)

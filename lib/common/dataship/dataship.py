@@ -105,9 +105,13 @@ class Dataship(object):
 
             # if it has a __dict__ then recurse through it.
             if hasattr(value, '__dict__'):
-                #print("(recursing)")
+                # if it's enum then skip it
+                if isinstance(value, Enum):
+                    return
+                # get type of value
+                print(f"(recursing) {full_name} {type(value)}", end=' ')
                 for attr, attr_value in inspect.getmembers(value):
-                    if not attr.startswith('_'):
+                    if not attr.startswith('_') and not attr == 'get_all_fields':
                         add_field(attr, attr_value, f"{full_name}.")
             # else:
             #     fields.append(full_name)

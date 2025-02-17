@@ -10,7 +10,6 @@ import pygame
 import math
 from lib.common import shared
 from lib.common.dataship.dataship import Dataship
-from lib.common.dataship.dataship_targets import TargetData, Target
 from lib.common.dataship.dataship_imu import IMUData
 
 class object3d(Module):
@@ -93,10 +92,15 @@ class object3d(Module):
             ([3, 2, 6, 7], "BOTTOM", (255, 0, 255, 64)),    # Bottom face (magenta)
             ([0, 1, 5, 4], "TOP", (0, 255, 255, 64))  # Top face (cyan)
         ]
-
+        
+        try:
+            self.imuData = shared.Dataship.imuData[self.source_imu_index]
+        except:
+            print("ERROR: IMUData not found in Dataship for index %d" % self.source_imu_index)
+            self.imuData = IMUData()
 
     # called every redraw for the mod
-    def draw(self, dataship:Dataship, smartdisplay, pos=(None, None)):
+    def draw(self, dataship: Dataship, smartdisplay, pos=(None, None)):
         # Clear the surface
         self.surface.fill((0, 0, 0, 0))
 
@@ -477,7 +481,7 @@ class object3d(Module):
         if self.buttonsCheckClick(aircraft, mx, my):
             return
     
-    def zeroPosition(self, aircraft: Dataship, button):
+    def zeroPosition(self, dataship: Dataship, button):
         '''
         Set the zero position of the primary IMU.
         '''

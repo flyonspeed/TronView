@@ -69,6 +69,20 @@ class SingleInputReader(threading.Thread):
         self.input_index = input_index
         
     def run(self):
+        # Set this thread to run on a specific core
+        # Distribute threads across available cores using modulo
+        try:
+            import os
+            cpu_count = os.cpu_count()
+            if cpu_count:
+                target_cpu = self.input_index % cpu_count
+                os.sched_setaffinity(0, {target_cpu})
+                print(f"Input Thread {self.input_index} assigned to CPU core {target_cpu}")
+        except AttributeError:
+            print("os.sched_setaffinity not available on this platform")
+        except Exception as e:
+            print(f"Could not set CPU affinity: {e}")
+
         internalLoopCounter = 1
         print(f"Input Thread {self.input_index}: {shared.Inputs[self.input_index].name} started")
         while shared.Dataship.errorFoundNeedToExit == False:
@@ -83,7 +97,8 @@ class SingleInputReader(threading.Thread):
                     if internalLoopCounter < 1:
                         internalLoopCounter = 1000
                         checkInternals()
-                        shared.Dataship.traffic.cleanUp(shared.Dataship)
+                        if len(shared.Dataship.targetData) > 0:
+                            shared.Dataship.targetData[0].cleanUp(shared.Dataship) # check if old traffic targets should be cleared up.
                         #print(f"Input Thread: {self.input_index} {shared.Inputs[self.input_index].name} looped")
 
             if shared.Inputs[self.input_index].PlayFile != None: # if playing back a file.. add a little delay so it's closer to real world time.

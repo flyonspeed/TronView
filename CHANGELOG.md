@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.25] - 2025-02-16
+
+- refactor work.
+- template updates.
+- fix to save and load text and segment text in json.
+
+
+
 ## [0.0.24] - 2025-02-01
 
 - nmea gps test script added

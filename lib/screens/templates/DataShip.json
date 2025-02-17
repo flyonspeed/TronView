@@ -84,10 +84,6 @@
         "name": "Text",
         "options": [
           {
-            "name": "template",
-            "value": "nav<obj>"
-          },
-          {
             "name": "text",
             "value": "{navData[0]}"
           },
@@ -207,10 +203,6 @@
       "module": {
         "name": "Text",
         "options": [
-          {
-            "name": "template",
-            "value": "gps<obj>"
-          },
           {
             "name": "text",
             "value": "{gpsData[0]}"
@@ -332,10 +324,6 @@
         "name": "Text",
         "options": [
           {
-            "name": "template",
-            "value": "engine<obj>"
-          },
-          {
             "name": "text",
             "value": "{engineData[0]}"
           },
@@ -455,10 +443,6 @@
       "module": {
         "name": "Text",
         "options": [
-          {
-            "name": "template",
-            "value": "analog<obj>"
-          },
           {
             "name": "text",
             "value": "{airData[0]}"

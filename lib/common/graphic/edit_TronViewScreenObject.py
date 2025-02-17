@@ -273,7 +273,11 @@ class TronViewScreenObject:
                 # Call post-change functions once after all options are set
                 for func in post_change_functions:
                     try:
-                        func()
+                        #check if function can take a argument
+                        if hasattr(func, '__call__'):
+                            func()
+                        else:
+                            func("on_load")  # tell the function we are loading the module from a json file
                     except Exception as e:
                         print(f"NOTICE: error calling post_change_function: {str(e)}")
 

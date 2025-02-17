@@ -848,7 +848,7 @@ class horizon_v2(Module):
             self.imuData2.home(delete=True)
             self.camera_head_imu = self.imuData2
 
-    def draw_horizon_line(self, aircraft, camera_yaw=0, camera_pitch=0, camera_roll=0):
+    def draw_horizon_line(self, dataship:Dataship, camera_yaw=0, camera_pitch=0, camera_roll=0):
         """
         Draw a single line representing the true horizon from the camera's perspective.
         Takes into account both aircraft attitude and camera head position.
@@ -858,8 +858,8 @@ class horizon_v2(Module):
         center_y = self.height // 2
         
         # Convert all angles to radians
-        pitch_rad = math.radians(aircraft.pitch)
-        roll_rad = math.radians(aircraft.roll)
+        pitch_rad = math.radians(self.imuData.pitch)
+        roll_rad = math.radians(self.imuData.roll)
         cam_yaw_rad = math.radians(camera_yaw)
         cam_pitch_rad = math.radians(camera_pitch) 
         cam_roll_rad = math.radians(camera_roll)
@@ -867,7 +867,7 @@ class horizon_v2(Module):
         # Calculate effective pitch angle (how far horizon appears from center)
         # When looking straight ahead, aircraft pitch directly affects horizon position
         # When looking to the side, pitch effect diminishes with cos of yaw angle
-        effective_pitch = aircraft.pitch * math.cos(cam_yaw_rad) - camera_pitch
+        effective_pitch = self.imuData.pitch * math.cos(cam_yaw_rad) - camera_pitch
         
         # Calculate vertical offset in pixels
         pixels_per_degree = self.height / self.pxy_div
@@ -876,7 +876,7 @@ class horizon_v2(Module):
         # Calculate effective roll angle
         # When looking straight ahead, use aircraft roll minus camera roll
         # When looking to the side (90°), horizon appears level regardless of aircraft roll
-        effective_roll = (aircraft.roll - camera_roll) * math.cos(cam_yaw_rad)
+        effective_roll = (self.imuData.roll - camera_roll) * math.cos(cam_yaw_rad)
         
         # When looking up/down, horizon line should curve
         # This creates the effect of horizon curvature when looking up/down

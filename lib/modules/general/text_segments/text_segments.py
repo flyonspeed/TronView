@@ -392,14 +392,14 @@ class text_segments(Module):
         data_fields = shared.Dataship._get_all_fields()
 
         return {
-            "template": {
-                "type": "dropdown",
-                "default": "template",
-                "options": data_fields,
-                "label": "Value",
-                "description": "Select a predefined value",
-                "post_change_function": "update_text"
-            },
+            # "template": {
+            #     "type": "dropdown",
+            #     "default": "template",
+            #     "options": data_fields,
+            #     "label": "Value",
+            #     "description": "Select a predefined value",
+            #     "post_change_function": "update_text"
+            # },
             "text": {
                 "type": "text",
                 "default": self.text,
@@ -482,7 +482,11 @@ class text_segments(Module):
             }
         }
 
-    def update_text(self):
+    def update_text(self, update_type=None):
+        if update_type == "on_load":
+            return
+        if self.template == "":
+            return
         self.text = "{"+self.template+"}"
 
     def processEvent(self, event, aircraft, smartdisplay):

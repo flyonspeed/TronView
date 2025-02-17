@@ -184,14 +184,14 @@ class text(Module):
         #print(f"templates: {data_fields}")
 
         return {
-            "template": {
-                "type": "dropdown",
-                "default": "template",
-                "options": data_fields,
-                "label": "Value",
-                "description": "Select a predefined value",
-                "post_change_function": "update_text"
-            },
+            # "template": {
+            #     "type": "dropdown",
+            #     "default": self.template,
+            #     "options": data_fields,
+            #     "label": "Predefined",
+            #     "description": "Select a predefined value",
+            #     "post_change_function": "update_text"
+            # },
             "text": {
                 "type": "text",
                 "default": self.text,
@@ -258,7 +258,13 @@ class text(Module):
             }
         }
 
-    def update_text(self):
+    def update_text(self, update_type=None):
+        #print(f"update_text: {update_type}")
+        if update_type == "on_load": # in "on_load" then we are loading the module from a json file
+            return
+        if self.template == "":
+            return
+        # else set the text to the the value.
         self.text = "{"+self.template+"}"
         #self.buildFont()
 

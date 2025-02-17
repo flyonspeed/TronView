@@ -835,7 +835,8 @@ class horizon_v2(Module):
         '''
         # source_imu_index_name got changed. find the index of the imu id in the imu list.
         self.source_imu_index = self.imu_ids.index(self.source_imu_index_name)
-        shared.Dataship.imus[self.source_imu_index].home(delete=True) 
+        self.imuData = shared.Dataship.imuData[self.source_imu_index]
+        self.imuData.home(delete=True) 
 
     def changeSource2IMU(self):
         if self.source_imu_index2_name == "NONE":
@@ -843,8 +844,9 @@ class horizon_v2(Module):
             self.camera_head_imu = None
         else:
             self.source_imu_index2 = self.imu_ids2.index(self.source_imu_index2_name)
-            shared.Dataship.imus[self.source_imu_index2].home(delete=True)
-            self.camera_head_imu = shared.Dataship.imus[self.source_imu_index2]
+            self.imuData2 = shared.Dataship.imuData[self.source_imu_index2]
+            self.imuData2.home(delete=True)
+            self.camera_head_imu = self.imuData2
 
     def draw_horizon_line(self, aircraft, camera_yaw=0, camera_pitch=0, camera_roll=0):
         """

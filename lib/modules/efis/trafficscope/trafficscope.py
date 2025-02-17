@@ -437,7 +437,7 @@ class trafficscope(Module):
             }
         }
 
-    def processClick(self, dataship, mx, my):
+    def processClick(self, dataship:Dataship, mx, my):
         if dataship.debug_mode > 0:
             print("TrafficScope processClick: %d x %d" % (mx, my))
         # clear any selected targets from self.targetDetails
@@ -458,7 +458,7 @@ class trafficscope(Module):
                 #print("target: %s, x: %d, y: %d" % (target, self.targetDetails[target]["x"], self.targetDetails[target]["y"]))
             if mx >= self.targetDetails[target]["x"] - self.icon_scale and mx <= self.targetDetails[target]["x"] + self.icon_scale and my >= self.targetDetails[target]["y"] - self.icon_scale and my <= self.targetDetails[target]["y"] + self.icon_scale:
                 self.targetDetails[target]["selected"] = True
-                dataship.traffic.selected_target = target # save the callsign of selected target in aircraft.traffic.selected_target
+                dataship.targetData[0].selected_target = target # save the callsign of selected target in aircraft.traffic.selected_target
                 if shared.Dataship.debug_mode > 0:
                     print("selected target: %s" % target)
                 break

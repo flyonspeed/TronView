@@ -13,11 +13,11 @@
       "title": "Text",
       "x": 4,
       "y": 72,
-      "width": 306,
-      "height": 910,
-      "grid_position": "MidL",
-      "grid_percentage_x": 0.490625,
-      "grid_percentage_y": 0.9277777777777778,
+      "width": 284,
+      "height": 234,
+      "grid_position": "TopL",
+      "grid_percentage_x": 0.45625,
+      "grid_percentage_y": 1.05,
       "module": {
         "name": "Text",
         "options": [
@@ -68,18 +68,18 @@
           }
         ]
       },
-      "id": "M_usqto"
+      "id": "M_2dd9j"
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 645,
-      "y": 515,
+      "x": 641,
+      "y": 527,
       "width": 342,
       "height": 494,
       "grid_position": "BotM",
-      "grid_percentage_x": 0.55,
-      "grid_percentage_y": 0.23333333333333334,
+      "grid_percentage_x": 0.5375,
+      "grid_percentage_y": 0.3,
       "module": {
         "name": "Text",
         "options": [
@@ -89,7 +89,7 @@
           },
           {
             "name": "text",
-            "value": "{nav<obj>}"
+            "value": "{navData[0]}"
           },
           {
             "name": "font_name",
@@ -130,7 +130,7 @@
           }
         ]
       },
-      "id": "M_htz6d"
+      "id": "M_p6cs3"
     },
     {
       "type": "module",
@@ -192,18 +192,18 @@
           }
         ]
       },
-      "id": "M_yu4fl"
+      "id": "M_tt4ms"
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 324,
-      "y": 547,
+      "x": 17,
+      "y": 344,
       "width": 354,
       "height": 496,
-      "grid_position": "BotL",
-      "grid_percentage_x": 1.565625,
-      "grid_percentage_y": 0.4166666666666667,
+      "grid_position": "MidL",
+      "grid_percentage_x": 0.60625,
+      "grid_percentage_y": 1.288888888888889,
       "module": {
         "name": "Text",
         "options": [
@@ -213,7 +213,7 @@
           },
           {
             "name": "text",
-            "value": "{gps<obj>}"
+            "value": "{gpsData[0]}"
           },
           {
             "name": "font_name",
@@ -254,18 +254,18 @@
           }
         ]
       },
-      "id": "M_fis0k"
+      "id": "M_hfd8h"
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 1045,
-      "y": 117,
-      "width": 290,
-      "height": 619,
-      "grid_position": "MidM",
-      "grid_percentage_x": 1.71875,
-      "grid_percentage_y": 0.36944444444444446,
+      "x": 656,
+      "y": 185,
+      "width": 167,
+      "height": 191,
+      "grid_position": "TopM",
+      "grid_percentage_x": 0.3109375,
+      "grid_percentage_y": 1.5583333333333333,
       "module": {
         "name": "Text",
         "options": [
@@ -316,18 +316,18 @@
           }
         ]
       },
-      "id": "M_acnae"
+      "id": "M_1oqpe"
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 327,
-      "y": 130,
-      "width": 386,
-      "height": 276,
-      "grid_position": "TopL",
-      "grid_percentage_x": 1.625,
-      "grid_percentage_y": 1.488888888888889,
+      "x": 324,
+      "y": 133,
+      "width": 376,
+      "height": 498,
+      "grid_position": "MidL",
+      "grid_percentage_x": 1.6,
+      "grid_percentage_y": 0.12222222222222222,
       "module": {
         "name": "Text",
         "options": [
@@ -337,7 +337,7 @@
           },
           {
             "name": "text",
-            "value": "{engine<obj>}"
+            "value": "{engineData[0]}"
           },
           {
             "name": "font_name",
@@ -378,18 +378,18 @@
           }
         ]
       },
-      "id": "M_md297"
+      "id": "M_weilz"
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 325,
-      "y": 442,
-      "width": 396,
-      "height": 64,
-      "grid_position": "MidL",
-      "grid_percentage_x": 1.634375,
-      "grid_percentage_y": 0.6333333333333333,
+      "x": 324,
+      "y": 662,
+      "width": 354,
+      "height": 143,
+      "grid_position": "BotL",
+      "grid_percentage_x": 1.565625,
+      "grid_percentage_y": 0.075,
       "module": {
         "name": "Text",
         "options": [
@@ -399,7 +399,7 @@
           },
           {
             "name": "text",
-            "value": "{fuel<obj>}"
+            "value": "{fuelData[0]}"
           },
           {
             "name": "font_name",
@@ -440,18 +440,18 @@
           }
         ]
       },
-      "id": "M_4028q"
+      "id": "M_bjj8b"
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 684,
-      "y": 154,
-      "width": 405,
-      "height": 82,
-      "grid_position": "TopM",
-      "grid_percentage_x": 0.7703125,
-      "grid_percentage_y": 1.0833333333333333,
+      "x": 914,
+      "y": 198,
+      "width": 354,
+      "height": 525,
+      "grid_position": "MidM",
+      "grid_percentage_x": 1.409375,
+      "grid_percentage_y": 0.5583333333333333,
       "module": {
         "name": "Text",
         "options": [
@@ -461,7 +461,7 @@
           },
           {
             "name": "text",
-            "value": "{analog<obj>}"
+            "value": "{airData[0]}"
           },
           {
             "name": "font_name",
@@ -502,141 +502,18 @@
           }
         ]
       },
-      "id": "M_rblbk"
+      "id": "M_ia3ib"
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 419,
-      "y": 10,
-      "width": 791,
-      "height": 111,
-      "grid_position": "TopM",
-      "grid_percentage_x": 0.5453125,
-      "grid_percentage_y": 0.3638888888888889,
-      "module": {
-        "name": "Text",
-        "options": [
-          {
-            "name": "template",
-            "value": ""
-          },
-          {
-            "name": "text",
-            "value": "TronView DataShip"
-          },
-          {
-            "name": "font_name",
-            "value": "arial"
-          },
-          {
-            "name": "font_size",
-            "value": 91
-          },
-          {
-            "name": "font_bold",
-            "value": false
-          },
-          {
-            "name": "text_color",
-            "value": [
-              81,
-              81,
-              81,
-              255
-            ]
-          },
-          {
-            "name": "box_color",
-            "value": [
-              255,
-              255,
-              255
-            ]
-          },
-          {
-            "name": "box_weight",
-            "value": 0
-          },
-          {
-            "name": "box_radius",
-            "value": 0
-          }
-        ]
-      },
-      "id": "M_vjhb7"
-    },
-    {
-      "type": "module",
-      "title": "Text",
-      "x": 325,
-      "y": 412,
-      "width": 194,
-      "height": 29,
-      "grid_position": "MidL",
-      "grid_percentage_x": 1.31875,
-      "grid_percentage_y": 0.36944444444444446,
-      "module": {
-        "name": "Text",
-        "options": [
-          {
-            "name": "template",
-            "value": ""
-          },
-          {
-            "name": "text",
-            "value": "Fuel"
-          },
-          {
-            "name": "font_name",
-            "value": "arial"
-          },
-          {
-            "name": "font_size",
-            "value": 20
-          },
-          {
-            "name": "font_bold",
-            "value": true
-          },
-          {
-            "name": "text_color",
-            "value": [
-              200,
-              255,
-              255
-            ]
-          },
-          {
-            "name": "box_color",
-            "value": [
-              255,
-              255,
-              255
-            ]
-          },
-          {
-            "name": "box_weight",
-            "value": 1
-          },
-          {
-            "name": "box_radius",
-            "value": 4
-          }
-        ]
-      },
-      "id": "M_xx6oy"
-    },
-    {
-      "type": "module",
-      "title": "Text",
-      "x": 326,
-      "y": 523,
+      "x": 18,
+      "y": 306,
       "width": 58,
       "height": 27,
-      "grid_position": "MidL",
-      "grid_percentage_x": 1.109375,
-      "grid_percentage_y": 0.9805555555555555,
+      "grid_position": "TopL",
+      "grid_percentage_x": 0.146875,
+      "grid_percentage_y": 1.775,
       "module": {
         "name": "Text",
         "options": [
@@ -686,7 +563,7 @@
           }
         ]
       },
-      "id": "M_0fayl"
+      "id": "M_a4ugy"
     },
     {
       "type": "module",
@@ -747,18 +624,18 @@
           }
         ]
       },
-      "id": "M_hc37r"
+      "id": "M_vgyfg"
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 1046,
-      "y": 115,
+      "x": 651,
+      "y": 149,
       "width": 194,
       "height": 29,
       "grid_position": "TopM",
-      "grid_percentage_x": 1.571875,
-      "grid_percentage_y": 0.7194444444444444,
+      "grid_percentage_x": 0.3375,
+      "grid_percentage_y": 0.9083333333333333,
       "module": {
         "name": "Text",
         "options": [
@@ -808,7 +685,7 @@
           }
         ]
       },
-      "id": "M_zmp14"
+      "id": "M_8ducb"
     },
     {
       "type": "module",
@@ -869,18 +746,18 @@
           }
         ]
       },
-      "id": "M_ox57n"
+      "id": "M_e0faa"
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 682,
-      "y": 124,
+      "x": 915,
+      "y": 158,
       "width": 194,
       "height": 29,
       "grid_position": "TopM",
-      "grid_percentage_x": 0.434375,
-      "grid_percentage_y": 0.7694444444444445,
+      "grid_percentage_x": 1.1625,
+      "grid_percentage_y": 0.9583333333333334,
       "module": {
         "name": "Text",
         "options": [
@@ -890,7 +767,7 @@
           },
           {
             "name": "text",
-            "value": "Analog"
+            "value": "AirData"
           },
           {
             "name": "font_name",
@@ -930,18 +807,18 @@
           }
         ]
       },
-      "id": "M_dtboi"
+      "id": "M_5oeh9"
     },
     {
       "type": "module",
       "title": "Text",
       "x": 328,
-      "y": 105,
+      "y": 104,
       "width": 194,
       "height": 29,
       "grid_position": "TopL",
       "grid_percentage_x": 1.328125,
-      "grid_percentage_y": 0.6638888888888889,
+      "grid_percentage_y": 0.6583333333333333,
       "module": {
         "name": "Text",
         "options": [
@@ -991,18 +868,18 @@
           }
         ]
       },
-      "id": "M_0nck7"
+      "id": "M_8yzm9"
     },
     {
       "type": "module",
       "title": "Text",
       "x": 1332,
       "y": 136,
-      "width": 270,
-      "height": 327,
-      "grid_position": "TopR",
-      "grid_percentage_x": 0.584375,
-      "grid_percentage_y": 1.663888888888889,
+      "width": 246,
+      "height": 589,
+      "grid_position": "MidR",
+      "grid_percentage_x": 0.546875,
+      "grid_percentage_y": 0.39166666666666666,
       "module": {
         "name": "Text",
         "options": [
@@ -1012,7 +889,7 @@
           },
           {
             "name": "text",
-            "value": "{get_imu1()}"
+            "value": "{imuData[0]}"
           },
           {
             "name": "font_name",
@@ -1052,18 +929,18 @@
           }
         ]
       },
-      "id": "M_hg4cc"
+      "id": "M_of2me"
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 1332,
-      "y": 500,
+      "x": 1337,
+      "y": 763,
       "width": 288,
       "height": 397,
-      "grid_position": "MidR",
-      "grid_percentage_x": 0.6125,
-      "grid_percentage_y": 1.8805555555555555,
+      "grid_position": "BotR",
+      "grid_percentage_x": 0.628125,
+      "grid_percentage_y": 1.3416666666666666,
       "module": {
         "name": "Text",
         "options": [
@@ -1073,7 +950,7 @@
           },
           {
             "name": "text",
-            "value": "{get_imu2()}"
+            "value": "{imuData[1]}"
           },
           {
             "name": "font_name",
@@ -1113,7 +990,7 @@
           }
         ]
       },
-      "id": "M_9yexx"
+      "id": "M_ml6hb"
     },
     {
       "type": "module",
@@ -1137,27 +1014,43 @@
             "value": 0
           },
           {
+            "name": "source_imu_index2_name",
+            "value": "NONE"
+          },
+          {
+            "name": "source_imu_index2",
+            "value": null
+          },
+          {
             "name": "MainColor",
             "value": [
               255,
               255,
               255
             ]
+          },
+          {
+            "name": "show_xyz",
+            "value": false
+          },
+          {
+            "name": "smoothing_factor",
+            "value": 0.1
           }
         ]
       },
-      "id": "M_4h8i6"
+      "id": "M_c8x2y"
     },
     {
       "type": "module",
       "title": "object 3D",
-      "x": 1520,
-      "y": 543,
+      "x": 1566,
+      "y": 758,
       "width": 164,
       "height": 143,
-      "grid_position": "MidR",
-      "grid_percentage_x": 1.00625,
-      "grid_percentage_y": 1.413888888888889,
+      "grid_position": "BotR",
+      "grid_percentage_x": 1.15,
+      "grid_percentage_y": 0.6083333333333333,
       "module": {
         "name": "object 3D",
         "options": [
@@ -1170,16 +1063,32 @@
             "value": 1
           },
           {
+            "name": "source_imu_index2_name",
+            "value": "NONE"
+          },
+          {
+            "name": "source_imu_index2",
+            "value": null
+          },
+          {
             "name": "MainColor",
             "value": [
               255,
               255,
               255
             ]
+          },
+          {
+            "name": "show_xyz",
+            "value": false
+          },
+          {
+            "name": "smoothing_factor",
+            "value": 0.1
           }
         ]
       },
-      "id": "M_j6ndl"
+      "id": "M_bnk8x"
     },
     {
       "type": "module",
@@ -1240,18 +1149,18 @@
           }
         ]
       },
-      "id": "M_j2qvx"
+      "id": "M_8otlk"
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 1330,
-      "y": 464,
+      "x": 1335,
+      "y": 733,
       "width": 194,
       "height": 29,
-      "grid_position": "MidR",
-      "grid_percentage_x": 0.459375,
-      "grid_percentage_y": 0.6583333333333333,
+      "grid_position": "BotR",
+      "grid_percentage_x": 0.475,
+      "grid_percentage_y": 0.1527777777777778,
       "module": {
         "name": "Text",
         "options": [
@@ -1301,7 +1210,7 @@
           }
         ]
       },
-      "id": "M_etua7"
+      "id": "M_8lbuq"
     },
     {
       "type": "module",
@@ -1322,7 +1231,7 @@
           },
           {
             "name": "text",
-            "value": "AIRCRAFT"
+            "value": "Dataship"
           },
           {
             "name": "font_name",
@@ -1362,18 +1271,18 @@
           }
         ]
       },
-      "id": "M_b8jua"
+      "id": "M_wsq52"
     },
     {
       "type": "module",
       "title": "Play Controls",
-      "x": 1245,
-      "y": 35,
+      "x": 1551,
+      "y": 20,
       "width": 382,
       "height": 132,
       "grid_position": "TopR",
-      "grid_percentage_x": 0.4875,
-      "grid_percentage_y": 0.5611111111111111,
+      "grid_percentage_x": 1.44375,
+      "grid_percentage_y": 0.4777777777777778,
       "module": {
         "name": "Play Controls",
         "options": [
@@ -1383,7 +1292,141 @@
           }
         ]
       },
-      "id": "M_nk5xn"
+      "id": "M_izfex"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 328,
+      "y": 628,
+      "width": 194,
+      "height": 29,
+      "grid_position": "MidL",
+      "grid_percentage_x": 1.328125,
+      "grid_percentage_y": 1.5694444444444444,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "template",
+            "value": ""
+          },
+          {
+            "name": "text",
+            "value": "Fuel"
+          },
+          {
+            "name": "font_name",
+            "value": "arial"
+          },
+          {
+            "name": "font_size",
+            "value": 20
+          },
+          {
+            "name": "font_bold",
+            "value": true
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 1
+          },
+          {
+            "name": "box_radius",
+            "value": 4
+          }
+        ]
+      },
+      "id": "M_vhjta"
+    },
+    {
+      "type": "module",
+      "title": "Text Segments",
+      "x": 510,
+      "y": 47,
+      "width": 574,
+      "height": 53,
+      "grid_position": "TopM",
+      "grid_percentage_x": 0.490625,
+      "grid_percentage_y": 0.4083333333333333,
+      "module": {
+        "name": "Text Segments",
+        "options": [
+          {
+            "name": "template",
+            "value": ""
+          },
+          {
+            "name": "text",
+            "value": "DataShip Objects"
+          },
+          {
+            "name": "digit_spacing",
+            "value": 5
+          },
+          {
+            "name": "width_ratio",
+            "value": 71
+          },
+          {
+            "name": "total_decimals",
+            "value": 17
+          },
+          {
+            "name": "justify",
+            "value": "left"
+          },
+          {
+            "name": "text_color",
+            "value": [
+              242,
+              242,
+              24
+            ]
+          },
+          {
+            "name": "not_active_color",
+            "value": [
+              31,
+              31,
+              31
+            ]
+          },
+          {
+            "name": "box_color",
+            "value": [
+              45,
+              45,
+              45
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 0
+          },
+          {
+            "name": "padding",
+            "value": 5
+          }
+        ]
+      },
+      "id": "M_qfezg"
     }
   ]
 }

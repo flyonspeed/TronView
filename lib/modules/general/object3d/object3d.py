@@ -35,6 +35,7 @@ class object3d(Module):
         self.show_xyz = False
 
         self.imuData = IMUData()
+        self.imuData2 = IMUData()
 
     # called once for setup
     def initMod(self, pygamescreen, width=None, height=None):
@@ -59,7 +60,7 @@ class object3d(Module):
         # update self.source_imu_index_name with the correct name using the index.
         # this can happen because we load a screen that used a imu id that is not in the list or moved
         # we only care about the index.
-        for imu_index, imu in shared.Dataship.imuData.items():
+        for imu_index, imu in enumerate(shared.Dataship.imuData):
             if self.source_imu_index == imu_index:
                 self.source_imu_index_name = imu.id
 
@@ -95,7 +96,7 @@ class object3d(Module):
 
 
     # called every redraw for the mod
-    def draw(self, aircraft, smartdisplay, pos=(None, None)):
+    def draw(self, dataship:Dataship, smartdisplay, pos=(None, None)):
         # Clear the surface
         self.surface.fill((0, 0, 0, 0))
 
@@ -107,11 +108,11 @@ class object3d(Module):
         y = self.height // 2
 
         # if imu is available and the self.source_imu_index is not larger than the number of imus.
-        if aircraft.imus and self.source_imu_index < len(aircraft.imus):
+        if dataship.imuData and self.source_imu_index < len(dataship.imuData):
             if self.source_imu_index2 is not None:
                 source_imu = self.calculateCameraPosition()
             else:
-                source_imu = aircraft.imus[self.source_imu_index]
+                source_imu = dataship.imuData[self.source_imu_index]
 
             # Apply smoothing to the orientation values
             if source_imu.pitch is not None:
@@ -160,7 +161,7 @@ class object3d(Module):
             self.surface.blit(text, text_rect)
             next_line = 30
             # check if index is bigger then size
-            if self.source_imu_index >= len(aircraft.imus):
+            if self.source_imu_index >= len(dataship.imuData):
                 if len(self.source_imu_index_name) > 0:
                     text = self.font.render("NotFound\n"+self.source_imu_index_name, True, (255,0,0))
                     text_rect = text.get_rect(center=(self.width//2, self.height//2+next_line))
@@ -281,7 +282,7 @@ class object3d(Module):
 
         # draw buttons
         if self.source_imu_index2 is None:
-            self.buttonsDraw(aircraft, smartdisplay, pos)
+            self.buttonsDraw(dataship, smartdisplay, pos)
         
         if self.show_xyz:
             # create text for x, y, z.
@@ -318,9 +319,9 @@ class object3d(Module):
     
     def get_module_options(self):
         # get the imu list of imu objects
-        imu_list = shared.Dataship.imus
+        imu_list = shared.Dataship.imuData
         self.imu_ids = []
-        for imu_index, imu in imu_list.items(): # populate the list of ids of IMUs
+        for imu_index, imu in enumerate(imu_list): # populate the list of ids of IMUs
             self.imu_ids.append(str(imu.id))
         if len(self.source_imu_index_name) == 0: # if primary imu name is not set.
             self.source_imu_index_name = self.imu_ids[self.source_imu_index]  # select first one.
@@ -375,9 +376,9 @@ class object3d(Module):
         }
 
         # check if self.imu_ids[self.source_imu_index].input has a method setPostion.
-        if self.source_imu_index < len(shared.Dataship.imus) and shared.Dataship.imus[self.source_imu_index].input is not None:
-            if shared.Dataship.imus[self.source_imu_index].input is not None:
-                if hasattr(shared.Dataship.imus[self.source_imu_index].input, "setPostion"):
+        if self.source_imu_index < len(shared.Dataship.imuData) and shared.Dataship.imuData[self.source_imu_index].input is not None:
+            if shared.Dataship.imuData[self.source_imu_index].input is not None:
+                if hasattr(shared.Dataship.imuData[self.source_imu_index].input, "setPostion"):
                     # check if self.test_pitch exists.
                     if not hasattr(self, "test_pitch"):
                         self.test_pitch = 0
@@ -452,10 +453,10 @@ class object3d(Module):
         return options
 
     def setTestPostion(self):
-        shared.Dataship.imus[self.source_imu_index].input.setPostion(self.test_pitch, self.test_roll, self.test_yaw)
+        shared.Dataship.imuData[self.source_imu_index].input.setPostion(self.test_pitch, self.test_roll, self.test_yaw)
     
     def setTestAutoRotate(self):
-        shared.Dataship.imus[self.source_imu_index].input.setAutoRotate(self.auto_rotate_pitch, self.auto_rotate_roll, self.auto_rotate_yaw)
+        shared.Dataship.imuData[self.source_imu_index].input.setAutoRotate(self.auto_rotate_pitch, self.auto_rotate_roll, self.auto_rotate_yaw)
 
     def changeSource1IMU(self):
         '''
@@ -463,14 +464,14 @@ class object3d(Module):
         '''
         # source_imu_index_name got changed. find the index of the imu id in the imu list.
         self.source_imu_index = self.imu_ids.index(self.source_imu_index_name)
-        shared.Dataship.imus[self.source_imu_index].home(delete=True) 
+        shared.Dataship.imuData[self.source_imu_index].home(delete=True) 
 
     def changeSource2IMU(self):
         if self.source_imu_index2_name == "NONE":
             self.source_imu_index2 = None
         else:
             self.source_imu_index2 = self.imu_ids2.index(self.source_imu_index2_name)
-            shared.Dataship.imus[self.source_imu_index2].home(delete=True) 
+            shared.Dataship.imuData[self.source_imu_index2].home(delete=True) 
 
     def processClick(self, aircraft: Dataship, mx, my):
         if self.buttonsCheckClick(aircraft, mx, my):
@@ -480,7 +481,7 @@ class object3d(Module):
         '''
         Set the zero position of the primary IMU.
         '''
-        aircraft.imus[self.source_imu_index].home()
+        aircraft.imuData[self.source_imu_index].home()
 
 
     def calculateCameraPosition(self):
@@ -492,7 +493,7 @@ class object3d(Module):
         - If base IMU is at 15° pitch and camera IMU is at -15° pitch, virtual IMU will be at 0° pitch
         Returns a virtual IMU object with the relative orientation between the two IMUs.
         '''
-        if self.source_imu_index2 >= shared.Dataship.imus.__len__():  # secondary imu not found.
+        if self.source_imu_index2 >= shared.Dataship.imuData.__len__():  # secondary imu not found.
             # create a virtual imu with all None values.
             virtual_imu = type('VirtualIMU', (), {})()
             virtual_imu.pitch = None
@@ -501,8 +502,8 @@ class object3d(Module):
             return virtual_imu
 
         # Get references to both IMUs from shared dataship
-        imu_base = shared.Dataship.imus[self.source_imu_index]
-        imu_camera = shared.Dataship.imus[self.source_imu_index2]
+        imu_base = shared.Dataship.imuData[self.source_imu_index]
+        imu_camera = shared.Dataship.imuData[self.source_imu_index2]
 
         # Create a virtual IMU that represents the relative orientation
         virtual_imu = type('VirtualIMU', (), {})()

@@ -546,7 +546,8 @@ while $RUN_MENU_AGAIN; do
                             8) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/i2c_test.py" ;;
                             9) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/3d/sphere.py" ;;
                             10) FULL_COMMAND="python3 $TRONVIEW_DIR/util/rpi/i2c/calibrate_bno085.py" ;;
-                            11) FULL_COMMAND="python3 $TRONVIEW_DIR/util/menu/serial_getlist.py --select" ;;
+                            11) FULL_COMMAND="python3 $TRONVIEW_DIR/util/menu/serial_getlist.py --select" 
+                                SKIP_PAUSE=true;;
                         esac
                         echo "Running: $FULL_COMMAND"
                         #exit 0
@@ -723,10 +724,13 @@ while $RUN_MENU_AGAIN; do
     # Run the full command if it was set. example: python3 $TRONVIEW_DIR/util/tests/joystick.py
     if [ ! -z "$FULL_COMMAND" ]; then
         eval "$FULL_COMMAND"
-        echo "[Press any key to go back to the TronView menu]"
-        get_char
+        if [ "$SKIP_PAUSE" != "true" ]; then
+            echo "[Press any key to go back to the TronView menu]"
+            get_char
+        fi
         # clear $FULL_COMMAND
         FULL_COMMAND=""
+        SKIP_PAUSE=""
         if $RUN_AGAIN; then  # if we need to run again, skip the last run
             exec "$0" "--skiplastrun"
             exit 0

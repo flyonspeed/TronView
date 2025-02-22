@@ -15,6 +15,7 @@ from textual.widgets import Static, Button
 def get_serial_ports() -> List[Dict[str, str]]:
     """
     Get a list of available serial ports with their descriptions.
+    Ports with missing or "n/a" descriptions are sorted to the bottom.
     
     Returns:
         List[Dict[str, str]]: List of dictionaries containing port information
@@ -31,7 +32,14 @@ def get_serial_ports() -> List[Dict[str, str]]:
         }
         ports.append(port_info)
     
-    return ports
+    # Sort ports - putting ones with missing/n/a descriptions at the bottom
+    def port_sort_key(port):
+        desc = port['description'].lower()
+        if not desc or desc == 'n/a':
+            return (1, port['port'])  # Will sort after valid descriptions
+        return (0, port['port'])      # Will sort before invalid descriptions
+    
+    return sorted(ports, key=port_sort_key)
 
 def save_ports_to_file(output_file: str = 'available_serial_ports.json'):
     """
@@ -58,12 +66,22 @@ class PortSelectScreen(Screen):
     BINDINGS = [
         Binding("q", "quit", "Quit", show=True),
         Binding("enter", "select_port", "Select", show=True),
+        Binding("escape", "quit", "Quit", show=False),  # Hidden binding for escape
     ]
 
     def compose(self) -> ComposeResult:
+        yield Static(self.load_ascii_art(), id="background")
         with Center():
             yield Static("Select Serial Port", id="title")
             yield ListView(id="port-list", classes="port-list")
+
+    def load_ascii_art(self) -> str:
+        """Load ASCII art from file."""
+        try:
+            with open('docs/imgs/logo_txt_small.txt', 'r') as f:
+                return f.read()
+        except:
+            return ""  # Return empty string if file not found
 
     def on_mount(self) -> None:
         """Called when screen is mounted."""
@@ -71,6 +89,10 @@ class PortSelectScreen(Screen):
         for port in self.app.ports:
             display_text = f"{port['port']} - {port['description']}"
             list_view.append(ListItem(Label(display_text)))
+        
+        # Select the first item if ports exist
+        if self.app.ports:
+            list_view.index = 0
 
     def action_quit(self) -> None:
         """Quit the application."""
@@ -90,6 +112,17 @@ class SerialPortSelector(App):
     CSS = """
     Screen {
         align: center middle;
+        layers: base overlay;
+    }
+
+    #background {
+        width: 100%;
+        height: 100%;
+        dock: top;
+        content-align: center top;
+        padding-top: 1;
+        color: $primary-darken-2;
+        layer: base;
     }
 
     Center {
@@ -98,6 +131,8 @@ class SerialPortSelector(App):
         border: solid green;
         background: $surface;
         padding: 1;
+        layer: overlay;
+        margin-top: 20;
     }
 
     #title {
@@ -114,6 +149,7 @@ class SerialPortSelector(App):
         max-height: 20;
         border: solid $accent;
         padding: 0 1;
+        background: $surface;
     }
     """
     
@@ -145,7 +181,6 @@ def select_serial_port() -> Optional[Dict[str, str]]:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='List available serial ports and save to file')
     parser.add_argument('-o', '--output', 
-                       default='available_serial_ports.json',
                        help='Output file path (default: available_serial_ports.json)')
     parser.add_argument('--select', 
                        action='store_true',

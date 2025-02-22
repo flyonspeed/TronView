@@ -744,8 +744,8 @@ def main_edit_loop():
         shared.GrowlManager.draw(pygamescreen)
 
         # Draw dashed border for edit mode
-        dash_length = 10
-        border_colors = [(255, 255, 0), (255, 255, 255)]  # Yellow and White
+        dash_length = 20
+        border_colors = [(150, 150, 0), (100, 0, 0)]  # Yellow and White
         screen_width = shared.smartdisplay.x_end
         screen_height = shared.smartdisplay.y_end
         
@@ -786,6 +786,8 @@ def main_edit_loop():
         # now make pygame update display.
         pygame.display.update()
 
+    get_ready_to_exit_edit_mode()
+
 def handle_drag_end(selected_objects, start_positions):
     movesHappened = 0
     for obj in selected_objects:
@@ -811,8 +813,12 @@ def get_ready_to_exit_edit_mode():
     # go through all screen objects and turn off box selection
     for sObject in shared.CurrentScreen.ScreenObjects:
         sObject.selected = False
+        sObject.showBounds = False
+
     # turn off the edit mode
     shared.Dataship.interface = Interface.GRAPHIC_2D
+    shared.CurrentScreen.show_FPS = False # turn off showing FPS
+
     return True
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

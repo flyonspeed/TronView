@@ -118,30 +118,6 @@ def main_graphical():
         pygame.display.update()
 
 
-# def loadScreen(ScreenNameToLoad):
-#     global pygamescreen
-
-#     #shared.CurrentScreen = class_()
-#     pygamescreen, screen_size = hud_graphics.initDisplay(0)
-#     shared.pygamescreen = pygamescreen
-#     width, height = screen_size
-#     print(("Screen size: %d x %d"%(width,height)))
-#     shared.smartdisplay.setDisplaySize(width,height)
-#     shared.CurrentScreen.initDisplay(
-#         pygamescreen, width, height
-#     )  # tell the screen we are about to start. 
-#     shared.smartdisplay.setPyGameScreen(pygamescreen)
-#     drawableAreaString = hud_utils.readConfig("Main", "drawable_area", "")
-#     if len(drawableAreaString)>0:
-#         print(("Found drawable area: %s"%(drawableAreaString)))
-#         area = drawableAreaString.split(",")
-#         try:
-#             shared.smartdisplay.setDrawableArea(int(area[0]),int(area[1]),int(area[2]),int(area[3]))  
-#         except AttributeError:
-#             print("No drawable function to set")
-#     else:
-#         shared.smartdisplay.setDrawableArea(0,0,width,height) # else set full screen as drawable area.
-#     # show notice of the screen name we are loading.
     
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python
 

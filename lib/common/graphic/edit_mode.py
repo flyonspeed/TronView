@@ -12,6 +12,7 @@
 ####################################################################################################################################### 
 import os
 import re
+import time
 from lib.common import shared
 import pygame, pygame_gui
 from lib import hud_utils
@@ -30,7 +31,7 @@ from lib.common.graphic.edit_EditEventsWindow import EditEventsWindow, save_even
 from lib.common.graphic.edit_dropdown import DropDown
 from lib.common.graphic.growl_manager import GrowlManager, GrowlPosition
 from lib.common.dataship.dataship import Interface
-from pygame import gfxdraw
+from lib.common.graphic.edit_textinput import TextInput
 
 #############################################
 ## Function: main edit loop
@@ -52,7 +53,6 @@ def main_edit_loop():
     print("Entering Edit Mode")
     shared.GrowlManager.initScreen()
     # clear screen using pygame
-    #pygamescreen = shared.smartdisplay.pygamescreen
     pygamescreen.fill((0, 0, 0))
     pygame.display.update()
     anchor_manager = GridAnchorManager(pygamescreen, shared.smartdisplay.x_end, shared.smartdisplay.y_end)
@@ -71,8 +71,9 @@ def main_edit_loop():
     showAllBoundryBoxes = False
     selected_screen_objects = []
     pygame_gui_manager = pygame_gui.UIManager((shared.smartdisplay.x_end, shared.smartdisplay.y_end))
-    edit_options_bar = None
-    edit_events_window = None
+    edit_options_bar: EditOptionsBar = None
+    edit_events_window: EditEventsWindow = None
+    text_input: TextInput = None
     fps_font = pygame.font.SysFont("monospace", 30)
     show_ruler = False
     show_anchor_grid = False
@@ -93,6 +94,9 @@ def main_edit_loop():
 
         ## loop through events and process them
         for event in event_list:
+            if text_input:      # if text input is active, process the event...
+                text_input.process_event(event) 
+
             pygame_gui_manager.process_events(event)
             if event.type == pygame_gui.UI_BUTTON_PRESSED:
                 #print("gui Button pressed: %s" % event.ui_element.text)
@@ -146,7 +150,7 @@ def main_edit_loop():
                         print("Selected template: %s" % selected_text)
                         shared.Change_history.clear()
                         if selection == 0:  # First option is "CLEAR SCREEN"
-                            shared.CurrentScreen.ScreenObjects.clear()
+                            shared.CurrentScreen.clear()
                         else:
                             load_screen_from_json(selected_text, from_templates=True)
                     elif active_dropdown.menu_type == "input":
@@ -355,8 +359,43 @@ def main_edit_loop():
 
                     # SAVE SCREEN TO JSON
                     elif event.key == pygame.K_s:
-                        save_screen_to_json()
-                        shared.GrowlManager.add_message("Saved screen to JSON")
+                        # check if the screen has a filename
+                        if shared.CurrentScreen.filename is None or shared.CurrentScreen.filename == "":
+                            def handle_save_filename(filename,result):
+                                """Handle saving the screen when user enters filename in text input dialog"""
+                                if result == "OK":
+                                    save_screen_to_json(filename)
+                                    shared.GrowlManager.add_message("Saved: %s" % filename)
+                                elif result == "CANCEL":
+                                    shared.GrowlManager.add_message("Cancelled")
+
+                                nonlocal text_input, text_entry_active
+                                text_input.kill()
+                                text_input = None
+                                text_entry_active = False
+
+                            if shared.CurrentScreen.loaded_from_template is not None:
+                                filenameToUse = shared.CurrentScreen.loaded_from_template
+                            else:
+                                filenameToUse = "" # default filename to use for new screens?
+
+                            # show a dialog using edit_textinput.py
+                            text_entry_active = True
+                            text_input = TextInput(manager=pygame_gui_manager,
+                                                 x=None, y=None, width=200, height=50, 
+                                                 with_background=True,
+                                                 dark_background=True,
+                                                 initial_text=filenameToUse,
+                                                 label_text="Enter filename",
+                                                 button_text="Save",
+                                                 button_action=handle_save_filename)
+                            
+                            # delay a bit to allow the text entry to be created
+
+                            continue
+                        else:
+                            save_screen_to_json(shared.CurrentScreen.filename)
+                            shared.GrowlManager.add_message("Saved: %s" % shared.CurrentScreen.filename)
 
                     # Toggle FPS display when 'F' is pressed
                     elif event.key == pygame.K_f:
@@ -728,7 +767,8 @@ def main_edit_loop():
             active_dropdown.draw(pygamescreen)
         else:
             # if event details window is visible, create a semi transparent overlay
-            if edit_events_window and edit_events_window.details_window :
+            if (edit_events_window and edit_events_window.details_window) or \
+                (text_input and text_input.visible):
                 # create a semi transparent overlay
                 screen_width = shared.smartdisplay.x_end
                 screen_height = shared.smartdisplay.y_end

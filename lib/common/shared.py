@@ -41,6 +41,16 @@ class Screen2d(object):
     def __init__(self):
         self.ScreenObjects: list[TronViewScreenObject] = []
         self.show_FPS = False
+        self.name = None
+        self.filename = None
+        self.loaded_from_template = None
+
+    def clear(self):
+        self.ScreenObjects.clear()
+        self.filename = None
+        self.loaded_from_template = None
+        self.name = None
+
 CurrentScreen = Screen2d()
 
 pygamescreen = None

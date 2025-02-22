@@ -3,26 +3,43 @@ import importlib
 import json
 from lib.common import shared
 from lib.common.graphic.edit_TronViewScreenObject import TronViewScreenObject
+from datetime import datetime
 
-def save_screen_to_json():
+def save_screen_to_json(filename=None):
+
+    # shared.pygamescreen is pygame screen
+    # shared.smartdisplay is smartdisplay object
+    # shared.CurrentScreen is current screen object
+    if filename is not None:
+        shared.CurrentScreen.filename = filename
+
+    if shared.CurrentScreen.filename is None:
+        shared.CurrentScreen.filename = "screen.json"
+
+    if not shared.CurrentScreen.filename.endswith(".json"):
+        shared.CurrentScreen.filename = shared.CurrentScreen.filename + ".json"
+    
+    # if the screen name is empty or none, then use the filename without the extension
+    if shared.CurrentScreen.name == "" or shared.CurrentScreen.name is None:
+        shared.CurrentScreen.name = shared.CurrentScreen.filename.split(".")[0]
 
     data = {
         "ver": {"version": "1.0"},  # You can update this version as needed
         "screen": {
-            "title": "No Name",
+            "title": shared.CurrentScreen.name,
+            "filename": shared.CurrentScreen.filename,
             "width": shared.smartdisplay.x_end,
-            "height": shared.smartdisplay.y_end
+            "height": shared.smartdisplay.y_end,
+            "date_updated": datetime.now().strftime("%Y%m%d_%H%M%S")
         },
         "screenObjects": [obj.to_dict() for obj in shared.CurrentScreen.ScreenObjects]
     }
     
-    filename = "screen.json"
+    filename = shared.CurrentScreen.filename
 
     #timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     filename = shared.DataDir + "screens/" + filename
     # if it doesn't end with .json then add it.
-    if not filename.endswith(".json"):
-        filename = filename + ".json"
     
     with open(filename, "w") as f:
         json.dump(data, f, indent=2)
@@ -46,13 +63,20 @@ def load_screen_from_json(filename,from_templates=False):
         with open(filename, 'r') as f:
             data = json.load(f)
         
+        just_filename = filename.split("/")[-1]
+
+
         # Clear existing screen objects
         shared.CurrentScreen.ScreenObjects.clear()
         
         # Set screen properties
-        shared.CurrentScreen.title = data['screen']['title']
-        #shared.smartdisplay.x_end = data['screen']['width']
-        #shared.smartdisplay.y_end = data['screen']['height']
+        shared.CurrentScreen.name = data['screen']['title']
+        if from_templates:
+            shared.CurrentScreen.filename = "" # reset filename to empty string so when we save it the user will enter a new filename.
+            # make sure filename exists and is not empty
+            shared.CurrentScreen.loaded_from_template = just_filename
+        else:
+            shared.CurrentScreen.filename = just_filename
         
         # Load screen objects using the from_dict method
         for obj_data in data['screenObjects']:

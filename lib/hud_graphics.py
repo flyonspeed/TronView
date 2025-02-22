@@ -80,7 +80,7 @@ def initDisplay(debug=False):
     else:
         pygame.mouse.set_visible(False)  # hide the mouse
 
-    shared.pygamescreen = screen
+    shared.pygamescreen = screen  # save to shared for easy access
 
     shared.smartdisplay.setPyGameScreen(screen)
     drawableAreaString = hud_utils.readConfig("Main", "drawable_area", "")

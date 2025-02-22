@@ -144,32 +144,6 @@ def loadInput(num, nameToLoad, playFile=None):
     return newInput
 
 #############################################
-## Function: initDataShip
-def initDataship():
-    #global Dataship object.
-    # speed = hud_utils.readConfig("Formats", "speed_distance", "Standard")
-    # if speed == "Standard" or speed == "MPH":
-    #     shared.Dataship.data_format = shared.Dataship.MPH
-    #     print("speed distance format: mph ")
-    # elif speed == "Knots":
-    #     shared.Dataship.data_format = shared.Dataship.KNOTS
-    #     print("speed distance format: Knots ")
-    # elif speed == "Metric":
-    #     shared.Dataship.data_format = shared.Dataship.METERS
-    #     print("speed distance format: Meters ")
-
-    # temp = hud_utils.readConfig("Formats", "temperature", "C")
-    # if temp == "F":
-    #     shared.Dataship.data_format_temp = shared.Dataship.TEMP_F
-    #     print("temperature format: F ")
-    # elif temp == "C":
-    #     shared.Dataship.data_format_temp = shared.Dataship.TEMP_C
-    #     print("temperature format: C ")
-    # else :
-    #     print("Unknown temperature format:"+temp)
-    pass
-
-#############################################
 #############################################
 # Main function.
 #
@@ -262,8 +236,6 @@ if __name__ == "__main__":
 
     if(shared.Dataship.errorFoundNeedToExit==True): sys.exit()
     # check and load screen module. (if not starting in text mode)
-
-    initDataship()
 
     shared.Dataship.interface = Interface.GRAPHIC_2D
 

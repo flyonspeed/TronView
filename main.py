@@ -16,6 +16,7 @@
 
 import os, sys, time, threading, argparse, pygame, importlib
 from lib import hud_utils
+from lib import hud_graphics
 from lib.util import drawTimer
 from lib.util import rpi_hardware
 from lib.util import mac_hardware
@@ -235,8 +236,9 @@ if __name__ == "__main__":
     if args.l:
         rpi_hardware.list_serial_ports(True)
         sys.exit()
-    if args.load_screen:
-        edit_mode.load_screen_from_json(args.load_screen)
+    # if args.load_screen:
+    #     hud_graphics.initDisplay(0)
+    #     edit_mode.load_screen_from_json(args.load_screen)
 
     hud_utils.getDataRecorderDir(exitOnFail=True)
     hud_utils.setupDirs()
@@ -263,16 +265,16 @@ if __name__ == "__main__":
 
     initDataship()
 
-    shared.Dataship.interface = Interface.EDITOR
+    shared.Dataship.interface = Interface.GRAPHIC_2D
 
     if(shared.Dataship.errorFoundNeedToExit==True): sys.exit()
     # TODO: support text mode.
-    if shared.Dataship.interface != Interface.TEXT:
-        if hud_utils.findScreen(ScreenNameToLoad) == False:
-            print(("Screen module not found: %s"%(ScreenNameToLoad)))
-            hud_utils.findScreen() # show available screens
-            sys.exit()
-        graphic_mode.loadScreen(ScreenNameToLoad) # load and init screen
+    # if shared.Dataship.interface != Interface.TEXT:
+        # if hud_utils.findScreen(ScreenNameToLoad) == False:
+        #     print(("Screen module not found: %s"%(ScreenNameToLoad)))
+        #     hud_utils.findScreen() # show available screens
+        #     sys.exit()
+        #graphic_mode.loadScreen(ScreenNameToLoad) # load and init screen
         #drawTimer.addGrowlNotice("1: %s"%(DataInputToLoad),3000,drawTimer.green,drawTimer.TOP_RIGHT)
 
     if args.input_threads:
@@ -290,6 +292,7 @@ if __name__ == "__main__":
 
     # testing.. start in edit mode.
     if shared.Dataship.interface == Interface.EDITOR:
+        hud_graphics.initDisplay(0)
         # check if /data/screens/screen.json exists.. if so load edit_save_load.load_screen_from_json()
         if os.path.exists("data/screens/screen.json"):
             edit_save_load.load_screen_from_json("screen.json")

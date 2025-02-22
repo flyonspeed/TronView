@@ -42,16 +42,6 @@ class Dataship(object):
         self.debug_mode = 0
         self.errorFoundNeedToExit = False
 
-
-    def get_imu1(self):
-        return self.imus[0]
-
-    def get_imu2(self):
-        return self.imus[1]
-
-    def get_imu3(self):
-        return self.imus[2]
-
     
     # get a list of all fields and functions in the aircraft object
     def _get_all_fields(self, prefix: str = '', force_rebuild: bool = False) -> List[str]:

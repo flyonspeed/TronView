@@ -25,9 +25,9 @@ class play_controls(Module):
     # called once for setup, or when module is being resized in editor
     def initMod(self, pygamescreen, width=None, height=None):
         if width is None:
-            width = 120 # default width
+            width = 290 # default width
         if height is None:
-            height = 100 # default height
+            height = 50 # default height
         Module.initMod( self, pygamescreen, width, height )  # call parent init screen.
         if shared.Dataship.debug_mode > 0:
             print(("Init Mod: %s %dx%d"%(self.name,self.width,self.height)))
@@ -67,7 +67,7 @@ class play_controls(Module):
         # self.surface.blit(text, (10, self.buttonLastY + 10))
 
         # Use alpha blending when blitting to the screen
-        smartdisplay.pygamescreen.blit(self.surface, pos, special_flags=pygame.BLEND_ALPHA_SDL2)
+        self.pygamescreen.blit(self.surface, pos, special_flags=pygame.BLEND_ALPHA_SDL2)
 
 
     # handle mouse clicks

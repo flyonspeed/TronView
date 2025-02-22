@@ -32,9 +32,9 @@ class wind(Module):
     # called once for setup
     def initMod(self, pygamescreen, width=None, height=None):
         if width is None:
-            width = 150 # default width
+            width = 60 # default width
         if height is None:
-            height = 150 # default height
+            height = 100 # default height
         Module.initMod(
             self, pygamescreen, width, height
         )  # call parent init screen.
@@ -63,10 +63,10 @@ class wind(Module):
             label = self.myfont.render(
                 "%dkt" % self.airData.Wind_speed, 1, (255, 255, 0)
             )
-            smartdisplay.pygamescreen.blit(label, (x, y + 80))
+            self.pygamescreen.blit(label, (x, y + 80))
         else:
             label = self.myfont.render("--kt", 1, (255, 255, 0))
-            smartdisplay.pygamescreen.blit(label, (x, y + 80))
+            self.pygamescreen.blit(label, (x, y + 80))
 
         # Wind Dir
         if self.airData.Wind_dir != None:

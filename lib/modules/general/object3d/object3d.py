@@ -176,7 +176,7 @@ class object3d(Module):
                     text_rect = text.get_rect(center=(self.width//2, self.height//2+next_line))
                     self.surface.blit(text, text_rect)
                     next_line += 20
-            smartdisplay.pygamescreen.blit(self.surface, pos)
+            self.pygamescreen.blit(self.surface, pos)
             # if self.source_imu_index_name is not empty then print the name in pygame font to self.surface.
             return
 
@@ -310,7 +310,7 @@ class object3d(Module):
             self.surface.blit(text, text_rect)
 
         # Draw the surface onto the main screen
-        smartdisplay.pygamescreen.blit(self.surface, pos if pos != (None, None) else (0, 0))
+        self.pygamescreen.blit(self.surface, pos if pos != (None, None) else (0, 0))
 
     # called before screen draw.  To clear the screen to your favorite color.
     def clear(self):

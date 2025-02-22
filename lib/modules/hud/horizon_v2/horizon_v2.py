@@ -624,7 +624,7 @@ class horizon_v2(Module):
                 self.draw_flight_path(dataship, smartdisplay, x, y)
 
         # Blit the entire surface to the screen at the specified position
-        smartdisplay.pygamescreen.blit(self.surface, pos)
+        self.pygamescreen.blit(self.surface, pos)
 
     def draw_target(self, t, dataship):
         '''

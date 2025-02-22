@@ -15,6 +15,7 @@ import re
 from lib.common import shared
 import pygame, pygame_gui
 from lib import hud_utils
+from lib import hud_graphics
 from lib.common.graphic.edit_history import ChangeHistory, undo_last_change
 from lib.common.graphic.edit_help import show_help_dialog
 from lib.common.graphic.edit_clone import clone_screen_objects
@@ -29,10 +30,13 @@ from lib.common.graphic.edit_EditEventsWindow import EditEventsWindow, save_even
 from lib.common.graphic.edit_dropdown import DropDown
 from lib.common.graphic.growl_manager import GrowlManager, GrowlPosition
 from lib.common.dataship.dataship import Interface
+from pygame import gfxdraw
 
 #############################################
 ## Function: main edit loop
 def main_edit_loop():
+
+    pygamescreen, size = hud_graphics.initDisplay()
 
     if shared.Change_history is None:
         shared.Change_history = ChangeHistory()
@@ -48,7 +52,7 @@ def main_edit_loop():
     print("Entering Edit Mode")
     shared.GrowlManager.initScreen()
     # clear screen using pygame
-    pygamescreen = shared.smartdisplay.pygamescreen
+    #pygamescreen = shared.smartdisplay.pygamescreen
     pygamescreen.fill((0, 0, 0))
     pygame.display.update()
     anchor_manager = GridAnchorManager(pygamescreen, shared.smartdisplay.x_end, shared.smartdisplay.y_end)
@@ -87,6 +91,7 @@ def main_edit_loop():
         action_performed = False  # Flag to check if an action was performed
         time_delta = clock.tick(maxframerate) / 1000.0 # get the time delta and limit the framerate.
 
+        ## loop through events and process them
         for event in event_list:
             pygame_gui_manager.process_events(event)
             if event.type == pygame_gui.UI_BUTTON_PRESSED:
@@ -106,15 +111,19 @@ def main_edit_loop():
                 action_performed = True
                 continue
 
+            # if options bar is visible, handle the event
             if edit_options_bar:
                 edit_options_bar.handle_event(event)
                 text_entry_active = edit_options_bar.text_entry_active
+            # if events window is visible, handle the event
             if edit_events_window:
                 edit_events_window.handle_event(event)
                 if edit_events_window.is_busy():
                     continue
 
             # check dropdown menu if visible
+            # we use a global dropdown menu for some dropdown needs.
+            # TODO: this needs to be refactored and cleaned up.
             if active_dropdown and active_dropdown.visible:
                 selection, selected_text = active_dropdown.update(event_list)
                 if selection >= 0:
@@ -215,7 +224,7 @@ def main_edit_loop():
                         shared.Dataship.interface = Interface.GRAPHIC_2D  # exit edit mode
                         exit_edit_mode = True
 
-                    # UNGROUP
+                    # UNGROUP a selected group
                     elif event.key == pygame.K_g and (pygame.key.get_mods() & pygame.KMOD_CTRL):
                         if selected_screen_object.type == 'group':
                             print("Ungrouping modules: %s" % [module.title for module in selected_screen_object.childScreenObjects])
@@ -228,7 +237,7 @@ def main_edit_loop():
                                 selected_screen_objects.append(sObject)
                             # remove the group from the screen objects
                             selected_screen_object = None
-                    # CREATE GROUP
+                    # CREATE GROUP from selected modules
                     elif event.key == pygame.K_g:
                         if len(selected_screen_objects) > 1:
                             print("Creating group with %d modules. Modules: %s" % (len(selected_screen_objects), [module.title for module in selected_screen_objects]))
@@ -267,7 +276,7 @@ def main_edit_loop():
                                 if edit_events_window and edit_events_window.screen_object == sObject:
                                     edit_events_window = None
                                 break
-                    # ADD SCREEN OBJECT
+                    # ADD SCREEN OBJECT.  Show the dropdown menu for adding a new module
                     elif event.key == pygame.K_a:
                         for sObject in shared.CurrentScreen.ScreenObjects:
                             sObject.selected = False
@@ -292,7 +301,7 @@ def main_edit_loop():
                         active_dropdown.draw_menu = True
                         active_dropdown.storeObject = {"type": "module", "x": mx, "y": my} # store the mouse position
 
-                    # LOAD TEMPLATE
+                    # LOAD TEMPLATE.  Show the dropdown menu for loading a template
                     elif event.key == pygame.K_l and (pygame.key.get_mods() & pygame.KMOD_CTRL):
                         mx, my = pygame.mouse.get_pos()
                         print("Load template key pressed at %d x %d" % (mx, my))
@@ -307,6 +316,7 @@ def main_edit_loop():
                         active_dropdown.draw_menu = True
 
                     # INPUTS
+                    # TODO: show inputs and let user edit them.
                     elif event.key == pygame.K_i:
                         print("Inputs key pressed")
                         mx, my = pygame.mouse.get_pos()
@@ -617,8 +627,6 @@ def main_edit_loop():
                         # print all atrribs of event object
                         for attr in dir(event):
                             print("obj.%s = %r" % (attr, getattr(event, attr)))
-
-
                         mx, my = event.x, event.y
                     else:
                         mx, my = pygame.mouse.get_pos()
@@ -639,14 +647,13 @@ def main_edit_loop():
                             # Update EditOptionsBar position if it exists
                             if edit_options_bar and edit_options_bar.screen_object == sObject:
                                 edit_options_bar.update_position()
-
-                        pygamescreen.fill((0, 0, 0))
+                        pygamescreen.fill((0, 0, 0)) # fill the screen with black to clear the screen
                     elif dragging and selected_screen_object:  # dragging a single screen object
                         selected_screen_object.move(mx, my)
                         # Update EditOptionsBar position if it exists
                         if edit_options_bar and edit_options_bar.screen_object == selected_screen_object:
                             edit_options_bar.update_position()
-                    elif resizing and selected_screen_object: # resizing
+                    elif resizing and selected_screen_object: # resizing a single screen object
                         temp_width = mx - selected_screen_object.x
                         temp_height = my - selected_screen_object.y
                         selected_screen_object.resize(temp_width, temp_height)
@@ -736,7 +743,47 @@ def main_edit_loop():
         # Draw Growl messages
         shared.GrowlManager.draw(pygamescreen)
 
-        #now make pygame update display.
+        # Draw dashed border for edit mode
+        dash_length = 10
+        border_colors = [(255, 255, 0), (255, 255, 255)]  # Yellow and White
+        screen_width = shared.smartdisplay.x_end
+        screen_height = shared.smartdisplay.y_end
+        
+        # Draw dashed border
+        for i in range(0, screen_width, dash_length * 2):
+            # Top border
+            color_index = (i // (dash_length * 2)) % 2
+            pygame.draw.line(pygamescreen, border_colors[color_index], (i, 0), 
+                           (min(i + dash_length, screen_width), 0), 5)
+            # Bottom border
+            pygame.draw.line(pygamescreen, border_colors[color_index], (i, screen_height-1), 
+                           (min(i + dash_length, screen_width), screen_height-1), 5)
+        
+        for i in range(0, screen_height, dash_length * 2):
+            # Left border
+            color_index = (i // (dash_length * 2)) % 2
+            pygame.draw.line(pygamescreen, border_colors[color_index], (0, i), 
+                           (0, min(i + dash_length, screen_height)), 5)
+            # Right border
+            pygame.draw.line(pygamescreen, border_colors[color_index], (screen_width-1, i), 
+                           (screen_width-1, min(i + dash_length, screen_height)), 5)
+
+        # Draw "Edit Mode" text with background
+        edit_mode_font = pygame.font.SysFont("monospace", 40, bold=True)
+        edit_mode_text = edit_mode_font.render("Edit Mode", True, (255, 255, 0))  # Yellow text
+        text_rect = edit_mode_text.get_rect(bottomright=(screen_width - 20, screen_height - 20))
+        
+        # Draw a semi-transparent background behind the text
+        background_rect = text_rect.inflate(20, 10)  # Make background slightly larger than text
+        background_surface = pygame.Surface((background_rect.width, background_rect.height))
+        background_surface.fill((0, 0, 0))
+        background_surface.set_alpha(128)  # Semi-transparent
+        pygamescreen.blit(background_surface, background_rect)
+        
+        # Draw the text
+        pygamescreen.blit(edit_mode_text, text_rect)
+
+        # now make pygame update display.
         pygame.display.update()
 
 def handle_drag_end(selected_objects, start_positions):
@@ -760,6 +807,13 @@ def handle_resize_end(screen_object, start_size):
             "new_size": (screen_object.width, screen_object.height)
         })
 
+def get_ready_to_exit_edit_mode():
+    # go through all screen objects and turn off box selection
+    for sObject in shared.CurrentScreen.ScreenObjects:
+        sObject.selected = False
+    # turn off the edit mode
+    shared.Dataship.interface = Interface.GRAPHIC_2D
+    return True
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python
 

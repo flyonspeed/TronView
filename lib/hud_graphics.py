@@ -4,10 +4,12 @@ import math, os, sys, random, platform
 import argparse, pygame
 from operator import add
 from . import hud_utils
+from lib.common import shared
 
 #############################################
 ## Function: initDisplay
-def initDisplay(debug):
+def initDisplay(debug=False):
+    print("initDisplay")
     pygame.init()
     pygame.joystick.init()
     try :
@@ -77,6 +79,20 @@ def initDisplay(debug):
         pygame.mouse.set_visible(True)  # show
     else:
         pygame.mouse.set_visible(False)  # hide the mouse
+
+    shared.pygamescreen = screen
+
+    shared.smartdisplay.setPyGameScreen(screen)
+    drawableAreaString = hud_utils.readConfig("Main", "drawable_area", "")
+    if len(drawableAreaString)>0:
+        print(("Found drawable area: %s"%(drawableAreaString)))
+        area = drawableAreaString.split(",")
+        try:
+            shared.smartdisplay.setDrawableArea(int(area[0]),int(area[1]),int(area[2]),int(area[3]))  
+        except AttributeError:
+            print("No drawable function to set")
+    else:
+        shared.smartdisplay.setDrawableArea(0,0,size[0],size[1]) # else set full screen as drawable area.
 
     return screen, size
 

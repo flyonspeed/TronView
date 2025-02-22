@@ -7,7 +7,7 @@ from lib.common.graphic.edit_find_module import find_module
 from lib.common import shared
 class TronViewScreenObject:
     def __init__(self, pgscreen, type, title, module=None, x=0, y=0, width=100, height=100, id=None):
-        self.pygamescreen = pgscreen
+        self.pygamescreen = shared.pygamescreen
         self.type = type
         self.title = title
         self.x = x

@@ -30,6 +30,7 @@ def save_screen_to_json():
     print(f"Screen saved to {filename}")
 
 def load_screen_from_json(filename,from_templates=False):
+
     if not hasattr(shared.CurrentScreen, "ScreenObjects"):
         shared.CurrentScreen.ScreenObjects = []    
     shared.CurrentScreen.ScreenObjects = []
@@ -55,7 +56,7 @@ def load_screen_from_json(filename,from_templates=False):
         
         # Load screen objects using the from_dict method
         for obj_data in data['screenObjects']:
-            new_obj = TronViewScreenObject(shared.CurrentScreen.pygamescreen, obj_data['type'], obj_data['title'])
+            new_obj = TronViewScreenObject(shared.pygamescreen, obj_data['type'], obj_data['title'])
             new_obj.from_dict(obj_data)
             shared.CurrentScreen.ScreenObjects.append(new_obj)
         

@@ -42,6 +42,7 @@ class Screen2d(object):
         self.show_FPS = False
 CurrentScreen = Screen2d()
 
+pygamescreen = None
 
 ####################################
 ## Default flight log dir.

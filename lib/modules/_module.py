@@ -164,7 +164,7 @@ class Module:
             self.button_surface.blit(text, (button["x"] + (button["width"]/2 - text.get_width()/2), button["y"] + (button["height"]/2 - text.get_height()/2)))
             last_y = button["y"] + button["height"]
         self.buttonLastY = last_y  # save the last y position for use by modules that need to add buttons after this one
-        smartdisplay.pygamescreen.blit(self.button_surface, pos, special_flags=pygame.BLEND_ALPHA_SDL2)
+        self.pygamescreen.blit(self.button_surface, pos, special_flags=pygame.BLEND_ALPHA_SDL2)
 
     # initialize the button surface and font. this lets the module know we are going to be using buttons.
     def buttonsInit(self):

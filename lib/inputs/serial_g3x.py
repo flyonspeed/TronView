@@ -30,7 +30,7 @@ import traceback
 
 class serial_g3x(Input):
     def __init__(self):
-        self.name = "g3x"
+        self.name = "garmin_g3x"
         self.version = 1.2
         self.inputtype = "serial"
 
@@ -62,13 +62,8 @@ class serial_g3x(Input):
             self.isPlaybackMode = True
         else:
             self.EOL = 13
-            self.efis_data_format = hud_utils.readConfig("serial_g3x", "format", "none")
-            self.efis_data_port = hud_utils.readConfig(
-                "serial_g3x", "port", "/dev/ttyS0"
-            )
-            self.efis_data_baudrate = hud_utils.readConfigInt(
-                "serial_g3x", "baudrate", 115200
-            )
+            self.efis_data_port = hud_utils.readConfig(self.name, "port", "/dev/ttyS0")
+            self.efis_data_baudrate = hud_utils.readConfigInt(self.name, "baudrate", 115200)
             # open serial connection.
             self.ser = serial.Serial(
                 port=self.efis_data_port,

@@ -57,7 +57,7 @@ class stratux_wifi(Input):
             self.ser,self.input_logFileName = Input.openLogFile(self,self.PlayFile,"rb")
             self.isPlaybackMode = True
         else:
-            self.udpport = _input_file_utils.readConfigInt("Stratux", "udpport", "4000")
+            self.udpport = _input_file_utils.readConfigInt(self.name, "udpport", "4000")
             # levil bom using port 43211
 
             # open udp connection.

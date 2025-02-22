@@ -43,10 +43,9 @@ class serial_mgl(Input):
             self.ser,self.input_logFileName = Input.openLogFile(self,self.PlayFile,"rb")
             self.isPlaybackMode = True
         else:
-            self.efis_data_format = hud_utils.readConfig("serial_mgl", "format", "none")
-            self.efis_data_port = hud_utils.readConfig("serial_mgl", "port", "/dev/ttyS0")
+            self.efis_data_port = hud_utils.readConfig(self.name, "port", "/dev/ttyS0")
             self.efis_data_baudrate = hud_utils.readConfigInt(
-                "serial_mgl", "baudrate", 115200
+                self.name, "baudrate", 115200
             )
 
             # open serial connection.

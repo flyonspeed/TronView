@@ -41,11 +41,8 @@ class serial_grt_eis(Input):
             self.ser,self.input_logFileName = Input.openLogFile(self,self.PlayFile,"rb")
             self.isPlaybackMode = True
         else:
-            self.efis_data_format = hud_utils.readConfig("serial_grt_eis", "format", "none")
-            self.efis_data_port = hud_utils.readConfig("serial_grt_eis", "port", "/dev/ttyS0")
-            self.efis_data_baudrate = hud_utils.readConfigInt(
-                "serial_grt_eis", "baudrate", 9600  # GRT EIS uses 9600 baud
-            )
+            self.efis_data_port = hud_utils.readConfig(self.name, "port", "/dev/ttyS0")
+            self.efis_data_baudrate = hud_utils.readConfigInt(self.name, "baudrate", 9600)
 
             # open serial connection
             self.ser = serial.Serial(

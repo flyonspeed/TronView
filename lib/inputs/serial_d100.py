@@ -18,7 +18,7 @@ from lib.common.dataship.dataship_air import AirData
 
 class serial_d100(Input):
     def __init__(self):
-        self.name = "D100"
+        self.name = "dynon_d100"
         self.version = 1.0
         self.inputtype = "serial"
         self.imuData = IMUData()
@@ -36,11 +36,8 @@ class serial_d100(Input):
                 self.PlayFile = hud_utils.readConfig(self.name, "playback_file", defaultTo)
             self.ser,self.input_logFileName = Input.openLogFile(self,self.PlayFile,"r")
         else:
-            self.efis_data_format = hud_utils.readConfig("DataInput", "format", "none")
-            self.efis_data_port = hud_utils.readConfig("DataInput", "port", "/dev/ttyS0")
-            self.efis_data_baudrate = hud_utils.readConfigInt(
-                "DataInput", "baudrate", 115200
-            )
+            self.efis_data_port = hud_utils.readConfig(self.name, "port", "/dev/ttyS0")
+            self.efis_data_baudrate = hud_utils.readConfigInt( self.name, "baudrate", 115200 )
 
             # open serial connection.
             self.ser = serial.Serial(

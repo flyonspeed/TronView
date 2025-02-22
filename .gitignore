@@ -14,3 +14,5 @@ flightlog/
 profile.html
 profile.json
 venv/
+venv_*
+

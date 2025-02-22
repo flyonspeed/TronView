@@ -25,6 +25,9 @@ RUN_MENU_AGAIN=true
 $RUN_PREFIX mkdir -p "$TRONVIEW_DIR/data"
 $RUN_PREFIX mkdir -p "$TRONVIEW_DIR/data/system"
 
+# refresh available serial ports output file.
+python3 $TRONVIEW_DIR/util/menu/serial_getlist.py -o data/system/available_serial_ports.json
+
 # Function to save last run configuration
 save_last_run() {
     local name="$1"

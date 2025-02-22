@@ -158,5 +158,7 @@ if __name__ == "__main__":
         if selected:
             print(f"\nSelected port: {selected['port']}")
             print(f"Description: {selected['description']}")
-    else:
+    
+    # if output file is provided, save to file
+    if args.output:
         save_ports_to_file(args.output)

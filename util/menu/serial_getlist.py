@@ -62,6 +62,7 @@ def save_ports_to_file(output_file: str = 'available_serial_ports.json'):
 
 class PortSelectScreen(Screen):
     """A screen with a centered dialog for port selection."""
+    title: str = None
 
     BINDINGS = [
         Binding("q", "quit", "Quit", show=True),
@@ -70,9 +71,12 @@ class PortSelectScreen(Screen):
     ]
 
     def compose(self) -> ComposeResult:
+        if self.title is None:
+            self.title = "Select Serial Port"
         yield Static(self.load_ascii_art(), id="background")
         with Center():
-            yield Static("Select Serial Port", id="title")
+            #yield Static(self.title, id="title", shrink=True, classes="title")
+            yield Label(self.title, id="title")
             yield ListView(id="port-list", classes="port-list")
 
     def load_ascii_art(self) -> str:
@@ -126,19 +130,19 @@ class SerialPortSelector(App):
     }
 
     Center {
-        width: 40%;
+        width: 65;
         height: auto;
         border: solid green;
         background: $surface;
         padding: 1;
         layer: overlay;
-        margin-top: 20;
+        margin-top: 0;
     }
 
     #title {
         text-align: center;
-        padding: 1;
-        background: $accent;
+        padding: 0;
+        /*background: $accent;*/
         color: $text;
         width: 100%;
     }
@@ -153,16 +157,18 @@ class SerialPortSelector(App):
     }
     """
     
-    def __init__(self, ports: List[Dict[str, str]]):
+    def __init__(self, ports: List[Dict[str, str]], title: str = None):
         super().__init__()
         self.ports = ports
         self.selected_port = None
-
+        self.title = title
     def on_mount(self) -> None:
         """Called when app is mounted."""
-        self.push_screen(PortSelectScreen())
+        portSelectScreen = PortSelectScreen()
+        portSelectScreen.title = self.title
+        self.push_screen(portSelectScreen)
 
-def select_serial_port() -> Optional[Dict[str, str]]:
+def select_serial_port(title: str = None) -> Optional[Dict[str, str]]:
     """
     Show an interactive menu to select a serial port.
     
@@ -174,7 +180,7 @@ def select_serial_port() -> Optional[Dict[str, str]]:
         print("No serial ports found.")
         return None
         
-    app = SerialPortSelector(ports)
+    app = SerialPortSelector(ports,title=title)
     app.run()
     return app.selected_port
 
@@ -189,7 +195,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     
     if args.select:
-        selected = select_serial_port()
+        selected = select_serial_port(title="Available Serial Ports")
         if selected:
             print(f"\nSelected port: {selected['port']}")
             print(f"Description: {selected['description']}")

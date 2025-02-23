@@ -1,12 +1,12 @@
 # Changelog
 
-## [0.0.25] - 2025-02-16
+## [0.0.25] - 2025-02-22
 
 - refactor work.
 - template updates.
 - fix to save and load text and segment text in json.
-
-
+- menu updates.
+- serial port list menu.
 
 ## [0.0.24] - 2025-02-01
 

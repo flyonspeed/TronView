@@ -4,6 +4,7 @@
 # All modules should inherit from this class.
 
 from .. import hud_graphics
+from ..common.dataship.dataship import Dataship
 import pygame
 
 
@@ -146,7 +147,7 @@ class Module:
 
 
     # draw all buttons (if any)
-    def buttonsDraw(self, aircraft, smartdisplay, pos=(0,0)):
+    def buttonsDraw(self, dataship: Dataship, smartdisplay, pos=(0,0)):
         self.button_surface.fill((0,0,0,0))
         # draw buttons
         last_y = 0
@@ -173,11 +174,11 @@ class Module:
         self.button_font = pygame.font.SysFont("Monospace", self.button_font_size)
     
     # check if a click was on a button and call the button's function if it was
-    def buttonsCheckClick(self, aircraft, mx, my):
+    def buttonsCheckClick(self, dataship: Dataship, mx, my):
         for button in self.buttons:
             if button["x"] <= mx <= button["x"] + button["width"] and button["y"] <= my <= button["y"] + button["height"]:
                 if button["function"]:
-                    button["function"]( aircraft, button )
+                    button["function"]( dataship, button )
                 return True
         return False
     

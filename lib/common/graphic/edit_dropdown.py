@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+# edit_dropdown.py
+# Topher 2025
+# A dropdown menu.  supports submenus and lambda callbacks.
+############################################################################################
+############################################################################################
 import os
 import re
 import pygame
@@ -39,7 +44,9 @@ class DropDownOption:
         self.is_expanded = False  # Track if submenu is expanded
 
 class DropDown():
-    def __init__(self, color_menu=[COLOR_INACTIVE, COLOR_ACTIVE],
+    def __init__(self, 
+                 id,
+                color_menu=[COLOR_INACTIVE, COLOR_ACTIVE],
                 color_option=[COLOR_LIST_INACTIVE, COLOR_LIST_ACTIVE],
                 x=0, y=0, w=140, h=30, 
                 font=None, 
@@ -49,7 +56,8 @@ class DropDown():
                 callback=None,
                 showButton=False,
                 storeObject=[]):
-        
+
+        self.id = id # id of the dropdown
         self.menuTitle = menuTitle
         self.color_menu = color_menu
         self.color_option = color_option
@@ -68,6 +76,7 @@ class DropDown():
         self.storeObject = storeObject
         self.submenu_indicator = ">"  # Symbol to indicate submenu presence
         self.expanded_indicator = ""  # Symbol to indicate expanded submenu
+        self.current_path = []  # Track the current submenu path
 
     def _convert_options(self, options):
         """Convert plain options to DropDownOption objects"""
@@ -103,23 +112,35 @@ class DropDown():
         current_x = start_x
         indent = level * 20  # Indentation for submenu items
         
+        # Calculate maximum width needed for this level
+        max_width = self.rect.width
+        for option in options:
+            text = option.text
+            if option.submenu:
+                text = f"{text} {self.submenu_indicator}"
+            text_surface = self.font.render(text, True, (0, 0, 0))
+            text_width = text_surface.get_width() + 10  # Add padding
+            max_width = max(max_width, text_width + indent)
+        
         # Draw menu title if it exists and we're at the top level
         if self.menuTitle and level == 0:
             title_surface = self.font.render(self.menuTitle, True, (255, 255, 255))
+            title_width = title_surface.get_width() + 20  # Add padding
+            max_width = max(max_width, title_width)
             title_rect = title_surface.get_rect()
-            title_rect.midtop = (start_x + self.rect.width // 2, start_y - 25)
+            title_rect.midtop = (start_x + max_width // 2, start_y - 25)
             # Draw a background for the title
             bg_rect = title_rect.inflate(20, 10)
             pygame.draw.rect(surf, self.color_menu[0], bg_rect)
             surf.blit(title_surface, title_rect)
-            
+        
         # First check if menu would go off right edge of screen
-        if start_x + self.rect.width > screen_width - 10:
+        if start_x + max_width > screen_width - 10:
             # Move menu to the left of the click position
-            start_x = screen_width - self.rect.width - 10
+            start_x = screen_width - max_width - 10
             current_x = start_x
         
-        # Calculate total height needed
+        # Calculate total height needed for this level only
         total_height = len(options) * self.rect.height
         available_height = screen_height - 20  # Leave 10px margin top and bottom
         
@@ -156,10 +177,10 @@ class DropDown():
             # Start new column only if we're using columns and reached max items
             if total_height > available_height and i > 0 and i % max_items_per_column == 0:
                 current_y = start_y
-                current_x += self.rect.width
+                current_x += max_width
             
-            # Create rectangle for this option
-            option_rect = pygame.Rect(current_x + indent, current_y, self.rect.width - indent, self.rect.height)
+            # Create rectangle for this option using the calculated max_width
+            option_rect = pygame.Rect(current_x + indent, current_y, max_width - indent, self.rect.height)
             option.rect = option_rect
             
             # Draw option background
@@ -176,22 +197,18 @@ class DropDown():
             
             # If this option has a submenu and is expanded, draw it
             if option.submenu and option.is_expanded:
-                submenu_x = current_x + self.rect.width - indent
+                submenu_x = current_x + max_width - indent
                 
                 # If submenu would go off right edge, draw it to the left instead
-                if submenu_x + self.rect.width > screen_width:
-                    submenu_x = current_x - self.rect.width + indent
+                if submenu_x + max_width > screen_width:
+                    submenu_x = current_x - max_width + indent
                 
-                next_y = self._draw_menu_options(surf, option.submenu, 
-                                             submenu_x, current_y + self.rect.height, 
-                                             level + 1)
-                # Only update current_y if we're in the same column
-                if total_height > available_height and i % max_items_per_column == max_items_per_column - 1:
-                    current_y = start_y
-                else:
-                    current_y = next_y
-            else:
-                current_y += self.rect.height
+                self._draw_menu_options(surf, option.submenu, 
+                                      submenu_x, option_rect.y,  # Start submenu at same Y as parent
+                                      level + 1)
+            
+            # Always increment current_y for next item in this level
+            current_y += self.rect.height
                 
         return current_y
 
@@ -199,8 +216,11 @@ class DropDown():
         mpos = pygame.mouse.get_pos()
         self.menu_active = self.rect.collidepoint(mpos)
         
-        # Update active option based on mouse position
-        self.active_option = self._find_active_option(mpos, self.options)
+        # Update active option and handle submenu expansion on hover
+        self.active_option, hovered_option = self._find_active_option(mpos, self.options)
+        
+        # Expand/collapse submenus based on hover
+        self._update_submenu_states(mpos, self.options)
         
         for event in event_list:
             if event.type == pygame.MOUSEBUTTONDOWN or event.type == pygame.FINGERDOWN:
@@ -208,16 +228,14 @@ class DropDown():
                     self.draw_menu = not self.draw_menu
                     self.visible = not self.visible
                 elif self.draw_menu:
-                    clicked_option = self._handle_click(mpos, self.options)
+                    clicked_option, index_path = self._handle_click(mpos, self.options)
                     if clicked_option is not None:
                         if not clicked_option.submenu:  # Only close menu if leaf option selected
                             self.draw_menu = False
                             self.visible = False
-                            # get the index number of the clicked option
-                            index = self.options.index(clicked_option)
                             if self.callback:
-                                self.callback(index, clicked_option.text)
-                            return index,clicked_option.text
+                                self.callback(self.id, index_path, clicked_option.text)
+                            return index_path, clicked_option.text
                     else:
                         self.draw_menu = False
                         self.visible = False
@@ -227,47 +245,175 @@ class DropDown():
         """Recursively find which option the mouse is hovering over"""
         for i, option in enumerate(options):
             if option.rect and option.rect.collidepoint(pos):
-                return (level, i)
+                return (level, i), option
             if option.submenu and option.is_expanded:
-                submenu_active = self._find_active_option(pos, option.submenu, level + 1)
+                submenu_active, submenu_option = self._find_active_option(pos, option.submenu, level + 1)
                 if submenu_active != -1:
-                    return submenu_active
-        return -1
+                    return submenu_active, submenu_option
+        return -1, None
 
-    def _handle_click(self, pos, options):
-        """Handle click on menu options, returns clicked option or None"""
-        for option in options:
+    def _update_submenu_states(self, pos, options, current_path=None):
+        """Update submenu expansion states based on hover"""
+        if current_path is None:
+            current_path = []
+            
+        for i, option in enumerate(options):
+            current_option_path = current_path + [i]
+            
+            # Check if this option or any of its children are being hovered
+            is_hovered = option.rect and option.rect.collidepoint(pos)
+            has_hovered_child = False
+            
+            if option.submenu:
+                # Recursively check children
+                child_hovered = self._update_submenu_states(pos, option.submenu, current_option_path)
+                has_hovered_child = child_hovered
+                
+                # Expand if this option or any of its children are hovered
+                option.is_expanded = is_hovered or has_hovered_child
+            
+            # If we're not hovering over this branch, collapse it
+            if not is_hovered and not has_hovered_child:
+                option.is_expanded = False
+                
+            if is_hovered or has_hovered_child:
+                return True
+                
+        return False
+
+    def _handle_click(self, pos, options, current_path=None):
+        """Handle click on menu options, returns (clicked_option, index_path) or (None, None)"""
+        if current_path is None:
+            current_path = []
+            
+        for i, option in enumerate(options):
             if option.rect and option.rect.collidepoint(pos):
                 if option.submenu:
-                    option.is_expanded = not option.is_expanded
-                return option
+                    # Don't toggle expansion on click anymore since it's handled by hover
+                    return None, None
+                return option, current_path + [i]
             if option.submenu and option.is_expanded:
-                submenu_result = self._handle_click(pos, option.submenu)
+                submenu_result, submenu_path = self._handle_click(pos, option.submenu, current_path + [i])
                 if submenu_result:
-                    return submenu_result
-        return None
+                    return submenu_result, submenu_path
+        return None, None
 
-    def add_submenu(self, parent_text, submenu_options):
+    def add_submenu_by_text(self, parent_text, submenu_options):
         """Add a submenu to an existing option"""
         for option in self.options:
             if option.text == parent_text:
                 option.submenu = self._convert_options(submenu_options)
                 break
+    
+    def add_submenu_by_index_path(self, parent_index_path, submenu_options):
+        """Add a submenu to an existing option by index path
+        
+        Args:
+            parent_index_path (list): List of indices to traverse to reach target option
+            submenu_options (list): List of options to add as submenu
+        """
+        if not parent_index_path:
+            return
+            
+        # Start at the root options
+        current_options = self.options
+        target_option = None
+        
+        # Traverse the path except for the last index
+        for index in parent_index_path[:-1]:
+            if index >= len(current_options):
+                return
+            current_options = current_options[index].submenu
+            if not current_options:  # Stop if we hit a dead end
+                return
+                
+        # Get the final target option
+        final_index = parent_index_path[-1]
+        if final_index >= len(current_options):
+            return
+            
+        # Add the submenu to the target option
+        current_options[final_index].submenu = self._convert_options(submenu_options)
 
-    def load_file_dir_as_options(self, path, ignore_regex=None, sort=True):
-        # Get file names and convert them to DropDownOption objects
-        self.options = [
+    def load_file_dir_as_options(self, path, ignore_regex=None, sort=True, append=False, index_path=None):
+        """
+        Load files from a directory as options
+        index_path is a list of indices to traverse to reach the target location
+        if index_path is not None, the new options will be inserted at the target location
+        """
+        # Create new options from files in directory
+        new_options = [
             DropDownOption(os.path.splitext(os.path.basename(f))[0])
             for f in os.listdir(path) 
             if os.path.isfile(os.path.join(path, f)) 
             and (not ignore_regex or not re.match(ignore_regex, f))
         ]
+        
         if sort:
-            self.options.sort(key=lambda x: x.text)
+            new_options.sort(key=lambda x: x.text)
 
-    def insert_option(self, option, index):
+        if index_path:
+            # Navigate to the target location using index_path
+            current_options = self.options
+            for index in index_path[:-1]:
+                if index >= len(current_options):
+                    return
+                if not current_options[index].submenu:
+                    current_options[index].submenu = []
+                current_options = current_options[index].submenu
+            
+            # Add the new options at the specified location
+            final_index = index_path[-1]
+            if final_index >= len(current_options):
+                return
+            
+            # Set the submenu directly
+            current_options[final_index].submenu = new_options
+        else:
+            # If no index_path, handle root level
+            if append:
+                self.options.extend(new_options)
+            else:
+                self.options = new_options
+
+    def insert_option(self, option, index=None):
+        if index is None: # add to the end
+            index = len(self.options)
         self.options.insert(index, DropDownOption(option))
         self.option_rects.insert(index, pygame.Rect(0, 0, self.rect.width, self.rect.height))
+
+    def insert_option_by_index_path(self, index_path, option, index=None):
+        """Insert an option at a specific index path"""
+        if not index_path:
+            if index is None:
+                index = len(self.options)
+            self.options.insert(index, DropDownOption(option))
+            self.option_rects.insert(index, pygame.Rect(0, 0, self.rect.width, self.rect.height))
+            return
+        
+        # Navigate to the target location using index_path
+        current_options = self.options
+        for index in index_path[:-1]:
+            if index >= len(current_options):
+                return
+            if not current_options[index].submenu:
+                current_options[index].submenu = []
+            current_options = current_options[index].submenu
+        
+        # Insert at the final location
+        final_index = index_path[-1]
+        if final_index >= len(current_options):
+            return
+        if not current_options[final_index].submenu:
+            current_options[final_index].submenu = []
+        
+        # Insert the new option into the submenu
+        if isinstance(option, str):
+            option = DropDownOption(option)
+        if index is None:
+            current_options[final_index].submenu.append(option)
+        else:
+            current_options[final_index].submenu.insert(index, option)
 
     def is_option_clicked(self, pos):
         """Check if mouse position is inside any option rectangle"""

@@ -127,34 +127,9 @@ def main_edit_loop():
 
             # check dropdown menu if visible
             # we use a global dropdown menu for some dropdown needs.
-            # TODO: this needs to be refactored and cleaned up.
             if active_dropdown and active_dropdown.visible:
-                selection, selected_text = active_dropdown.update(event_list)
-                if selection >= 0:
-                    if active_dropdown.menu_type == "module":
-                        new_x = active_dropdown.storeObject["x"]
-                        new_y = active_dropdown.storeObject["y"]
-                        print("Adding module: %s at %d x %d" % (listModules[selection], new_x, new_y))
-                        newObject = TronViewScreenObject(
-                            pygamescreen, 
-                            'module', 
-                            f"A_{len(shared.CurrentScreen.ScreenObjects)}", 
-                            module=find_module(byName=listModules[selection])[0][0],
-                            x=new_x, y=new_y)
-                        shared.Change_history.add_change("add", {"object": newObject})
-                        shared.CurrentScreen.ScreenObjects.append(newObject)
-                        newObject.selected = True
-                        selected_screen_object = newObject
-                        selected_screen_objects = [newObject]
-                    elif active_dropdown.menu_type == "template":
-                        print("Selected template: %s" % selected_text)
-                        shared.Change_history.clear()
-                        if selection == 0:  # First option is "CLEAR SCREEN"
-                            shared.CurrentScreen.clear()
-                        else:
-                            load_screen_from_json(selected_text, from_templates=True)
-                    elif active_dropdown.menu_type == "input":
-                        print("Selected input: %s" % selected_text)
+                # send the event to the dropdown menu (not using the return values because we use the callback functions)
+                active_dropdown.update(event_list)
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                     active_dropdown = None
             else:
@@ -290,32 +265,71 @@ def main_edit_loop():
                             edit_options_bar = None
                         if edit_events_window:
                             edit_events_window.hide()
-
                         # first unselect all modules
                         for sObject in shared.CurrentScreen.ScreenObjects:
                             sObject.selected = False
                         selected_screen_objects.clear()
                         # Show the dropdown menu for adding a new module
                         mx, my = pygame.mouse.get_pos()
+                        #########################################################
+                        def add_module_callback(id, index_path, text):
+                            print("Add module callback: %s" % text)
+                            selection = index_path[0]
+                            new_x = active_dropdown.storeObject["x"]  # get the x,y postion stored in the dropdown
+                            new_y = active_dropdown.storeObject["y"]
+                            print("Adding module: %s at %d x %d" % (listModules[selection], new_x, new_y))
+                            newObject = TronViewScreenObject(
+                                pygamescreen, 
+                                'module', 
+                                f"A_{len(shared.CurrentScreen.ScreenObjects)}", 
+                                module=find_module(byName=listModules[selection])[0][0],
+                                x=new_x, y=new_y)
+                            shared.Change_history.add_change("add", {"object": newObject})
+                            shared.CurrentScreen.ScreenObjects.append(newObject)
+                            newObject.selected = True
+                            #selected_screen_object = newObject
+                            #selected_screen_objects = [newObject]
+
+                        #########################################################
                         active_dropdown = DropDown(
+                            id="dropdown_add_module",
                             x=mx, y=my, w=140, h=30,
-                            menuTitle="Add Screen Module", options=listModules)
-                        active_dropdown.menu_type = "module"  # Add type identifier
+                            menuTitle="Add Screen Module", 
+                            options=listModules,
+                            callback=add_module_callback)
+                        #active_dropdown.menu_type = "module"  # Add type identifier
                         active_dropdown.visible = True
                         active_dropdown.draw_menu = True
                         active_dropdown.storeObject = {"type": "module", "x": mx, "y": my} # store the mouse position
 
-                    # LOAD TEMPLATE.  Show the dropdown menu for loading a template
-                    elif event.key == pygame.K_l and (pygame.key.get_mods() & pygame.KMOD_CTRL):
+                    # LOAD screen or TEMPLATE.  Show the dropdown menu for loading a screen
+                    elif event.key == pygame.K_l:
                         mx, my = pygame.mouse.get_pos()
-                        print("Load template key pressed at %d x %d" % (mx, my))
+                        print("Load screen key pressed at %d x %d" % (mx, my))
+                        def load_template_callback(id, index_path, text):
+                            print("Load template callback: %s" % text)
+                            if index_path[0] == 0:
+                                shared.CurrentScreen.clear()
+                                shared.GrowlManager.add_message("Cleared screen")
+                            elif index_path[0] == 1:
+                                print("Loading template: %s" % text)
+                                load_screen_from_json(text, from_templates=True)
+                                shared.GrowlManager.add_message("Loaded template: %s" % text)
+                            else:
+                                load_screen_from_json(text, from_templates=False)
+                                shared.GrowlManager.add_message("Loaded user screen: %s" % text)
+                            # hide the dropdown menu
+                            active_dropdown = None
                         active_dropdown = DropDown(
+                            id="dropdown_load_screen",
                             x=mx, y=my, w=140, h=30,
-                            menuTitle="Screen Templates")
-                        active_dropdown.menu_type = "template"  # Add type identifier
+                            menuTitle="Load Screen",
+                            callback=load_template_callback)
                         root_dir = os.path.dirname(os.path.abspath(__file__))
-                        active_dropdown.load_file_dir_as_options(os.path.join(root_dir+"/../../screens", "templates"))
+                        active_dropdown.load_file_dir_as_options(os.path.join(root_dir+"/../../../data/screens", ""))
                         active_dropdown.insert_option("CLEAR SCREEN", 0)
+                        active_dropdown.insert_option("TEMPLATES", 1)
+                        active_dropdown.load_file_dir_as_options(os.path.join(root_dir+"/../../screens", "templates"), index_path=[1])
                         active_dropdown.visible = True
                         active_dropdown.draw_menu = True
 
@@ -327,17 +341,13 @@ def main_edit_loop():
                         # get the list of inputs
                         options = [input.name for input in shared.Inputs.values()]
                         active_dropdown = DropDown(
+                            id="dropdown_select_input",
                             x=mx, y=my, w=140, h=30,
                             menuTitle="Select Input", options=options)
                         active_dropdown.menu_type = "input"  # Add type identifier
                         active_dropdown.visible = True
                         active_dropdown.draw_menu = True
                         
-                    # LOAD SCREEN FROM JSON
-                    elif event.key == pygame.K_l:
-                        load_screen_from_json("screen.json")
-                        shared.GrowlManager.add_message("Loaded screen from JSON")
-
                     # MOVE SCREEN OBJECT UP IN DRAW ORDER (page up)
                     elif event.key == pygame.K_PAGEUP:
                         for sObject in shared.CurrentScreen.ScreenObjects:
@@ -620,6 +630,7 @@ def main_edit_loop():
                                     selected_screen_object = sObject
                                     sObject.selected = True
                                     dropdown_add_new_module = DropDown(
+                                        id="dropdown_add_module",
                                         x=sObject.x, y=sObject.y, w=140, h=30, 
                                         font=pygame.font.SysFont(None, 25), 
                                         main="Select Module", options=listModules)

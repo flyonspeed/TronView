@@ -21,6 +21,8 @@ from lib.common.graphic.edit_save_load import load_screen_from_json
 from lib.common.graphic.growl_manager import GrowlManager
 from lib.common.dataship.dataship import Interface
 from lib import hud_graphics
+from lib.common.graphic.edit_dropdown import DropDown
+
 
 #############################################
 ## Function: main loop
@@ -39,6 +41,9 @@ def main_graphical():
     pygamescreen.fill((0, 0, 0))
     pygame.display.update()
 
+    # create a dropdown menu
+    active_dropdown = None
+
     # if shared.CurrentScreen.ScreenObjects exists.. if it doesn't create it as array
     if not hasattr(shared.CurrentScreen, "ScreenObjects"):
         shared.CurrentScreen.ScreenObjects = []
@@ -53,6 +58,16 @@ def main_graphical():
 
         ## loop through events and process them
         for event in event_list:
+
+            # check dropdown menu if visible
+            # we use a global dropdown menu for some dropdown needs.
+            if active_dropdown and active_dropdown.visible:
+                # send the event to the dropdown menu (not using the return values because we use the callback functions)
+                active_dropdown.update(event_list)
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                    active_dropdown = None
+                continue
+
             # check for joystick events
             if event.type == pygame.JOYBUTTONDOWN or event.type == pygame.JOYBUTTONUP:
                 print("Joystick event: %s" % pygame.event.event_name(event.type))
@@ -86,8 +101,34 @@ def main_graphical():
                     exit_graphic_mode = True
                 # LOAD SCREEN FROM JSON
                 elif event.key == pygame.K_l:
-                    load_screen_from_json("screen.json")
-                    shared.GrowlManager.add_message("Loaded screen from JSON")
+                    mx, my = pygame.mouse.get_pos()
+                    print("Load screen key pressed at %d x %d" % (mx, my))
+                    def load_template_callback(id, index_path, text):
+                        print("Load template callback: %s" % text)
+                        if index_path[0] == 0:
+                            shared.CurrentScreen.clear()
+                            shared.GrowlManager.add_message("Cleared screen")
+                        elif index_path[0] == 1:
+                            print("Loading template: %s" % text)
+                            load_screen_from_json(text, from_templates=True)
+                            shared.GrowlManager.add_message("Loaded template: %s" % text)
+                        else:
+                            load_screen_from_json(text, from_templates=False)
+                            shared.GrowlManager.add_message("Loaded user screen: %s" % text)
+                        # hide the dropdown menu
+                        active_dropdown = None
+                    active_dropdown = DropDown(
+                        id="dropdown_load_screen",
+                        x=mx, y=my, w=140, h=30,
+                        menuTitle="Load Screen",
+                        callback=load_template_callback)
+                    root_dir = os.path.dirname(os.path.abspath(__file__))
+                    active_dropdown.load_file_dir_as_options(os.path.join(root_dir+"/../../../data/screens", ""))
+                    active_dropdown.insert_option("CLEAR SCREEN", 0)
+                    active_dropdown.insert_option("TEMPLATES", 1)
+                    active_dropdown.load_file_dir_as_options(os.path.join(root_dir+"/../../screens", "templates"), index_path=[1])
+                    active_dropdown.visible = True
+                    active_dropdown.draw_menu = True
 
             # check for Mouse events - just for clicking screen objects
             if event.type == pygame.MOUSEBUTTONDOWN or event.type == pygame.FINGERDOWN:
@@ -109,6 +150,16 @@ def main_graphical():
         # Draw the modules
         for sObject in shared.CurrentScreen.ScreenObjects:
             sObject.draw(shared.Dataship, shared.smartdisplay, False)  # Never draw toolbar in view mode
+
+        if active_dropdown and active_dropdown.visible:
+            # Create a semi-transparent overlay
+            screen_width = shared.smartdisplay.x_end
+            screen_height = shared.smartdisplay.y_end
+            overlay = pygame.Surface((screen_width, screen_height))
+            overlay.fill((0, 0, 0))  # Black background
+            overlay.set_alpha(200)    # 50% transparency (0-255)
+            pygamescreen.blit(overlay, (0, 0))            
+            active_dropdown.draw(pygamescreen)
 
 
         # Draw Growl messages

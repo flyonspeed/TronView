@@ -128,7 +128,19 @@ class PortSelectScreen(Screen):
         # Check for new or modified ports
         for port in current_ports:
             port_id = port['port']
-            if port_id not in self.app.known_ports:
+            serial_num = port.get('serial_number', '')
+            
+            # Check if port exists by both port ID and serial number
+            port_exists = False
+            existing_port = None
+            for known_port_id, known_port in self.app.known_ports.items():
+                if (port_id == known_port_id or 
+                    (serial_num and serial_num == known_port.get('serial_number', ''))):
+                    port_exists = True
+                    existing_port = known_port
+                    break
+                    
+            if not port_exists:
                 # New port found
                 ports_changed = True
                 port['is_new'] = True
@@ -136,7 +148,6 @@ class PortSelectScreen(Screen):
                 self.app.known_ports[port_id] = port
             else:
                 # Check if any port details have changed
-                existing_port = self.app.known_ports[port_id]
                 if (existing_port['description'] != port['description'] or
                     existing_port['is_removed']):  # Port was previously marked as removed
                     ports_changed = True
@@ -146,7 +157,15 @@ class PortSelectScreen(Screen):
 
         # Check for removed ports
         for port_id, port in self.app.known_ports.items():
-            if not any(p['port'] == port_id for p in current_ports):
+            serial_num = port.get('serial_number', '')
+            # Check if port exists in current_ports by either port ID or serial number
+            port_exists = any(
+                p['port'] == port_id or 
+                (serial_num and serial_num == p.get('serial_number', ''))
+                for p in current_ports
+            )
+            
+            if not port_exists:
                 if not port.get('is_removed', False):  # Only mark as changed if newly removed
                     ports_changed = True
                 port['is_removed'] = True

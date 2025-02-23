@@ -4,20 +4,22 @@
   },
   "screen": {
     "title": "No Name",
-    "width": 1920,
-    "height": 1080
+    "filename": "default.json",
+    "width": 1280,
+    "height": 768,
+    "date_updated": "20250223_145416"
   },
   "screenObjects": [
     {
       "type": "module",
       "title": "HUD Horizon V2",
-      "x": 5,
+      "x": 0,
       "y": 0,
-      "width": 1918,
-      "height": 1077,
+      "width": 1279,
+      "height": 767,
       "grid_position": "MidM",
-      "grid_percentage_x": 1.0125,
-      "grid_percentage_y": 0.9916666666666667,
+      "grid_percentage_x": 1.0023474178403755,
+      "grid_percentage_y": 0.99609375,
       "module": {
         "name": "HUD Horizon V2",
         "options": [
@@ -100,18 +102,18 @@
           }
         ]
       },
-      "id": "M_5kn4v"
+      "id": "M_sfby4"
     },
     {
       "type": "module",
       "title": "Traffic Scope",
-      "x": 1508,
-      "y": 602,
+      "x": 924,
+      "y": 424,
       "width": 397,
       "height": 337,
       "grid_position": "BotR",
-      "grid_percentage_x": 1.3328125,
-      "grid_percentage_y": 0.28055555555555556,
+      "grid_percentage_x": 1.2652582159624413,
+      "grid_percentage_y": 0.62890625,
       "module": {
         "name": "Traffic Scope",
         "options": [
@@ -153,18 +155,18 @@
           }
         ]
       },
-      "id": "M_qcj3v"
+      "id": "M_zxm3t"
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 1590,
-      "y": 437,
+      "x": 992,
+      "y": 274,
       "width": 271,
       "height": 135,
       "grid_position": "MidR",
-      "grid_percentage_x": 1.3921875,
-      "grid_percentage_y": 0.8027777777777778,
+      "grid_percentage_x": 1.2887323943661972,
+      "grid_percentage_y": 0.66796875,
       "module": {
         "name": "Text",
         "options": [
@@ -210,18 +212,18 @@
           }
         ]
       },
-      "id": "M_t74dy"
+      "id": "M_cvglc"
     },
     {
       "type": "module",
       "title": "HUD AOA",
-      "x": 29,
-      "y": 664,
+      "x": 8,
+      "y": 445,
       "width": 64,
       "height": 185,
       "grid_position": "BotL",
-      "grid_percentage_x": 0.190625,
-      "grid_percentage_y": 0.20277777777777778,
+      "grid_percentage_x": 0.18779342723004694,
+      "grid_percentage_y": 0.19921875,
       "module": {
         "name": "HUD AOA",
         "options": [
@@ -239,24 +241,24 @@
           }
         ]
       },
-      "id": "M_gydo2"
+      "id": "M_8vlw5"
     },
     {
       "type": "module",
       "title": "HSI",
-      "x": 735,
-      "y": 561,
-      "width": 445,
-      "height": 430,
+      "x": 518,
+      "y": 476,
+      "width": 244,
+      "height": 240,
       "grid_position": "BotM",
-      "grid_percentage_x": 0.9921875,
-      "grid_percentage_y": 0.3111111111111111,
+      "grid_percentage_x": 1.0046948356807512,
+      "grid_percentage_y": 0.65625,
       "module": {
         "name": "HSI",
         "options": [
           {
             "name": "hsi_size",
-            "value": 445
+            "value": 244
           },
           {
             "name": "smoothing_factor",
@@ -264,18 +266,18 @@
           }
         ]
       },
-      "id": "M_anfav"
+      "id": "M_44vaj"
     },
     {
       "type": "module",
       "title": "Slip Skid",
-      "x": 838,
-      "y": 989,
-      "width": 247,
-      "height": 50,
+      "x": 548,
+      "y": 714,
+      "width": 184,
+      "height": 43,
       "grid_position": "BotM",
-      "grid_percentage_x": 1.0046875,
-      "grid_percentage_y": 1.6333333333333333,
+      "grid_percentage_x": 1.0046948356807512,
+      "grid_percentage_y": 1.74609375,
       "module": {
         "name": "Slip Skid",
         "options": [
@@ -297,18 +299,18 @@
           }
         ]
       },
-      "id": "M_0d3qu"
+      "id": "M_norgh"
     },
     {
       "type": "module",
       "title": "Heading",
-      "x": 562,
-      "y": 31,
+      "x": 256,
+      "y": 5,
       "width": 706,
       "height": 113,
       "grid_position": "TopM",
-      "grid_percentage_x": 0.859375,
-      "grid_percentage_y": 0.4861111111111111,
+      "grid_percentage_x": 0.8591549295774648,
+      "grid_percentage_y": 0.48046875,
       "module": {
         "name": "Heading",
         "options": [
@@ -350,18 +352,18 @@
           }
         ]
       },
-      "id": "M_quxyl"
+      "id": "M_wccxl"
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 1856,
-      "y": 531,
+      "x": 1241,
+      "y": 372,
       "width": 63,
       "height": 40,
       "grid_position": "MidR",
-      "grid_percentage_x": 1.8984375,
-      "grid_percentage_y": 1.0611111111111111,
+      "grid_percentage_x": 1.9694835680751173,
+      "grid_percentage_y": 1.0625,
       "module": {
         "name": "Text",
         "options": [
@@ -407,18 +409,18 @@
           }
         ]
       },
-      "id": "M_dbfal"
+      "id": "M_yvntu"
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 1621,
-      "y": 274,
+      "x": 1029,
+      "y": 155,
       "width": 244,
       "height": 31,
       "grid_position": "TopR",
-      "grid_percentage_x": 1.446875,
-      "grid_percentage_y": 1.6083333333333334,
+      "grid_percentage_x": 1.3990610328638498,
+      "grid_percentage_y": 1.33203125,
       "module": {
         "name": "Text",
         "options": [
@@ -464,18 +466,18 @@
           }
         ]
       },
-      "id": "M_mlhnv"
+      "id": "M_x2gz1"
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 1627,
-      "y": 309,
+      "x": 1032,
+      "y": 179,
       "width": 246,
       "height": 36,
       "grid_position": "TopR",
-      "grid_percentage_x": 1.46875,
-      "grid_percentage_y": 1.8166666666666667,
+      "grid_percentage_x": 1.4178403755868545,
+      "grid_percentage_y": 1.5390625,
       "module": {
         "name": "Text",
         "options": [
@@ -521,18 +523,18 @@
           }
         ]
       },
-      "id": "M_880e4"
+      "id": "M_7ih4c"
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 1631,
-      "y": 345,
+      "x": 1037,
+      "y": 205,
       "width": 236,
       "height": 31,
-      "grid_position": "MidR",
-      "grid_percentage_x": 1.465625,
-      "grid_percentage_y": 0.002777777777777778,
+      "grid_position": "TopR",
+      "grid_percentage_x": 1.4178403755868545,
+      "grid_percentage_y": 1.72265625,
       "module": {
         "name": "Text",
         "options": [
@@ -578,18 +580,18 @@
           }
         ]
       },
-      "id": "M_0vuag"
+      "id": "M_8vi1z"
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 1620,
-      "y": 565,
+      "x": 1064,
+      "y": 402,
       "width": 169,
       "height": 27,
       "grid_position": "MidR",
-      "grid_percentage_x": 1.3265625,
-      "grid_percentage_y": 1.2138888888888888,
+      "grid_percentage_x": 1.3873239436619718,
+      "grid_percentage_y": 1.24609375,
       "module": {
         "name": "Text",
         "options": [
@@ -635,18 +637,18 @@
           }
         ]
       },
-      "id": "M_dsvvt"
+      "id": "M_5i53b"
     },
     {
       "type": "module",
       "title": "Play Controls",
-      "x": 1578,
-      "y": 376,
+      "x": 1001,
+      "y": 230,
       "width": 289,
       "height": 55,
       "grid_position": "MidR",
-      "grid_percentage_x": 1.3828125,
-      "grid_percentage_y": 0.24166666666666667,
+      "grid_percentage_x": 1.3732394366197183,
+      "grid_percentage_y": 0.01171875,
       "module": {
         "name": "Play Controls",
         "options": [
@@ -656,18 +658,18 @@
           }
         ]
       },
-      "id": "M_uvwt9"
+      "id": "M_oteoq"
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 25,
-      "y": 388,
+      "x": 7,
+      "y": 236,
       "width": 165,
       "height": 26,
-      "grid_position": "MidL",
-      "grid_percentage_x": 0.3359375,
-      "grid_percentage_y": 0.22777777777777777,
+      "grid_position": "TopL",
+      "grid_percentage_x": 0.42018779342723006,
+      "grid_percentage_y": 1.9453125,
       "module": {
         "name": "Text",
         "options": [
@@ -713,18 +715,18 @@
           }
         ]
       },
-      "id": "M_7cgzc"
+      "id": "M_0xjfn"
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 15,
-      "y": 419,
+      "x": 2,
+      "y": 265,
       "width": 218,
       "height": 137,
       "grid_position": "MidL",
-      "grid_percentage_x": 0.3875,
-      "grid_percentage_y": 0.7083333333333334,
+      "grid_percentage_x": 0.5211267605633803,
+      "grid_percentage_y": 0.60546875,
       "module": {
         "name": "Text",
         "options": [
@@ -770,18 +772,18 @@
           }
         ]
       },
-      "id": "M_9pjqs"
+      "id": "M_lqauj"
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 221,
-      "y": 518,
+      "x": 195,
+      "y": 365,
       "width": 61,
       "height": 34,
       "grid_position": "MidL",
-      "grid_percentage_x": 0.7859375,
-      "grid_percentage_y": 0.9722222222222222,
+      "grid_percentage_x": 1.0586854460093897,
+      "grid_percentage_y": 0.984375,
       "module": {
         "name": "Text",
         "options": [
@@ -827,18 +829,18 @@
           }
         ]
       },
-      "id": "M_ego10"
+      "id": "M_hx5yn"
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 36,
-      "y": 552,
+      "x": 6,
+      "y": 396,
       "width": 150,
       "height": 24,
       "grid_position": "MidL",
-      "grid_percentage_x": 0.346875,
-      "grid_percentage_y": 1.1333333333333333,
+      "grid_percentage_x": 0.38028169014084506,
+      "grid_percentage_y": 1.1875,
       "module": {
         "name": "Text",
         "options": [
@@ -884,18 +886,18 @@
           }
         ]
       },
-      "id": "M_dsqb1"
+      "id": "M_15w66"
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 36,
-      "y": 581,
+      "x": 6,
+      "y": 419,
       "width": 102,
       "height": 20,
       "grid_position": "MidL",
-      "grid_percentage_x": 0.271875,
-      "grid_percentage_y": 1.2833333333333334,
+      "grid_percentage_x": 0.2676056338028169,
+      "grid_percentage_y": 1.3515625,
       "module": {
         "name": "Text",
         "options": [
@@ -941,18 +943,18 @@
           }
         ]
       },
-      "id": "M_fhaet"
+      "id": "M_ewhxo"
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 36,
-      "y": 604,
+      "x": 9,
+      "y": 437,
       "width": 107,
       "height": 23,
       "grid_position": "MidL",
-      "grid_percentage_x": 0.2796875,
-      "grid_percentage_y": 1.4194444444444445,
+      "grid_percentage_x": 0.2934272300469484,
+      "grid_percentage_y": 1.50390625,
       "module": {
         "name": "Text",
         "options": [
@@ -998,18 +1000,18 @@
           }
         ]
       },
-      "id": "M_nvrzi"
+      "id": "M_4dy9s"
     },
     {
       "type": "module",
       "title": "Text Segments",
-      "x": 548,
-      "y": 149,
-      "width": 736,
-      "height": 111,
+      "x": 410,
+      "y": 123,
+      "width": 447,
+      "height": 66,
       "grid_position": "TopM",
-      "grid_percentage_x": 0.8625,
-      "grid_percentage_y": 1.136111111111111,
+      "grid_percentage_x": 0.9741784037558685,
+      "grid_percentage_y": 1.21875,
       "module": {
         "name": "Text Segments",
         "options": [
@@ -1023,7 +1025,7 @@
           },
           {
             "name": "width_ratio",
-            "value": 83
+            "value": 85
           },
           {
             "name": "total_decimals",
@@ -1067,18 +1069,18 @@
           }
         ]
       },
-      "id": "M_gff9d"
+      "id": "M_njhdb"
     },
     {
       "type": "module",
       "title": "object 3D",
-      "x": 1592,
-      "y": 7,
-      "width": 294,
-      "height": 249,
+      "x": 1055,
+      "y": -9,
+      "width": 206,
+      "height": 178,
       "grid_position": "TopR",
-      "grid_percentage_x": 1.434375,
-      "grid_percentage_y": 0.7305555555555555,
+      "grid_percentage_x": 1.431924882629108,
+      "grid_percentage_y": 0.625,
       "module": {
         "name": "object 3D",
         "options": [
@@ -1116,18 +1118,18 @@
           }
         ]
       },
-      "id": "M_g87ki"
+      "id": "M_sc047"
     },
     {
       "type": "module",
       "title": "Text Segments",
-      "x": 328,
-      "y": 1008,
+      "x": 184,
+      "y": 709,
       "width": 200,
       "height": 50,
       "grid_position": "BotL",
-      "grid_percentage_x": 1.3375,
-      "grid_percentage_y": 1.738888888888889,
+      "grid_percentage_x": 1.3333333333333333,
+      "grid_percentage_y": 1.734375,
       "module": {
         "name": "Text Segments",
         "options": [
@@ -1185,18 +1187,18 @@
           }
         ]
       },
-      "id": "M_nc5q2"
+      "id": "M_ezujh"
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 334,
-      "y": 981,
+      "x": 188,
+      "y": 690,
       "width": 172,
       "height": 34,
       "grid_position": "BotL",
-      "grid_percentage_x": 1.3125,
-      "grid_percentage_y": 1.5444444444444445,
+      "grid_percentage_x": 1.2863849765258215,
+      "grid_percentage_y": 1.5234375,
       "module": {
         "name": "Text",
         "options": [
@@ -1242,18 +1244,18 @@
           }
         ]
       },
-      "id": "M_6p7ms"
+      "id": "M_r6i0a"
     },
     {
       "type": "module",
       "title": "Text Segments",
-      "x": 1255,
-      "y": 1025,
+      "x": 783,
+      "y": 723,
       "width": 315,
       "height": 34,
       "grid_position": "BotR",
-      "grid_percentage_x": 0.4140625,
-      "grid_percentage_y": 1.788888888888889,
+      "grid_percentage_x": 0.4107981220657277,
+      "grid_percentage_y": 1.78125,
       "module": {
         "name": "Text Segments",
         "options": [
@@ -1311,18 +1313,18 @@
           }
         ]
       },
-      "id": "M_wp2x5"
+      "id": "M_1apgf"
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 1258,
-      "y": 1000,
+      "x": 809,
+      "y": 704,
       "width": 172,
       "height": 34,
       "grid_position": "BotR",
-      "grid_percentage_x": 0.2,
-      "grid_percentage_y": 1.65,
+      "grid_percentage_x": 0.19718309859154928,
+      "grid_percentage_y": 1.6328125,
       "module": {
         "name": "Text",
         "options": [
@@ -1368,7 +1370,7 @@
           }
         ]
       },
-      "id": "M_7kmot"
+      "id": "M_zz9lh"
     }
   ]
 }

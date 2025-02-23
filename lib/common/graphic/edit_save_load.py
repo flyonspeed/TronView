@@ -6,7 +6,7 @@ from lib.common.graphic.edit_TronViewScreenObject import TronViewScreenObject
 from datetime import datetime
 from lib import hud_utils
 
-def save_screen_to_json(filename=None):
+def save_screen_to_json(filename=None, update_settings_last_run=True):
 
     # shared.pygamescreen is pygame screen
     # shared.smartdisplay is smartdisplay object
@@ -47,6 +47,15 @@ def save_screen_to_json(filename=None):
     
     print(f"Screen saved to {filename}")
 
+    # update the last run config
+    if update_settings_last_run:
+        hud_utils.writeConfig("Main", "screen", shared.CurrentScreen.filename)
+
+
+
+########################################################
+# Load screen from json file
+########################################################
 def load_screen_from_json(filename,from_templates=False, update_settings_last_run=True):
 
     if not hasattr(shared.CurrentScreen, "ScreenObjects"):

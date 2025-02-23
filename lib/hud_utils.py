@@ -70,6 +70,14 @@ def writeConfig(section, name, value):
     name : str
     value : str
     """
+
+    # check if the config.cfg file exists
+    if not os.path.exists("config.cfg"):
+        print("config.cfg file not found. creating from config_example.cfg")
+        shutil.copy("config_example.cfg", "config.cfg")
+        # reload the config
+        configParser.read("config.cfg")
+    
     updater = ConfigUpdater()
     updater.read("config.cfg")
     updater[section][name] = value

@@ -300,8 +300,10 @@ class hsi(Module):
             y_pos = pos[1] + self.height / 2
 
         target_heading = self.imuData.yaw
-        if self.imuData.yaw is None and self.gpsData.GndTrack is not None and self.gpsData.GndTrack is not None:
+        if self.imuData.yaw is None and self.gpsData.GndTrack is not None:
             target_heading = self.gpsData.GndTrack
+        elif self.imuData.yaw is not None:
+            target_heading = self.imuData.yaw
         else:
             target_heading = 0
         

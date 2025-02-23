@@ -8,4 +8,6 @@ serial        == 0.0.97
 numpy-stl>=2.17.1 
 pynmea2
 textual
+configupdater
+
 

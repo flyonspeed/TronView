@@ -148,8 +148,6 @@ def loadInput(num, nameToLoad, playFile=None):
 # Main function.
 #
 
-ScreenNameToLoad = hud_utils.readConfig("Main", "screen", "Default")  # default screen to load
-
 # check args passed in.
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="TronView")
@@ -206,7 +204,7 @@ if __name__ == "__main__":
     if args.screen:
         ScreenNameToLoad = args.screen
     else:
-        ScreenNameToLoad = hud_utils.readConfig("Main", "screen", "F18_HUD")
+        ScreenNameToLoad = hud_utils.readConfig("Main", "screen", "template:default")
     if args.l:
         rpi_hardware.list_serial_ports(True)
         sys.exit()
@@ -241,13 +239,6 @@ if __name__ == "__main__":
 
     if(shared.Dataship.errorFoundNeedToExit==True): sys.exit()
     # TODO: support text mode.
-    # if shared.Dataship.interface != Interface.TEXT:
-        # if hud_utils.findScreen(ScreenNameToLoad) == False:
-        #     print(("Screen module not found: %s"%(ScreenNameToLoad)))
-        #     hud_utils.findScreen() # show available screens
-        #     sys.exit()
-        #graphic_mode.loadScreen(ScreenNameToLoad) # load and init screen
-        #drawTimer.addGrowlNotice("1: %s"%(DataInputToLoad),3000,drawTimer.green,drawTimer.TOP_RIGHT)
 
     if args.input_threads:
         input_threads = []
@@ -263,13 +254,10 @@ if __name__ == "__main__":
         thread1.start()
 
     # testing.. start in edit mode.
-    if shared.Dataship.interface == Interface.EDITOR:
+    if shared.Dataship.interface == Interface.EDITOR or shared.Dataship.interface == Interface.GRAPHIC_2D:
         hud_graphics.initDisplay(0)
         # check if /data/screens/screen.json exists.. if so load edit_save_load.load_screen_from_json()
-        if os.path.exists("data/screens/screen.json"):
-            edit_save_load.load_screen_from_json("screen.json")
-        else:
-            edit_save_load.load_screen_from_json("default.json",from_templates=True)
+        edit_save_load.load_screen_from_json(ScreenNameToLoad)
 
     shared.GrowlManager.add_message("TronView " + __version__, position=GrowlPosition.CENTER, duration=8)
     shared.GrowlManager.add_message("Build: " + __build__ + " " + __build_date__ + " " + __build_time__, position=GrowlPosition.CENTER, duration=8)

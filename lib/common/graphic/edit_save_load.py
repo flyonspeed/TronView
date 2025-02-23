@@ -4,6 +4,7 @@ import json
 from lib.common import shared
 from lib.common.graphic.edit_TronViewScreenObject import TronViewScreenObject
 from datetime import datetime
+from lib import hud_utils
 
 def save_screen_to_json(filename=None):
 
@@ -46,13 +47,19 @@ def save_screen_to_json(filename=None):
     
     print(f"Screen saved to {filename}")
 
-def load_screen_from_json(filename,from_templates=False):
+def load_screen_from_json(filename,from_templates=False, update_settings_last_run=True):
 
     if not hasattr(shared.CurrentScreen, "ScreenObjects"):
         shared.CurrentScreen.ScreenObjects = []    
     shared.CurrentScreen.ScreenObjects = []
 
     try:
+
+        # if filename starts with "template:" then load from templates
+        if filename.startswith("template:"):
+            filename = filename.split(":")[1]
+            from_templates = True
+
         if from_templates:
             filename = "lib/screens/templates/" + filename
         else:
@@ -85,6 +92,15 @@ def load_screen_from_json(filename,from_templates=False):
             shared.CurrentScreen.ScreenObjects.append(new_obj)
         
         print(f"Screen loaded from {filename}")
+
+
+        # update the last run config
+        if update_settings_last_run:
+            # if template then add template: to the filename
+            if from_templates:
+                just_filename = "template:" + just_filename
+            hud_utils.writeConfig("Main", "screen", just_filename)
+
     except Exception as e:
         # get full error
         import traceback

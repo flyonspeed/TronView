@@ -59,44 +59,6 @@ def get_bin(x, n=8):
     """
     return format(x, "b").zfill(n)
 
-#############################################
-## Function: show command Args
-def showArgs():
-    from lib.common import shared 
-
-    extraPath = readConfig("DataRecorder", "path", shared.DefaultFlightLogDir,hideoutput=True)
-    print("main.py -i <inputsource> - s <screenmodule> <more options>")
-    print(" -i  <Input 1 Source> Main input source (Required unless defined in config.cfg)")
-    print(" --in1 <Input 1 Source> same as using -i")
-    print(" --in2 <Input 2 Source> optional 2nd input source")
-
-    print(" -s <Screen Name> (Required unless defined in config.cfg, or in text mode)")
-    print(" -t Start in text mode")
-
-    print(" -e demo mode. Use default example data for main input module")
-    print(" -c <custom data filename> use custom log data file to play back")
-    print(" --playfile1 playback logfile for input 1 (main input source)")
-    print(" --playfile2 playback logfile for input 2")
-
-    print(" --listlogs list log data files ("+extraPath+")")
-    print(" --listusblogs list log data files found on usb drive (if plugged in)")
-    print(" --listexamplelogs list example log data files (lib/inputs/_example_data)")
-    print(" -l list serial ports")
-
-
-    if os.path.isfile("config.cfg") == False:
-        print(" config.cfg not found (default values will be used)")
-    else:
-        screen = readConfig("Main", "screen", "Not Set")
-        inputsource = readConfig("DataInput", "inputsource", "Not Set")
-        print("-------------")
-        print("config.cfg FOUND")
-        print(("config.cfg inputsource=%s"%(inputsource)))
-        print(("config.cfg screen=%s"%(screen)))
-
-    findScreen() # Show screen modules
-    findInput()  # Show input sources
-    sys.exit()
 
 
 ##############################################

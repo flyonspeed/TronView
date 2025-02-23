@@ -173,10 +173,9 @@ class TextInput:
                 return text
         
         if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-            if self.text_entry.is_focused:
-                if self.button_action:
-                    self.button_action(None,"CANCEL")
-                return None
+            if self.button_action:
+                self.button_action(None,"CANCEL")
+            return None
 
         if event.type == pygame.USEREVENT:
             # Check if event has user_type attribute

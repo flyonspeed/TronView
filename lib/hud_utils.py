@@ -3,14 +3,32 @@
 import math, os, sys, random
 import configparser
 import importlib
-
+import shutil
+from configupdater import ConfigUpdater
 
 #############################################
 ## Function: readConfig
 # load config.cfg file if it exists.
-configParser = configparser.RawConfigParser()
+# set comment_prefixes to '/' and allow_no_value to True so that comments will not be removed.
+configParser: configparser.ConfigParser = configparser.ConfigParser()
 configParser.read("config.cfg")
-def readConfig(section, name, defaultValue=0, show_error=False,hideoutput=True):
+
+def readConfig(section, name, defaultValue=0, show_error=False,hideoutput=True) -> str:
+    """
+    Read a configuration value from the config.cfg file.
+
+    Parameters
+    ----------
+    section : str
+    name : str
+    defaultValue : str
+    show_error : bool
+    hideoutput : bool
+
+    Returns
+    -------
+    str
+    """
     global configParser
     try:
         value = configParser.get(section, name)
@@ -20,8 +38,6 @@ def readConfig(section, name, defaultValue=0, show_error=False,hideoutput=True):
         if show_error == True:
             print(("config value not set section: ", section, " key:", name, " -- not found"))
             print(e)
-        return defaultValue
-    else:
         return defaultValue
 
 
@@ -41,6 +57,29 @@ def readConfigBool(section, name, defaultValue=False):
     # else return default value.
     return defaultValue
 
+
+#############################################
+## Function: writeConfig
+def writeConfig(section, name, value):
+    """
+    Write a configuration value to the config.cfg file.
+
+    Parameters
+    ----------
+    section : str
+    name : str
+    value : str
+    """
+    updater = ConfigUpdater()
+    updater.read("config.cfg")
+    updater[section][name] = value
+    with open("config.cfg", "w") as f:
+        updater.write(f)
+    print(f"Config.cfg: [{section}] {name}: {value}")
+
+
+#############################################
+## Function: get_bin
 # https://stackoverflow.com/questions/699866/python-int-to-binary#699891
 def get_bin(x, n=8):
     """
@@ -59,57 +98,6 @@ def get_bin(x, n=8):
     """
     return format(x, "b").zfill(n)
 
-#############################################
-## Function: show command Args
-def showArgs():
-    from lib.common import shared 
-
-    extraPath = readConfig("DataRecorder", "path", shared.DefaultFlightLogDir,hideoutput=True)
-    print("main.py -i <inputsource> - s <screenmodule> <more options>")
-    print(" -i  <Input 1 Source> Main input source (Required unless defined in config.cfg)")
-    print(" --in1 <Input 1 Source> same as using -i")
-    print(" --in2 <Input 2 Source> optional 2nd input source")
-
-    print(" -s <Screen Name> (Required unless defined in config.cfg, or in text mode)")
-    print(" -t Start in text mode")
-
-    print(" -e demo mode. Use default example data for main input module")
-    print(" -c <custom data filename> use custom log data file to play back")
-    print(" --playfile1 playback logfile for input 1 (main input source)")
-    print(" --playfile2 playback logfile for input 2")
-
-    print(" --listlogs list log data files ("+extraPath+")")
-    print(" --listusblogs list log data files found on usb drive (if plugged in)")
-    print(" --listexamplelogs list example log data files (lib/inputs/_example_data)")
-    print(" -l list serial ports")
-
-
-    if os.path.isfile("config.cfg") == False:
-        print(" config.cfg not found (default values will be used)")
-    else:
-        screen = readConfig("Main", "screen", "Not Set")
-        inputsource = readConfig("DataInput", "inputsource", "Not Set")
-        print("-------------")
-        print("config.cfg FOUND")
-        print(("config.cfg inputsource=%s"%(inputsource)))
-        print(("config.cfg screen=%s"%(screen)))
-
-    findScreen() # Show screen modules
-    findInput()  # Show input sources
-    sys.exit()
-
-
-##############################################
-## function: getScreens()
-## return list of screens available in lib/screens dir.
-def getScreens():
-    screens = []
-    lst = os.listdir("lib/screens")
-    for d in lst:
-        if d.endswith(".py") and not d.startswith("_"):
-            screenName = d[:-3]
-            screens.append(screenName)
-    return screens
 
 ##############################################
 ## function: getLogDataFiles()
@@ -225,41 +213,6 @@ def setupDirs():
         os.makedirs(path_screens)
         
 
-##############################################
-## function: findScreen()
-## list python screens available to show in the lib/screens dir.
-## if you pass in "next" then it will try to load the next screen from the last loaded screen.
-selectedScreenPos = 0
-def findScreen(name=""):
-    global selectedScreenPos
-    lst = getScreens()
-    if name == "current":  # re-load current screen
-        return lst[selectedScreenPos]
-    if name == "prev":  # load previous screen
-        selectedScreenPos -= 1
-        if selectedScreenPos < 0:
-            selectedScreenPos = len(lst) -1
-        return lst[selectedScreenPos]
-    if name == "next":  # check if we should just load the next screen in the screen list.
-        selectedScreenPos += 1
-        if selectedScreenPos +1 > len(lst):
-            selectedScreenPos = 0
-        return lst[selectedScreenPos]
-    if name == "":
-        print("\nAvailable screens modules: (located in lib/screens folder)")
-    count = -1
-    for screenName in lst:
-        count+=1
-        if name == "": # if no name passed in then print out all screens.
-            print(screenName, end=", ")
-        else:
-            if screenName == name: # found screen name.
-                selectedScreenPos = count
-                return True
-    if name != "":
-        return False
-    else:
-        print("") # print on new line.
 
 ##############################################
 ## function: findInput()

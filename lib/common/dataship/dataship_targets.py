@@ -275,6 +275,6 @@ class TargetData(object):
             else: t.speed = 0
         else:
             t.speed = 100 # default speed?
-        self.addTarget(t,dataship)
+        self.addTarget(t)
         pass
 

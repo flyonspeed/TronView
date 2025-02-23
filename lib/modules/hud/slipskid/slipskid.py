@@ -43,9 +43,9 @@ class slipskid(Module):
         self.BallColor = (255, 255, 255)  # ball color 
 
         self.xLineFromCenter = int(self.width / 8)
-        self.BallSize = int(self.xLineFromCenter - 15)  # ball size 
+        self.BallSize = int(self.height / 2.5)  # ball size 
         self.yLineHeight = self.height
-        self.yCenterForBall = int(self.height /2)
+        self.yCenterForBall = int(self.height / 2)
 
         self.imuData = IMUData()
         self.airData = AirData()

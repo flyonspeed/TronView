@@ -27,8 +27,7 @@ def show_help_dialog(pygame_gui_manager):
     C - Clone selected object(s) 
        
     S - Save current screen to JSON
-    L - Load last saved screen from JSON
-    Ctrl L - Load template screen
+    L - Load screen from JSON
     F - Toggle FPS and draw time display
     R - Toggle ruler mode and grid display mode
     Arrow keys - Move selected object(s)

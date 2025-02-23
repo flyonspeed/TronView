@@ -83,6 +83,12 @@ def main_edit_loop():
     text_entry_active = False
     drag_start_positions = {}  # To store initial positions of dragged objects
 
+    shared.GrowlManager.clear()
+    shared.GrowlManager.add_message("EDIT MODE", position=GrowlPosition.CENTER, duration=3)
+    shared.GrowlManager.add_message("Press ? for help menu", position=GrowlPosition.CENTER, duration=3)
+    shared.GrowlManager.add_message("Press L to load screen", position=GrowlPosition.CENTER, duration=3)
+    shared.GrowlManager.add_message("Press E to exit edit mode", position=GrowlPosition.CENTER, duration=3)
+
     ############################################################################################
     ############################################################################################
     # Main edit draw loop
@@ -819,20 +825,20 @@ def main_edit_loop():
             pygame.draw.line(pygamescreen, border_colors[color_index], (screen_width-1, i), 
                            (screen_width-1, min(i + dash_length, screen_height)), 5)
 
-        # Draw "Edit Mode" text with background
-        edit_mode_font = pygame.font.SysFont("monospace", 40, bold=True)
-        edit_mode_text = edit_mode_font.render("Edit Mode", True, (255, 255, 0))  # Yellow text
-        text_rect = edit_mode_text.get_rect(bottomright=(screen_width - 20, screen_height - 20))
+        # # Draw "Edit Mode" text with background
+        # edit_mode_font = pygame.font.SysFont("monospace", 40, bold=True)
+        # edit_mode_text = edit_mode_font.render("Edit Mode", True, (255, 255, 0))  # Yellow text
+        # text_rect = edit_mode_text.get_rect(bottomright=(screen_width - 20, screen_height - 20))
         
-        # Draw a semi-transparent background behind the text
-        background_rect = text_rect.inflate(20, 10)  # Make background slightly larger than text
-        background_surface = pygame.Surface((background_rect.width, background_rect.height))
-        background_surface.fill((0, 0, 0))
-        background_surface.set_alpha(128)  # Semi-transparent
-        pygamescreen.blit(background_surface, background_rect)
+        # # Draw a semi-transparent background behind the text
+        # background_rect = text_rect.inflate(20, 10)  # Make background slightly larger than text
+        # background_surface = pygame.Surface((background_rect.width, background_rect.height))
+        # background_surface.fill((0, 0, 0))
+        # background_surface.set_alpha(128)  # Semi-transparent
+        # pygamescreen.blit(background_surface, background_rect)
         
-        # Draw the text
-        pygamescreen.blit(edit_mode_text, text_rect)
+        # # Draw the text
+        # pygamescreen.blit(edit_mode_text, text_rect)
 
         # now make pygame update display.
         pygame.display.update()
@@ -869,6 +875,8 @@ def get_ready_to_exit_edit_mode():
     # turn off the edit mode
     shared.Dataship.interface = Interface.GRAPHIC_2D
     shared.CurrentScreen.show_FPS = False # turn off showing FPS
+
+    shared.GrowlManager.add_message("2d PLAYER MODE", position=GrowlPosition.CENTER, duration=2)
 
     return True
 

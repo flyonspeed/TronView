@@ -16,6 +16,7 @@
 
 import os, sys, time, threading, argparse, pygame, importlib
 from lib import hud_utils
+from lib import hud_graphics
 from lib.util import drawTimer
 from lib.util import rpi_hardware
 from lib.util import mac_hardware
@@ -26,6 +27,7 @@ from lib.common import shared # global shared objects stored here.
 from lib.common.graphic import edit_save_load
 from lib.common.graphic.growl_manager import GrowlPosition
 from lib.version import __version__, __build_date__, __build__, __build_time__
+from lib.common.dataship.dataship import Interface
 
 #############################################
 ## Class: myThreadEfisInputReader
@@ -50,13 +52,14 @@ class myThreadEfisInputReader(threading.Thread):
             if internalLoopCounter < 1:
                 internalLoopCounter = 100
                 checkInternals()
-                shared.Dataship.traffic.cleanUp(shared.Dataship) # check if old traffic targets should be cleared up.
+                if len(shared.Dataship.targetData) > 0:
+                    shared.Dataship.targetData[0].cleanUp(shared.Dataship) # check if old traffic targets should be cleared up.
                 #print(f"Input Thread: {shared.Inputs[0].name} looped")
 
             if (shared.Inputs[0].PlayFile != None): # if playing back a file.. add a little delay so it's closer to real world time.
                time.sleep(.04)
-            if shared.Dataship.textMode == True: # if in text mode.. lets delay a bit.. this keeps the cpu from heating up on my mac.
-                time.sleep(.01)
+            # if shared.Dataship.textMode == True: # if in text mode.. lets delay a bit.. this keeps the cpu from heating up on my mac.
+            #     time.sleep(.01)
 
 #############################################
 ## Class: SingleInputReader
@@ -67,6 +70,20 @@ class SingleInputReader(threading.Thread):
         self.input_index = input_index
         
     def run(self):
+        # Set this thread to run on a specific core
+        # Distribute threads across available cores using modulo
+        try:
+            import os
+            cpu_count = os.cpu_count()
+            if cpu_count:
+                target_cpu = self.input_index % cpu_count
+                os.sched_setaffinity(0, {target_cpu})
+                print(f"Input Thread {self.input_index} assigned to CPU core {target_cpu}")
+        except AttributeError:
+            print("os.sched_setaffinity not available on this platform")
+        except Exception as e:
+            print(f"Could not set CPU affinity: {e}")
+
         internalLoopCounter = 1
         print(f"Input Thread {self.input_index}: {shared.Inputs[self.input_index].name} started")
         while shared.Dataship.errorFoundNeedToExit == False:
@@ -81,13 +98,14 @@ class SingleInputReader(threading.Thread):
                     if internalLoopCounter < 1:
                         internalLoopCounter = 1000
                         checkInternals()
-                        shared.Dataship.traffic.cleanUp(shared.Dataship)
+                        if len(shared.Dataship.targetData) > 0:
+                            shared.Dataship.targetData[0].cleanUp(shared.Dataship) # check if old traffic targets should be cleared up.
                         #print(f"Input Thread: {self.input_index} {shared.Inputs[self.input_index].name} looped")
 
             if shared.Inputs[self.input_index].PlayFile != None: # if playing back a file.. add a little delay so it's closer to real world time.
                 time.sleep(.04)
-            if shared.Dataship.textMode == True:
-                time.sleep(.01)
+            # if shared.Dataship.textMode == True:
+            #     time.sleep(.01)
 
 #############################################
 ## Function: checkInternals
@@ -126,36 +144,9 @@ def loadInput(num, nameToLoad, playFile=None):
     return newInput
 
 #############################################
-## Function: initDataShip
-def initDataship():
-    #global Dataship object.
-    speed = hud_utils.readConfig("Formats", "speed_distance", "Standard")
-    if speed == "Standard" or speed == "MPH":
-        shared.Dataship.data_format = shared.Dataship.MPH
-        print("speed distance format: mph ")
-    elif speed == "Knots":
-        shared.Dataship.data_format = shared.Dataship.KNOTS
-        print("speed distance format: Knots ")
-    elif speed == "Metric":
-        shared.Dataship.data_format = shared.Dataship.METERS
-        print("speed distance format: Meters ")
-
-    temp = hud_utils.readConfig("Formats", "temperature", "C")
-    if temp == "F":
-        shared.Dataship.data_format_temp = shared.Dataship.TEMP_F
-        print("temperature format: F ")
-    elif temp == "C":
-        shared.Dataship.data_format_temp = shared.Dataship.TEMP_C
-        print("temperature format: C ")
-    else :
-        print("Unknown temperature format:"+temp)
-
-#############################################
 #############################################
 # Main function.
 #
-
-ScreenNameToLoad = hud_utils.readConfig("Main", "screen", "Default")  # default screen to load
 
 # check args passed in.
 if __name__ == "__main__":
@@ -184,7 +175,7 @@ if __name__ == "__main__":
     
     if args.t:
         print("Text mode")
-        shared.Dataship.textMode = True
+        # shared.Dataship.textMode = True
     if args.listlogs:
         hud_utils.listLogDataFiles()
         sys.exit()
@@ -213,12 +204,13 @@ if __name__ == "__main__":
     if args.screen:
         ScreenNameToLoad = args.screen
     else:
-        ScreenNameToLoad = hud_utils.readConfig("Main", "screen", "F18_HUD")
+        ScreenNameToLoad = hud_utils.readConfig("Main", "screen", "template:default")
     if args.l:
         rpi_hardware.list_serial_ports(True)
         sys.exit()
-    if args.load_screen:
-        edit_mode.load_screen_from_json(args.load_screen)
+    # if args.load_screen:
+    #     hud_graphics.initDisplay(0)
+    #     edit_mode.load_screen_from_json(args.load_screen)
 
     hud_utils.getDataRecorderDir(exitOnFail=True)
     hud_utils.setupDirs()
@@ -233,25 +225,20 @@ if __name__ == "__main__":
         import platform
         import os
         print("Running on Mac OSX")
-        shared.Dataship.internal.Hardware = "Mac"
-        shared.Dataship.internal.OS = "OSx"
-        shared.Dataship.internal.OSVer = os.name + " " + platform.system() + " " + str(platform.release())
-    shared.Dataship.internal.PythonVer = str(sys.version_info[0])+"."+str(sys.version_info[1])+"."+str(sys.version_info[2])
-    shared.Dataship.internal.PyGameVer = pygame.version.ver
-    
+        shared.Dataship.internalData.Hardware = "Mac"
+        shared.Dataship.internalData.OS = "OSx"
+        shared.Dataship.internalData.OSVer = os.name + " " + platform.system() + " " + str(platform.release())
+    shared.Dataship.internalData.PythonVer = str(sys.version_info[0])+"."+str(sys.version_info[1])+"."+str(sys.version_info[2])
+    shared.Dataship.internalData.GraphicEngine2 = pygame.version.vernum
+    shared.Dataship.internalData.GraphicEngine3dVer = pygame.version.ver
 
     if(shared.Dataship.errorFoundNeedToExit==True): sys.exit()
     # check and load screen module. (if not starting in text mode)
 
-    initDataship()
+    shared.Dataship.interface = Interface.GRAPHIC_2D
+
     if(shared.Dataship.errorFoundNeedToExit==True): sys.exit()
-    if not shared.Dataship.textMode:
-        if hud_utils.findScreen(ScreenNameToLoad) == False:
-            print(("Screen module not found: %s"%(ScreenNameToLoad)))
-            hud_utils.findScreen() # show available screens
-            sys.exit()
-        graphic_mode.loadScreen(ScreenNameToLoad) # load and init screen
-        #drawTimer.addGrowlNotice("1: %s"%(DataInputToLoad),3000,drawTimer.green,drawTimer.TOP_RIGHT)
+    # TODO: support text mode.
 
     if args.input_threads:
         input_threads = []
@@ -267,13 +254,10 @@ if __name__ == "__main__":
         thread1.start()
 
     # testing.. start in edit mode.
-    if shared.Dataship.textMode == False:
-        shared.Dataship.editMode = True
+    if shared.Dataship.interface == Interface.EDITOR or shared.Dataship.interface == Interface.GRAPHIC_2D:
+        hud_graphics.initDisplay(0)
         # check if /data/screens/screen.json exists.. if so load edit_save_load.load_screen_from_json()
-        if os.path.exists("data/screens/screen.json"):
-            edit_save_load.load_screen_from_json("screen.json")
-        else:
-            edit_save_load.load_screen_from_json("default.json",from_templates=True)
+        edit_save_load.load_screen_from_json(ScreenNameToLoad)
 
     shared.GrowlManager.add_message("TronView " + __version__, position=GrowlPosition.CENTER, duration=8)
     shared.GrowlManager.add_message("Build: " + __build__ + " " + __build_date__ + " " + __build_time__, position=GrowlPosition.CENTER, duration=8)
@@ -281,8 +265,8 @@ if __name__ == "__main__":
     shared.GrowlManager.add_message("Use at own risk!", position=GrowlPosition.CENTER, duration=8)
     shared.GrowlManager.add_message("TronView.org", position=GrowlPosition.CENTER, duration=8)
 
-    shared.GrowlManager.add_message("Press ? for help menu", position=GrowlPosition.BOTTOM_MIDDLE, duration=12)
-    shared.GrowlManager.add_message("Press Ctrl+L to show available screen templates", position=GrowlPosition.BOTTOM_MIDDLE, duration=12)
+    shared.GrowlManager.add_message("Press E to enter edit mode", position=GrowlPosition.BOTTOM_MIDDLE, duration=12)
+    shared.GrowlManager.add_message("Press L to load screen", position=GrowlPosition.BOTTOM_MIDDLE, duration=12)
     shared.GrowlManager.add_message("Press Q to quit", position=GrowlPosition.BOTTOM_MIDDLE, duration=12)
 
     shared.GrowlManager.add_message("USE AT YOUR OWN RISK!", position=GrowlPosition.BOTTOM_LEFT, duration=8)
@@ -292,10 +276,11 @@ if __name__ == "__main__":
 
     # start main loop.
     while not shared.Dataship.errorFoundNeedToExit:
-        if shared.Dataship.editMode == True:
+        if shared.Dataship.interface == Interface.EDITOR:
             edit_mode.main_edit_loop()
-        elif shared.Dataship.textMode == True:
-            text_mode.main_text_mode()  # start main text loop
+        # TODO: support text mode.
+        # elif shared.Dataship.interface == Interface.TEXT:
+        #     text_mode.main_text_mode()  # start main text loop
         else:
             graphic_mode.main_graphical()  # start main graphical loop
     

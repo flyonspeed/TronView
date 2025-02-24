@@ -3,12 +3,15 @@
 #################################################
 # Module: Heading
 # Topher 2024 re-write.
+# 2/9/2025 - refactor using new dataship classes. 
 
 from lib.modules._module import Module
 from lib import hud_graphics
 from lib import hud_utils
 from lib import smartdisplay
-from lib.common.dataship import dataship
+from lib.common.dataship.dataship import Dataship
+from lib.common.dataship.dataship_imu import IMUData
+from lib.common.dataship.dataship_gps import GPSData
 import pygame
 import math
 from lib.common import shared
@@ -31,6 +34,13 @@ class heading(Module):
         self.current_display_hdg = None  # For smooth transitions
         self.target_hdg = None
 
+        self.imuData = IMUData()
+        self.gpsData = GPSData()
+        if len(shared.Dataship.imuData) > 0:
+            self.imuData = shared.Dataship.imuData[0]
+        if len(shared.Dataship.gpsData) > 0:
+            self.gpsData = shared.Dataship.gpsData[0]
+
     # called once for setup
     def initMod(self, pygamescreen, width=None, height=None):
         if width is None:
@@ -40,6 +50,12 @@ class heading(Module):
         Module.initMod(self, pygamescreen, width, height)
         print(f"Heading module initialized with screen: {pygamescreen}, width: {width}, height: {height}")
 
+        self.imuData = IMUData()
+        self.gpsData = GPSData()
+        if len(shared.Dataship.imuData) > 0:
+            self.imuData = shared.Dataship.imuData[0]
+        if len(shared.Dataship.gpsData) > 0:
+            self.gpsData = shared.Dataship.gpsData[0]
 
     # setup must have defaults for all parameters
     def setup(self):
@@ -135,8 +151,6 @@ class heading(Module):
         self.old_hdg_hdg = None
         self.old_gnd_trk = None
 
-
-
     def roint(self,num):
         return int(round(num))
 
@@ -149,7 +163,7 @@ class heading(Module):
         return current + diff * smoothing
 
     # called every redraw for the mod
-    def draw(self, aircraft, smartdisplay, pos=(None, None)):
+    def draw(self, dataship:Dataship, smartdisplay, pos=(None, None)):
         #print(f"mag_head: {aircraft.mag_head}, gndtrack: {aircraft.gndtrack}")
         x = pos[0] if pos[0] is not None else 0
         y = pos[1] if pos[1] is not None else 0
@@ -158,12 +172,12 @@ class heading(Module):
         hdg_hdg = None
         gnd_trk = None
 
-        if aircraft.mag_head is not None:
-            hdg_hdg = aircraft.mag_head
-            gnd_trk = aircraft.gndtrack if aircraft.gndtrack is not None else aircraft.mag_head
-        elif aircraft.gndtrack is not None:
-            hdg_hdg = aircraft.gndtrack
-            gnd_trk = aircraft.gndtrack
+        if self.imuData.mag_head is not None:
+            hdg_hdg = self.imuData.mag_head
+            gnd_trk = self.gpsData.GndTrack if self.gpsData.GndTrack is not None else self.imuData.mag_head
+        elif self.gpsData.GndTrack is not None:
+            hdg_hdg = self.gpsData.GndTrack
+            gnd_trk = self.gpsData.GndTrack
         else:
             # Draw X if no valid heading data
             pygame.draw.line(self.pygamescreen, (255, 0, 0), [self.width // 2 - 10, self.height // 2], [self.width // 2 + 10, self.height // 2], 3)
@@ -232,7 +246,7 @@ class heading(Module):
             if self.show_track:
                 hdg_text = f"{self.roint(self.current_display_hdg):03d}"
                 # Add "GND TRK" label if we're using ground track instead of magnetic heading
-                if aircraft.mag_head is None and aircraft.gndtrack is not None:
+                if self.imuData.mag_head is None and self.gpsData.GndTrack is not None:
                     hdg_text += " GND TRK"
                 hdg_hdg_text = self.myfont.render(hdg_text, False, self.label_color)
                 hdg_hdg_rect = hdg_hdg_text.get_rect()

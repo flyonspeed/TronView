@@ -3,12 +3,14 @@
 #################################################
 # Module: Buoy Manager
 # Topher 2024
-
+# 2/9/2025 - added dataship refactor.
 from lib.modules._module import Module
 from lib import hud_graphics
 from lib import hud_utils
 from lib import smartdisplay
-from lib.common.dataship import dataship
+from lib.common.dataship.dataship import Dataship
+from lib.common.dataship.dataship_targets import TargetData, Target
+from lib.common.dataship.dataship_gps import GPSData
 import pygame
 import math
 from lib.common import shared
@@ -21,13 +23,15 @@ class buoy_manager(Module):
         self.name = "Buoy Manager"  # set name
         self.buoyDistance = 10
         self.buoyAlt = 0 # altitude above or below aircraft
+        self.targetData = TargetData()
+        self.gpsData = GPSData()
 
     # called once for setup, or when module is being resized in editor
     def initMod(self, pygamescreen, width=None, height=None):
         if width is None:
-            width = 120 # default width
+            width = 360 # default width
         if height is None:
-            height = 100 # default height
+            height = 250 # default height
         Module.initMod( self, pygamescreen, width, height )  # call parent init screen.
         if shared.Dataship.debug_mode > 0:
             print(("Init Mod: %s %dx%d"%(self.name,self.width,self.height)))
@@ -63,31 +67,40 @@ class buoy_manager(Module):
         self.buttonAdd("setAlt_2000", "2000", self.setAlt)
         self.buttonSelected("setAlt_"+str(self.buoyAlt)) # set the button to selected that matches the altitude
 
+        # get the gpsData object from the shared object
+        self.gpsData = GPSData()
+        if len(shared.Dataship.gpsData) > 0:
+            self.gpsData = shared.Dataship.gpsData[0]
+        # get the targetData object from the shared object
+        self.targetData = TargetData()
+        if len(shared.Dataship.targetData) > 0:
+            self.targetData = shared.Dataship.targetData[0]
+
     # called every redraw for the module
-    def draw(self, aircraft: dataship, smartdisplay, pos=(0, 0)):
+    def draw(self, dataship: Dataship, smartdisplay, pos=(0, 0)):
         # Clear the surface with full transparency
         self.surface.fill((0, 0, 0, 0))
-        self.buttonsDraw(aircraft, smartdisplay, pos)  # draw buttons
+        self.buttonsDraw(dataship, smartdisplay, pos)  # draw buttons
 
         # draw text at the bottom of the module (use the button font from the parent class)
-        text = self.button_font.render("Buoys: "+str(aircraft.traffic.buoyCount), True, (200,200,200))
+        text = self.button_font.render("Buoys: "+str(self.targetData.buoyCount), True, (200,200,200))
         self.surface.blit(text, (10, self.buttonLastY + 10))
 
         # Use alpha blending when blitting to the screen
-        smartdisplay.pygamescreen.blit(self.surface, pos, special_flags=pygame.BLEND_ALPHA_SDL2)
+        self.pygamescreen.blit(self.surface, pos, special_flags=pygame.BLEND_ALPHA_SDL2)
 
 
     # handle mouse clicks
-    def processClick(self, aircraft: dataship, mx, my):
+    def processClick(self, aircraft: Dataship, mx, my):
         self.buttonsCheckClick(aircraft, mx, my) # call parent.
 
     # add a buoy (called by self.buttonsCheckClick)
-    def addBuoy(self,aircraft,button):
+    def addBuoy(self,dataship:Dataship,button):
         print("adding buoy at distance ", self.buoyDistance, " and altitude ", self.buoyAlt)
-        aircraft.traffic.dropTargetBuoy(aircraft,distance=self.buoyDistance,direction="ahead",alt=self.buoyAlt)
+        self.targetData.dropTargetBuoy(dataship,distance=self.buoyDistance,direction="ahead",alt=self.buoyAlt)
 
     # set the distance to drop the buoy (called by self.buttonsCheckClick)
-    def setDistance(self,aircraft,button):
+    def setDistance(self,dataship:Dataship,button):
         #print("setDistance clicked")
         # unselect all buttons that start with setDistance_
         for b in self.buttons:
@@ -98,7 +111,7 @@ class buoy_manager(Module):
         self.buoyDistance = int(button["text"])
 
     # set the altitude to drop the buoy (called by self.buttonsCheckClick)
-    def setAlt(self,aircraft,button):
+    def setAlt(self,dataship:Dataship,button):
         #print("setAlt clicked")
         # unselect all buttons that start with setAlt_
         for b in self.buttons:

@@ -7,7 +7,7 @@ from lib.common.graphic.edit_find_module import find_module
 from lib.common import shared
 class TronViewScreenObject:
     def __init__(self, pgscreen, type, title, module=None, x=0, y=0, width=100, height=100, id=None):
-        self.pygamescreen = pgscreen
+        self.pygamescreen = shared.pygamescreen
         self.type = type
         self.title = title
         self.x = x
@@ -49,7 +49,7 @@ class TronViewScreenObject:
             for module in self.childScreenObjects:
                 module.showBounds = self.showBounds
 
-    def draw(self, aircraft, smartdisplay, showToolBar = True):
+    def draw(self, dataship, smartdisplay, showToolBar = True):
         # if no module then draw a red box around the screen object
         if self.module is None and self.type == 'module':
             boxColor = (140, 0, 0)
@@ -76,11 +76,11 @@ class TronViewScreenObject:
 
             # Draw contained modules
             for module in self.childScreenObjects:
-                module.draw(aircraft, smartdisplay)
+                module.draw(dataship, smartdisplay)
         else:
-            if aircraft.show_FPS:
+            if shared.CurrentScreen.show_FPS:
                 start_time = time.time()
-                self.module.draw(aircraft, smartdisplay, (self.x, self.y))
+                self.module.draw(dataship, smartdisplay, (self.x, self.y))
                 end_time = time.time()
                 self.draw_time = (end_time - start_time) * 1000  # Convert to milliseconds
                 time_text = f"{self.draw_time:.2f}ms"
@@ -88,7 +88,7 @@ class TronViewScreenObject:
                 time_rect = time_surface.get_rect(bottomleft=(self.x + 5, self.y + self.height - 5))
                 self.pygamescreen.blit(time_surface, time_rect)
             else:
-                self.module.draw(aircraft, smartdisplay, (self.x, self.y))
+                self.module.draw(dataship, smartdisplay, (self.x, self.y))
 
 
         # Draw selection box and title
@@ -233,10 +233,54 @@ class TronViewScreenObject:
     def from_dict(self, data, load_grid_position = True):
         self.type = data['type']
         self.title = data['title']
-        self.x = data['x'] # start with x and y from the json
+        self.x = data['x']
         self.y = data['y']
         self.width = data['width']
         self.height = data['height']
+        
+        if self.type == 'module':
+            # Load the module first
+            newModules, titles = find_module(self.title)
+            self.setModule(newModules[0], showOptions=False, width=self.width, height=self.height)
+            
+            # Batch process all options before calling initMod again
+            if 'module' in data and 'options' in data['module'] and hasattr(self.module, "get_module_options"):
+                module_options = self.module.get_module_options()
+                post_change_functions = []  # Store functions to call after all options are set
+                
+                for option in data['module']['options']:
+                    try:
+                        option_name = option['name']
+                        option_value = option['value']
+                        
+                        # Set the option value directly
+                        setattr(self.module, option_name, option_value)
+                        
+                        # Store post_change_function if it exists
+                        if (option_name in module_options and 
+                            'post_change_function' in module_options[option_name]):
+                            func_name = module_options[option_name]['post_change_function']
+                            post_func = getattr(self.module, func_name, None)
+                            if post_func and post_func not in post_change_functions:
+                                post_change_functions.append(post_func)
+                                
+                    except Exception as e:
+                        print(f"NOTICE: setting module ({self.module.name}) option ({option_name}): {str(e)}")
+                
+                # Initialize module with final dimensions
+                self.module.initMod(self.pygamescreen, self.width, self.height)
+                
+                # Call post-change functions once after all options are set
+                for func in post_change_functions:
+                    try:
+                        #check if function can take a argument
+                        if hasattr(func, '__call__'):
+                            func()
+                        else:
+                            func("on_load")  # tell the function we are loading the module from a json file
+                    except Exception as e:
+                        print(f"NOTICE: error calling post_change_function: {str(e)}")
+
         if self.type == 'group' and data['screenObjects']:
             self.childScreenObjects = []
             for childSObj in data['screenObjects']:
@@ -247,25 +291,6 @@ class TronViewScreenObject:
                 )
                 new_childSObj.from_dict(childSObj, load_grid_position = False) # don't load the grid position for the children
                 self.addChildScreenObject(new_childSObj)
-        if self.type == 'module':
-            # load the module and options
-            newModules, titles  = find_module(self.title)
-            self.setModule(newModules[0], showOptions = True, width = self.width, height = self.height)
-            
-            # now load the options
-            if hasattr(self.module, "get_module_options"):
-                for option in data['module']['options']:
-                    try:
-                        setattr(self.module, option['name'], option['value'])
-                        # if the option has a post_change_function, call it. check newModules[0].get_module_options()
-                        if 'post_change_function' in newModules[0].get_module_options()[option['name']]:
-                            post_change_function = getattr(self.module, newModules[0].get_module_options()[option['name']]['post_change_function'], None)
-                            if post_change_function:
-                                post_change_function()
-                    except Exception as e:
-                            print("NOTICE: setting module (%s) option (%s): %s" % (self.module.name, option['name'], e))
-                # now that the options are set lets call initMod one more time.
-                self.module.initMod(self.pygamescreen, self.width, self.height)
         
         # now set the position based on the grid position
         # we want to do this after all the other child modules are loaded (for groups..)  So a group can be positioned correctly based off the total size.

@@ -10,7 +10,10 @@ from lib.modules._module import Module
 from lib import hud_graphics
 from lib import hud_utils
 from lib import smartdisplay
-from lib.common.dataship import dataship
+from lib.common.dataship.dataship import Dataship
+from lib.common.dataship.dataship_imu import IMUData
+from lib.common.dataship.dataship_air import AirData
+from lib.common import shared
 import pygame
 import math
 
@@ -22,6 +25,9 @@ class slipskid(Module):
         self.name = "Slip Skid"  # set name
 
         self.x_offset = 0
+
+        self.imuData = IMUData()
+        self.airData = AirData()
 
     # called once for setup
     def initMod(self, pygamescreen, width=None, height=None):
@@ -37,12 +43,19 @@ class slipskid(Module):
         self.BallColor = (255, 255, 255)  # ball color 
 
         self.xLineFromCenter = int(self.width / 8)
-        self.BallSize = int(self.xLineFromCenter - 15)  # ball size 
+        self.BallSize = int(self.height / 2.5)  # ball size 
         self.yLineHeight = self.height
-        self.yCenterForBall = int(self.height /2)
+        self.yCenterForBall = int(self.height / 2)
+
+        self.imuData = IMUData()
+        self.airData = AirData()
+        if len(shared.Dataship.imuData) > 0:
+            self.imuData = shared.Dataship.imuData[0]
+        if len(shared.Dataship.airData) > 0:
+            self.airData = shared.Dataship.airData[0]
 
     # called every redraw for the mod
-    def draw(self, aircraft, smartdisplay, pos=(None,None)):
+    def draw(self, dataship:Dataship, smartdisplay, pos=(None,None)):
 
         if pos[0] is None:
             x = smartdisplay.x_center
@@ -54,12 +67,12 @@ class slipskid(Module):
             y = pos[1] 
 
         # Slip/Skid Indicator
-        if aircraft.slip_skid != None:
+        if self.imuData.slip_skid != None:
             pygame.draw.circle(
                 self.pygamescreen,
                 self.BallColor,
                 (
-                    int(x + self.x_offset) - int(aircraft.slip_skid * 150),
+                    int(x + self.x_offset) - int(self.imuData.slip_skid * 150),
                     y + self.yCenterForBall,
                 ),
                 self.BallSize,

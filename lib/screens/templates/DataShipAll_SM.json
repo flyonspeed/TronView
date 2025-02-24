@@ -4,27 +4,83 @@
   },
   "screen": {
     "title": "No Name",
-    "width": 1920,
-    "height": 1080
+    "filename": "DataShip_SM.json",
+    "width": 1280,
+    "height": 768,
+    "date_updated": "20250223_150547"
   },
   "screenObjects": [
     {
       "type": "module",
       "title": "Text",
-      "x": 17,
-      "y": 71,
-      "width": 306,
-      "height": 910,
-      "grid_position": "MidL",
-      "grid_percentage_x": 0.53125,
-      "grid_percentage_y": 0.9222222222222223,
+      "x": 624,
+      "y": 156,
+      "width": 269,
+      "height": 519,
+      "grid_position": "MidM",
+      "grid_percentage_x": 1.5610328638497653,
+      "grid_percentage_y": 1.24609375,
       "module": {
         "name": "Text",
         "options": [
           {
-            "name": "template",
-            "value": ""
+            "name": "text",
+            "value": "{airData[0]}"
           },
+          {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 20
+          },
+          {
+            "name": "font_bold",
+            "value": false
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              83,
+              0,
+              255
+            ]
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 0
+          },
+          {
+            "name": "box_radius",
+            "value": 0
+          }
+        ]
+      },
+      "id": "M_ohgzo"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 12,
+      "y": 20,
+      "width": 284,
+      "height": 234,
+      "grid_position": "TopL",
+      "grid_percentage_x": 0.7230046948356808,
+      "grid_percentage_y": 1.0703125,
+      "module": {
+        "name": "Text",
+        "options": [
           {
             "name": "text",
             "value": "{self}"
@@ -68,28 +124,140 @@
           }
         ]
       },
-      "id": "M_ec0by"
+      "id": "M_5r2kw"
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 326,
-      "y": 9,
-      "width": 884,
-      "height": 105,
-      "grid_position": "TopM",
-      "grid_percentage_x": 0.4,
-      "grid_percentage_y": 0.3416666666666667,
+      "x": 11,
+      "y": 260,
+      "width": 354,
+      "height": 496,
+      "grid_position": "MidL",
+      "grid_percentage_x": 0.8826291079812206,
+      "grid_percentage_y": 1.96875,
       "module": {
         "name": "Text",
         "options": [
           {
-            "name": "template",
-            "value": ""
+            "name": "text",
+            "value": "{gpsData[0]}"
           },
           {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 20
+          },
+          {
+            "name": "font_bold",
+            "value": false
+          },
+          {
+            "name": "text_color",
+            "value": [
+              206,
+              22,
+              22,
+              255
+            ]
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 0
+          },
+          {
+            "name": "box_radius",
+            "value": 0
+          }
+        ]
+      },
+      "id": "M_s8ob0"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 317,
+      "y": 154,
+      "width": 376,
+      "height": 498,
+      "grid_position": "MidM",
+      "grid_percentage_x": 0.37089201877934275,
+      "grid_percentage_y": 1.1484375,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
             "name": "text",
-            "value": "TronView Virtual IMU"
+            "value": "{engineData[0]}"
+          },
+          {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 20
+          },
+          {
+            "name": "font_bold",
+            "value": false
+          },
+          {
+            "name": "text_color",
+            "value": [
+              135,
+              135,
+              135,
+              255
+            ]
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 0
+          },
+          {
+            "name": "box_radius",
+            "value": 0
+          }
+        ]
+      },
+      "id": "M_djn23"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 11,
+      "y": 235,
+      "width": 58,
+      "height": 27,
+      "grid_position": "TopL",
+      "grid_percentage_x": 0.18779342723004694,
+      "grid_percentage_y": 1.94140625,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "text",
+            "value": "GPS"
           },
           {
             "name": "font_name",
@@ -97,18 +265,17 @@
           },
           {
             "name": "font_size",
-            "value": 91
+            "value": 20
           },
           {
             "name": "font_bold",
-            "value": false
+            "value": true
           },
           {
             "name": "text_color",
             "value": [
-              81,
-              81,
-              81,
+              200,
+              255,
               255
             ]
           },
@@ -122,36 +289,146 @@
           },
           {
             "name": "box_weight",
-            "value": 0
+            "value": 1
           },
           {
             "name": "box_radius",
-            "value": 0
+            "value": 4
           }
         ]
       },
-      "id": "M_62onc"
+      "id": "M_m8d32"
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 715,
-      "y": 436,
-      "width": 302,
-      "height": 484,
-      "grid_position": "MidM",
-      "grid_percentage_x": 0.70625,
-      "grid_percentage_y": 1.7666666666666666,
+      "x": 629,
+      "y": 129,
+      "width": 194,
+      "height": 29,
+      "grid_position": "TopM",
+      "grid_percentage_x": 1.408450704225352,
+      "grid_percentage_y": 1.12109375,
       "module": {
         "name": "Text",
         "options": [
           {
-            "name": "template",
-            "value": ""
+            "name": "text",
+            "value": "AirData"
           },
           {
+            "name": "font_name",
+            "value": "arial"
+          },
+          {
+            "name": "font_size",
+            "value": 20
+          },
+          {
+            "name": "font_bold",
+            "value": true
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 1
+          },
+          {
+            "name": "box_radius",
+            "value": 4
+          }
+        ]
+      },
+      "id": "M_zci68"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 319,
+      "y": 124,
+      "width": 194,
+      "height": 29,
+      "grid_position": "TopL",
+      "grid_percentage_x": 1.9530516431924883,
+      "grid_percentage_y": 1.08203125,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
             "name": "text",
-            "value": "{get_imu2()}"
+            "value": "Engine"
+          },
+          {
+            "name": "font_name",
+            "value": "arial"
+          },
+          {
+            "name": "font_size",
+            "value": 20
+          },
+          {
+            "name": "font_bold",
+            "value": true
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 1
+          },
+          {
+            "name": "box_radius",
+            "value": 4
+          }
+        ]
+      },
+      "id": "M_g8vge"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 908,
+      "y": 126,
+      "width": 246,
+      "height": 589,
+      "grid_position": "MidR",
+      "grid_percentage_x": 0.8356807511737089,
+      "grid_percentage_y": 1.28515625,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "text",
+            "value": "{imuData[0]}"
           },
           {
             "name": "font_name",
@@ -191,93 +468,32 @@
           }
         ]
       },
-      "id": "M_8s5tc"
-    },
-    {
-      "type": "module",
-      "title": "Text",
-      "x": 393,
-      "y": 433,
-      "width": 272,
-      "height": 557,
-      "grid_position": "MidL",
-      "grid_percentage_x": 1.653125,
-      "grid_percentage_y": 1.9527777777777777,
-      "module": {
-        "name": "Text",
-        "options": [
-          {
-            "name": "template",
-            "value": ""
-          },
-          {
-            "name": "text",
-            "value": "{get_imu1()}"
-          },
-          {
-            "name": "font_name",
-            "value": "monospace"
-          },
-          {
-            "name": "font_size",
-            "value": 20
-          },
-          {
-            "name": "font_bold",
-            "value": false
-          },
-          {
-            "name": "text_color",
-            "value": [
-              200,
-              255,
-              255
-            ]
-          },
-          {
-            "name": "box_color",
-            "value": [
-              255,
-              255,
-              255
-            ]
-          },
-          {
-            "name": "box_weight",
-            "value": 0
-          },
-          {
-            "name": "box_radius",
-            "value": 0
-          }
-        ]
-      },
-      "id": "M_pkcao"
+      "id": "M_0pyjw"
     },
     {
       "type": "module",
       "title": "object 3D",
-      "x": 654,
-      "y": 89,
-      "width": 287,
-      "height": 286,
-      "grid_position": "TopM",
-      "grid_percentage_x": 0.4921875,
-      "grid_percentage_y": 1.288888888888889,
+      "x": 1055,
+      "y": 152,
+      "width": 155,
+      "height": 163,
+      "grid_position": "TopR",
+      "grid_percentage_x": 1.312206572769953,
+      "grid_percentage_y": 1.82421875,
       "module": {
         "name": "object 3D",
         "options": [
           {
             "name": "source_imu_index_name",
-            "value": "stratux_imu"
+            "value": "mgl_imu"
           },
           {
             "name": "source_imu_index",
-            "value": 1
+            "value": 0
           },
           {
             "name": "source_imu_index2_name",
-            "value": ""
+            "value": "NONE"
           },
           {
             "name": "source_imu_index2",
@@ -293,74 +509,29 @@
           },
           {
             "name": "show_xyz",
-            "value": true
+            "value": false
+          },
+          {
+            "name": "smoothing_factor",
+            "value": 0.1
           }
         ]
       },
-      "id": "M_k046m"
-    },
-    {
-      "type": "module",
-      "title": "object 3D",
-      "x": 951,
-      "y": 81,
-      "width": 328,
-      "height": 305,
-      "grid_position": "TopM",
-      "grid_percentage_x": 1.484375,
-      "grid_percentage_y": 1.2972222222222223,
-      "module": {
-        "name": "object 3D",
-        "options": [
-          {
-            "name": "source_imu_index_name",
-            "value": "mgl_imu"
-          },
-          {
-            "name": "source_imu_index",
-            "value": 0
-          },
-          {
-            "name": "source_imu_index2_name",
-            "value": "stratux_imu"
-          },
-          {
-            "name": "source_imu_index2",
-            "value": 1
-          },
-          {
-            "name": "MainColor",
-            "value": [
-              255,
-              255,
-              255
-            ]
-          },
-          {
-            "name": "show_xyz",
-            "value": true
-          }
-        ]
-      },
-      "id": "M_dq20v"
+      "id": "M_rvtzn"
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 421,
-      "y": 399,
+      "x": 911,
+      "y": 100,
       "width": 194,
       "height": 29,
-      "grid_position": "MidL",
-      "grid_percentage_x": 1.61875,
-      "grid_percentage_y": 0.2972222222222222,
+      "grid_position": "TopR",
+      "grid_percentage_x": 0.7276995305164319,
+      "grid_percentage_y": 0.89453125,
       "module": {
         "name": "Text",
         "options": [
-          {
-            "name": "template",
-            "value": ""
-          },
           {
             "name": "text",
             "value": "IMU-1"
@@ -403,89 +574,24 @@
           }
         ]
       },
-      "id": "M_gmzom"
+      "id": "M_ejnsp"
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 743,
-      "y": 398,
-      "width": 194,
-      "height": 29,
-      "grid_position": "MidM",
-      "grid_percentage_x": 0.625,
-      "grid_percentage_y": 0.2916666666666667,
-      "module": {
-        "name": "Text",
-        "options": [
-          {
-            "name": "template",
-            "value": ""
-          },
-          {
-            "name": "text",
-            "value": "IMU-2"
-          },
-          {
-            "name": "font_name",
-            "value": "arial"
-          },
-          {
-            "name": "font_size",
-            "value": 20
-          },
-          {
-            "name": "font_bold",
-            "value": true
-          },
-          {
-            "name": "text_color",
-            "value": [
-              200,
-              255,
-              255
-            ]
-          },
-          {
-            "name": "box_color",
-            "value": [
-              255,
-              255,
-              255
-            ]
-          },
-          {
-            "name": "box_weight",
-            "value": 1
-          },
-          {
-            "name": "box_radius",
-            "value": 4
-          }
-        ]
-      },
-      "id": "M_u6dl3"
-    },
-    {
-      "type": "module",
-      "title": "Text",
-      "x": 6,
-      "y": 48,
+      "x": 13,
+      "y": 7,
       "width": 113,
       "height": 25,
       "grid_position": "TopL",
-      "grid_percentage_x": 0.1953125,
-      "grid_percentage_y": 0.33611111111111114,
+      "grid_percentage_x": 0.32629107981220656,
+      "grid_percentage_y": 0.15234375,
       "module": {
         "name": "Text",
         "options": [
           {
-            "name": "template",
-            "value": ""
-          },
-          {
             "name": "text",
-            "value": "AIRCRAFT"
+            "value": "Dataship"
           },
           {
             "name": "font_name",
@@ -525,18 +631,18 @@
           }
         ]
       },
-      "id": "M_61pg4"
+      "id": "M_xcpqg"
     },
     {
       "type": "module",
       "title": "Play Controls",
-      "x": 1240,
-      "y": 31,
-      "width": 368,
-      "height": 55,
+      "x": 928,
+      "y": 21,
+      "width": 288,
+      "height": 52,
       "grid_position": "TopR",
-      "grid_percentage_x": 0.45,
-      "grid_percentage_y": 0.325,
+      "grid_percentage_x": 1.028169014084507,
+      "grid_percentage_y": 0.3671875,
       "module": {
         "name": "Play Controls",
         "options": [
@@ -546,73 +652,24 @@
           }
         ]
       },
-      "id": "M_xz82d"
-    },
-    {
-      "type": "module",
-      "title": "object 3D",
-      "x": 312,
-      "y": 63,
-      "width": 342,
-      "height": 264,
-      "grid_position": "TopL",
-      "grid_percentage_x": 1.509375,
-      "grid_percentage_y": 1.0833333333333333,
-      "module": {
-        "name": "object 3D",
-        "options": [
-          {
-            "name": "source_imu_index_name",
-            "value": "mgl_imu"
-          },
-          {
-            "name": "source_imu_index",
-            "value": 0
-          },
-          {
-            "name": "source_imu_index2_name",
-            "value": ""
-          },
-          {
-            "name": "source_imu_index2",
-            "value": null
-          },
-          {
-            "name": "MainColor",
-            "value": [
-              255,
-              255,
-              255
-            ]
-          },
-          {
-            "name": "show_xyz",
-            "value": true
-          }
-        ]
-      },
-      "id": "M_0w90y"
+      "id": "M_g6wk0"
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 1026,
-      "y": 399,
+      "x": 185,
+      "y": 442,
       "width": 194,
       "height": 29,
-      "grid_position": "MidM",
-      "grid_percentage_x": 1.509375,
-      "grid_percentage_y": 0.2972222222222222,
+      "grid_position": "MidL",
+      "grid_percentage_x": 1.323943661971831,
+      "grid_percentage_y": 1.56640625,
       "module": {
         "name": "Text",
         "options": [
           {
-            "name": "template",
-            "value": ""
-          },
-          {
             "name": "text",
-            "value": "IMU-Virtual Output"
+            "value": "Fuel"
           },
           {
             "name": "font_name",
@@ -652,7 +709,76 @@
           }
         ]
       },
-      "id": "M_l8hle"
+      "id": "M_2lltv"
+    },
+    {
+      "type": "module",
+      "title": "Text Segments",
+      "x": 243,
+      "y": 25,
+      "width": 574,
+      "height": 53,
+      "grid_position": "TopM",
+      "grid_percentage_x": 0.48826291079812206,
+      "grid_percentage_y": 0.40234375,
+      "module": {
+        "name": "Text Segments",
+        "options": [
+          {
+            "name": "text",
+            "value": "DataShip Objects"
+          },
+          {
+            "name": "digit_spacing",
+            "value": 5
+          },
+          {
+            "name": "width_ratio",
+            "value": 71
+          },
+          {
+            "name": "total_decimals",
+            "value": 17
+          },
+          {
+            "name": "justify",
+            "value": "left"
+          },
+          {
+            "name": "text_color",
+            "value": [
+              242,
+              242,
+              24
+            ]
+          },
+          {
+            "name": "not_active_color",
+            "value": [
+              31,
+              31,
+              31
+            ]
+          },
+          {
+            "name": "box_color",
+            "value": [
+              45,
+              45,
+              45
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 0
+          },
+          {
+            "name": "padding",
+            "value": 5
+          }
+        ]
+      },
+      "id": "M_zihvq"
     }
   ]
 }

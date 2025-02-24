@@ -5,27 +5,38 @@
 # 1/23/2019  Topher
 # 11/6/2024  Added IMU data
 # 11/30/2024 Added NAV, Autopilot and EMS data   Zap
+# 2/9/2025   Dataship refactor
 
 from ._input import Input
 from lib import hud_utils
-import math, sys
 import serial
-import struct
-from lib import hud_text
 import time
-from lib.common.dataship.dataship import IMU
-import traceback
+from lib.common.dataship.dataship_imu import IMUData
 from lib.common.dataship.dataship import Dataship
+from lib.common.dataship.dataship_nav import NavData
+from lib.common.dataship.dataship_engine_fuel import EngineData, FuelData
+from lib.common.dataship.dataship_gps import GPSData
+from lib.common.dataship.dataship_air import AirData
+import struct  # Add this import at the top with other imports
 
 class serial_skyview(Input):
     def __init__(self):
-        self.name = "skyview"
+        self.name = "dynon_skyview"
         self.version = 1.0
         self.inputtype = "serial"
         self.EOL = 10
+        self.imuData = IMUData()
+        self.navData = NavData()
+        self.engineData = EngineData()
+        self.fuelData = FuelData()
+        self.gpsData = GPSData()
+        self.airData = AirData()
+        self.msg_unknown = 0
+        self.msg_bad = 0
+        self.nmea_buffer = ""  # Add buffer for NMEA messages
 
-    def initInput(self,num,aircraft):
-        Input.initInput( self,num, aircraft )  # call parent init Input.
+    def initInput(self,num,dataship: Dataship):
+        Input.initInput( self,num, dataship )  # call parent init Input.
         
         if(self.PlayFile!=None and self.PlayFile!=False):
             # load playback file.
@@ -35,10 +46,10 @@ class serial_skyview(Input):
             self.ser,self.input_logFileName = Input.openLogFile(self,self.PlayFile,"r")
             self.isPlaybackMode = True
         else:
-            self.efis_data_format = hud_utils.readConfig("DataInput", "format", "none")
-            self.efis_data_port = hud_utils.readConfig("DataInput", "port", "/dev/ttyS0")
+            self.efis_data_format = hud_utils.readConfig(self.name, "format", "none")
+            self.efis_data_port = hud_utils.readConfig(self.name, "port", "/dev/ttyS0")
             self.efis_data_baudrate = hud_utils.readConfigInt(
-                "DataInput", "baudrate", 115200
+                self.name, "baudrate", 115200
             )
 
             # open serial connection.
@@ -52,12 +63,42 @@ class serial_skyview(Input):
             )
 
         # create a empty imu object.
-        self.imuData = IMU()
-        self.imuData.id = "skyview_imu"
-        self.imuData.name = self.name
-        self.imu_index = len(aircraft.imus)  # Start at 0
-        aircraft.imus[self.imu_index] = self.imuData
+        self.imuData = IMUData()
+        self.imuData.name = "skyview_imu"
+        self.imu_index = len(dataship.imuData)  # Start at 0
+        self.imuData.id = "skyview_imu"+str(self.imu_index)
+        dataship.imuData.append(self.imuData)
         self.last_read_time = time.time()
+
+        # create a empty nav object.
+        self.navData = NavData()
+        self.navData.name = "skyview_nav"
+        self.navData.id = "skyview_nav"+str(len(dataship.navData))
+        dataship.navData.append(self.navData)
+
+        # create a empty engine object.
+        self.engineData = EngineData()
+        self.engineData.name = "skyview_engine"
+        self.engineData.id = "skyview_engine"+str(len(dataship.engineData))
+        dataship.engineData.append(self.engineData)
+
+        # create a empty fuel object.
+        self.fuelData = FuelData()
+        self.fuelData.name = "skyview_fuel"
+        self.fuelData.id = "skyview_fuel"+str(len(dataship.fuelData))
+        dataship.fuelData.append(self.fuelData)
+
+        # create a empty gps object.
+        self.gpsData = GPSData()
+        self.gpsData.name = "skyview_gps"
+        self.gpsData.id = "skyview_gps"+str(len(dataship.gpsData))
+        dataship.gpsData.append(self.gpsData)
+
+        # create a empty air object.
+        self.airData = AirData()
+        self.airData.name = "skyview_air"
+        self.airData.id = "skyview_air"+str(len(dataship.airData))
+        dataship.airData.append(self.airData)
 
     # close this data input 
     def closeInput(self,aircraft):
@@ -72,17 +113,84 @@ class serial_skyview(Input):
         if dataship.errorFoundNeedToExit:
             return dataship;
         try:
+            # Read until we find a message start character ($ or !)
             x = 0
-            while x != 33:  # 33(!) is start of dynon skyview.
+            while x != 33 and x != ord('$'):  # Look for ! (33) or $ start characters
                 t = self.ser.read(1)
                 if len(t) != 0:
                     x = ord(t)
                 else:
-                    if self.isPlaybackMode:  # if no bytes read and in playback mode.  then reset the file pointer to the start of the file.
+                    if self.isPlaybackMode:  # if no bytes read and in playback mode, reset file pointer
                         self.ser.seek(0)
                     return dataship
+
+            # Found a start character - handle NMEA or Skyview message
+            if x == ord('$'):  # NMEA message
+                nmea_msg = bytes([x]) + self.ser.readline()
+                try:
+                    # Parse NMEA message
+                    fields = nmea_msg.decode().strip().split(',')
+                    sentence = fields[0]
+
+                    if sentence == "$GPGGA" and len(fields) >= 11 and fields[2] and fields[4]:
+                        # Update position
+                        lat_str, lat_hem = fields[2], fields[3]
+                        lon_str, lon_hem = fields[4], fields[5]
+                        
+                        # Convert latitude
+                        degrees = float(lat_str[:2])
+                        minutes = float(lat_str[2:])
+                        self.gpsData.Lat = -(degrees + minutes/60) if lat_hem == 'S' else (degrees + minutes/60)
+                        
+                        # Convert longitude 
+                        degrees = float(lon_str[:3])
+                        minutes = float(lon_str[3:])
+                        self.gpsData.Lon = -(degrees + minutes/60) if lon_hem == 'W' else (degrees + minutes/60)
+                        
+                        self.gpsData.Alt = float(fields[9]) if fields[9] else 0
+                        self.gpsData.SatsTracked = int(fields[7]) if fields[7] else 0
+                        
+                    elif sentence == "$GPGSA" and len(fields) >= 18:
+                        pass
+                        
+                    elif sentence == "$GPRMC" and len(fields) >= 12 and fields[3] and fields[5]:
+                        lat_str, lat_hem = fields[3], fields[4]
+                        lon_str, lon_hem = fields[5], fields[6]
+                        
+                        # Convert latitude
+                        degrees = float(lat_str[:2])
+                        minutes = float(lat_str[2:])
+                        self.gpsData.Lat = -(degrees + minutes/60) if lat_hem == 'S' else (degrees + minutes/60)
+                        
+                        # Convert longitude
+                        degrees = float(lon_str[:3])
+                        minutes = float(lon_str[3:])
+                        self.gpsData.Lon = -(degrees + minutes/60) if lon_hem == 'W' else (degrees + minutes/60)
+                        
+                        self.gpsData.GndSpeed = float(fields[7])*1.15078 if fields[7] else 0  # Convert knots to mph
+                        self.gpsData.GndTrack = float(fields[8]) if fields[8] else 0
+                        
+                    elif sentence == "$GPVTG" and len(fields) >= 8:
+                        self.gpsData.GndTrack = float(fields[1]) if fields[1] else 0
+                        self.gpsData.GndSpeed = float(fields[5])*0.621371 if fields[5] else 0  # Convert km/h to mph
+                        
+                    elif sentence == "$GPGSV" and len(fields) >= 4:
+                        self.gpsData.SatsVisible = int(fields[3]) if fields[3] else 0
+
+                    self.gpsData.msg_count += 1
+                except:
+                    self.gpsData.msg_bad += 1
+
+                if self.output_logFile != None:
+                    #write the nmea message to the log file. write out the start character, then the message.
+                    Input.addToLog(self,self.output_logFile,bytes([ord('$')]))
+                    Input.addToLog(self,self.output_logFile,nmea_msg)
+
+                return dataship
+
+            # Must be Skyview message (x == 33)
             dataType = self.ser.read(1)
-            dataVer  = self.ser.read(1)
+            dataVer = self.ser.read(1)
 
             if isinstance(dataType,str):
                 dataType = dataType.encode() # if read from file then convert to bytes
@@ -98,8 +206,8 @@ class serial_skyview(Input):
                          # Format string breakdown:
                          # 8s - System time (8 bytes)
                          # 4s - Pitch (4 bytes)
-                         # 5s - Roll bug (5 bytes)
-                         # 3s - Heading bug (3 bytes)
+                         # 5s - Roll  (5 bytes)
+                         # 3s - Heading  (3 bytes)
                          # 4s - IAS (4 bytes)
                          # 6s - Pres Alt (6 bytes)
                          # 4s - Turn Rate (4 bytes)
@@ -118,65 +226,58 @@ class serial_skyview(Input):
                         "2s2s2s2s4s5s3s4s6s4s3s3s2s4s3s4s3s6s3s2s2s2s", msg
                     ) 
                     #print(msg)
-                    dataship.sys_time_string = "%d:%d:%d"%(int(HH),int(MM),int(SS))
+                    self.gpsData.GPSTime_string = "%d:%d:%d"%(int(HH),int(MM),int(SS))
                     self.time_stamp_string = dataship.sys_time_string
-                    self.time_stamp_min = int(MM)
-                    self.time_stamp_sec = int(SS)
                     
                     #print("time: "+aircraft.sys_time_string)
-                    dataship.pitch = Input.cleanInt(self,pitch) / 10
-                    dataship.roll = Input.cleanInt(self,roll) / 10
-                    dataship.mag_head = Input.cleanInt(self,HeadingMAG)
+                    self.imuData.pitch = Input.cleanInt(self,pitch) / 10
+                    self.imuData.roll = Input.cleanInt(self,roll) / 10
+                    self.imuData.mag_head = Input.cleanInt(self,HeadingMAG)
 
                     # Update IMU data
-                    self.imuData.heading = dataship.mag_head
+                    self.imuData.yaw = self.imuData.mag_head
                     if dataship.debug_mode > 0:
                         current_time = time.time() # calculate hz.
                         self.imuData.hz = round(1 / (current_time - self.last_read_time), 1)
                         self.last_read_time = current_time
-                    # Update the IMU in the aircraft's imu list
-                    self.imuData.updatePos(dataship.pitch, dataship.roll, dataship.mag_head)
-                    dataship.imus[self.imu_index] = self.imuData
 
-                    dataship.ias = Input.cleanInt(self,IAS) * 0.1
-                    dataship.PALT = Input.cleanInt(self,PresAlt)
-                    dataship.oat = (Input.cleanInt(self,OAT) * 1.8) + 32 # c to f
-                    dataship.tas = Input.cleanInt(self,TAS) * 0.1
+                    self.airData.IAS = Input.cleanInt(self,IAS) * 0.1
+                    self.airData.Alt_pres = Input.cleanInt(self,PresAlt)
+                    self.airData.OAT = (Input.cleanInt(self,OAT) * 1.8) + 32 # c to f
+                    self.airData.TAS = Input.cleanInt(self,TAS) * 0.1
                     if AOA == b'XX':
-                        dataship.aoa = 0
+                        self.airData.AOA = 0
                     else:
-                        dataship.aoa = Input.cleanInt(self,AOA)
-                    dataship.baro = (Input.cleanInt(self,Baro) + 2750.0) / 100
-                    dataship.baro_diff = dataship.baro - 29.921
-                    dataship.DA = Input.cleanInt(self,DA)
-                    dataship.alt = int( Input.cleanInt(self,PresAlt) + (dataship.baro_diff / 0.00108) )  # 0.00108 of inches of mercury change per foot.
-                    dataship.BALT = dataship.alt
-                    dataship.turn_rate = Input.cleanInt(self,TurnRate) * 0.1
-                    dataship.vsi = Input.cleanInt(self,VertSpd) * 10
-                    dataship.vert_G = Input.cleanInt(self,VertAccel) * 0.1
+                        self.airData.AOA = Input.cleanInt(self,AOA)
+                    self.airData.Baro = (Input.cleanInt(self,Baro) + 2750.0) / 100
+                    self.airData.Baro_diff = self.airData.Baro - 29.921
+                    self.airData.Alt_da = Input.cleanInt(self,DA)
+                    self.airData.Alt = int( Input.cleanInt(self,PresAlt) + (self.airData.Baro_diff / 0.00108) )  # 0.00108 of inches of mercury change per foot.
+                    self.imuData.turn_rate = Input.cleanInt(self,TurnRate) * 0.1
+                    self.airData.VSI = Input.cleanInt(self,VertSpd) * 10
+                    self.imuData.vert_G = Input.cleanInt(self,VertAccel) * 0.1
                     try:
-                        dataship.wind_dir = Input.cleanInt(self,WD)
-                        dataship.wind_speed = Input.cleanInt(self,WS)
-                        dataship.norm_wind_dir = (dataship.mag_head - dataship.wind_dir) % 360 #normalize the wind direction to the airplane heading
-                        # compute Gnd Speed when Gnd Speed is unknown (not provided in data)
-                        dataship.gndspeed = math.sqrt(math.pow(dataship.tas,2) + math.pow(dataship.wind_speed,2) + (2 * dataship.tas * dataship.wind_speed * math.cos(math.radians(180 - (dataship.wind_dir - dataship.mag_head)))))
-                        dataship.gndtrack = dataship.mag_head 
+                        self.airData.Wind_dir = Input.cleanInt(self,WD)
+                        self.airData.Wind_speed = Input.cleanInt(self,WS)
+                        self.airData.Wind_dir_corr = (self.imuData.mag_head - self.airData.Wind_dir) % 360 #normalize the wind direction to the airplane heading
+                        # # compute Gnd Speed when Gnd Speed is unknown (not provided in data)
+                        # dataship.gndspeed = math.sqrt(math.pow(dataship.tas,2) + math.pow(dataship.wind_speed,2) + (2 * dataship.tas * dataship.wind_speed * math.cos(math.radians(180 - (dataship.wind_dir - dataship.mag_head)))))
+                        # dataship.gndtrack = dataship.mag_head 
                     except ValueError as ex:
                         # if error trying to parse wind then must not have that info.
-                        dataship.wind_dir = 0
-                        dataship.wind_speed = 0
-                        dataship.norm_wind_dir = 0 #normalize the wind direction to the airplane heading
-                        dataship.gndspeed = 0
+                        self.airData.Wind_dir = None
+                        self.airData.Wind_speed = None
+                        self.airData.Wind_dir_corr = None #normalize the wind direction to the airplane heading
 
-
-                    dataship.msg_count += 1
+                    self.airData.msg_count += 1
+                    self.imuData.msg_count += 1
 
                     if self.output_logFile != None:
                         Input.addToLog(self,self.output_logFile,bytes([33,int(dataType),int(dataVer)]))
                         Input.addToLog(self,self.output_logFile,msg)
 
                 elif dataType == b'2': #Dynon System message (nav,AP, etc)
-                    dataship.nav.msg_count += 1
+                    self.navData.msg_count += 1
                     msg = self.ser.read(90)
                     if isinstance(msg, str): msg = msg.encode()  # if read from file then convert to bytes
                     HH,MM,SS,FF,HBug,AltBug, ASIBug,VSBug,Course,CDISrcType,CDISourePort,CDIScale,CDIDeflection,GS,APEng,APRollMode,Not1,APPitch,Not2,APRollF,APRollP,APRollSlip,APPitchF, APPitchP,APPitchSlip,APYawF,APYawP,APYawSlip,TransponderStatus,TransponderReply,TransponderIdent,TransponderCode,DynonUnused,Checksum,CRLF= struct.unpack(
@@ -216,55 +317,53 @@ class serial_skyview(Input):
                         "2s2s2s2s3s5s4s4s3scc2s3s3sccccc3s5sc3s5sc3s5scccc4s10s2s2s", msg
                     )
                     #print("NAV & System Message !2:", msg)
-                    dataship.sys_time_string = "%d:%d:%d"%(int(HH),int(MM),int(SS))
-                    self.time_stamp_string = dataship.sys_time_string
-                    self.time_stamp_min = int(MM)
-                    self.time_stamp_sec = int(SS)
+                    self.gpsData.GPSTime_string = "%d:%d:%d"%(int(HH),int(MM),int(SS))
+                    self.time_stamp_string = self.gpsData.GPSTime_string
 
-                    if HBug != b'XXX': dataship.nav.HeadBug = Input.cleanInt(self, HBug)
-                    if AltBug != b'XXXXX': dataship.nav.AltBug = Input.cleanInt(self,AltBug) * 10
-                    if ASIBug != b'XXXX': dataship.nav.ASIBug = Input.cleanInt(self,ASIBug) / 10
-                    if VSBug != b'XXXX': dataship.nav.VSBug = Input.cleanInt(self,VSBug) / 10
-                    if CDIDeflection != b'XXX': dataship.nav.ILSDev = Input.cleanInt(self,CDIDeflection)
-                    if GS != b'XXX': dataship.nav.GSDev = Input.cleanInt(self,GS)
-                    dataship.nav.HSISource = Input.cleanInt(self,CDISourePort)
+                    if HBug != b'XXX': self.navData.HeadBug = Input.cleanInt(self, HBug)
+                    if AltBug != b'XXXXX': self.navData.AltBug = Input.cleanInt(self,AltBug) * 10
+                    if ASIBug != b'XXXX': self.navData.ASIBug = Input.cleanInt(self,ASIBug) / 10
+                    if VSBug != b'XXXX': self.navData.VSBug = Input.cleanInt(self,VSBug) / 10
+                    if CDIDeflection != b'XXX': self.navData.ILSDev = Input.cleanInt(self,CDIDeflection)
+                    if GS != b'XXX': self.navData.GSDev = Input.cleanInt(self,GS)
+                    self.navData.HSISource = Input.cleanInt(self,CDISourePort)
                     if CDISrcType == b'0':
                         navSourceType = 'GPS'
                     elif CDISrcType == b'1':
                         navSourceType = 'NAV'
                     elif CDISrcType == b'2':
                         navSourceType = 'LOC'
-                    dataship.nav.SourceDesc = navSourceType + str(Input.cleanInt(self,CDISourePort))
-                    dataship.nav.GLSHoriz = Input.cleanInt(self,CDIScale) / 10
-                    if APEng == b'0': dataship.nav.APeng = 0
-                    if APEng == b'1' or APEng == b'2' or APEng == b'3' or APEng == b'4' or APEng == b'5' or APEng == b'6' or APEng == b'7': dataship.nav.APeng = 1
-                    dataship.nav.AP_RollForce = Input.cleanInt(self,APRollF)
-                    dataship.nav.AP_RollPos = Input.cleanInt(self,APRollP)
-                    dataship.nav.AP_RollSlip = Input.cleanInt(self,APRollSlip)
-                    dataship.nav.AP_PitchForce = Input.cleanInt(self,APPitchF)
-                    dataship.nav.AP_PitchPos = Input.cleanInt(self,APPitchP)
-                    dataship.nav.AP_PitchSlip = Input.cleanInt(self,APPitchSlip)
-                    dataship.nav.AP_YawForce = Input.cleanInt(self,APYawF)
-                    dataship.nav.AP_YawPos = Input.cleanInt(self,APYawP)
-                    dataship.nav.AP_YawSlip = Input.cleanInt(self,APYawSlip)
+                    self.navData.SourceDesc = navSourceType + str(Input.cleanInt(self,CDISourePort))
+                    self.navData.GLSHoriz = Input.cleanInt(self,CDIScale) / 10
+                    if APEng == b'0': self.navData.APeng = 0
+                    if APEng == b'1' or APEng == b'2' or APEng == b'3' or APEng == b'4' or APEng == b'5' or APEng == b'6' or APEng == b'7': self.navData.APeng = 1
+                    self.navData.AP_RollForce = Input.cleanInt(self,APRollF)
+                    self.navData.AP_RollPos = Input.cleanInt(self,APRollP)
+                    self.navData.AP_RollSlip = Input.cleanInt(self,APRollSlip)
+                    self.navData.AP_PitchForce = Input.cleanInt(self,APPitchF)
+                    self.navData.AP_PitchPos = Input.cleanInt(self,APPitchP)
+                    self.navData.AP_PitchSlip = Input.cleanInt(self,APPitchSlip)
+                    self.navData.AP_YawForce = Input.cleanInt(self,APYawF)
+                    self.navData.AP_YawPos = Input.cleanInt(self,APYawP)
+                    self.navData.AP_YawSlip = Input.cleanInt(self,APYawSlip)
                     if TransponderStatus == b'0':
-                        dataship.nav.XPDR_Status = 'SBY'
+                        self.navData.XPDR_Status = 'SBY'
                     elif TransponderStatus == b'1':
-                        dataship.nav.XPDR_Status = 'GND'
+                        self.navData.XPDR_Status = 'GND'
                     elif TransponderStatus == b'2':
-                        dataship.nav.XPDR_Status = 'ON'
+                        self.navData.XPDR_Status = 'ON'
                     elif TransponderStatus == b'3':
-                        dataship.nav.XPDR_Status = 'ALT'
-                    dataship.nav.XPDR_Reply = Input.cleanInt(self,TransponderReply)
-                    dataship.nav.XPDR_Ident = Input.cleanInt(self,TransponderIdent)
-                    dataship.nav.XPDR_Code = Input.cleanInt(self,TransponderCode)
+                        self.navData.XPDR_Status = 'ALT'
+                    self.navData.XPDR_Reply = Input.cleanInt(self,TransponderReply)
+                    self.navData.XPDR_Ident = Input.cleanInt(self,TransponderIdent)
+                    self.navData.XPDR_Code = Input.cleanInt(self,TransponderCode)
                     
                     if self.output_logFile != None:
                         Input.addToLog(self,self.output_logFile,bytes([33,int(dataType),int(dataVer)]))
                         Input.addToLog(self,self.output_logFile,msg)
 
                 elif dataType == b'3': #Dynon EMS Engine data message
-                    dataship.engine.msg_count += 1
+                    self.engineData.msg_count += 1
                     msg = self.ser.read(222)
                     if isinstance(msg,str):msg = msg.encode() # if read from file then convert to bytes
                     HH,MM,SS,FF,OilPress,OilTemp, RPM_L,RPM_R,MAP,FF1,FF2,FP,FL_L,FL_R,Frem,V1,V2,AMPs,Hobbs,Tach,TC1,TC2,TC3,TC4,TC5,TC6,TC7,TC8,TC9,TC10,TC11,TC12,TC13,TC14,GP1,GP2,GP3,GP4,GP5,GP6,GP7,GP8,GP9,GP10,GP11,GP12,GP13,Contacts,Pwr,EGTstate,Checksum,CRLF= struct.unpack(
@@ -321,53 +420,51 @@ class serial_skyview(Input):
                          "2s2s2s2s3s4s4s4s3s3s3s3s3s3s3s3s3s4s5s5s4s4s4s4s4s4s4s4s4s4s4s4s4s4s6s6s6s6s6s6s6s6s6s6s6s6s6s16s3s1s2s2s", msg
                     )
                     #print("EMS Message !3:", msg)
-                    dataship.sys_time_string = "%d:%d:%d"%(int(HH),int(MM),int(SS))
-                    self.time_stamp_string = dataship.sys_time_string
-                    self.time_stamp_min = int(MM)
-                    self.time_stamp_sec = int(SS)
+                    #dataship.sys_time_string = "%d:%d:%d"%(int(HH),int(MM),int(SS))
+                    #self.time_stamp_string = dataship.sys_time_string
 
-                    dataship.engine.OilPress = Input.cleanInt(self,OilPress)
-                    dataship.engine.OilTemp = Input.cleanInt(self,OilTemp)
-                    dataship.engine.RPM = max(Input.cleanInt(self,RPM_L), Input.cleanInt(self,RPM_R))
-                    dataship.engine.ManPress = Input.cleanInt(self,MAP) / 10
-                    dataship.engine.FuelFlow = Input.cleanInt(self,FF1) / 10
-                    dataship.engine.FuelFlow2 = Input.cleanInt(self,FF2) / 10
-                    dataship.engine.FuelPress = Input.cleanInt(self,FP) / 10
+                    self.engineData.OilPress = Input.cleanInt(self,OilPress)
+                    self.engineData.OilTemp = Input.cleanInt(self,OilTemp)
+                    self.engineData.RPM = max(Input.cleanInt(self,RPM_L), Input.cleanInt(self,RPM_R))
+                    self.engineData.ManPress = Input.cleanInt(self,MAP) / 10
+                    self.engineData.FuelFlow = Input.cleanInt(self,FF1) / 10
+                    self.engineData.FuelFlow2 = Input.cleanInt(self,FF2) / 10
+                    self.engineData.FuelPress = Input.cleanInt(self,FP) / 10
                     fuel_level_left  = Input.cleanInt(self, FL_L) / 10
                     fuel_level_right = Input.cleanInt(self, FL_R) / 10
-                    dataship.fuel.FuelLevels = [fuel_level_left, fuel_level_right, 0, 0]
-                    dataship.fuel.FuelRemain = Input.cleanInt(self,Frem) / 10
-                    dataship.engine.volts1 = Input.cleanInt(self,V1) / 10
-                    dataship.engine.volts2 = Input.cleanInt(self,V2) / 10
-                    if AMPs != b'XXXX': dataship.engine.amps = Input.cleanInt(self,AMPs) / 10
-                    dataship.engine.hobbs_time = Input.cleanInt(self,Hobbs) / 10
-                    dataship.engine.tach_time = Input.cleanInt(self,Tach) / 10
+                    self.fuelData.FuelLevels = [fuel_level_left, fuel_level_right, 0, 0]
+                    self.fuelData.FuelRemain = Input.cleanInt(self,Frem) / 10
+                    self.engineData.volts1 = Input.cleanInt(self,V1) / 10
+                    self.engineData.volts2 = Input.cleanInt(self,V2) / 10
+                    if AMPs != b'XXXX': self.engineData.amps = Input.cleanInt(self,AMPs) / 10
+                    self.engineData.hobbs_time = Input.cleanInt(self,Hobbs) / 10
+                    self.engineData.tach_time = Input.cleanInt(self,Tach) / 10
 
-                    if TC12 != b'XXXX': dataship.engine.EGT[0] = round(((Input.cleanInt(self, TC12)) * 1.8) + 32)  # convert from C to F
-                    if TC10 != b'XXXX': dataship.engine.EGT[1] = round(((Input.cleanInt(self, TC10)) * 1.8) + 32)  # convert from C to F
-                    if TC8 != b'XXXX': dataship.engine.EGT[2] = round(((Input.cleanInt(self, TC8)) * 1.8) + 32)  # convert from C to F
-                    if TC6 != b'XXXX': dataship.engine.EGT[3] = round(((Input.cleanInt(self, TC6)) * 1.8) + 32)  # convert from C to F
-                    if TC4 != b'XXXX': dataship.engine.EGT[4] = round(((Input.cleanInt(self, TC4)) * 1.8) + 32)  # convert from C to F
-                    if TC2 != b'XXXX': dataship.engine.EGT[5] = round(((Input.cleanInt(self, TC2)) * 1.8) + 32)  # convert from C to F
+                    if TC12 != b'XXXX': self.engineData.EGT[0] = round(((Input.cleanInt(self, TC12)) * 1.8) + 32)  # convert from C to F
+                    if TC10 != b'XXXX': self.engineData.EGT[1] = round(((Input.cleanInt(self, TC10)) * 1.8) + 32)  # convert from C to F
+                    if TC8 != b'XXXX': self.engineData.EGT[2] = round(((Input.cleanInt(self, TC8)) * 1.8) + 32)  # convert from C to F
+                    if TC6 != b'XXXX': self.engineData.EGT[3] = round(((Input.cleanInt(self, TC6)) * 1.8) + 32)  # convert from C to F
+                    if TC4 != b'XXXX': self.engineData.EGT[4] = round(((Input.cleanInt(self, TC4)) * 1.8) + 32)  # convert from C to F
+                    if TC2 != b'XXXX': self.engineData.EGT[5] = round(((Input.cleanInt(self, TC2)) * 1.8) + 32)  # convert from C to F
 
-                    if TC11 != b'XXXX': dataship.engine.CHT[0] = round(((Input.cleanInt(self, TC11)) * 1.8) + 32)  # convert from C to F
-                    if TC9 != b'XXXX': dataship.engine.CHT[1] = round(((Input.cleanInt(self, TC9)) * 1.8) + 32)  # convert from C to F
-                    if TC7 != b'XXXX': dataship.engine.CHT[2] = round(((Input.cleanInt(self, TC7)) * 1.8) + 32)  # convert from C to F
-                    if TC5 != b'XXXX': dataship.engine.CHT[3] = round(((Input.cleanInt(self, TC5)) * 1.8) + 32)  # convert from C to F
-                    if TC3 != b'XXXX': dataship.engine.EGT[4] = round(((Input.cleanInt(self, TC3)) * 1.8) + 32)  # convert from C to F
-                    if TC1 != b'XXXX': dataship.engine.EGT[5] = round(((Input.cleanInt(self, TC1)) * 1.8) + 32)  # convert from C to F
+                    if TC11 != b'XXXX': self.engineData.CHT[0] = round(((Input.cleanInt(self, TC11)) * 1.8) + 32)  # convert from C to F
+                    if TC9 != b'XXXX': self.engineData.CHT[1] = round(((Input.cleanInt(self, TC9)) * 1.8) + 32)  # convert from C to F
+                    if TC7 != b'XXXX': self.engineData.CHT[2] = round(((Input.cleanInt(self, TC7)) * 1.8) + 32)  # convert from C to F
+                    if TC5 != b'XXXX': self.engineData.CHT[3] = round(((Input.cleanInt(self, TC5)) * 1.8) + 32)  # convert from C to F
+                    if TC3 != b'XXXX': self.engineData.EGT[4] = round(((Input.cleanInt(self, TC3)) * 1.8) + 32)  # convert from C to F
+                    if TC1 != b'XXXX': self.engineData.EGT[5] = round(((Input.cleanInt(self, TC1)) * 1.8) + 32)  # convert from C to F
 
                     if self.output_logFile != None:
                         Input.addToLog(self,self.output_logFile,bytes([33,int(dataType),int(dataVer)]))
                         Input.addToLog(self,self.output_logFile,msg)
                 else:
-                    dataship.msg_unknown += 1 # unknown message found.
+                    self.msg_unknown += 1 # unknown message found.
         except ValueError:
-            dataship.msg_bad += 1
+            self.msg_bad += 1
             #print("bad:"+str(msg))
             pass
         except struct.error:
-            dataship.msg_bad += 1
+            self.msg_bad += 1
             pass
         except serial.serialutil.SerialException:
             print("skyview serial exception")
@@ -381,6 +478,5 @@ class serial_skyview(Input):
             self.ser.flushInput()  # flush the serial after every message else we see delays
 
         return dataship
-
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

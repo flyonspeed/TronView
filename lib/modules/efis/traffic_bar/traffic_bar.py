@@ -3,12 +3,17 @@
 #################################################
 # Module: Traffic Bar
 # Topher 2024
+# 2/10/2025 - new dataship refactor
 
 from lib.modules._module import Module
 from lib import hud_graphics
 from lib import hud_utils
 from lib import smartdisplay
-from lib.common.dataship import dataship
+from lib.common.dataship.dataship import Dataship
+from lib.common.dataship.dataship_targets import TargetData
+from lib.common.dataship.dataship_imu import IMUData
+from lib.common.dataship.dataship_gps import GPSData
+from lib.common import shared
 import pygame
 import math
 
@@ -23,8 +28,9 @@ class traffic_bar(Module):
         self.fov_x = hud_utils.readConfigInt("HUD", "fov_x", 13.942)
         self.colorTarget = (255,200,130)
         self.colorDetails = (128,128,128) #grey
-
-
+        self.targetData = TargetData()
+        self.imuData = IMUData()
+        self.gpsData = GPSData()
     # called once for setup, or when module is being resized in editor
     def initMod(self, pygamescreen, width=None, height=None):
         if width is None:
@@ -45,21 +51,33 @@ class traffic_bar(Module):
         self.fov_x_each_side = self.fov_x / 2
         self.x_degree_per_pixel = self.fov_x / self.width
 
+        if len(shared.Dataship.targetData) > 0:
+            self.targetData = shared.Dataship.targetData[0]
+
+        if len(shared.Dataship.imuData) > 0:
+            self.imuData = shared.Dataship.imuData[0]
+
+        if len(shared.Dataship.gpsData) > 0:
+            self.gpsData = shared.Dataship.gpsData[0]
+
     # called every redraw for the module
-    def draw(self, aircraft, smartdisplay, pos=(0, 0)):
+    def draw(self, dataship: Dataship, smartdisplay, pos=(0, 0)):
         x, y = pos
         
         # Clear the surface with full transparency
         self.surface.fill((0, 0, 0, 0))
         
-        useHeading = aircraft.mag_head # use magnetic heading if available.
-
-        if useHeading is None: # if no mag head, use gps ground track.
-            useHeading = aircraft.gps.GndTrack
+        if self.imuData.mag_head is not None:
+            useHeading = self.imuData.mag_head # use magnetic heading if available.
+        else:
+            if self.gpsData is not None:
+                useHeading = self.gpsData.GndTrack
+            else:
+                return
 
         # Traffic rendering (adjust for new position)
         if useHeading is not None and self.showTrafficMiles > 0:
-            for t in aircraft.traffic.targets:
+            for t in self.targetData.targets:
                 if t.dist is not None and t.dist < self.showTrafficMiles:
                     result = useHeading - t.brng
                     if -self.fov_x_each_side < result < self.fov_x_each_side:

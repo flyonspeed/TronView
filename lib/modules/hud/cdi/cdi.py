@@ -9,7 +9,9 @@ from lib.modules._module import Module
 from lib import hud_graphics
 from lib import hud_utils
 from lib import smartdisplay
-from lib.common.dataship import dataship
+from lib.common.dataship.dataship import Dataship
+from lib.common.dataship.dataship_nav import NavData
+from lib.common import shared
 import pygame  
 import math
 
@@ -19,6 +21,7 @@ class cdi(Module):
     def __init__(self):
         Module.__init__(self)
         self.name = "HUD CDI"  # set name
+        self.navData = NavData()
 
     # called once for setup
     def initMod(self, pygamescreen, width = None, height = None):
@@ -50,10 +53,13 @@ class cdi(Module):
         # pull water line offset from HUD config area.
         self.y_offset = hud_utils.readConfigInt("HUD", "Horizon_Offset", 0)  #  Horizon/Waterline Pixel Offset from HUD Center Neg Numb moves Up, Default=0
 
+        self.navData = NavData()
+        if len(shared.Dataship.navData) > 0:
+            self.navData = shared.Dataship.navData[0]
 
 
     # called every redraw for the mod
-    def draw(self, aircraft, smartdisplay, pos):
+    def draw(self, dataship:Dataship, smartdisplay, pos):
 
         self.surface.fill((0, 0, 0, 0))  # clear surface
 
@@ -61,35 +67,35 @@ class cdi(Module):
         
         new_y_center = self.yCenter + self.y_offset
          
-        if aircraft.nav.HSISource == 1:
+        if self.navData.HSISource == 1:
             pygame.draw.line(
                 self.surface,
                 self.cdi_color,
-                (self.xCenter - (aircraft.nav.ILSDev / 60), new_y_center - 67),
-                (self.xCenter - (aircraft.nav.ILSDev / 60), new_y_center - 8),
+                (self.xCenter - (self.navData.ILSDev / 60), new_y_center - 67),
+                (self.xCenter - (self.navData.ILSDev / 60), new_y_center - 8),
                 4,
             )
             pygame.draw.line(
                 self.surface,
                 self.cdi_color,        
-                (self.xCenter - (aircraft.nav.ILSDev / 60), new_y_center + 8),
-                (self.xCenter - (aircraft.nav.ILSDev / 60), new_y_center + 67),
+                (self.xCenter - (self.navData.ILSDev / 60), new_y_center + 8),
+                (self.xCenter - (self.navData.ILSDev / 60), new_y_center + 67),
                 4,
             )
                      
-        if aircraft.nav.VNAVSource == 1:
+        if self.navData.VNAVSource == 1:
             pygame.draw.line(
                 self.surface,
                 self.cdi_color,
-                (self.xCenter-70, (aircraft.nav.GSDev / 60) + new_y_center),
-                (self.xCenter-8, (aircraft.nav.GSDev / 60) + new_y_center),
+                (self.xCenter-70, (self.navData.GSDev / 60) + new_y_center),
+                (self.xCenter-8, (self.navData.GSDev / 60) + new_y_center),
                 4,                              
             ) 
             pygame.draw.line(
                 self.surface,
                 self.cdi_color,
-                (self.xCenter+8, (aircraft.nav.GSDev / 60) + new_y_center),
-                (self.xCenter+70, (aircraft.nav.GSDev / 60) + new_y_center),
+                (self.xCenter+8, (self.navData.GSDev / 60) + new_y_center),
+                (self.xCenter+70, (self.navData.GSDev / 60) + new_y_center),
                 4,                              
             )
 
@@ -97,17 +103,17 @@ class cdi(Module):
         self.pygamescreen.blit(self.surface, pos)
 
     # cycle through NAV sources
-    def cycleNavSource(self,aircraft):
-        if aircraft.nav.HSISource == 0 and aircraft.nav.VNAVSource == 0:
-            aircraft.nav.HSISource = 1
-            aircraft.nav.SourceDesc = "Localizer"
-        elif aircraft.nav.HSISource == 1 and aircraft.nav.VNAVSource == 0:
-            aircraft.nav.VNAVSource = 1
-            aircraft.nav.SourceDesc = "ILS"
+    def cycleNavSource(self,dataship):
+        if self.navData.HSISource == 0 and self.navData.VNAVSource == 0:
+            self.navData.HSISource = 1
+            self.navData.SourceDesc = "Localizer"
+        elif self.navData.HSISource == 1 and self.navData.VNAVSource == 0:
+            self.navData.VNAVSource = 1
+            self.navData.SourceDesc = "ILS"
         else:
-            aircraft.nav.HSISource = 0
-            aircraft.nav.VNAVSource = 0
-            aircraft.nav.SourceDesc = ""
+            self.navData.HSISource = 0
+            self.navData.VNAVSource = 0
+            self.navData.SourceDesc = ""
 
 
     # called before screen draw.  To clear the screen to your favorite color.

@@ -8,11 +8,11 @@ from . import _utils
 import struct
 import time
 import statistics
-from lib.common.dataship.dataship_imu import IMU
+from lib.common.dataship.dataship_imu import IMUData
 import math
 import binascii
 import traceback
-
+from lib.common.dataship.dataship import Dataship
 
 class gyro_i2c_bno055(Input):
     def __init__(self):
@@ -22,15 +22,16 @@ class gyro_i2c_bno055(Input):
         self.values = []
         self.num_bno055 = 1
         self.isPlaybackMode = False
+        self.imuData = IMUData()
 
-    def initInput(self,num,aircraft):
-        Input.initInput( self,num, aircraft )  # call parent init Input.
+    def initInput(self,num,dataship: Dataship):
+        Input.initInput( self,num, dataship )  # call parent init Input.
         # check how many imus are already in aircraft.imus. 
-        self.num_imus = len(aircraft.imus)
+        self.num_imus = len(dataship.imuData)
 
         # check how many imus are named the same as this one. get next number for this one.
         self.num_bno055 = 1
-        for index, imu_obj in aircraft.imus.items():
+        for index, imu_obj in enumerate(dataship.imuData):
             if imu_obj.name == self.name:
                 self.num_bno055 += 1
 
@@ -41,8 +42,6 @@ class gyro_i2c_bno055(Input):
             default_address = 41    # default address for 2nd imu
         self.address = hud_utils.readConfigInt("bno055", "device"+str(self.num_bno055)+"_address", default_address)
 
-        # should this imu feed into aircraft roll/pitch/yaw? if num is 0 then default is true.
-        self.feed_into_aircraft = hud_utils.readConfigBool("bno055", "device"+str(self.num_bno055)+"_aircraft", self.num_imus == 0)
 
         print("init bno055("+str(self.num_bno055)+") id: "+str(self.id)+" address: "+str(self.address))
         
@@ -75,7 +74,7 @@ class gyro_i2c_bno055(Input):
             self.bno.offsets_gyroscope = (1, 4, -1)
  
         # create a empty imu object.
-        self.imuData = IMU()
+        self.imuData = IMUData()
         self.imuData.id = self.id
         self.imuData.name = self.name
         self.imuData.address = self.address
@@ -84,7 +83,7 @@ class gyro_i2c_bno055(Input):
         self.imuData.home_yaw = None
 
         # create imu in dataship object. append to dict with key as num_imus.
-        aircraft.imus[self.num_imus] = self.imuData
+        dataship.imuData.append(self.imuData)
 
         self.last_read_time = time.time()
         self.start_time = time.time()
@@ -153,14 +152,7 @@ class gyro_i2c_bno055(Input):
                         self.imuData.home_pitch = home_pitch
                         self.imuData.home_roll = home_roll
                         self.imuData.home_yaw = home_yaw
-                        
-                        # Update aircraft if this is the primary IMU
-                        if self.feed_into_aircraft:
-                            aircraft.pitch = pitch
-                            aircraft.roll = roll
-                            aircraft.mag_head = yaw
-                            aircraft.yaw = yaw
-                
+                                        
                 time.sleep(0.02)  # Add delay for playback mode
             else:
                 # Existing live sensor reading code
@@ -183,12 +175,6 @@ class gyro_i2c_bno055(Input):
                 # Update positions and aircraft
                 self.imuData.updatePos(pitch_offset, roll_offset, yaw_offset)
                 #aircraft.imus[self.num_imus] = self.imuData
-
-                if self.feed_into_aircraft:
-                    aircraft.pitch = self.imuData.pitch
-                    aircraft.roll = self.imuData.roll
-                    aircraft.mag_head = self.imuData.yaw
-                    aircraft.yaw = self.imuData.yaw
 
                 # Write to log file if enabled
                 if self.output_logFile is not None:

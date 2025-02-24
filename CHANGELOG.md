@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.0.26] - 2025-02-23
+
+- serial port list menu.
+- templates clean up
+- dropdown menu refactor
+- config file updates
+
+
+## [0.0.25] - 2025-02-19
+
+- refactor work.
+- template updates.
+- fix to save and load text and segment text in json.
+- menu updates.
+
 ## [0.0.24] - 2025-02-01
 
 - nmea gps test script added

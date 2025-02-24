@@ -10,7 +10,9 @@ from time import sleep
 import math
 import traceback
 import binascii
-from lib.common.dataship.dataship_imu import IMU
+from lib.common.dataship.dataship_imu import IMUData
+from lib.common.dataship.dataship import Dataship
+from lib.common.dataship.dataship_gps import GPSData
 
 class gyro_virtual(Input):
     def __init__(self):
@@ -19,25 +21,23 @@ class gyro_virtual(Input):
         self.inputtype = "gyro"
         self.values = []
         self.isPlaybackMode = False
+        self.imuData = IMUData()
 
-    def initInput(self,num,aircraft):
-        Input.initInput( self,num, aircraft )  # call parent init Input.
+    def initInput(self,num,dataship: Dataship):
+        Input.initInput( self,num, dataship )  # call parent init Input.
 
         # get this num of imu
-        self.num_imus = len(aircraft.imus) # 0 is first imu.
+        self.num_imus = len(dataship.imuData) # 0 is first imu.
 
         # check how many imus are named the same as this one. get next number for this one.
         self.num_imu = 1
-        for index, imu in aircraft.imus.items():
+        for imu in dataship.imuData:
             if imu.name == self.name:   
                 self.num_imu += 1
 
         # read address from config.
         self.id = hud_utils.readConfig("imu_virtual", "device"+str(self.num_imu)+"_id", "imu_virtual_"+str(self.num_imu))
-        # should this imu feed into aircraft roll/pitch/yaw? if num is 0 then default is true.
-        self.feed_into_aircraft = hud_utils.readConfigBool("imu_virtual", "device"+str(self.num_imu)+"_aircraft", self.num_imus == 0)
         print("init imu_virtual("+str(self.num_imu)+") id: "+str(self.id))
-
         
         # Check if we're in playback mode
         if self.PlayFile is not None and self.PlayFile is not False:
@@ -46,19 +46,20 @@ class gyro_virtual(Input):
                 defaultTo = "imu_virtual1.dat"
                 self.PlayFile = hud_utils.readConfig(self.name, "playback_file", defaultTo)
             self.ser, self.input_logFileName = Input.openLogFile(self,self.PlayFile,"rb")
-            self.isPlaybackMode = True
+            if self.ser is not None:
+                self.isPlaybackMode = True
 
         # create a empty imu object.
-        self.imuData = IMU()
-        self.imuData.id = self.id
+        self.imuData = IMUData()
         self.imuData.name = self.name
+        self.imuData.id = self.id+str(self.num_imu)
         self.imuData.home_pitch = None
         self.imuData.home_roll = None
         self.imuData.home_yaw = None
         self.imuData.input = self
 
-        # create imu in dataship object. append to dict with key as num_imus.
-        aircraft.imus[self.num_imus] = self.imuData
+        # create imu in dataship object by appending to list
+        dataship.imuData.append(self.imuData)
 
         self.last_read_time = time.time()
         self.start_time = time.time()
@@ -71,15 +72,15 @@ class gyro_virtual(Input):
         self.auto_rotate_roll = 0
         self.auto_rotate_yaw = 0
         
-    def closeInput(self,aircraft):
+    def closeInput(self,dataship: Dataship):
         print("imu_virtual close")
 
     #############################################
     ## Function: readMessage
-    def readMessage(self, aircraft):
-        if self.shouldExit == True: aircraft.errorFoundNeedToExit = True
-        if aircraft.errorFoundNeedToExit: return aircraft
-        if self.skipReadInput == True: return aircraft
+    def readMessage(self, dataship: Dataship):
+        if self.shouldExit == True: dataship.errorFoundNeedToExit = True
+        if dataship.errorFoundNeedToExit: return dataship
+        if self.skipReadInput == True: return dataship
 
         try:
             if self.isPlaybackMode:
@@ -87,7 +88,7 @@ class gyro_virtual(Input):
                 line = self.ser.readline().decode('utf-8').strip()
                 if not line:
                     self.ser.seek(0)
-                    return aircraft
+                    return dataship
                 
                 if line.startswith('imu'):
                     # Parse the log file format
@@ -108,14 +109,7 @@ class gyro_virtual(Input):
                         self.imuData.home_pitch = home_pitch
                         self.imuData.home_roll = home_roll
                         self.imuData.home_yaw = home_yaw
-                        
-                        # Update aircraft if this is the primary IMU
-                        if self.feed_into_aircraft:
-                            aircraft.pitch = pitch
-                            aircraft.roll = roll
-                            aircraft.mag_head = yaw
-                            aircraft.yaw = yaw
-                
+                                        
                 time.sleep(0.02)  # Add delay for playback mode
             else:
                 # Live sensor reading code
@@ -142,12 +136,6 @@ class gyro_virtual(Input):
                 # update aircraft object
                 self.imuData.updatePos(self.test_pitch, self.test_roll, self.test_yaw)
 
-                if self.feed_into_aircraft:
-                    aircraft.pitch = self.imuData.pitch
-                    aircraft.roll = self.imuData.roll
-                    aircraft.mag_head = self.imuData.yaw
-                    aircraft.yaw = self.imuData.yaw
-
                 # Write to log file if enabled
                 if self.output_logFile is not None:
                     log_line = f"085,{time.time()},{self.imuData.pitch},{self.imuData.roll},{self.imuData.yaw},{self.imuData.home_pitch},{self.imuData.home_roll},{self.imuData.home_yaw}\n"
@@ -159,7 +147,7 @@ class gyro_virtual(Input):
             if not self.isPlaybackMode:
                 self.init_i2c()
 
-        return aircraft
+        return dataship
 
     def setPostion(self, pitch, roll, yaw):
         self.test_pitch = pitch

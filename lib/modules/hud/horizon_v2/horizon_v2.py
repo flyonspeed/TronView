@@ -13,6 +13,10 @@ import pygame
 import math
 from lib.common import shared
 from lib.common.dataship.dataship import Dataship
+from lib.common.dataship.dataship_targets import TargetData
+from lib.common.dataship.dataship_gps import GPSData
+from lib.common.dataship.dataship_imu import IMUData
+from lib.common.dataship.dataship_air import AirData
 
 
 class horizon_v2(Module):
@@ -52,6 +56,11 @@ class horizon_v2(Module):
             'camera_roll': 0
         }
 
+        self.imuData = IMUData()
+        self.gpsData = GPSData()
+        self.airData = AirData()
+        self.targetData = TargetData()
+
     # called once for setup
     def initMod(self, pygamescreen, width=None, height=None):
         if width is None:
@@ -89,7 +98,22 @@ class horizon_v2(Module):
         self.x_offset = 0
         self.xCenter = self.width // 2
         self.yCenter = self.height // 2
+        
+        # Initialize local data objects with defaults
+        self.imuData = IMUData()
+        self.gpsData = GPSData() 
+        self.airData = AirData()
+        self.targetData = TargetData()
 
+        # Set references to first available data sources if they exist
+        if shared.Dataship.imuData:
+            self.imuData = shared.Dataship.imuData[0]
+        if shared.Dataship.gpsData:
+            self.gpsData = shared.Dataship.gpsData[0]
+        if shared.Dataship.airData:
+            self.airData = shared.Dataship.airData[0]
+        if shared.Dataship.targetData:
+            self.targetData = shared.Dataship.targetData[0]
 
     #############################################
     ## Function: generateHudReferenceLineArray
@@ -398,33 +422,41 @@ class horizon_v2(Module):
                 3,
             )
 
-    def draw_flight_path(self,aircraft,smartdisplay, x_offset, y_offset):
+    def draw_flight_path(self, dataship:Dataship, smartdisplay, x_offset, y_offset):
         '''
         Draw the flight path indicator.
         '''
+        # Check if VSI is None - if so, return without drawing
+        if self.airData.VSI is None:
+            return
+        
         def mean(nums):
             return int(sum(nums)) / max(len(nums), 1)
+
+        VSI_div = self.airData.VSI / 2
 
         # flight path indicator  Default Caged Mode
         if self.caged_mode == 1:
             fpv_x = 0.0
-        else:  #  changed the  "- (aircraft.turn_rate * 5" to a "+ (aircraft.turn_rate * 5" 
-            fpv_x = ((((aircraft.mag_head - aircraft.gndtrack) + 180) % 360) - 180) * 1.5  + (
-                aircraft.turn_rate * 5
+        else:
+            fpv_x = ((((self.imuData.yaw - self.gpsData.GndTrack) + 180) % 360) - 180) * 1.5  + (
+                self.imuData.turn_rate * 5
             )
             self.readings.append(fpv_x)
-            fpv_x = mean(self.readings)  # Moving average to smooth a bit
+            fpv_x = mean(self.readings)
             if len(self.readings) == self.max_samples:
                 self.readings.pop(0)
+            fpv_x = int(fpv_x) * 1.5
         
-        use_heading = aircraft.mag_head
-        if aircraft.mag_head is None and aircraft.gndtrack is not None:
-            use_heading = aircraft.gndtrack
-        gfpv_x = ((((use_heading - aircraft.gndtrack) + 180) % 360) - 180) * 1.5  + (
-            aircraft.turn_rate * 5
+        use_heading = self.imuData.yaw
+        if self.imuData.yaw is None and self.gpsData.GndTrack is not None:
+            use_heading = self.gpsData.GndTrack
+
+        gfpv_x = ((((use_heading - self.imuData.yaw) + 180) % 360) - 180) * 1.5  + (
+            self.imuData.turn_rate * 5
         )
         self.readings1.append(gfpv_x)
-        gfpv_x = mean(self.readings1)  # Moving average to smooth a bit
+        gfpv_x = mean(self.readings1)
         if len(self.readings1) == self.max_samples1:
             self.readings1.pop(0)
 
@@ -433,10 +465,10 @@ class horizon_v2(Module):
 
         self.draw_circle(
             self.surface,
-            self.flight_path_color,  # Use flight_path_color instead of hardcoded color
+            self.flight_path_color,
             (
-                center_x - (int(fpv_x) * 5),
-                center_y - (aircraft.vsi / 2),
+                center_x - (fpv_x),
+                center_y - (VSI_div),
             ),
             15,
             4,
@@ -444,89 +476,86 @@ class horizon_v2(Module):
         
         pygame.draw.line(
             self.surface,
-            self.flight_path_color,  # Use flight_path_color
+            self.flight_path_color,
             [
-                center_x - (int(fpv_x) * 5) - 15,
-                center_y - (aircraft.vsi / 2),
+                center_x - (fpv_x) - 15,
+                center_y - (VSI_div),
             ],
             [
-                center_x - (int(fpv_x) * 5) - 30,
-                center_y - (aircraft.vsi / 2),
-            ],
-            2,
-        )
-        pygame.draw.line(
-            self.surface,
-            self.flight_path_color,  # Use flight_path_color
-            [
-                center_x - (int(fpv_x) * 5) + 15,
-                center_y - (aircraft.vsi / 2),
-            ],
-            [
-                center_x - (int(fpv_x) * 5) + 30,
-                center_y - (aircraft.vsi / 2),
+                center_x - (fpv_x) - 30,
+                center_y - (VSI_div),
             ],
             2,
         )
         pygame.draw.line(
             self.surface,
-            self.flight_path_color,  # Use flight_path_color
+            self.flight_path_color,
             [
-                center_x - (int(fpv_x) * 5),
-                center_y - (aircraft.vsi / 2) - 15,
+                center_x - (fpv_x) + 15,
+                center_y - (VSI_div),
             ],
             [
-                center_x - (int(fpv_x) * 5),
-                center_y - (aircraft.vsi / 2) - 30,
+                center_x - (fpv_x) + 30,
+                center_y - (VSI_div),
+            ],
+            2,
+        )
+        pygame.draw.line(
+            self.surface,
+            self.flight_path_color,
+            [
+                center_x - (fpv_x),
+                center_y - (VSI_div) - 15,
+            ],
+            [
+                center_x - (fpv_x),
+                center_y - (VSI_div) - 30,
             ],
             2,
         )
         if self.caged_mode == 1:
             pygame.draw.line(
                 self.surface,
-                self.flight_path_color,  # Use flight_path_color
+                self.flight_path_color,
                 [
-                    center_x - (int(gfpv_x) * 5) - 15,
-                    center_y - (aircraft.vsi / 2),
+                    center_x - (gfpv_x) - 15,
+                    center_y - (VSI_div),
                 ],
                 [
-                    center_x - (int(gfpv_x) * 5) - 30,
-                    center_y - (aircraft.vsi / 2),
-                ],
-                2,
-            )
-            pygame.draw.line(
-                self.surface,
-                self.flight_path_color,  # Use flight_path_color
-                [
-                    center_x - (int(gfpv_x) * 5) + 15,
-                    center_y - (aircraft.vsi / 2),
-                ],
-                [
-                    center_x - (int(gfpv_x) * 5) + 30,
-                    center_y - (aircraft.vsi / 2),
+                    center_x - (gfpv_x) - 30,
+                    center_y - (VSI_div),
                 ],
                 2,
             )
             pygame.draw.line(
                 self.surface,
-                self.flight_path_color,  # Use flight_path_color
+                self.flight_path_color,
                 [
-                    center_x - (int(gfpv_x) * 5),
-                    center_y - (aircraft.vsi / 2) - 15,
+                    center_x - (gfpv_x) + 15,
+                    center_y - (VSI_div),
                 ],
                 [
-                    center_x - (int(gfpv_x) * 5),
-                    center_y - (aircraft.vsi / 2) - 30,
+                    center_x - (gfpv_x) + 30,
+                    center_y - (VSI_div),
                 ],
                 2,
             )
-
-            aircraft.flightPathMarker_x = fpv_x # save to aircraft object for other modules to use.
-
+            pygame.draw.line(
+                self.surface,
+                self.flight_path_color,
+                [
+                    center_x - (gfpv_x),
+                    center_y - (VSI_div) - 15,
+                ],
+                [
+                    center_x - (gfpv_x),
+                    center_y - (VSI_div) - 30,
+                ],
+                2,
+            )
 
     # called every redraw for this screen module
-    def draw(self, aircraft, smartdisplay, pos=(0, 0)):
+    def draw(self, dataship:Dataship, smartdisplay, pos=(0, 0)):
         '''
         Draw method to draw all the elements of the horizon.
         '''
@@ -535,7 +564,7 @@ class horizon_v2(Module):
         # Clear the surface before drawing
         self.surface.fill((0, 0, 0, 0))
 
-        if aircraft.roll is None or aircraft.pitch is None:
+        if self.imuData.roll is None or self.imuData.pitch is None:
             # draw a red X on the screen.
             pygame.draw.line(self.surface, (255,0,0), (0,0), (self.width,self.height), 4)
             pygame.draw.line(self.surface, (255,0,0), (self.width,0), (0,self.height), 4)
@@ -548,17 +577,17 @@ class horizon_v2(Module):
             if self.camera_head_imu is not None and self.camera_head_imu.pitch is not None and self.camera_head_imu.roll is not None:
                 camera_pitch = -self.camera_head_imu.pitch
                 camera_roll = self.camera_head_imu.roll
-                camera_yaw = ((self.camera_head_imu.yaw - aircraft.mag_head + 180) % 360) - 180
+                camera_yaw = ((self.camera_head_imu.yaw - self.imuData.yaw + 180) % 360) - 180
 
                 # Draw the horizon line from camera perspective
-                self.draw_horizon_line(aircraft, camera_yaw, camera_pitch, camera_roll)
+                self.draw_horizon_line(self, camera_yaw, camera_pitch, camera_roll)
 
                 # Apply camera offsets to aircraft attitude for the rest of the display
-                adjusted_pitch = aircraft.pitch - camera_pitch
-                adjusted_roll = aircraft.roll - camera_roll
+                adjusted_pitch = self.imuData.pitch - camera_pitch
+                adjusted_roll = self.imuData.roll - camera_roll
             else:
-                adjusted_pitch = aircraft.pitch
-                adjusted_roll = aircraft.roll   
+                adjusted_pitch = self.imuData.pitch
+                adjusted_roll = self.imuData.roll   
 
             # Draw aircraft horizon lines with adjusted angles
             self.draw_aircraft_horz_lines(
@@ -569,11 +598,11 @@ class horizon_v2(Module):
                 type('AdjustedAircraft', (), {
                     'pitch': adjusted_pitch,
                     'roll': adjusted_roll,
-                    'mag_head': aircraft.mag_head,
-                    'turn_rate': aircraft.turn_rate,
-                    'vsi': aircraft.vsi,
-                    'traffic': aircraft.traffic,
-                    'gndtrack': aircraft.gndtrack
+                    'mag_head': self.imuData.yaw,
+                    'turn_rate': self.imuData.turn_rate,
+                    'vsi': self.airData.VSI,
+                    'traffic': self.targetData,
+                    'gndtrack': self.gpsData.GndTrack
                 }),
                 self.MainColor,
                 self.line_thickness,
@@ -585,26 +614,26 @@ class horizon_v2(Module):
 
             # Only show targets if camera is roughly aligned with aircraft heading
             if self.show_targets and abs(camera_yaw) < 45:
-                list(map(lambda t: self.draw_target(t, aircraft), 
+                list(map(lambda t: self.draw_target(t, dataship), 
                         filter(lambda t: t.dist is not None and t.dist < self.target_distance_threshold and t.brng is not None, 
-                                aircraft.traffic.targets)))
+                                self.targetData.targets)))
 
             # Draw center and flight path
             self.draw_center(smartdisplay, x, y)
             if abs(camera_yaw) < 45:  # Only show flight path when looking forward
-                self.draw_flight_path(aircraft, smartdisplay, x, y)
+                self.draw_flight_path(dataship, smartdisplay, x, y)
 
         # Blit the entire surface to the screen at the specified position
-        smartdisplay.pygamescreen.blit(self.surface, pos)
+        self.pygamescreen.blit(self.surface, pos)
 
-    def draw_target(self, t, aircraft):
+    def draw_target(self, t, dataship):
         '''
         Draw a target on the screen.
         '''
-        heading_to_use = aircraft.mag_head
+        heading_to_use = self.imuData.mag_head
         # if aircraft.mag_head is None then check if aircraft.gndtrack is not None
-        if aircraft.mag_head is None and aircraft.gndtrack is not None:
-            heading_to_use = aircraft.gndtrack
+        if self.imuData.mag_head is None and self.gpsData.GndTrack is not None:
+            heading_to_use = self.gpsData.GndTrack
         else:
             # else can't use either so don't draw it.
             return
@@ -616,18 +645,18 @@ class horizon_v2(Module):
         if abs(relative_bearing) > self.fov_x / 2:
             return  # Target is outside the field of view, don't draw it
 
-        if t.altDiff is not None and aircraft.pitch is not None and aircraft.roll is not None:
+        if t.altDiff is not None and self.imuData.pitch is not None and self.imuData.roll is not None:
             # Convert distances to meters
             alt_diff_meters = t.altDiff * 0.3048
             dist_meters = t.dist * 1609.34
             # Calculate the angle to the target relative to the horizon in radians
             angle_to_target = math.atan2(alt_diff_meters, dist_meters)
             # Adjust for aircraft pitch
-            adjusted_angle = angle_to_target - math.radians(aircraft.pitch)
+            adjusted_angle = angle_to_target - math.radians(self.imuData.pitch)
             # Calculate the vertical position on the screen
             vertical_position = self.yCenter - (math.tan(adjusted_angle) * (self.height / 2))
             # Adjust for aircraft roll
-            roll_radians = math.radians(aircraft.roll)
+            roll_radians = math.radians(self.imuData.roll)
             
             xx = self.xCenter + relative_bearing * (self.width / self.fov_x)
             
@@ -671,13 +700,16 @@ class horizon_v2(Module):
 
     # return a dict of objects that are used to configure the module.
     def get_module_options(self):
-        imu_list = shared.Dataship.imus
+        imu_list = shared.Dataship.imuData
         self.imu_ids = []
-        for imu_index, imu in imu_list.items(): # populate the list of ids of IMUs
-            self.imu_ids.append(str(imu.id))
-        if len(self.source_imu_index_name) == 0: # if primary imu name is not set.
-            self.source_imu_index_name = self.imu_ids[self.source_imu_index]  # select first one.
-        self.imu_ids2 = self.imu_ids.copy()  # duplicate the list for the secondary imu.
+        for imu in imu_list:  # iterate through the list directly
+            if hasattr(imu, 'id'):  # check if imu has id attribute
+                self.imu_ids.append(str(imu.id))
+            
+        if len(self.source_imu_index_name) == 0 and self.imu_ids: # if primary imu name is not set and we have IMUs
+            self.source_imu_index_name = self.imu_ids[self.source_imu_index]  # select first one
+            
+        self.imu_ids2 = self.imu_ids.copy()  # duplicate the list for the secondary imu
         self.imu_ids2.append("NONE")
 
         # each item in the dict represents a configuration option.  These are variable in this class that are exposed to the user to edit.
@@ -803,7 +835,8 @@ class horizon_v2(Module):
         '''
         # source_imu_index_name got changed. find the index of the imu id in the imu list.
         self.source_imu_index = self.imu_ids.index(self.source_imu_index_name)
-        shared.Dataship.imus[self.source_imu_index].home(delete=True) 
+        self.imuData = shared.Dataship.imuData[self.source_imu_index]
+        self.imuData.home(delete=True) 
 
     def changeSource2IMU(self):
         if self.source_imu_index2_name == "NONE":
@@ -811,10 +844,11 @@ class horizon_v2(Module):
             self.camera_head_imu = None
         else:
             self.source_imu_index2 = self.imu_ids2.index(self.source_imu_index2_name)
-            shared.Dataship.imus[self.source_imu_index2].home(delete=True)
-            self.camera_head_imu = shared.Dataship.imus[self.source_imu_index2]
+            self.imuData2 = shared.Dataship.imuData[self.source_imu_index2]
+            self.imuData2.home(delete=True)
+            self.camera_head_imu = self.imuData2
 
-    def draw_horizon_line(self, aircraft, camera_yaw=0, camera_pitch=0, camera_roll=0):
+    def draw_horizon_line(self, dataship:Dataship, camera_yaw=0, camera_pitch=0, camera_roll=0):
         """
         Draw a single line representing the true horizon from the camera's perspective.
         Takes into account both aircraft attitude and camera head position.
@@ -824,8 +858,8 @@ class horizon_v2(Module):
         center_y = self.height // 2
         
         # Convert all angles to radians
-        pitch_rad = math.radians(aircraft.pitch)
-        roll_rad = math.radians(aircraft.roll)
+        pitch_rad = math.radians(self.imuData.pitch)
+        roll_rad = math.radians(self.imuData.roll)
         cam_yaw_rad = math.radians(camera_yaw)
         cam_pitch_rad = math.radians(camera_pitch) 
         cam_roll_rad = math.radians(camera_roll)
@@ -833,7 +867,7 @@ class horizon_v2(Module):
         # Calculate effective pitch angle (how far horizon appears from center)
         # When looking straight ahead, aircraft pitch directly affects horizon position
         # When looking to the side, pitch effect diminishes with cos of yaw angle
-        effective_pitch = aircraft.pitch * math.cos(cam_yaw_rad) - camera_pitch
+        effective_pitch = self.imuData.pitch * math.cos(cam_yaw_rad) - camera_pitch
         
         # Calculate vertical offset in pixels
         pixels_per_degree = self.height / self.pxy_div
@@ -842,7 +876,7 @@ class horizon_v2(Module):
         # Calculate effective roll angle
         # When looking straight ahead, use aircraft roll minus camera roll
         # When looking to the side (90°), horizon appears level regardless of aircraft roll
-        effective_roll = (aircraft.roll - camera_roll) * math.cos(cam_yaw_rad)
+        effective_roll = (self.imuData.roll - camera_roll) * math.cos(cam_yaw_rad)
         
         # When looking up/down, horizon line should curve
         # This creates the effect of horizon curvature when looking up/down

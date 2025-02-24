@@ -9,6 +9,7 @@ from lib.common.dataship import dataship
 from lib import smartdisplay
 from lib.common.graphic.growl_manager import GrowlManager
 from lib.common.event_manager import EventManager
+from lib.common.graphic.edit_TronViewScreenObject import TronViewScreenObject
 
 ####################################
 ## DataShip object
@@ -36,8 +37,23 @@ smartdisplay = smartdisplay.SmartDisplay()
 ####################################
 ## Screen Obect
 ## This is the current graphical screen object that is being displayed.
-CurrentScreen = None
+class Screen2d(object):
+    def __init__(self):
+        self.ScreenObjects: list[TronViewScreenObject] = []
+        self.show_FPS = False
+        self.name = None
+        self.filename = None
+        self.loaded_from_template = None
 
+    def clear(self):
+        self.ScreenObjects.clear()
+        self.filename = None
+        self.loaded_from_template = None
+        self.name = None
+
+CurrentScreen = Screen2d()
+
+pygamescreen = None
 
 ####################################
 ## Default flight log dir.

@@ -33,7 +33,7 @@ class levil_wifi(Input):
             self.ser,self.input_logFileName = Input.openLogFile(self,self.PlayFile,"rb")
             self.isPlaybackMode = True
         else:
-            self.udpport = hud_utils.readConfigInt("DataInput", "udpport", "43211")
+            self.udpport = hud_utils.readConfigInt("levil", "udpport", "43211")
 
             # open udp connection.
             self.ser = socket.socket(socket.AF_INET, #Internet

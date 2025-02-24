@@ -85,9 +85,14 @@ if [ $(cat /etc/os-release | grep "Debian GNU/Linux 12" | wc -l) -eq 1 ]; then
 	sudo pip3 install numpy --break-system-packages
 	sudo pip3 install pygame_gui --break-system-packages 
 	sudo pip3 install numpy-stl --break-system-packages
-	sudo pip3 install kivy --break-system-packages
-	sudo pip3 install https://github.com/kivy/kivy3/archive/master.zip --break-system-packages
+	#sudo pip3 install kivy --break-system-packages
+	#sudo pip3 install https://github.com/kivy/kivy3/archive/master.zip --break-system-packages
 	sudo pip3 install pynmea2 --break-system-packages
+	sudo pip3 install textual --break-system-packages
+	sudo pip3 install adafruit-circuitpython-bno055 --break-system-packages
+	sudo pip3 install adafruit-circuitpython-bno08x --break-system-packages
+	sudo pip3 install configupdater --break-system-packages
+
 	pip_args="--break-system-packages"
 
 fi
@@ -109,9 +114,13 @@ if [ $(cat /etc/os-release | grep "GNU/Linux 11" | wc -l) -eq 1 ]; then
 	sudo pip3 install numpy
 	sudo pip3 install pygame_gui
 	sudo pip3 install numpy-stl
-	sudo pip3 install kivy
-	sudo pip3 install https://github.com/kivy/kivy3/archive/master.zip
+	#sudo pip3 install kivy
+	#sudo pip3 install https://github.com/kivy/kivy3/archive/master.zip
 	sudo pip3 install pynmea2
+	sudo pip3 install textual
+	sudo pip3 install adafruit-circuitpython-bno055
+	sudo pip3 install adafruit-circuitpython-bno08x
+	sudo pip3 install configupdater
 
 	# check if python 3.9.2 is installed
 	if [ $(python3 --version | grep "3.9.2" | wc -l) -eq 1 ]; then
@@ -119,37 +128,44 @@ if [ $(cat /etc/os-release | grep "GNU/Linux 11" | wc -l) -eq 1 ]; then
 	fi
 fi
 
+# Automatically set I2C baud rate for BNO085
+if ! grep -q "dtparam=i2c_arm_baudrate=400000" /boot/config.txt; then
+	echo "Setting i2c baud rate to 400000"
+	sudo bash -c 'echo "dtparam=i2c_arm_baudrate=400000" >> /boot/config.txt'
+fi
+
+
 # Create temporary file for dialog output
 temp_file=$(mktemp)
 
 # Main dialog menu
-dialog --clear --title "Sensor Installation" \
-       --checklist "Select options to install:" 15 60 3 \
-       "BNO055" "Bosch BNO055 9-DOF sensor" ON \
-       "BNO085" "Bosch BNO085 9-DOF sensor" ON \
-       "AutoRun" "Setup autorun on boot" ON \
-	   "Desktop" "Create desktop run shortcut" ON \
-       2> $temp_file
+# dialog --clear --title "Sensor Installation" \
+#        --checklist "Select options to install:" 15 60 3 \
+#        "BNO055" "Bosch BNO055 9-DOF sensor" ON \
+#        "BNO085" "Bosch BNO085 9-DOF sensor" ON \
+#        "AutoRun" "Setup autorun on boot" ON \
+# 	   "Desktop" "Create desktop run shortcut" ON \
+#        2> $temp_file
 
-# Read selections
-selections=$(cat $temp_file)
+# # Read selections
+# selections=$(cat $temp_file)
 
-# Process selections
-if [[ $selections == *"BNO055"* ]]; then
-    echo "Installing BNO055 IMU python library"
-    sudo pip3 install adafruit-circuitpython-bno055 $pip_args
-fi
+# # Process selections
+# if [[ $selections == *"BNO055"* ]]; then
+#     echo "Installing BNO055 IMU python library"
+#     sudo pip3 install adafruit-circuitpython-bno055 $pip_args
+# fi
 
-if [[ $selections == *"BNO085"* ]]; then
-    echo "Installing BNO085 IMU python library"
-    sudo pip3 install adafruit-circuitpython-bno08x $pip_args
+# if [[ $selections == *"BNO085"* ]]; then
+#     echo "Installing BNO085 IMU python library"
+#     sudo pip3 install adafruit-circuitpython-bno08x $pip_args
     
-    # Automatically set I2C baud rate for BNO085
-    if ! grep -q "dtparam=i2c_arm_baudrate=400000" /boot/config.txt; then
-        echo "Setting i2c baud rate to 400000"
-        sudo bash -c 'echo "dtparam=i2c_arm_baudrate=400000" >> /boot/config.txt'
-    fi
-fi
+#     # Automatically set I2C baud rate for BNO085
+#     if ! grep -q "dtparam=i2c_arm_baudrate=400000" /boot/config.txt; then
+#         echo "Setting i2c baud rate to 400000"
+#         sudo bash -c 'echo "dtparam=i2c_arm_baudrate=400000" >> /boot/config.txt'
+#     fi
+# fi
 
 if [[ $selections == *"AutoRun"* ]] && [ $(cat /etc/os-release | grep "Debian GNU/Linux 12" | wc -l) -eq 1 ]; then
     echo "Setting up autorun"

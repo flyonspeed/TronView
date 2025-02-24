@@ -1,0 +1,430 @@
+{
+  "ver": {
+    "version": "1.0"
+  },
+  "screen": {
+    "title": "No Name",
+    "filename": "DataShip_IMU.json",
+    "width": 1280,
+    "height": 768,
+    "date_updated": "20250223_150808"
+  },
+  "screenObjects": [
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 130,
+      "y": 143,
+      "width": 246,
+      "height": 589,
+      "grid_position": "MidL",
+      "grid_percentage_x": 1.187793427230047,
+      "grid_percentage_y": 1.41796875,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "text",
+            "value": "{imuData[0]}"
+          },
+          {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 20
+          },
+          {
+            "name": "font_bold",
+            "value": false
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 0
+          },
+          {
+            "name": "box_radius",
+            "value": 0
+          }
+        ]
+      },
+      "id": "M_xrux5"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 699,
+      "y": 146,
+      "width": 259,
+      "height": 593,
+      "grid_position": "MidM",
+      "grid_percentage_x": 1.8896713615023475,
+      "grid_percentage_y": 1.45703125,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "text",
+            "value": "{imuData[1]}"
+          },
+          {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 20
+          },
+          {
+            "name": "font_bold",
+            "value": false
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 0
+          },
+          {
+            "name": "box_radius",
+            "value": 0
+          }
+        ]
+      },
+      "id": "M_prffm"
+    },
+    {
+      "type": "module",
+      "title": "object 3D",
+      "x": 347,
+      "y": 123,
+      "width": 155,
+      "height": 163,
+      "grid_position": "TopL",
+      "grid_percentage_x": 1.9929577464788732,
+      "grid_percentage_y": 1.59765625,
+      "module": {
+        "name": "object 3D",
+        "options": [
+          {
+            "name": "source_imu_index_name",
+            "value": "mgl_imu"
+          },
+          {
+            "name": "source_imu_index",
+            "value": 0
+          },
+          {
+            "name": "source_imu_index2_name",
+            "value": "NONE"
+          },
+          {
+            "name": "source_imu_index2",
+            "value": null
+          },
+          {
+            "name": "MainColor",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "show_xyz",
+            "value": false
+          },
+          {
+            "name": "smoothing_factor",
+            "value": 0.1
+          }
+        ]
+      },
+      "id": "M_gt69n"
+    },
+    {
+      "type": "module",
+      "title": "object 3D",
+      "x": 936,
+      "y": 152,
+      "width": 164,
+      "height": 143,
+      "grid_position": "TopR",
+      "grid_percentage_x": 0.7746478873239436,
+      "grid_percentage_y": 1.74609375,
+      "module": {
+        "name": "object 3D",
+        "options": [
+          {
+            "name": "source_imu_index_name",
+            "value": "stratux_imu"
+          },
+          {
+            "name": "source_imu_index",
+            "value": 1
+          },
+          {
+            "name": "source_imu_index2_name",
+            "value": "NONE"
+          },
+          {
+            "name": "source_imu_index2",
+            "value": null
+          },
+          {
+            "name": "MainColor",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "show_xyz",
+            "value": false
+          },
+          {
+            "name": "smoothing_factor",
+            "value": 0.1
+          }
+        ]
+      },
+      "id": "M_ced53"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 130,
+      "y": 109,
+      "width": 194,
+      "height": 29,
+      "grid_position": "TopL",
+      "grid_percentage_x": 1.0657276995305165,
+      "grid_percentage_y": 0.96484375,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "text",
+            "value": "IMU-1"
+          },
+          {
+            "name": "font_name",
+            "value": "arial"
+          },
+          {
+            "name": "font_size",
+            "value": 20
+          },
+          {
+            "name": "font_bold",
+            "value": true
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 1
+          },
+          {
+            "name": "box_radius",
+            "value": 4
+          }
+        ]
+      },
+      "id": "M_geb5z"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 698,
+      "y": 113,
+      "width": 194,
+      "height": 29,
+      "grid_position": "TopM",
+      "grid_percentage_x": 1.732394366197183,
+      "grid_percentage_y": 0.99609375,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "text",
+            "value": "IMU-2"
+          },
+          {
+            "name": "font_name",
+            "value": "arial"
+          },
+          {
+            "name": "font_size",
+            "value": 20
+          },
+          {
+            "name": "font_bold",
+            "value": true
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 1
+          },
+          {
+            "name": "box_radius",
+            "value": 4
+          }
+        ]
+      },
+      "id": "M_b9six"
+    },
+    {
+      "type": "module",
+      "title": "Play Controls",
+      "x": 949,
+      "y": 20,
+      "width": 292,
+      "height": 51,
+      "grid_position": "TopR",
+      "grid_percentage_x": 1.136150234741784,
+      "grid_percentage_y": 0.35546875,
+      "module": {
+        "name": "Play Controls",
+        "options": [
+          {
+            "name": "button_font_size",
+            "value": 20
+          }
+        ]
+      },
+      "id": "M_g78vj"
+    },
+    {
+      "type": "module",
+      "title": "Text Segments",
+      "x": 243,
+      "y": 25,
+      "width": 703,
+      "height": 52,
+      "grid_position": "TopM",
+      "grid_percentage_x": 0.7910798122065728,
+      "grid_percentage_y": 0.3984375,
+      "module": {
+        "name": "Text Segments",
+        "options": [
+          {
+            "name": "text",
+            "value": "IMU DataShip Objects"
+          },
+          {
+            "name": "digit_spacing",
+            "value": 5
+          },
+          {
+            "name": "width_ratio",
+            "value": 71
+          },
+          {
+            "name": "total_decimals",
+            "value": 20
+          },
+          {
+            "name": "justify",
+            "value": "left"
+          },
+          {
+            "name": "text_color",
+            "value": [
+              242,
+              242,
+              24
+            ]
+          },
+          {
+            "name": "not_active_color",
+            "value": [
+              31,
+              31,
+              31
+            ]
+          },
+          {
+            "name": "box_color",
+            "value": [
+              45,
+              45,
+              45
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 0
+          },
+          {
+            "name": "padding",
+            "value": 5
+          }
+        ]
+      },
+      "id": "M_69cst"
+    }
+  ]
+}

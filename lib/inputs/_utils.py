@@ -34,7 +34,7 @@ def is_number(s):
 ## Satellite and Information Service, National Geophysical Data Center
 ## http://www.ngdc.noaa.gov/geomag/WMM/DoDWMM.shtml
 
-def geomag(LatHemi, LatDeg, LatMin, LonHemi, LonDeg, LonMin):
+def calc_geomag(LatHemi, LatDeg, LatMin, LonHemi, LonDeg, LonMin):
     if LatHemi == "N":
         GeoMagLat = LatDeg + (LatMin / 60)
     else:
@@ -45,7 +45,7 @@ def geomag(LatHemi, LatDeg, LatMin, LonHemi, LonDeg, LonMin):
         GeoMagLon = LonDeg + (LonMin/60)
     mag_decl = declination(GeoMagLat, GeoMagLon)
     
-    return mag_decl
+    return mag_decl, GeoMagLat, GeoMagLon
 
 #############################################
 ## Function: gndspeed By: Brian Chesteen

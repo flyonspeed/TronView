@@ -47,6 +47,10 @@ class GrowlManager:
     def initScreen(self):
         self.font = pygame.font.SysFont("monospace", 25, bold=False)
 
+    def clear(self):
+        self.messages = []
+        self.totalMessages = 0
+
     def add_message(
         self,
         message: str,

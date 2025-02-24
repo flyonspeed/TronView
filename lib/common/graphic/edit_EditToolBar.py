@@ -41,7 +41,7 @@ class EditToolBar:
         self.screen_object = screen_object
         self.buttons = [
             EditToolBarButton(text=screen_object.title, id="title"),
-            EditToolBarButton(text="|", id="center"),
+            EditToolBarButton(text="C", id="center"),
             # EditToolBarButton(text="<", id="align_left"),
             # EditToolBarButton(text=">", id="align_right"),
             EditToolBarButton(text="+", id="move_up"),

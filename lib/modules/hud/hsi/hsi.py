@@ -9,7 +9,10 @@ from lib.modules._module import Module
 from lib import hud_graphics
 from lib import hud_utils
 from lib import smartdisplay
-from lib.common.dataship import dataship
+from lib.common.dataship.dataship import Dataship
+from lib.common.dataship.dataship_imu import IMUData
+from lib.common.dataship.dataship_air import AirData
+from lib.common.dataship.dataship_gps import GPSData
 import pygame
 import math
 from lib.common import shared
@@ -28,6 +31,9 @@ class hsi(Module):
         self.current_heading = None  # Initialize as None for first update
         self.smoothing_factor = 0.15  # Default smoothing (0 = no smoothing, 1 = no movement)
 
+        self.imuData = IMUData()
+        self.airData = AirData()
+        self.gpsData = GPSData()
     # called once for setup
     def initMod(self, pygamescreen, width=None, height=None):
         if width is None:
@@ -42,6 +48,16 @@ class hsi(Module):
 
         self.myfont1 = pygame.font.SysFont("arial", 30, bold=False)  # hsi font
         self.MainColor = (0, 255, 0)  # main color 
+
+        self.imuData = IMUData()
+        self.airData = AirData()
+        self.gpsData = GPSData()
+        if len(shared.Dataship.imuData) > 0:
+            self.imuData = shared.Dataship.imuData[0]
+        if len(shared.Dataship.airData) > 0:
+            self.airData = shared.Dataship.airData[0]
+        if len(shared.Dataship.gpsData) > 0:
+            self.gpsData = shared.Dataship.gpsData[0]
 
     # setup must have default values for all parameters
     def setup(self, hsi_size = -1 , gnd_trk_tick_size = -1, rose_color = (70,130,40), label_color = (255, 255, 0), smoothing_factor = 0.15):
@@ -275,7 +291,7 @@ class hsi(Module):
         return current + diff * smoothing
 
     # called every redraw for the mod
-    def draw(self, aircraft, smartdisplay, pos=(None, None)):
+    def draw(self, dataship:Dataship, smartdisplay, pos=(None, None)):
         x_pos = smartdisplay.x_center
         y_pos = smartdisplay.y_center
         if pos[0] is not None:
@@ -283,9 +299,13 @@ class hsi(Module):
         if pos[1] is not None:
             y_pos = pos[1] + self.height / 2
 
-        target_heading = aircraft.mag_head
-        if aircraft.mag_head is None and aircraft.gndtrack is not None:
-            target_heading = aircraft.gndtrack
+        target_heading = self.imuData.yaw
+        if self.imuData.yaw is None and self.gpsData.GndTrack is not None:
+            target_heading = self.gpsData.GndTrack
+        elif self.imuData.yaw is not None:
+            target_heading = self.imuData.yaw
+        else:
+            target_heading = 0
         
         # Initialize current_heading if None
         if self.current_heading is None:
@@ -298,8 +318,8 @@ class hsi(Module):
             self.smoothing_factor
         )
 
-        gnd_trk = aircraft.gndtrack
-        turn_rate = aircraft.turn_rate
+        gnd_trk = self.gpsData.GndTrack if self.gpsData.GndTrack is not None else 0
+        turn_rate = self.imuData.turn_rate if self.imuData.turn_rate is not None else 0
 
         # Draw Compass Rose Tick Marks using smoothed heading
         tick_rotated = pygame.transform.rotate(self.rose, self.current_heading)
@@ -322,7 +342,7 @@ class hsi(Module):
                              (x_pos - self.hsi_size / 2, y_pos + 40 - self.hsi_size / 2))
 
         # Draw ground track and heading labels using target values
-        gnd_trk_label = self.myfont1.render(f"trk:{gnd_trk:03d}", False, self.label_color)
+        gnd_trk_label = self.myfont1.render(f"trk:{int(gnd_trk):03d}", False, self.label_color)
         hdg_label = self.myfont1.render(f"hdg:{target_heading:03.0f}", False, self.label_color)
         
         self.pygamescreen.blit(

@@ -4,6 +4,7 @@
 # Module: text_digits
 # Topher 2024.
 # Digital segment display style numbers
+# 2/10/2025 - new dataship refactor
 
 import inspect
 from lib.modules._module import Module
@@ -232,7 +233,7 @@ class text_segments(Module):
         self._char_cache[digit] = new_surface
         return new_surface
 
-    def parse_text(self, aircraft):
+    def parse_text(self, dataship):
         def get_nested_attr(obj, attr):
             parts = attr.split('.')
             for part in parts:
@@ -243,6 +244,17 @@ class text_segments(Module):
                 elif part.endswith('<obj>'):
                     # It's an object
                     obj = getattr(obj, part[:-5])
+                elif part.endswith(']'):
+                    # It's an index. example: "gpsData[0]"
+                    # parse the index from the string
+                    index = part[1:-1]
+                    # remove the beginning of the string until the first [
+                    index = index[index.find('[')+1:]
+                    # get the name of the object (from part) example: gpsData
+                    name = part[:part.find('[')]
+                    # get the value
+                    obj = getattr(obj, name)[int(index)]
+                    #print(f"obj: {obj}")
                 else:
                     obj = getattr(obj, part)
             return obj
@@ -258,7 +270,7 @@ class text_segments(Module):
                     # check if it starts with _ then skip it.
                     if sub_var.startswith('_'):
                         continue
-                    # check if it has a __dict__.. if so skip it cause it's probably a child object.
+                    # check if it has a __dict__.. if so skip it cause it's probably a child object. (for now...)
                     if hasattr(sub_vars[sub_var], '__dict__'):
                         continue
                     final_value += f"{sub_var}: {sub_vars[sub_var]}\n"
@@ -279,28 +291,36 @@ class text_segments(Module):
 
                 try:
                     if variable_name == "self":
-                        variable_value = format_object(aircraft)
+                        variable_value = format_object(dataship)
                     else:
-                        variable_value = get_nested_attr(aircraft, variable_name)
+                        variable_value = get_nested_attr(dataship, variable_name)
+                    # check if variable_name is a object if so get the object vars
 
+                    # check if its a string, int, float, list, tuple, dict. and if format_specifier is not None then format it.
                     if format_specifier:
                         variable_value = f"{variable_value:{format_specifier}}"
                     elif isinstance(variable_value, (str, int, float, tuple, dict)):
                         variable_value = f"{variable_value}"
+                    
                     elif isinstance(variable_value, list):
+                        # go through each item in the list and format it by calling this function recursively.
                         final_value = ""
                         for item in variable_value:
                             final_value += f"\n{format_object(item)}\n======================="
                         variable_value = final_value
+
                     elif isinstance(variable_value, object):
                         variable_value = format_object(variable_value)
                     else:
                         variable_value = str(variable_value)
                 except Exception as e:
+                    # get instance type of variable_value
+                    #var_type = type(variable_value)
                     variable_value = f"Error: {str(e)}"
 
                 result = result.replace(word, variable_value)
             else:
+                # this is a normal word
                 result = result.replace(word, word)
         return result
 
@@ -372,14 +392,14 @@ class text_segments(Module):
         data_fields = shared.Dataship._get_all_fields()
 
         return {
-            "template": {
-                "type": "dropdown",
-                "default": "template",
-                "options": data_fields,
-                "label": "Value",
-                "description": "Select a predefined value",
-                "post_change_function": "update_text"
-            },
+            # "template": {
+            #     "type": "dropdown",
+            #     "default": "template",
+            #     "options": data_fields,
+            #     "label": "Value",
+            #     "description": "Select a predefined value",
+            #     "post_change_function": "update_text"
+            # },
             "text": {
                 "type": "text",
                 "default": self.text,
@@ -462,7 +482,11 @@ class text_segments(Module):
             }
         }
 
-    def update_text(self):
+    def update_text(self, update_type=None):
+        if update_type == "on_load":
+            return
+        if self.template == "":
+            return
         self.text = "{"+self.template+"}"
 
     def processEvent(self, event, aircraft, smartdisplay):

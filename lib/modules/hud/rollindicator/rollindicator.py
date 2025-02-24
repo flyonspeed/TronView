@@ -10,7 +10,9 @@ from lib import hud_utils
 from lib import smartdisplay
 import pygame
 import math
-
+from lib.common import shared
+from lib.common.dataship.dataship import Dataship
+from lib.common.dataship.dataship_imu import IMUData
 
 class rollindicator(Module):
     # called only when object is first created.
@@ -20,6 +22,7 @@ class rollindicator(Module):
         self.hsi_size = 360
         self.roll_point_size = 20
         self.x_offset = 0
+        self.IMUData = IMUData()
 
     # called once for setup
     def initMod(self, pygamescreen, width=None, height=None):
@@ -107,9 +110,13 @@ class rollindicator(Module):
             y1 = roint(self.hsi_size / 2 + self.hsi_size / 2.1 * sin)
             pygame.draw.line(self.roll_tick, (255, 255, 255), [x0, y0], [x1, y1], 4)
 
+        if len(shared.Dataship.imuData) > 0:
+            self.IMUData = shared.Dataship.imuData[0]
+        else:
+            self.IMUData = IMUData()
 
     # called every redraw for the mod
-    def draw(self, aircraft, smartdisplay, pos=(None, None)):
+    def draw(self, dataship: Dataship, smartdisplay, pos=(None, None)):
 
         x_pos = 0
         y_pos = 0
@@ -130,7 +137,7 @@ class rollindicator(Module):
         smartdisplay.pygamescreen.blit(self.roll_tick, draw_pos)
 
         # Draw roll point
-        roll_point_rotated = pygame.transform.rotate(self.roll_point, aircraft.roll)
+        roll_point_rotated = pygame.transform.rotate(self.roll_point, self.IMUData.roll)
         roll_point_rect = roll_point_rotated.get_rect()
         smartdisplay.pygamescreen.blit(
             roll_point_rotated,

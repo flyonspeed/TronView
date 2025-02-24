@@ -3,32 +3,14 @@
 import math, os, sys, random
 import configparser
 import importlib
-import shutil
-from configupdater import ConfigUpdater
+
 
 #############################################
 ## Function: readConfig
 # load config.cfg file if it exists.
-# set comment_prefixes to '/' and allow_no_value to True so that comments will not be removed.
-configParser: configparser.ConfigParser = configparser.ConfigParser()
+configParser = configparser.RawConfigParser()
 configParser.read("config.cfg")
-
-def readConfig(section, name, defaultValue=0, show_error=False,hideoutput=True) -> str:
-    """
-    Read a configuration value from the config.cfg file.
-
-    Parameters
-    ----------
-    section : str
-    name : str
-    defaultValue : str
-    show_error : bool
-    hideoutput : bool
-
-    Returns
-    -------
-    str
-    """
+def readConfig(section, name, defaultValue=0, show_error=False,hideoutput=True):
     global configParser
     try:
         value = configParser.get(section, name)
@@ -38,6 +20,8 @@ def readConfig(section, name, defaultValue=0, show_error=False,hideoutput=True) 
         if show_error == True:
             print(("config value not set section: ", section, " key:", name, " -- not found"))
             print(e)
+        return defaultValue
+    else:
         return defaultValue
 
 
@@ -57,37 +41,6 @@ def readConfigBool(section, name, defaultValue=False):
     # else return default value.
     return defaultValue
 
-
-#############################################
-## Function: writeConfig
-def writeConfig(section, name, value):
-    """
-    Write a configuration value to the config.cfg file.
-
-    Parameters
-    ----------
-    section : str
-    name : str
-    value : str
-    """
-
-    # check if the config.cfg file exists
-    if not os.path.exists("config.cfg"):
-        print("config.cfg file not found. creating from config_example.cfg")
-        shutil.copy("config_example.cfg", "config.cfg")
-        # reload the config
-        configParser.read("config.cfg")
-    
-    updater = ConfigUpdater()
-    updater.read("config.cfg")
-    updater[section][name] = value
-    with open("config.cfg", "w") as f:
-        updater.write(f)
-    print(f"Config.cfg: [{section}] {name}: {value}")
-
-
-#############################################
-## Function: get_bin
 # https://stackoverflow.com/questions/699866/python-int-to-binary#699891
 def get_bin(x, n=8):
     """
@@ -106,6 +59,19 @@ def get_bin(x, n=8):
     """
     return format(x, "b").zfill(n)
 
+
+
+##############################################
+## function: getScreens()
+## return list of screens available in lib/screens dir.
+def getScreens():
+    screens = []
+    lst = os.listdir("lib/screens")
+    for d in lst:
+        if d.endswith(".py") and not d.startswith("_"):
+            screenName = d[:-3]
+            screens.append(screenName)
+    return screens
 
 ##############################################
 ## function: getLogDataFiles()
@@ -221,6 +187,41 @@ def setupDirs():
         os.makedirs(path_screens)
         
 
+##############################################
+## function: findScreen()
+## list python screens available to show in the lib/screens dir.
+## if you pass in "next" then it will try to load the next screen from the last loaded screen.
+selectedScreenPos = 0
+def findScreen(name=""):
+    global selectedScreenPos
+    lst = getScreens()
+    if name == "current":  # re-load current screen
+        return lst[selectedScreenPos]
+    if name == "prev":  # load previous screen
+        selectedScreenPos -= 1
+        if selectedScreenPos < 0:
+            selectedScreenPos = len(lst) -1
+        return lst[selectedScreenPos]
+    if name == "next":  # check if we should just load the next screen in the screen list.
+        selectedScreenPos += 1
+        if selectedScreenPos +1 > len(lst):
+            selectedScreenPos = 0
+        return lst[selectedScreenPos]
+    if name == "":
+        print("\nAvailable screens modules: (located in lib/screens folder)")
+    count = -1
+    for screenName in lst:
+        count+=1
+        if name == "": # if no name passed in then print out all screens.
+            print(screenName, end=", ")
+        else:
+            if screenName == name: # found screen name.
+                selectedScreenPos = count
+                return True
+    if name != "":
+        return False
+    else:
+        print("") # print on new line.
 
 ##############################################
 ## function: findInput()

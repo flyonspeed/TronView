@@ -4,38 +4,40 @@
   },
   "screen": {
     "title": "No Name",
-    "width": 1920,
-    "height": 1080
+    "filename": "default.json",
+    "width": 1280,
+    "height": 768,
+    "date_updated": "20250223_145416"
   },
   "screenObjects": [
     {
       "type": "module",
       "title": "HUD Horizon V2",
-      "x": 5,
+      "x": 0,
       "y": 0,
-      "width": 1918,
-      "height": 1077,
+      "width": 1279,
+      "height": 767,
       "grid_position": "MidM",
-      "grid_percentage_x": 1.0125,
-      "grid_percentage_y": 0.9916666666666667,
+      "grid_percentage_x": 1.0023474178403755,
+      "grid_percentage_y": 0.99609375,
       "module": {
         "name": "HUD Horizon V2",
         "options": [
           {
             "name": "source_imu_index_name",
-            "value": "imu_virtual_1"
+            "value": "mgl_imu"
           },
           {
             "name": "source_imu_index",
-            "value": 1
+            "value": 0
           },
           {
             "name": "source_imu_index2_name",
-            "value": "imu_joystick_1"
+            "value": "NONE"
           },
           {
             "name": "source_imu_index2",
-            "value": 1
+            "value": null
           },
           {
             "name": "line_mode",
@@ -100,18 +102,18 @@
           }
         ]
       },
-      "id": "M_zlknz"
+      "id": "M_sfby4"
     },
     {
       "type": "module",
       "title": "Traffic Scope",
-      "x": 1494,
-      "y": 636,
+      "x": 924,
+      "y": 424,
       "width": 397,
       "height": 337,
       "grid_position": "BotR",
-      "grid_percentage_x": 1.2890625,
-      "grid_percentage_y": 0.46944444444444444,
+      "grid_percentage_x": 1.2652582159624413,
+      "grid_percentage_y": 0.62890625,
       "module": {
         "name": "Traffic Scope",
         "options": [
@@ -153,28 +155,24 @@
           }
         ]
       },
-      "id": "M_53zqk"
+      "id": "M_zxm3t"
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 1590,
-      "y": 437,
+      "x": 992,
+      "y": 274,
       "width": 271,
       "height": 135,
       "grid_position": "MidR",
-      "grid_percentage_x": 1.3921875,
-      "grid_percentage_y": 0.8027777777777778,
+      "grid_percentage_x": 1.2887323943661972,
+      "grid_percentage_y": 0.66796875,
       "module": {
         "name": "Text",
         "options": [
           {
-            "name": "template",
-            "value": ""
-          },
-          {
             "name": "text",
-            "value": "{alt}"
+            "value": "{airData[0].Alt}"
           },
           {
             "name": "font_name",
@@ -214,18 +212,18 @@
           }
         ]
       },
-      "id": "M_ecphr"
+      "id": "M_cvglc"
     },
     {
       "type": "module",
       "title": "HUD AOA",
-      "x": 28,
-      "y": 664,
+      "x": 8,
+      "y": 445,
       "width": 64,
       "height": 185,
       "grid_position": "BotL",
-      "grid_percentage_x": 0.1875,
-      "grid_percentage_y": 0.20277777777777778,
+      "grid_percentage_x": 0.18779342723004694,
+      "grid_percentage_y": 0.19921875,
       "module": {
         "name": "HUD AOA",
         "options": [
@@ -243,24 +241,24 @@
           }
         ]
       },
-      "id": "M_qe7ks"
+      "id": "M_8vlw5"
     },
     {
       "type": "module",
       "title": "HSI",
-      "x": 735,
-      "y": 561,
-      "width": 445,
-      "height": 430,
+      "x": 518,
+      "y": 476,
+      "width": 244,
+      "height": 240,
       "grid_position": "BotM",
-      "grid_percentage_x": 0.9921875,
-      "grid_percentage_y": 0.3111111111111111,
+      "grid_percentage_x": 1.0046948356807512,
+      "grid_percentage_y": 0.65625,
       "module": {
         "name": "HSI",
         "options": [
           {
             "name": "hsi_size",
-            "value": 445
+            "value": 244
           },
           {
             "name": "smoothing_factor",
@@ -268,18 +266,18 @@
           }
         ]
       },
-      "id": "M_9dx24"
+      "id": "M_44vaj"
     },
     {
       "type": "module",
       "title": "Slip Skid",
-      "x": 822,
-      "y": 985,
-      "width": 247,
-      "height": 50,
+      "x": 548,
+      "y": 714,
+      "width": 184,
+      "height": 43,
       "grid_position": "BotM",
-      "grid_percentage_x": 0.9546875,
-      "grid_percentage_y": 1.6111111111111112,
+      "grid_percentage_x": 1.0046948356807512,
+      "grid_percentage_y": 1.74609375,
       "module": {
         "name": "Slip Skid",
         "options": [
@@ -301,18 +299,18 @@
           }
         ]
       },
-      "id": "M_vn2zq"
+      "id": "M_norgh"
     },
     {
       "type": "module",
       "title": "Heading",
-      "x": 577,
-      "y": 35,
+      "x": 256,
+      "y": 5,
       "width": 706,
       "height": 113,
       "grid_position": "TopM",
-      "grid_percentage_x": 0.90625,
-      "grid_percentage_y": 0.5083333333333333,
+      "grid_percentage_x": 0.8591549295774648,
+      "grid_percentage_y": 0.48046875,
       "module": {
         "name": "Heading",
         "options": [
@@ -354,50 +352,21 @@
           }
         ]
       },
-      "id": "M_qx878"
-    },
-    {
-      "type": "module",
-      "title": "HUD CDI",
-      "x": 860,
-      "y": 438,
-      "width": 200,
-      "height": 200,
-      "grid_position": "MidM",
-      "grid_percentage_x": 1.0,
-      "grid_percentage_y": 0.9888888888888889,
-      "module": {
-        "name": "HUD CDI",
-        "options": [
-          {
-            "name": "cdi_color",
-            "value": [
-              255,
-              255,
-              255
-            ]
-          }
-        ]
-      },
-      "id": "M_8haw2"
+      "id": "M_wccxl"
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 1844,
-      "y": 531,
+      "x": 1241,
+      "y": 372,
       "width": 63,
       "height": 40,
       "grid_position": "MidR",
-      "grid_percentage_x": 1.8609375,
-      "grid_percentage_y": 1.0611111111111111,
+      "grid_percentage_x": 1.9694835680751173,
+      "grid_percentage_y": 1.0625,
       "module": {
         "name": "Text",
         "options": [
-          {
-            "name": "template",
-            "value": ""
-          },
           {
             "name": "text",
             "value": "ft"
@@ -440,28 +409,24 @@
           }
         ]
       },
-      "id": "M_gle38"
+      "id": "M_yvntu"
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 1621,
-      "y": 275,
+      "x": 1029,
+      "y": 155,
       "width": 244,
       "height": 31,
       "grid_position": "TopR",
-      "grid_percentage_x": 1.446875,
-      "grid_percentage_y": 1.613888888888889,
+      "grid_percentage_x": 1.3990610328638498,
+      "grid_percentage_y": 1.33203125,
       "module": {
         "name": "Text",
         "options": [
           {
-            "name": "template",
-            "value": "pitch"
-          },
-          {
             "name": "text",
-            "value": "pitch: {pitch%0.3f}"
+            "value": "pitch: {imuData[0].pitch%0.3f}"
           },
           {
             "name": "font_name",
@@ -501,28 +466,24 @@
           }
         ]
       },
-      "id": "M_rogvt"
+      "id": "M_x2gz1"
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 1627,
-      "y": 309,
+      "x": 1032,
+      "y": 179,
       "width": 246,
       "height": 36,
       "grid_position": "TopR",
-      "grid_percentage_x": 1.46875,
-      "grid_percentage_y": 1.8166666666666667,
+      "grid_percentage_x": 1.4178403755868545,
+      "grid_percentage_y": 1.5390625,
       "module": {
         "name": "Text",
         "options": [
           {
-            "name": "template",
-            "value": "pitch"
-          },
-          {
             "name": "text",
-            "value": "roll: {roll%0.3f}"
+            "value": "roll: {imuData[0].roll%0.3f}"
           },
           {
             "name": "font_name",
@@ -562,28 +523,24 @@
           }
         ]
       },
-      "id": "M_awsgm"
+      "id": "M_7ih4c"
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 1631,
-      "y": 345,
+      "x": 1037,
+      "y": 205,
       "width": 236,
       "height": 31,
-      "grid_position": "MidR",
-      "grid_percentage_x": 1.465625,
-      "grid_percentage_y": 0.002777777777777778,
+      "grid_position": "TopR",
+      "grid_percentage_x": 1.4178403755868545,
+      "grid_percentage_y": 1.72265625,
       "module": {
         "name": "Text",
         "options": [
           {
-            "name": "template",
-            "value": "pitch"
-          },
-          {
             "name": "text",
-            "value": "yaw: {mag_head%0.3f}"
+            "value": "yaw: {imuData[0].mag_head%0.3f}"
           },
           {
             "name": "font_name",
@@ -623,653 +580,24 @@
           }
         ]
       },
-      "id": "M_gxgb4"
-    },
-    {
-      "type": "group",
-      "title": "Group_24",
-      "x": 14,
-      "y": 391,
-      "width": 259,
-      "height": 241,
-      "grid_position": "MidL",
-      "grid_percentage_x": 0.4484375,
-      "grid_percentage_y": 0.8416666666666667,
-      "screenObjects": [
-        {
-          "type": "module",
-          "title": "Text",
-          "x": 50,
-          "y": 391,
-          "width": 130,
-          "height": 34,
-          "grid_position": "MidL",
-          "grid_percentage_x": 0.359375,
-          "grid_percentage_y": 0.26666666666666666,
-          "module": {
-            "name": "Text",
-            "options": [
-              {
-                "name": "template",
-                "value": ""
-              },
-              {
-                "name": "text",
-                "value": "TAS {tas%.0f}"
-              },
-              {
-                "name": "font_name",
-                "value": "monospace"
-              },
-              {
-                "name": "font_size",
-                "value": 30
-              },
-              {
-                "name": "font_bold",
-                "value": false
-              },
-              {
-                "name": "text_color",
-                "value": [
-                  200,
-                  255,
-                  255
-                ]
-              },
-              {
-                "name": "box_color",
-                "value": [
-                  255,
-                  255,
-                  255
-                ]
-              },
-              {
-                "name": "box_weight",
-                "value": 0
-              },
-              {
-                "name": "box_radius",
-                "value": 0
-              }
-            ]
-          },
-          "id": "M_y42ky"
-        },
-        {
-          "type": "module",
-          "title": "Text",
-          "x": 14,
-          "y": 420,
-          "width": 197,
-          "height": 132,
-          "grid_position": "MidL",
-          "grid_percentage_x": 0.3515625,
-          "grid_percentage_y": 0.7,
-          "module": {
-            "name": "Text",
-            "options": [
-              {
-                "name": "template",
-                "value": ""
-              },
-              {
-                "name": "text",
-                "value": "{ias%.0f}"
-              },
-              {
-                "name": "font_name",
-                "value": "arial"
-              },
-              {
-                "name": "font_size",
-                "value": 115
-              },
-              {
-                "name": "font_bold",
-                "value": false
-              },
-              {
-                "name": "text_color",
-                "value": [
-                  200,
-                  255,
-                  255
-                ]
-              },
-              {
-                "name": "box_color",
-                "value": [
-                  255,
-                  255,
-                  255
-                ]
-              },
-              {
-                "name": "box_weight",
-                "value": 4
-              },
-              {
-                "name": "box_radius",
-                "value": 10
-              }
-            ]
-          },
-          "id": "M_j44v2"
-        },
-        {
-          "type": "module",
-          "title": "Text",
-          "x": 212,
-          "y": 520,
-          "width": 61,
-          "height": 34,
-          "grid_position": "MidL",
-          "grid_percentage_x": 0.7578125,
-          "grid_percentage_y": 0.9833333333333333,
-          "module": {
-            "name": "Text",
-            "options": [
-              {
-                "name": "template",
-                "value": ""
-              },
-              {
-                "name": "text",
-                "value": "mph"
-              },
-              {
-                "name": "font_name",
-                "value": "monospace"
-              },
-              {
-                "name": "font_size",
-                "value": 30
-              },
-              {
-                "name": "font_bold",
-                "value": false
-              },
-              {
-                "name": "text_color",
-                "value": [
-                  200,
-                  255,
-                  255
-                ]
-              },
-              {
-                "name": "box_color",
-                "value": [
-                  255,
-                  255,
-                  255
-                ]
-              },
-              {
-                "name": "box_weight",
-                "value": 0
-              },
-              {
-                "name": "box_radius",
-                "value": 0
-              }
-            ]
-          },
-          "id": "M_pcx0i"
-        },
-        {
-          "type": "module",
-          "title": "Text",
-          "x": 36,
-          "y": 553,
-          "width": 102,
-          "height": 27,
-          "grid_position": "MidL",
-          "grid_percentage_x": 0.271875,
-          "grid_percentage_y": 1.1472222222222221,
-          "module": {
-            "name": "Text",
-            "options": [
-              {
-                "name": "template",
-                "value": ""
-              },
-              {
-                "name": "text",
-                "value": "GS {gndspeed%.0f}"
-              },
-              {
-                "name": "font_name",
-                "value": "monospace"
-              },
-              {
-                "name": "font_size",
-                "value": 26
-              },
-              {
-                "name": "font_bold",
-                "value": false
-              },
-              {
-                "name": "text_color",
-                "value": [
-                  200,
-                  255,
-                  255
-                ]
-              },
-              {
-                "name": "box_color",
-                "value": [
-                  255,
-                  255,
-                  255
-                ]
-              },
-              {
-                "name": "box_weight",
-                "value": 0
-              },
-              {
-                "name": "box_radius",
-                "value": 0
-              }
-            ]
-          },
-          "id": "M_77v2b"
-        },
-        {
-          "type": "module",
-          "title": "Text",
-          "x": 36,
-          "y": 582,
-          "width": 79,
-          "height": 22,
-          "grid_position": "MidL",
-          "grid_percentage_x": 0.2359375,
-          "grid_percentage_y": 1.2944444444444445,
-          "module": {
-            "name": "Text",
-            "options": [
-              {
-                "name": "template",
-                "value": ""
-              },
-              {
-                "name": "text",
-                "value": "{oat} OAT"
-              },
-              {
-                "name": "font_name",
-                "value": "monospace"
-              },
-              {
-                "name": "font_size",
-                "value": 20
-              },
-              {
-                "name": "font_bold",
-                "value": false
-              },
-              {
-                "name": "text_color",
-                "value": [
-                  200,
-                  255,
-                  255
-                ]
-              },
-              {
-                "name": "box_color",
-                "value": [
-                  255,
-                  255,
-                  255
-                ]
-              },
-              {
-                "name": "box_weight",
-                "value": 0
-              },
-              {
-                "name": "box_radius",
-                "value": 0
-              }
-            ]
-          },
-          "id": "M_qk9p0"
-        },
-        {
-          "type": "module",
-          "title": "Text",
-          "x": 36,
-          "y": 606,
-          "width": 86,
-          "height": 26,
-          "grid_position": "MidL",
-          "grid_percentage_x": 0.246875,
-          "grid_percentage_y": 1.4388888888888889,
-          "module": {
-            "name": "Text",
-            "options": [
-              {
-                "name": "template",
-                "value": ""
-              },
-              {
-                "name": "text",
-                "value": "G's {vert_G}"
-              },
-              {
-                "name": "font_name",
-                "value": "monospace"
-              },
-              {
-                "name": "font_size",
-                "value": 20
-              },
-              {
-                "name": "font_bold",
-                "value": false
-              },
-              {
-                "name": "text_color",
-                "value": [
-                  200,
-                  255,
-                  255
-                ]
-              },
-              {
-                "name": "box_color",
-                "value": [
-                  255,
-                  255,
-                  255
-                ]
-              },
-              {
-                "name": "box_weight",
-                "value": 0
-              },
-              {
-                "name": "box_radius",
-                "value": 0
-              }
-            ]
-          },
-          "id": "M_v6ppv"
-        }
-      ],
-      "id": "M_eh92r",
-      "event_handlers": []
+      "id": "M_8vi1z"
     },
     {
       "type": "module",
       "title": "Text",
-      "x": 1440,
-      "y": 981,
-      "width": 161,
-      "height": 22,
-      "grid_position": "BotR",
-      "grid_percentage_x": 0.7515625,
-      "grid_percentage_y": 1.511111111111111,
-      "module": {
-        "name": "Text",
-        "options": [
-          {
-            "name": "template",
-            "value": "traffic.src_alt"
-          },
-          {
-            "name": "text",
-            "value": "src_alt: {traffic.src_alt}"
-          },
-          {
-            "name": "font_name",
-            "value": "monospace"
-          },
-          {
-            "name": "font_size",
-            "value": 20
-          },
-          {
-            "name": "font_bold",
-            "value": false
-          },
-          {
-            "name": "text_color",
-            "value": [
-              200,
-              255,
-              255
-            ]
-          },
-          {
-            "name": "box_color",
-            "value": [
-              255,
-              255,
-              255
-            ]
-          },
-          {
-            "name": "box_weight",
-            "value": 0
-          },
-          {
-            "name": "box_radius",
-            "value": 0
-          }
-        ]
-      },
-      "id": "M_90cr5"
-    },
-    {
-      "type": "module",
-      "title": "Text",
-      "x": 1627,
-      "y": 961,
-      "width": 165,
-      "height": 23,
-      "grid_position": "BotR",
-      "grid_percentage_x": 1.3421875,
-      "grid_percentage_y": 1.4027777777777777,
-      "module": {
-        "name": "Text",
-        "options": [
-          {
-            "name": "template",
-            "value": "traffic.src_alt"
-          },
-          {
-            "name": "text",
-            "value": "trf count: {traffic.count}"
-          },
-          {
-            "name": "font_name",
-            "value": "monospace"
-          },
-          {
-            "name": "font_size",
-            "value": 20
-          },
-          {
-            "name": "font_bold",
-            "value": false
-          },
-          {
-            "name": "text_color",
-            "value": [
-              200,
-              255,
-              255
-            ]
-          },
-          {
-            "name": "box_color",
-            "value": [
-              255,
-              255,
-              255
-            ]
-          },
-          {
-            "name": "box_weight",
-            "value": 0
-          },
-          {
-            "name": "box_radius",
-            "value": 0
-          }
-        ]
-      },
-      "id": "M_p9bbo"
-    },
-    {
-      "type": "module",
-      "title": "Text",
-      "x": 1625,
-      "y": 1007,
-      "width": 225,
-      "height": 23,
-      "grid_position": "BotR",
-      "grid_percentage_x": 1.4296875,
-      "grid_percentage_y": 1.6583333333333334,
-      "module": {
-        "name": "Text",
-        "options": [
-          {
-            "name": "template",
-            "value": "traffic.lcl_time_string"
-          },
-          {
-            "name": "text",
-            "value": "trf_time: {traffic.lcl_time_string}"
-          },
-          {
-            "name": "font_name",
-            "value": "monospace"
-          },
-          {
-            "name": "font_size",
-            "value": 20
-          },
-          {
-            "name": "font_bold",
-            "value": false
-          },
-          {
-            "name": "text_color",
-            "value": [
-              200,
-              255,
-              255
-            ]
-          },
-          {
-            "name": "box_color",
-            "value": [
-              255,
-              255,
-              255
-            ]
-          },
-          {
-            "name": "box_weight",
-            "value": 0
-          },
-          {
-            "name": "box_radius",
-            "value": 0
-          }
-        ]
-      },
-      "id": "M_m8nwy"
-    },
-    {
-      "type": "module",
-      "title": "Text",
-      "x": 1439,
-      "y": 959,
-      "width": 168,
-      "height": 25,
-      "grid_position": "BotR",
-      "grid_percentage_x": 0.759375,
-      "grid_percentage_y": 1.3972222222222221,
-      "module": {
-        "name": "Text",
-        "options": [
-          {
-            "name": "template",
-            "value": "traffic.src_alt"
-          },
-          {
-            "name": "text",
-            "value": "src_trk: {traffic.src_gndtrack}"
-          },
-          {
-            "name": "font_name",
-            "value": "monospace"
-          },
-          {
-            "name": "font_size",
-            "value": 20
-          },
-          {
-            "name": "font_bold",
-            "value": false
-          },
-          {
-            "name": "text_color",
-            "value": [
-              200,
-              255,
-              255
-            ]
-          },
-          {
-            "name": "box_color",
-            "value": [
-              255,
-              255,
-              255
-            ]
-          },
-          {
-            "name": "box_weight",
-            "value": 0
-          },
-          {
-            "name": "box_radius",
-            "value": 0
-          }
-        ]
-      },
-      "id": "M_6pgp2"
-    },
-    {
-      "type": "module",
-      "title": "Text",
-      "x": 1620,
-      "y": 566,
+      "x": 1064,
+      "y": 402,
       "width": 169,
       "height": 27,
       "grid_position": "MidR",
-      "grid_percentage_x": 1.3265625,
-      "grid_percentage_y": 1.2194444444444446,
+      "grid_percentage_x": 1.3873239436619718,
+      "grid_percentage_y": 1.24609375,
       "module": {
         "name": "Text",
         "options": [
           {
-            "name": "template",
-            "value": "vsi"
-          },
-          {
             "name": "text",
-            "value": "VSI: {vsi} fpm"
+            "value": "VSI: {airData[0].VSI} fpm"
           },
           {
             "name": "font_name",
@@ -1309,201 +637,18 @@
           }
         ]
       },
-      "id": "M_2fslz"
-    },
-    {
-      "type": "module",
-      "title": "Text",
-      "x": 1404,
-      "y": 1003,
-      "width": 187,
-      "height": 22,
-      "grid_position": "BotR",
-      "grid_percentage_x": 0.6796875,
-      "grid_percentage_y": 1.6333333333333333,
-      "module": {
-        "name": "Text",
-        "options": [
-          {
-            "name": "template",
-            "value": "traffic.src_gndspeed"
-          },
-          {
-            "name": "text",
-            "value": "src_gndspd: {traffic.src_gndspeed}"
-          },
-          {
-            "name": "font_name",
-            "value": "monospace"
-          },
-          {
-            "name": "font_size",
-            "value": 20
-          },
-          {
-            "name": "font_bold",
-            "value": false
-          },
-          {
-            "name": "text_color",
-            "value": [
-              200,
-              255,
-              255
-            ]
-          },
-          {
-            "name": "box_color",
-            "value": [
-              255,
-              255,
-              255
-            ]
-          },
-          {
-            "name": "box_weight",
-            "value": 0
-          },
-          {
-            "name": "box_radius",
-            "value": 0
-          }
-        ]
-      },
-      "id": "M_4052m"
-    },
-    {
-      "type": "module",
-      "title": "Text",
-      "x": 1626,
-      "y": 983,
-      "width": 168,
-      "height": 25,
-      "grid_position": "BotR",
-      "grid_percentage_x": 1.34375,
-      "grid_percentage_y": 1.5305555555555554,
-      "module": {
-        "name": "Text",
-        "options": [
-          {
-            "name": "template",
-            "value": "traffic.msg_count"
-          },
-          {
-            "name": "text",
-            "value": "trf_msg: {traffic.msg_count}"
-          },
-          {
-            "name": "font_name",
-            "value": "monospace"
-          },
-          {
-            "name": "font_size",
-            "value": 20
-          },
-          {
-            "name": "font_bold",
-            "value": false
-          },
-          {
-            "name": "text_color",
-            "value": [
-              200,
-              255,
-              255
-            ]
-          },
-          {
-            "name": "box_color",
-            "value": [
-              255,
-              255,
-              255
-            ]
-          },
-          {
-            "name": "box_weight",
-            "value": 0
-          },
-          {
-            "name": "box_radius",
-            "value": 0
-          }
-        ]
-      },
-      "id": "M_8gydu"
-    },
-    {
-      "type": "module",
-      "title": "Text",
-      "x": 1808,
-      "y": 983,
-      "width": 118,
-      "height": 24,
-      "grid_position": "BotR",
-      "grid_percentage_x": 1.834375,
-      "grid_percentage_y": 1.5277777777777777,
-      "module": {
-        "name": "Text",
-        "options": [
-          {
-            "name": "template",
-            "value": "traffic.msg_count"
-          },
-          {
-            "name": "text",
-            "value": "bad: {traffic.msg_bad}"
-          },
-          {
-            "name": "font_name",
-            "value": "monospace"
-          },
-          {
-            "name": "font_size",
-            "value": 20
-          },
-          {
-            "name": "font_bold",
-            "value": false
-          },
-          {
-            "name": "text_color",
-            "value": [
-              200,
-              255,
-              255
-            ]
-          },
-          {
-            "name": "box_color",
-            "value": [
-              255,
-              255,
-              255
-            ]
-          },
-          {
-            "name": "box_weight",
-            "value": 0
-          },
-          {
-            "name": "box_radius",
-            "value": 0
-          }
-        ]
-      },
-      "id": "M_uojsp"
+      "id": "M_5i53b"
     },
     {
       "type": "module",
       "title": "Play Controls",
-      "x": 1578,
-      "y": 376,
+      "x": 1001,
+      "y": 230,
       "width": 289,
       "height": 55,
       "grid_position": "MidR",
-      "grid_percentage_x": 1.3828125,
-      "grid_percentage_y": 0.24166666666666667,
+      "grid_percentage_x": 1.3732394366197183,
+      "grid_percentage_y": 0.01171875,
       "module": {
         "name": "Play Controls",
         "options": [
@@ -1513,24 +658,435 @@
           }
         ]
       },
-      "id": "M_fof6u"
+      "id": "M_oteoq"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 7,
+      "y": 236,
+      "width": 165,
+      "height": 26,
+      "grid_position": "TopL",
+      "grid_percentage_x": 0.42018779342723006,
+      "grid_percentage_y": 1.9453125,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "text",
+            "value": "TAS {airData[0].TAS}"
+          },
+          {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 30
+          },
+          {
+            "name": "font_bold",
+            "value": false
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 0
+          },
+          {
+            "name": "box_radius",
+            "value": 0
+          }
+        ]
+      },
+      "id": "M_0xjfn"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 2,
+      "y": 265,
+      "width": 218,
+      "height": 137,
+      "grid_position": "MidL",
+      "grid_percentage_x": 0.5211267605633803,
+      "grid_percentage_y": 0.60546875,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "text",
+            "value": "{airData[0].IAS%0.0f}"
+          },
+          {
+            "name": "font_name",
+            "value": "arial"
+          },
+          {
+            "name": "font_size",
+            "value": 115
+          },
+          {
+            "name": "font_bold",
+            "value": false
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 4
+          },
+          {
+            "name": "box_radius",
+            "value": 10
+          }
+        ]
+      },
+      "id": "M_lqauj"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 195,
+      "y": 365,
+      "width": 61,
+      "height": 34,
+      "grid_position": "MidL",
+      "grid_percentage_x": 1.0586854460093897,
+      "grid_percentage_y": 0.984375,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "text",
+            "value": "mph"
+          },
+          {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 30
+          },
+          {
+            "name": "font_bold",
+            "value": false
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 0
+          },
+          {
+            "name": "box_radius",
+            "value": 0
+          }
+        ]
+      },
+      "id": "M_hx5yn"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 6,
+      "y": 396,
+      "width": 150,
+      "height": 24,
+      "grid_position": "MidL",
+      "grid_percentage_x": 0.38028169014084506,
+      "grid_percentage_y": 1.1875,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "text",
+            "value": "GS {gpsData[0].GndSpeed}"
+          },
+          {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 26
+          },
+          {
+            "name": "font_bold",
+            "value": false
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 0
+          },
+          {
+            "name": "box_radius",
+            "value": 0
+          }
+        ]
+      },
+      "id": "M_15w66"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 6,
+      "y": 419,
+      "width": 102,
+      "height": 20,
+      "grid_position": "MidL",
+      "grid_percentage_x": 0.2676056338028169,
+      "grid_percentage_y": 1.3515625,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "text",
+            "value": "{airData[0].OAT} OAT"
+          },
+          {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 20
+          },
+          {
+            "name": "font_bold",
+            "value": false
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 0
+          },
+          {
+            "name": "box_radius",
+            "value": 0
+          }
+        ]
+      },
+      "id": "M_ewhxo"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 9,
+      "y": 437,
+      "width": 107,
+      "height": 23,
+      "grid_position": "MidL",
+      "grid_percentage_x": 0.2934272300469484,
+      "grid_percentage_y": 1.50390625,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "text",
+            "value": "G's {imuData[0].vert_G}"
+          },
+          {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 20
+          },
+          {
+            "name": "font_bold",
+            "value": false
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 0
+          },
+          {
+            "name": "box_radius",
+            "value": 0
+          }
+        ]
+      },
+      "id": "M_4dy9s"
+    },
+    {
+      "type": "module",
+      "title": "Text Segments",
+      "x": 410,
+      "y": 123,
+      "width": 447,
+      "height": 66,
+      "grid_position": "TopM",
+      "grid_percentage_x": 0.9741784037558685,
+      "grid_percentage_y": 1.21875,
+      "module": {
+        "name": "Text Segments",
+        "options": [
+          {
+            "name": "text",
+            "value": "TRONVIEW"
+          },
+          {
+            "name": "digit_spacing",
+            "value": 3
+          },
+          {
+            "name": "width_ratio",
+            "value": 85
+          },
+          {
+            "name": "total_decimals",
+            "value": 8
+          },
+          {
+            "name": "justify",
+            "value": "left"
+          },
+          {
+            "name": "text_color",
+            "value": [
+              242,
+              242,
+              24
+            ]
+          },
+          {
+            "name": "not_active_color",
+            "value": [
+              31,
+              31,
+              31
+            ]
+          },
+          {
+            "name": "box_color",
+            "value": [
+              45,
+              45,
+              45
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 0
+          },
+          {
+            "name": "padding",
+            "value": 5
+          }
+        ]
+      },
+      "id": "M_njhdb"
     },
     {
       "type": "module",
       "title": "object 3D",
-      "x": 1554,
-      "y": 19,
-      "width": 267,
-      "height": 256,
+      "x": 1055,
+      "y": -9,
+      "width": 206,
+      "height": 178,
       "grid_position": "TopR",
-      "grid_percentage_x": 1.2734375,
-      "grid_percentage_y": 0.8166666666666667,
+      "grid_percentage_x": 1.431924882629108,
+      "grid_percentage_y": 0.625,
       "module": {
         "name": "object 3D",
         "options": [
           {
             "name": "source_imu_index_name",
-            "value": "skyview_imu"
+            "value": "mgl_imu"
           },
           {
             "name": "source_imu_index",
@@ -1554,7 +1110,7 @@
           },
           {
             "name": "show_xyz",
-            "value": true
+            "value": false
           },
           {
             "name": "smoothing_factor",
@@ -1562,262 +1118,36 @@
           }
         ]
       },
-      "id": "M_dab9g"
+      "id": "M_sc047"
     },
     {
       "type": "module",
       "title": "Text Segments",
-      "x": 1597,
-      "y": 586,
-      "width": 206,
+      "x": 184,
+      "y": 709,
+      "width": 200,
       "height": 50,
-      "grid_position": "MidR",
-      "grid_percentage_x": 1.3125,
-      "grid_percentage_y": 1.3944444444444444,
-      "module": {
-        "name": "Text Segments",
-        "options": [
-          {
-            "name": "template",
-            "value": "sys_time_string"
-          },
-          {
-            "name": "text",
-            "value": "{sys_time_string}"
-          },
-          {
-            "name": "digit_spacing",
-            "value": 2
-          },
-          {
-            "name": "width_ratio",
-            "value": 67
-          },
-          {
-            "name": "total_decimals",
-            "value": 8
-          },
-          {
-            "name": "justify",
-            "value": "left"
-          },
-          {
-            "name": "text_color",
-            "value": [
-              242,
-              242,
-              24
-            ]
-          },
-          {
-            "name": "not_active_color",
-            "value": [
-              30,
-              30,
-              30,
-              255
-            ]
-          },
-          {
-            "name": "box_color",
-            "value": [
-              114,
-              5,
-              5,
-              255
-            ]
-          },
-          {
-            "name": "box_weight",
-            "value": 3
-          },
-          {
-            "name": "padding",
-            "value": 10
-          }
-        ]
-      },
-      "id": "M_vat69"
-    },
-    {
-      "type": "module",
-      "title": "Text Segments",
-      "x": 877,
-      "y": 2,
-      "width": 99,
-      "height": 49,
-      "grid_position": "TopM",
-      "grid_percentage_x": 0.8953125,
-      "grid_percentage_y": 0.14722222222222223,
-      "module": {
-        "name": "Text Segments",
-        "options": [
-          {
-            "name": "template",
-            "value": "mag_head"
-          },
-          {
-            "name": "text",
-            "value": "{mag_head}"
-          },
-          {
-            "name": "digit_spacing",
-            "value": 5
-          },
-          {
-            "name": "width_ratio",
-            "value": 70
-          },
-          {
-            "name": "total_decimals",
-            "value": 3
-          },
-          {
-            "name": "justify",
-            "value": "left"
-          },
-          {
-            "name": "text_color",
-            "value": [
-              242,
-              242,
-              24
-            ]
-          },
-          {
-            "name": "not_active_color",
-            "value": [
-              32,
-              32,
-              32
-            ]
-          },
-          {
-            "name": "box_color",
-            "value": [
-              45,
-              45,
-              45
-            ]
-          },
-          {
-            "name": "box_weight",
-            "value": 0
-          },
-          {
-            "name": "padding",
-            "value": 5
-          }
-        ]
-      },
-      "id": "M_twunn"
-    },
-    {
-      "type": "module",
-      "title": "Text Segments",
-      "x": 602,
-      "y": 139,
-      "width": 642,
-      "height": 90,
-      "grid_position": "TopM",
-      "grid_percentage_x": 0.884375,
-      "grid_percentage_y": 1.0222222222222221,
-      "module": {
-        "name": "Text Segments",
-        "options": [
-          {
-            "name": "template",
-            "value": "sys_time_string"
-          },
-          {
-            "name": "text",
-            "value": "TRON VIEW"
-          },
-          {
-            "name": "digit_spacing",
-            "value": 2
-          },
-          {
-            "name": "width_ratio",
-            "value": 86
-          },
-          {
-            "name": "total_decimals",
-            "value": 29
-          },
-          {
-            "name": "justify",
-            "value": "left"
-          },
-          {
-            "name": "text_color",
-            "value": [
-              242,
-              242,
-              24
-            ]
-          },
-          {
-            "name": "not_active_color",
-            "value": [
-              7,
-              3,
-              3,
-              255
-            ]
-          },
-          {
-            "name": "box_color",
-            "value": [
-              60,
-              60,
-              60
-            ]
-          },
-          {
-            "name": "box_weight",
-            "value": 0
-          },
-          {
-            "name": "padding",
-            "value": 5
-          }
-        ]
-      },
-      "id": "M_0rbhv"
-    },
-    {
-      "type": "module",
-      "title": "Text Segments",
-      "x": 250,
-      "y": 972,
-      "width": 428,
-      "height": 49,
       "grid_position": "BotL",
-      "grid_percentage_x": 1.45,
-      "grid_percentage_y": 1.5361111111111112,
+      "grid_percentage_x": 1.3333333333333333,
+      "grid_percentage_y": 1.734375,
       "module": {
         "name": "Text Segments",
         "options": [
           {
-            "name": "template",
-            "value": "msg_count"
-          },
-          {
             "name": "text",
-            "value": "{msg_count}"
+            "value": "{airData[0].msg_count}"
           },
           {
             "name": "digit_spacing",
-            "value": 6
+            "value": 5
           },
           {
             "name": "width_ratio",
-            "value": 82
+            "value": 71
           },
           {
             "name": "total_decimals",
-            "value": 15
+            "value": 5
           },
           {
             "name": "justify",
@@ -1857,23 +1187,47 @@
           }
         ]
       },
-      "id": "M_o552r"
+      "id": "M_ezujh"
     },
     {
       "type": "module",
-      "title": "ArtificalHorz",
-      "x": 18,
-      "y": 825,
-      "width": 218,
-      "height": 195,
+      "title": "Text",
+      "x": 188,
+      "y": 690,
+      "width": 172,
+      "height": 34,
       "grid_position": "BotL",
-      "grid_percentage_x": 0.396875,
-      "grid_percentage_y": 1.125,
+      "grid_percentage_x": 1.2863849765258215,
+      "grid_percentage_y": 1.5234375,
       "module": {
-        "name": "ArtificalHorz",
+        "name": "Text",
         "options": [
           {
-            "name": "LineColor",
+            "name": "text",
+            "value": "msg count"
+          },
+          {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 23
+          },
+          {
+            "name": "font_bold",
+            "value": false
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_color",
             "value": [
               255,
               255,
@@ -1881,74 +1235,45 @@
             ]
           },
           {
-            "name": "SkyColorBottom",
-            "value": [
-              0,
-              153,
-              204
-            ]
+            "name": "box_weight",
+            "value": 0
           },
           {
-            "name": "SkyColorTop",
-            "value": [
-              0,
-              102,
-              204
-            ]
-          },
-          {
-            "name": "GroundColorTop",
-            "value": [
-              153,
-              102,
-              51
-            ]
-          },
-          {
-            "name": "GroundColorBottom",
-            "value": [
-              102,
-              51,
-              0
-            ]
+            "name": "box_radius",
+            "value": 0
           }
         ]
       },
-      "id": "M_db1x5",
-      "event_handlers": []
+      "id": "M_r6i0a"
     },
     {
       "type": "module",
       "title": "Text Segments",
-      "x": 250,
-      "y": 938,
-      "width": 398,
-      "height": 32,
-      "grid_position": "BotL",
-      "grid_percentage_x": 1.403125,
-      "grid_percentage_y": 1.3,
+      "x": 783,
+      "y": 723,
+      "width": 315,
+      "height": 34,
+      "grid_position": "BotR",
+      "grid_percentage_x": 0.4107981220657277,
+      "grid_percentage_y": 1.78125,
       "module": {
         "name": "Text Segments",
         "options": [
           {
-            "name": "template",
-            "value": "msg_count"
-          },
-          {
             "name": "text",
-            "value": "MSG COUNT:"
+            "value": "{gpsData[0].GPSTime_string}"
           },
           {
             "name": "digit_spacing",
-            "value": 6
+            "value": 5
           },
           {
             "name": "width_ratio",
-            "value": 88
+            "value": 71
           },
           {
             "name": "total_decimals",
-            "value": 9
+            "value": 14
           },
           {
             "name": "justify",
@@ -1988,7 +1313,64 @@
           }
         ]
       },
-      "id": "M_djnj2"
+      "id": "M_1apgf"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 809,
+      "y": 704,
+      "width": 172,
+      "height": 34,
+      "grid_position": "BotR",
+      "grid_percentage_x": 0.19718309859154928,
+      "grid_percentage_y": 1.6328125,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "text",
+            "value": "gps time"
+          },
+          {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 23
+          },
+          {
+            "name": "font_bold",
+            "value": false
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 0
+          },
+          {
+            "name": "box_radius",
+            "value": 0
+          }
+        ]
+      },
+      "id": "M_zz9lh"
     }
   ]
 }

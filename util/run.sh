@@ -184,7 +184,7 @@ fi
         "MGL Demos" "MGL related demos and tests" 
         "Dynon Demos" "Dynon related demos"
         "Stratux Demos" "Stratux only demos"
-        "IMU Tests" "IMU related tests"
+        "IMU Options" "IMU related options and tests"
         "Utils" "Utils & Tests, Serial, Joystick, I2c, WIFI"
         "Update" "Update TronView & View Changelog"
     )
@@ -421,64 +421,69 @@ while $RUN_MENU_AGAIN; do
                 done
                 ;;
             ############################################################################
-            "IMU Tests")
+            "IMU Options")
                 SHOW_ADDITIONAL_OPTIONS=true
                 while true; do
                     exec 3>&1
-                    subchoice=$(dialog --clear --title "IMU Tests" \
-                                      --menu "Choose a test:" 20 60 10 \
-                                      "1" "Live BNO055 IMU (Pi only)" \
-                                      "2" "Live BNO055 IMU & MGL (Pi only)" \
-                                      "3" "Live BNO055 IMU + MGL + Stratux (Pi only)" \
-                                      "4" "Live dual BNO055 IMUs (Pi only)" \
-                                      "5" "Live BNO085 IMU (Pi only)" \
-                                      "6" "Live dual BNO085 IMUs + Live Stratux (Pi only)" \
-                                      "7" "MGL + Stratux + Live BNO085" \
-                                      "8" "vIMU + Live BNO085 (Pi only)" \
-                                      "9" "joystick vIMU + Live BNO085 (Pi only)" \
-                                      "10" "1 Virtual IMU" \
-                                      "11" "2 Virtual IMUs" \
-                                      "12" "Joystick vIMU + Virtual IMU" \
+                    subchoice=$(dialog --clear --title "IMU Options & Tests" \
+                                      --menu "Choose a IMU Option:" 20 60 10 \
+                                      "1" "BNO085 calibration (Pi only)" \
+                                      "2" "Live BNO055 IMU (Pi only)" \
+                                      "3" "Live BNO055 IMU & MGL (Pi only)" \
+                                      "4" "Live BNO055 IMU + MGL + Stratux (Pi only)" \
+                                      "5" "Live dual BNO055 IMUs (Pi only)" \
+                                      "6" "Live BNO085 IMU (Pi only)" \
+                                      "7" "Live dual BNO085 IMUs + Live Stratux (Pi only)" \
+                                      "8" "MGL + Stratux + Live BNO085" \
+                                      "9" "vIMU + Live BNO085 (Pi only)" \
+                                      "10" "joystick vIMU + Live BNO085 (Pi only)" \
+                                      "11" "1 Virtual IMU" \
+                                      "12" "2 Virtual IMUs" \
+                                      "13" "Joystick vIMU + Virtual IMU" \
                                       2>&1 1>&3)
                     exit_status=$?
                     exec 3>&-
                     
                     if handle_menu_exit $exit_status "sub"; then
                         case $subchoice in
-                            1) choice="--in1 gyro_i2c_bno055"
+                            1) FULL_COMMAND="python3 $TRONVIEW_DIR/util/rpi/i2c/calibrate_bno085.py" 
+                               choice=""
+                               break 2 
+                               ;;
+                            2) choice="--in1 gyro_i2c_bno055"
                                 selected_name="Live BNO055"
                                 ;;
-                            2) choice="--in1 gyro_i2c_bno055 --in1 serial_mgl --playfile1 mgl_data1.bin"
+                            3) choice="--in1 gyro_i2c_bno055 --in1 serial_mgl --playfile1 mgl_data1.bin"
                                 selected_name="Live BNO055 & MGL"
                                 ;;
-                            3) choice="--in1 serial_mgl --playfile1 mgl_chase_rv6_1.dat --in2 stratux_wifi --playfile2 stratux_chase_rv6_1.dat --in3 gyro_i2c_bno055"
+                            4) choice="--in1 serial_mgl --playfile1 mgl_chase_rv6_1.dat --in2 stratux_wifi --playfile2 stratux_chase_rv6_1.dat --in3 gyro_i2c_bno055"
                                 selected_name="Live BNO055 + MGL + Stratux"
                                 ;;
-                            4) choice="--in1 gyro_i2c_bno055 --in2 gyro_i2c_bno055"
+                            5) choice="--in1 gyro_i2c_bno055 --in2 gyro_i2c_bno055"
                                 selected_name="Live dual BNO055"
                                 ;;
-                            5) choice="--in1 gyro_i2c_bno085"
+                            6) choice="--in1 gyro_i2c_bno085"
                                 selected_name="Live BNO085"
                                 ;;
-                            6) choice="--in1 gyro_i2c_bno085 --in2 gyro_i2c_bno085 --in3 stratux_wifi"
+                            7) choice="--in1 gyro_i2c_bno085 --in2 gyro_i2c_bno085 --in3 stratux_wifi"
                                 selected_name="Live dual BNO085"
                                 ;;
-                            7) choice="--in1 serial_mgl --playfile1 mgl_chase_rv6_1.dat --in3 stratux_wifi --playfile3 stratux_chase_rv6_1.dat --in2 gyro_i2c_bno085"
+                            8) choice="--in1 serial_mgl --playfile1 mgl_chase_rv6_1.dat --in3 stratux_wifi --playfile3 stratux_chase_rv6_1.dat --in2 gyro_i2c_bno085"
                                 selected_name="MGL + Stratux + Live BNO085"
                                 ;;
-                            8) choice="--in1 gyro_virtual --in2 gyro_i2c_bno085"
+                            9) choice="--in1 gyro_virtual --in2 gyro_i2c_bno085"
                                 selected_name="vIMU + Live BNO085"
                                 ;;
-                            9) choice="--in1 gyro_joystick --in2 gyro_i2c_bno085"
+                            10) choice="--in1 gyro_joystick --in2 gyro_i2c_bno085"
                                 selected_name="joystick vIMU + Live BNO085"
                                 ;;
-                            10) choice="--in1 gyro_virtual"
+                            11) choice="--in1 gyro_virtual"
                                 selected_name="1 Virtual IMU"
                                 ;;
-                            11) choice="--in1 gyro_virtual --in2 gyro_virtual"
+                            12) choice="--in1 gyro_virtual --in2 gyro_virtual"
                                 selected_name="2 Virtual IMUs"
                                 ;;
-                            12) choice="--in1 gyro_joystick --in2 gyro_virtual"
+                            13) choice="--in1 gyro_joystick --in2 gyro_virtual"
                                 selected_name="Joystick vIMU + Virtual IMU"
                                 ;;
                         esac
@@ -495,19 +500,18 @@ while $RUN_MENU_AGAIN; do
                 choice=""
                 while true; do
                     exec 3>&1
-                    subchoice=$(dialog --clear --title "Tests" \
-                                      --menu "Choose a test:" 20 60 10 \
+                    subchoice=$(dialog --clear --title "Utility Options" \
+                                      --menu "Choose a option:" 20 60 10 \
                                       "1" "List Serial Ports" \
-                                      "2" "Test Joystick" \
-                                      "3" "Raw Serial Read" \
-                                      "4" "Read Serial MGL" \
-                                      "5" "Read Serial Dynon Skyview" \
-                                      "6" "Read Serial Garmin G3x" \
-                                      "7" "Read NMEA GPS data" \
-                                      "8" "Test Stratux and iLevil WiFi connection" \
-                                      "9" "I2C Test (Pi only)" \
-                                      "10" "3D Sphere" \
-                                      "11" "bno085 calibration (Pi only)"\
+                                      "2" "Edit TronView Config File (config.cfg)" \
+                                      "3" "Test Joystick" \
+                                      "4" "Raw Serial Read" \
+                                      "5" "Read Serial MGL" \
+                                      "6" "Read Serial Dynon Skyview" \
+                                      "7" "Read Serial Garmin G3x" \
+                                      "8" "Read NMEA GPS data" \
+                                      "9" "Test Stratux and iLevil WiFi connection" \
+                                      "10" "I2C Test (Pi only)" \
                                       2>&1 1>&3)
                     exit_status=$?
                     exec 3>&-
@@ -516,17 +520,20 @@ while $RUN_MENU_AGAIN; do
                         case $subchoice in
                             1) FULL_COMMAND="python3 $TRONVIEW_DIR/util/menu/serial_getlist.py --select" 
                                 SKIP_PAUSE=true;;
-                            2) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/joystick.py" ;;
-                            3) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/serial_raw.py" ;;
-                            4) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/serial_read.py -m" ;;
-                            5) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/serial_read.py -s" ;;
-                            6) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/serial_read.py -g" ;;
-                            7) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/nmea_gps.py -a" ;;
-                            8) FULL_COMMAND="$TRONVIEW_DIR/util/tests/test_stratux_wifi.sh" ;;
-                            9) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/i2c_test.py" ;;
-                            10) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/3d/sphere.py" ;;
-                            11) FULL_COMMAND="python3 $TRONVIEW_DIR/util/rpi/i2c/calibrate_bno085.py" ;;
-                            
+                            2) FULL_COMMAND="pico $TRONVIEW_DIR/config.cfg"
+                               # check if $TRONVIEW_DIR/config.cfg exists.. if not
+                               if [ ! -f "$TRONVIEW_DIR/config.cfg" ]; then
+                                    cp $TRONVIEW_DIR/config_example.cfg $TRONVIEW_DIR/config.cfg
+                               fi
+                               ;;
+                            3) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/joystick.py" ;;
+                            4) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/serial_raw.py" ;;
+                            5) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/serial_read.py -m" ;;
+                            6) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/serial_read.py -s" ;;
+                            7) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/serial_read.py -g" ;;
+                            8) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/nmea_gps.py -a" ;;
+                            9) FULL_COMMAND="$TRONVIEW_DIR/util/tests/test_stratux_wifi.sh" ;;
+                            10) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/i2c_test.py" ;;
                         esac
                         echo "Running: $FULL_COMMAND"
                         #exit 0
@@ -629,9 +636,8 @@ while $RUN_MENU_AGAIN; do
             exec 3>&1
             options=$(dialog --clear --title "Additional Options" \
                             --checklist "Use space bar to select 1 or more options :" 20 60 10 \
-                            "text" "Run in text mode" OFF \
-                            "multi" "Run multiple threads" OFF \
-                            "debug" "Record debug output" OFF \
+                            "multi" "Run multiple threads (beta feature)" OFF \
+                            "debug" "save output (saves to data/console_logs)" OFF \
                             "auto" "Auto-run next time" OFF \
                             2>&1 1>&3)
             exit_status=$?
@@ -645,7 +651,6 @@ while $RUN_MENU_AGAIN; do
 
             # Process additional options
             ADD_ARGS=""
-            [[ $options == *"text"* ]] && ADD_ARGS="-t" || ADD_ARGS=""
             [[ $options == *"multi"* ]] && ADD_ARGS="$ADD_ARGS --input-threads"
             if [[ $options == *"debug"* ]]; then
                 today=$(date +%Y-%m-%d_%H-%M-%S)

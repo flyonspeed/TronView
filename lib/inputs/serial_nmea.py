@@ -216,8 +216,9 @@ class serial_nmea(Input):
                         self.gpsData.Lon = lon
                         #self.gpsData.Mag_Decl = float(magvar)
 
-                        self.gpsData.GndSpeed = float(gs)
-                        self.gpsData.GndTrack = float(truetrack)
+                        # Handle empty ground speed and true track values
+                        self.gpsData.GndSpeed = float(gs) if gs else 0.0
+                        self.gpsData.GndTrack = float(truetrack) if truetrack else 0.0
                         # if magvardir is E, then we need to subtract the magvar from the true track?? need to verify this
                         if(magvardir == "E"):
                             self.gpsData.Mag_Decl = (self.gpsData.Mag_Decl - (self.gpsData.Mag_Decl * 2))
@@ -349,7 +350,7 @@ class serial_nmea(Input):
         except:
             print("NMEA serial exception")
             traceback.print_exc()
-            dataship.errorFoundNeedToExit = True
+            #dataship.errorFoundNeedToExit = True
 
         return dataship
 

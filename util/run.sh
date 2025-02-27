@@ -28,17 +28,27 @@ $RUN_PREFIX mkdir -p "$TRONVIEW_DIR/data/system"
 # refresh available serial ports output file.
 python3 $TRONVIEW_DIR/util/menu/serial_getlist.py -o data/system/available_serial_ports.json
 
+# Check if ccze is installed (for colorizing console logs)
+if ! command -v ccze &> /dev/null; then
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        echo "ccze is not installed. Installing..."
+        sudo apt-get install ccze -y
+    fi
+fi
+
 # Function to save last run configuration
 save_last_run() {
     local name="$1"
     local args="$2"
+    local add_args="$3"
     local timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-    local auto_run="$3"    
+    local auto_run="$4"    
     
     # Create the JSON content first
     local json_content='{
     "name": "'"$name"'",
     "args": "'"$args"'",
+    "add_args": "'"$add_args"'",
     "timestamp": "'"$timestamp"'",
     "auto_run": '"$auto_run"'
 }'
@@ -54,10 +64,39 @@ save_last_run() {
 
 # Function to run python commands
 run_python() {
+    local choice="$1"
+    local ADD_ARGS="$2"
+
     cd "$TRONVIEW_DIR" || exit
     echo "Running from directory: $(pwd)"
     echo "Using Python: $(which python3)"
-    eval "$RUN_PREFIX python3 $TRONVIEW_DIR/main.py $* $ADD_ARGS"
+
+    # if $ADD_ARGS contains --console-log-debug, then remove it and replace with the following:
+    # of if $* contains --console-log-debug, then remove it and replace with the following:
+    if [[ "$ADD_ARGS" == *"--console-log-debug"* ]]; then
+        echo "Opening console log file: data/console_logs/last-console.log"
+        # remove --console-log-debug from the command line arguments
+        ADD_ARGS=$(echo "$ADD_ARGS" | sed 's/--console-log-debug//g')
+        today=$(date +%Y-%m-%d_%H:%M:%S)
+        log_file="data/console_logs/last-console.log"
+        mkdir -p data/console_logs
+        touch $log_file
+        # clear the file and put today's date on the first line. then line feed.
+        echo -n "" > $log_file
+        echo "##Date Run: $today" >> $log_file
+        # get __build_version__ from lib/version.py
+        BUILD_VERSION=$(PYTHONPATH=$TRONVIEW_DIR python3 -c "from lib.version import __build_version__; print(__build_version__)")
+        echo "##Build Version: $BUILD_VERSION" >> $log_file
+        echo "" >> $log_file
+        if command -v tee &> /dev/null; then
+            ADD_ARGS="$ADD_ARGS 2>&1 | tee -a $log_file"
+        else
+            ADD_ARGS="$ADD_ARGS >> $log_file 2>&1"
+        fi
+    fi
+
+    # run the python app with any additional arguments
+    eval "$RUN_PREFIX python3 $TRONVIEW_DIR/main.py $choice $ADD_ARGS"
 }
 
 # Check if dialog is installed
@@ -102,6 +141,7 @@ load_last_run() {
         if command -v jq &> /dev/null; then
             LAST_NAME=$(jq -r '.name' "$LAST_RUN_FILE")
             LAST_ARGS=$(jq -r '.args' "$LAST_RUN_FILE")
+            LAST_ADD_ARGS=$(jq -r '.add_args' "$LAST_RUN_FILE")
             LAST_TIME=$(jq -r '.timestamp' "$LAST_RUN_FILE")
             LAST_AUTO_RUN=$(jq -r '.auto_run' "$LAST_RUN_FILE")
         fi
@@ -156,6 +196,7 @@ if [[ ! " $* " =~ "--skiplastrun" ]]; then
         case $exit_status in
             0)  # OK pressed or timeout
                 choice="$LAST_ARGS"
+                ADD_ARGS="$LAST_ADD_ARGS"
                 selected_name="$LAST_NAME"
                 SHOW_ADDITIONAL_OPTIONS=false
                 # Run the command immediately
@@ -504,14 +545,15 @@ while $RUN_MENU_AGAIN; do
                                       --menu "Choose a option:" 20 60 10 \
                                       "1" "List Serial Ports" \
                                       "2" "Edit TronView Config File (config.cfg)" \
-                                      "3" "Test Joystick" \
-                                      "4" "Raw Serial Read" \
-                                      "5" "Read Serial MGL" \
-                                      "6" "Read Serial Dynon Skyview" \
-                                      "7" "Read Serial Garmin G3x" \
-                                      "8" "Read NMEA GPS data" \
-                                      "9" "Test Stratux and iLevil WiFi connection" \
-                                      "10" "I2C Test (Pi only)" \
+                                      "3" "View last console log" \
+                                      "4" "Test Joystick" \
+                                      "5" "Raw Serial Read" \
+                                      "6" "Read Serial MGL" \
+                                      "7" "Read Serial Dynon Skyview" \
+                                      "8" "Read Serial Garmin G3x" \
+                                      "9" "Read NMEA GPS data" \
+                                      "10" "Test Stratux and iLevil WiFi connection" \
+                                      "11" "I2C Test (Pi only)" \
                                       2>&1 1>&3)
                     exit_status=$?
                     exec 3>&-
@@ -519,21 +561,29 @@ while $RUN_MENU_AGAIN; do
                     if handle_menu_exit $exit_status "sub"; then
                         case $subchoice in
                             1) FULL_COMMAND="python3 $TRONVIEW_DIR/util/menu/serial_getlist.py --select" 
-                                SKIP_PAUSE=true;;
+                                SKIP_PAUSE=false;;
                             2) FULL_COMMAND="pico $TRONVIEW_DIR/config.cfg"
                                # check if $TRONVIEW_DIR/config.cfg exists.. if not
                                if [ ! -f "$TRONVIEW_DIR/config.cfg" ]; then
                                     cp $TRONVIEW_DIR/config_example.cfg $TRONVIEW_DIR/config.cfg
                                fi
                                ;;
-                            3) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/joystick.py" ;;
-                            4) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/serial_raw.py" ;;
-                            5) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/serial_read.py -m" ;;
-                            6) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/serial_read.py -s" ;;
-                            7) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/serial_read.py -g" ;;
-                            8) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/nmea_gps.py -a" ;;
-                            9) FULL_COMMAND="$TRONVIEW_DIR/util/tests/test_stratux_wifi.sh" ;;
-                            10) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/i2c_test.py" ;;
+                            3) 
+                               # check if ccze is installed.. if not use just less
+                               if command -v ccze &> /dev/null; then
+                                    FULL_COMMAND="cat $TRONVIEW_DIR/data/console_logs/last-console.log | ccze -A | less -R"
+                               else
+                                    FULL_COMMAND="less $TRONVIEW_DIR/data/console_logs/last-console.log"
+                               fi
+                               ;;
+                            4) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/joystick.py" ;;
+                            5) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/serial_raw.py" ;;
+                            6) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/serial_read.py -m" ;;
+                            7) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/serial_read.py -s" ;;
+                            8) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/serial_read.py -g" ;;
+                            9) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/nmea_gps.py -a" ;;
+                            10) FULL_COMMAND="$TRONVIEW_DIR/util/tests/test_stratux_wifi.sh" ;;
+                            11) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/i2c_test.py" ;;
                         esac
                         echo "Running: $FULL_COMMAND"
                         #exit 0
@@ -637,7 +687,7 @@ while $RUN_MENU_AGAIN; do
             options=$(dialog --clear --title "Additional Options" \
                             --checklist "Use space bar to select 1 or more options :" 20 60 10 \
                             "multi" "Run multiple threads (beta feature)" OFF \
-                            "debug" "save output (saves to data/console_logs)" OFF \
+                            "debug" "save output (saves to data/console_logs/last-console.log)" ON \
                             "auto" "Auto-run next time" OFF \
                             2>&1 1>&3)
             exit_status=$?
@@ -652,16 +702,9 @@ while $RUN_MENU_AGAIN; do
             # Process additional options
             ADD_ARGS=""
             [[ $options == *"multi"* ]] && ADD_ARGS="$ADD_ARGS --input-threads"
+
             if [[ $options == *"debug"* ]]; then
-                today=$(date +%Y-%m-%d_%H-%M-%S)
-                log_file="data/console_logs/$today-console.txt"
-                mkdir -p data/console_logs
-                touch $log_file
-                if command -v tee &> /dev/null; then
-                    ADD_ARGS="$ADD_ARGS 2>&1 | tee -a $log_file"
-                else
-                    ADD_ARGS="$ADD_ARGS >> $log_file 2>&1"
-                fi
+                ADD_ARGS=" --console-log-debug"
             fi  
 
             if [[ $options == *"auto"* ]]; then
@@ -673,7 +716,7 @@ while $RUN_MENU_AGAIN; do
 
             # Before running the command, save the configuration
             if [ ! -z "$choice" ] && [ "$choice" != "$LAST_ARGS" ]; then
-                save_last_run "$selected_name" "$choice $ADD_ARGS" "$selected_auto_run"
+                save_last_run "$selected_name" "$choice" "$ADD_ARGS" "$selected_auto_run"
             fi
 
             # Break the main loop to run the command
@@ -687,7 +730,7 @@ while $RUN_MENU_AGAIN; do
         #clear
         # Run the selected command
         if [[ "$OSTYPE" == "linux-gnu"* ]] || [[ ! "$choice" =~ "bno" ]]; then
-            run_python "$choice"
+            run_python "$choice" "$ADD_ARGS"
             exit_status=$?
             if [ $exit_status -ne 0 ]; then
                 echo "[Error detected. Press any key to continue...]"

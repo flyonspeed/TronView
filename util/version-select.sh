@@ -2,7 +2,7 @@
 
 # Function to extract current version from lib/version.py
 get_current_version() {
-    version=$(awk -F\" '/__version__/ {print $2}' lib/version.py)
+    version=$(awk -F\" '/^__version__/ {print $2}' lib/version.py)
     echo $version
 }
 
@@ -15,17 +15,17 @@ update_version() {
     # Check if running on macOS
     if [[ "$OSTYPE" == "darwin"* ]]; then
         # macOS requires an extension with -i flag
-        sed -i '' "s/__version__ = \"$old_version\"/__version__ = \"$new_version\"/" lib/version.py
+        sed -i '' "s/^__version__ = \"$old_version\"/__version__ = \"$new_version\"/" lib/version.py
         # find line containing __build_date__ and replace it with the new date and time
-        sed -i '' "s/__build_date__ = .*/__build_date__ = \"$current_date\"/" lib/version.py
-        sed -i '' "s/__build_time__ = .*/__build_time__ = \"$current_time\"/" lib/version.py
+        sed -i '' "s/^__build_date__ = .*/__build_date__ = \"$current_date\"/" lib/version.py
+        sed -i '' "s/^__build_time__ = .*/__build_time__ = \"$current_time\"/" lib/version.py
     else
         # Linux version
-        sed -i "s/__version__ = \"$old_version\"/__version__ = \"$new_version\"/" lib/version.py
+        sed -i "s/^__version__ = \"$old_version\"/__version__ = \"$new_version\"/" lib/version.py
         # find line containing __build_date__ and replace it with the new date and time
-        sed -i "s/__build_date__ = .*/__build_date__ = \"$current_date\"/" lib/version.py
+        sed -i "s/^__build_date__ = .*/__build_date__ = \"$current_date\"/" lib/version.py
         # find line containing __build_time__ and replace it with the new date and time
-        sed -i "s/__build_time__ = .*/__build_time__ = \"$current_time\"/" lib/version.py
+        sed -i "s/^__build_time__ = .*/__build_time__ = \"$current_time\"/" lib/version.py
     fi
     if [ $? -ne 0 ]; then
         echo "Failed to update version.py version. Exiting."

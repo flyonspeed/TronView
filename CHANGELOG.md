@@ -1,5 +1,14 @@
 # Changelog
 
+
+## [0.0.27] - 2025-02-26
+
+- serial unique names using udev script for pi. /etc/udev/rules.d/99-tronview-serial.rules
+- save last console logs file.
+- added view option in menu to see last log
+
+
+
 ## [0.0.26] - 2025-02-23
 
 - serial port list menu.

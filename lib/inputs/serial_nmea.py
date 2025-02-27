@@ -67,6 +67,20 @@ class serial_nmea(Input):
         self.gpsData = GPSData()
         self.navData = NavData()
 
+    def safe_float(self, value, default=0.0):
+        """Safely convert a string to float, returning default if empty or invalid."""
+        try:
+            return float(value) if value else default
+        except (ValueError, TypeError):
+            return default
+    
+    def safe_int(self, value, default=0):
+        """Safely convert a string to int, returning default if empty or invalid."""
+        try:
+            return int(value) if value else default
+        except (ValueError, TypeError):
+            return default
+
     def initInput(self,num, dataship: Dataship):
         Input.initInput(self,num, dataship)  # call parent init Input.
         self.efis_data_port = hud_utils.readConfig(  # serial input... example: "/dev/cu.PL2303G-USBtoUART110"
@@ -121,11 +135,11 @@ class serial_nmea(Input):
         try:
             # For longitude (3 digits), use first 3 chars; for latitude (2 digits) use first 2
             if hemi in "WE":  # Longitude
-                degrees = float(nmea_string[0:3])
-                minutes = float(nmea_string[3:])
+                degrees = self.safe_float(nmea_string[0:3])
+                minutes = self.safe_float(nmea_string[3:])
             else:  # Latitude
-                degrees = float(nmea_string[0:2])
-                minutes = float(nmea_string[2:])
+                degrees = self.safe_float(nmea_string[0:2])
+                minutes = self.safe_float(nmea_string[2:])
                 
             decimal_degrees = degrees + (minutes / 60)
             
@@ -217,8 +231,8 @@ class serial_nmea(Input):
                         #self.gpsData.Mag_Decl = float(magvar)
 
                         # Handle empty ground speed and true track values
-                        self.gpsData.GndSpeed = float(gs) if gs else 0.0
-                        self.gpsData.GndTrack = float(truetrack) if truetrack else 0.0
+                        self.gpsData.GndSpeed = self.safe_float(gs)
+                        self.gpsData.GndTrack = self.safe_float(truetrack)
                         # if magvardir is E, then we need to subtract the magvar from the true track?? need to verify this
                         if(magvardir == "E"):
                             self.gpsData.Mag_Decl = (self.gpsData.Mag_Decl - (self.gpsData.Mag_Decl * 2))
@@ -240,8 +254,8 @@ class serial_nmea(Input):
                         mode = msg[14] # FAA Mode, explained at top of file
 
                         self.navData.WPName = destwpt
-                        self.navData.WPDist = float(distwpt)
-                        self.navData.WPTrack = float(destbrg)
+                        self.navData.WPDist = self.safe_float(distwpt)
+                        self.navData.WPTrack = self.safe_float(destbrg)
                         self.navData.WPLat = destlat
                         self.navData.WPLon = destlon
                     case "GPGGA": # GPS Pos and Altitude
@@ -264,8 +278,9 @@ class serial_nmea(Input):
                         # self.time_stamp_sec = int(utctime[4:5])
                         self.gpsData.Lat = lat
                         self.gpsData.Lon = lon
-                        self.gpsData.SatsTracked = int(satnum)
-                        self.gpsData.Alt = int(round(float(gpsalt)))
+                        self.gpsData.SatsTracked = self.safe_int(satnum)
+                        # Handle empty altitude value
+                        self.gpsData.Alt = int(round(self.safe_float(gpsalt)))
                         if(quality == "1"):
                             self.gpsData.GPSStatus = 2
                             self.gpsData.GPSWAAS = False
@@ -325,18 +340,18 @@ class serial_nmea(Input):
 
                         # set waypoint name, distance, and track
                         self.navData.WPName = nextwpt
-                        self.navData.WPDist = float(distwpt)
-                        self.navData.WPTrack = float(brgmag)
-                        self.navData.WPLat = float(lat)
-                        self.navData.WPLon = float(lon)
+                        self.navData.WPDist = self.safe_float(distwpt)
+                        self.navData.WPTrack = self.safe_float(brgmag)
+                        self.navData.WPLat = self.safe_float(lat)
+                        self.navData.WPLon = self.safe_float(lon)
 
                     case "GPVTG": # GPS Track made good and ground speed, Intentionally omitted KM/H Ground speed
                         coursetrue = msg[1] # GPS Course over ground degrees true xxx.x
                         coursemag = msg[3] # GPS Course over ground degrees magnetic xxx.x
                         gs = msg[5] # GPS Groundspeed, knots xxx.x
                         mode = msg[9] # FAA Mode, explained at top of file
-                        self.gpsData.GndSpeed = float(gs)
-                        self.gpsData.GndTrack = float(coursemag)
+                        self.gpsData.GndSpeed = self.safe_float(gs)
+                        self.gpsData.GndTrack = self.safe_float(coursemag)
                     case "GPXTE": # GPS Cross-track error, measured
                         status1 = msg[1] # GPS Status, A = Valid, V = Invalid
                         xtkerror = msg[3] # Cross track distance NM xx.x

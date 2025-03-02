@@ -226,10 +226,11 @@ class serial_skyview(Input):
                         "2s2s2s2s4s5s3s4s6s4s3s3s2s4s3s4s3s6s3s2s2s2s", msg
                     ) 
                     #print(msg)
-                    self.gpsData.GPSTime_string = "%d:%d:%d"%(int(HH),int(MM),int(SS))
-                    self.time_stamp_string = dataship.sys_time_string
-                    
-                    #print("time: "+aircraft.sys_time_string)
+                    if HH != b'--' and MM != b'--' and SS != b'--':
+                        self.gpsData.GPSTime_string = "%d:%d:%d"%(int(HH),int(MM),int(SS))
+                        self.time_stamp_string = dataship.sys_time_string
+                        #print("time: "+aircraft.sys_time_string)
+                        
                     self.imuData.pitch = Input.cleanInt(self,pitch) / 10
                     self.imuData.roll = Input.cleanInt(self,roll) / 10
                     self.imuData.mag_head = Input.cleanInt(self,HeadingMAG)
@@ -243,15 +244,15 @@ class serial_skyview(Input):
 
                     self.airData.IAS = Input.cleanInt(self,IAS) * 0.1
                     self.airData.Alt_pres = Input.cleanInt(self,PresAlt)
-                    self.airData.OAT = (Input.cleanInt(self,OAT) * 1.8) + 32 # c to f
-                    self.airData.TAS = Input.cleanInt(self,TAS) * 0.1
+                    if OAT != b'XXX': self.airData.OAT = (Input.cleanInt(self,OAT) * 1.8) + 32 # c to f
+                    if TAS != b'XXXX': self.airData.TAS = Input.cleanInt(self,TAS) * 0.1
                     if AOA == b'XX':
                         self.airData.AOA = 0
                     else:
                         self.airData.AOA = Input.cleanInt(self,AOA)
                     self.airData.Baro = (Input.cleanInt(self,Baro) + 2750.0) / 100
                     self.airData.Baro_diff = self.airData.Baro - 29.921
-                    self.airData.Alt_da = Input.cleanInt(self,DA)
+                    if DA != b'XXXXXX': self.airData.Alt_da = Input.cleanInt(self,DA)
                     self.airData.Alt = int( Input.cleanInt(self,PresAlt) + (self.airData.Baro_diff / 0.00108) )  # 0.00108 of inches of mercury change per foot.
                     self.imuData.turn_rate = Input.cleanInt(self,TurnRate) * 0.1
                     self.airData.VSI = Input.cleanInt(self,VertSpd) * 10
@@ -317,8 +318,9 @@ class serial_skyview(Input):
                         "2s2s2s2s3s5s4s4s3scc2s3s3sccccc3s5sc3s5sc3s5scccc4s10s2s2s", msg
                     )
                     #print("NAV & System Message !2:", msg)
-                    self.gpsData.GPSTime_string = "%d:%d:%d"%(int(HH),int(MM),int(SS))
-                    self.time_stamp_string = self.gpsData.GPSTime_string
+                    if HH != b'--' and MM != b'--' and SS != b'--':
+                        self.gpsData.GPSTime_string = "%d:%d:%d"%(int(HH),int(MM),int(SS))
+                        self.time_stamp_string = self.gpsData.GPSTime_string
 
                     if HBug != b'XXX': self.navData.HeadBug = Input.cleanInt(self, HBug)
                     if AltBug != b'XXXXX': self.navData.AltBug = Input.cleanInt(self,AltBug) * 10
@@ -334,19 +336,21 @@ class serial_skyview(Input):
                     elif CDISrcType == b'2':
                         navSourceType = 'LOC'
                     self.navData.SourceDesc = navSourceType + str(Input.cleanInt(self,CDISourePort))
-                    self.navData.GLSHoriz = Input.cleanInt(self,CDIScale) / 10
+                    if CDIScale != b'XX': self.navData.GLSHoriz = Input.cleanInt(self,CDIScale) / 10
                     if APEng == b'0': self.navData.APeng = 0
                     if APEng == b'1' or APEng == b'2' or APEng == b'3' or APEng == b'4' or APEng == b'5' or APEng == b'6' or APEng == b'7': self.navData.APeng = 1
                     self.navData.AP_RollForce = Input.cleanInt(self,APRollF)
-                    self.navData.AP_RollPos = Input.cleanInt(self,APRollP)
+                    if APRollP != 'XXXXX': self.navData.AP_RollPos = Input.cleanInt(self,APRollP)
                     self.navData.AP_RollSlip = Input.cleanInt(self,APRollSlip)
                     self.navData.AP_PitchForce = Input.cleanInt(self,APPitchF)
-                    self.navData.AP_PitchPos = Input.cleanInt(self,APPitchP)
+                    if APPitchP != b'XXXXX': self.navData.AP_PitchPos = Input.cleanInt(self,APPitchP)
                     self.navData.AP_PitchSlip = Input.cleanInt(self,APPitchSlip)
                     self.navData.AP_YawForce = Input.cleanInt(self,APYawF)
-                    self.navData.AP_YawPos = Input.cleanInt(self,APYawP)
+                    if APYawP != b'XXXXX': self.navData.AP_YawPos = Input.cleanInt(self,APYawP)
                     self.navData.AP_YawSlip = Input.cleanInt(self,APYawSlip)
-                    if TransponderStatus == b'0':
+                    if TransponderStatus == b'X':
+                        dataship.nav.XPDR_Status = 'OFF'
+                    elif TransponderStatus == b'0':
                         self.navData.XPDR_Status = 'SBY'
                     elif TransponderStatus == b'1':
                         self.navData.XPDR_Status = 'GND'
@@ -354,9 +358,9 @@ class serial_skyview(Input):
                         self.navData.XPDR_Status = 'ON'
                     elif TransponderStatus == b'3':
                         self.navData.XPDR_Status = 'ALT'
-                    self.navData.XPDR_Reply = Input.cleanInt(self,TransponderReply)
-                    self.navData.XPDR_Ident = Input.cleanInt(self,TransponderIdent)
-                    self.navData.XPDR_Code = Input.cleanInt(self,TransponderCode)
+                    if TransponderReply != b'X': self.navData.XPDR_Reply = Input.cleanInt(self,TransponderReply)
+                    if TransponderIdent != b'X': self.navData.XPDR_Ident = Input.cleanInt(self,TransponderIdent)
+                    if TransponderCode != b'XXXX': self.navData.XPDR_Code = Input.cleanInt(self,TransponderCode)
                     
                     if self.output_logFile != None:
                         Input.addToLog(self,self.output_logFile,bytes([33,int(dataType),int(dataVer)]))
@@ -420,16 +424,18 @@ class serial_skyview(Input):
                          "2s2s2s2s3s4s4s4s3s3s3s3s3s3s3s3s3s4s5s5s4s4s4s4s4s4s4s4s4s4s4s4s4s4s6s6s6s6s6s6s6s6s6s6s6s6s6s16s3s1s2s2s", msg
                     )
                     #print("EMS Message !3:", msg)
-                    #dataship.sys_time_string = "%d:%d:%d"%(int(HH),int(MM),int(SS))
-                    #self.time_stamp_string = dataship.sys_time_string
 
-                    self.engineData.OilPress = Input.cleanInt(self,OilPress)
-                    self.engineData.OilTemp = Input.cleanInt(self,OilTemp)
+                    if HH != b'--' and MM != b'--' and SS != b'--':
+                        self.gpsData.GPSTime_string = "%d:%d:%d"%(int(HH),int(MM),int(SS))
+                        self.time_stamp_string = self.gpsData.GPSTime_string
+
+                    if OilPress != b'XXX': self.engineData.OilPress = Input.cleanInt(self,OilPress)
+                    if OilTemp != b'XXXX': self.engineData.OilTemp = Input.cleanInt(self,OilTemp)
                     self.engineData.RPM = max(Input.cleanInt(self,RPM_L), Input.cleanInt(self,RPM_R))
-                    self.engineData.ManPress = Input.cleanInt(self,MAP) / 10
+                    if MAP != b'XXX': self.engineData.ManPress = Input.cleanInt(self,MAP) / 10
                     self.engineData.FuelFlow = Input.cleanInt(self,FF1) / 10
                     self.engineData.FuelFlow2 = Input.cleanInt(self,FF2) / 10
-                    self.engineData.FuelPress = Input.cleanInt(self,FP) / 10
+                    if FP != b'XXX': self.engineData.FuelPress = Input.cleanInt(self,FP) / 10
                     fuel_level_left  = Input.cleanInt(self, FL_L) / 10
                     fuel_level_right = Input.cleanInt(self, FL_R) / 10
                     self.fuelData.FuelLevels = [fuel_level_left, fuel_level_right, 0, 0]

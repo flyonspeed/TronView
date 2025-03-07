@@ -11,7 +11,7 @@ class Target(object):
         self.source = None
         self.aStat = None
         self.type = None
-        self.address = None # icao address of ads-b
+        self.address = None # icao address of ads-b, or meshtastic node id
         self.cat = None # Emitter Category - one of the following values to describe type/weight of aircraft
         self.buoyNum = None
         # 0 = unknown
@@ -28,6 +28,7 @@ class Target(object):
         # 14 = drone Unmanned aerial vehicle
         # 15 = space craft and aliens!
         # 100 = buoy
+        # 101 = meshtastic node
         # plus more...
         self.misc = None # 4 bit field
         self.NIC = None # Containment Radius (typically HPL).
@@ -78,6 +79,8 @@ class Target(object):
             return "Spacecraft"
         elif self.cat == 100:
             return "Buoy"
+        elif self.cat == 101:
+            return "Meshtastic Node"
         else:
             return "Unknown"
 
@@ -114,21 +117,25 @@ class TargetData(object):
         self.buoyCount = 0
         self.selected_target = None
 
+        # messages count (number of messages received from this source)
         self.msg_count = 0
         self.msg_last = None
         self.msg_bad = 0
 
+        # meshtastic node id
+        self.meshtastic_node_id = None
+
         # check if we should ignore traffic beyond a certain distance (in miles.)
         self.ignore_traffic_beyond_distance = 30
 
-    def get_selected_target(self):
+    def get_selected_target(self) -> Target | None:
         # find the target that has the same address as the selected target.
         for target in self.targets:
             if target.callsign == self.selected_target:
                 return target
         return None
 
-    def contains(self, target): # search for callsign
+    def contains(self, target: Target): # search for callsign
         for x in self.targets:
             if x.callsign == target.callsign:
                 return True

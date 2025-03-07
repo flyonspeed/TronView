@@ -297,6 +297,7 @@ while $RUN_MENU_AGAIN; do
                                 "serial_g3x" "Garmin G3x Serial" OFF \
                                 "serial_grt_eis" "Grand Rapids EIS Serial" OFF \
                                 "serial_nmea" "NMEA Serial" OFF \
+                                "meshtastic" "Meshtastic Serial" OFF \
                                 "gyro_i2c_bno055" "BNO055 IMU i2c (Pi only)" OFF \
                                 "gyro_i2c_bno055" "2nd BNO055 IMU i2c (Pi only)" OFF \
                                 "gyro_i2c_bno085" "BNO085 IMU i2c (Pi only)" OFF \

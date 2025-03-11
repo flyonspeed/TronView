@@ -13,6 +13,10 @@ from textual.screen import Screen
 from textual.widgets import Static, Button
 import re
 
+# command line tool to get all data about usb ports: (raspberry pi)
+# udevadm info -a -n /dev/ttyUSB0
+# udevadm info -a -n /dev/ttyACM0
+
 def get_serial_ports() -> List[Dict[str, str]]:
     """
     Get a list of available serial ports with their descriptions.

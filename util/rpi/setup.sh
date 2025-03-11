@@ -92,6 +92,7 @@ if [ $(cat /etc/os-release | grep "Debian GNU/Linux 12" | wc -l) -eq 1 ]; then
 	sudo pip3 install adafruit-circuitpython-bno055 --break-system-packages
 	sudo pip3 install adafruit-circuitpython-bno08x --break-system-packages
 	sudo pip3 install configupdater --break-system-packages
+	sudo pip3 install meshtastic --break-system-packages
 
 	pip_args="--break-system-packages"
 
@@ -121,6 +122,7 @@ if [ $(cat /etc/os-release | grep "GNU/Linux 11" | wc -l) -eq 1 ]; then
 	sudo pip3 install adafruit-circuitpython-bno055
 	sudo pip3 install adafruit-circuitpython-bno08x
 	sudo pip3 install configupdater
+	sudo pip3 install meshtastic
 
 	# check if python 3.9.2 is installed
 	if [ $(python3 --version | grep "3.9.2" | wc -l) -eq 1 ]; then
@@ -191,6 +193,18 @@ if [[ $selections == *"Desktop"* ]]; then
 	Terminal=true
 	StartupNotify=false' >> $user_home/Desktop/TronView.desktop
 fi
+
+# set serial port udev rules so we have a unique name for each port.  This helps with using the same serial input after
+# unplugging and plugging back in. It should always have the same name.
+# output to /etc/udev/rules.d/99-tronview-serial.rules
+# check if the file exists	
+if [ ! -f /etc/udev/rules.d/99-tronview-serial.rules ]; then
+	echo "Creating udev rules for serial unique ports names (/etc/udev/rules.d/99-tronview-serial.rules)"
+	echo "SUBSYSTEM==\"tty\", KERNEL==\"ttyUSB[0-9]*|ttyACM[0-9]*\", ENV{ID_SERIAL}==\"*\", SYMLINK+=\"ttySerial_TronV_%E{ID_SERIAL_SHORT}%E{ID_USB_DRIVER}\"" | sudo tee -a /etc/udev/rules.d/99-tronview-serial.rules
+else
+	echo "udev rules for serial unique ports names already exists (/etc/udev/rules.d/99-tronview-serial.rules)"
+fi
+
 
 # Clean up
 rm -f $temp_file

@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.0.28] - 2025-03-10
+
+- data logging work. _input.py saves to correct file.
+
+
+
 
 ## [0.0.27] - 2025-02-26
 

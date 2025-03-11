@@ -32,6 +32,7 @@ class serial_grt_eis(Input):
 
     def initInput(self,num,dataship: Dataship):
         Input.initInput(self,num,dataship)  # call parent init Input.
+        self.output_logBinary = True
         print("initInput %d: %s playfile: %s"%(num,self.name,self.PlayFile))
         if(self.PlayFile!=None and self.PlayFile!=False):
             # Get playback file.

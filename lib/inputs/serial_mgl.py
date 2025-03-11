@@ -34,6 +34,7 @@ class serial_mgl(Input):
         self.msg_unknown = 0
         self.msg_bad = 0
         Input.initInput( self,num, dataship )  # call parent init Input.
+        self.output_logBinary = True
         print("initInput %d: %s playfile: %s"%(num,self.name,self.PlayFile))
         if(self.PlayFile!=None and self.PlayFile!=False):
             # Get playback file.

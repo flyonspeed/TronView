@@ -136,6 +136,10 @@ class serial_d100(Input):
                     time.sleep(.05)
                 #else:
                 #    self.ser.flushInput()  # flush the serial after every message else we see delays
+
+                # add to log file
+                if self.output_logFile != None:
+                    Input.addToLog(self,self.output_logFile,msg+'\n')
                 return dataship
 
             else:

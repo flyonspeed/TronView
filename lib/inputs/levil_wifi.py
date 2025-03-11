@@ -23,6 +23,7 @@ class levil_wifi(Input):
 
     def initInput(self,num,aircraft):
         Input.initInput( self,num, aircraft )  # call parent init Input.
+        self.output_logBinary = True
 
         if(self.PlayFile!=None and self.PlayFile!=False):
             # if in playback mode then log file.

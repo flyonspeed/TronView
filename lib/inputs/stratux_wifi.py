@@ -46,6 +46,7 @@ class stratux_wifi(Input):
 
     def initInput(self, num, dataship: Dataship):
         Input.initInput( self,num, dataship )  # call parent init Input.
+        self.output_logBinary = True
         self.dataship = dataship
 
         if(self.PlayFile!=None and self.PlayFile!=False):

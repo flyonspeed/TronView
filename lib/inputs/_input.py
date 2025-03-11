@@ -7,6 +7,9 @@ from . import _input_file_utils
 import re
 import os
 from datetime import datetime
+import platform
+from lib.common import shared # global shared objects stored here.
+
 
 class Input:
     def __init__(self):
@@ -32,6 +35,7 @@ class Input:
         self.skipTextOutput = False
         self.output_logFile = None
         self.output_logFileName = ""
+        self.output_logBinary = False
         self.input_logFileName = None
         self.input_logFileSize = 0
         self.input_logFilePercent = 0 # percentage of file that has been read.
@@ -41,6 +45,9 @@ class Input:
         self.time_stamp_string = None # time from this input source.. if any..
         self.time_stamp_min = None  
         self.time_stamp_sec = None  
+
+        # Check if running on a Raspberry Pi
+        self.is_raspberry_pi = platform.system() == 'Linux' and 'arm' in platform.machine()
 
         return
 
@@ -54,14 +61,19 @@ class Input:
     def openLogFile(self,filename,attribs):
         #first try usb drive if exists?
         try:
-            if rpi_hardware.mount_usb_drive() == True:
-                openFileName = "/mnt/usb/"+filename
+            # Check if running on a Raspberry Pi
+            if self.is_raspberry_pi:
+                import util.rpi_hardware as rpi_hardware
+                if rpi_hardware.mount_usb_drive() == True:
+                    openFileName = "/mnt/usb/"+filename
                 logFile = open(openFileName, attribs)
                 # get file size
                 self.input_logFileSize = os.path.getsize(openFileName)
                 self.input_logFilePercent = 0
                 print("Opening USB Logfile: "+openFileName+" size="+str(self.input_logFileSize))
                 return logFile,openFileName
+            else:
+                pass
         except :
             pass
 
@@ -73,7 +85,7 @@ class Input:
             self.input_logFileSize = os.path.getsize(openFileName)
             self.input_logFilePercent = 0
             print("Opening Logfile: "+openFileName+" size="+str(self.input_logFileSize))
-            #shared.GrowlManager.add_message(self.id + ": Playing " + openFileName)
+            shared.GrowlManager.add_message(self.id + ": Playing " + openFileName)
             return logFile,openFileName
         except :
             print("Error openLogFile() "+self.name)
@@ -97,28 +109,37 @@ class Input:
     #############################################
     ## Method: createLogFile
     ## Create a new log file. (for saving flight data to)
-    def createLogFile(self,fileExtension,isBinary):
+    def createLogFile(self,fileExtension):
         # should we check if the usb drive is available to write to?
         try:
-            if (rpi_hardware.mount_usb_drive() == True and self.datarecorder_check_usb == True):
-                openFileName = self.getNextLogFile("/mnt/usb/",fileExtension)
-            else:
+            # if pi then check if the usb drive is mounted
+            save_to_usb = _input_file_utils.readConfigBool("DataRecorder", "save_to_usb", False)
+            DataRecorderPath = None
+            if(self.is_raspberry_pi and save_to_usb):
+                import util.rpi_hardware as rpi_hardware
+                if (rpi_hardware.mount_usb_drive() == True and self.datarecorder_check_usb == True):
+                    DataRecorderPath = "/mnt/usb/"
+
+            if(DataRecorderPath == None):
                 DataRecorderPath = _input_file_utils.getDataRecorderDir()
                 log_path_format = _input_file_utils.readConfig("DataRecorder", "log_path_format", "%Y/%m/")
                 # get todays year and month. create a folder YYYY/MM/
                 today = datetime.now()
                 # replace the %Y and %m in the log_path_format with the current year and month.
-                log_path_format = log_path_format.replace("%Y",str(today.year)).replace("%m",str(today.month)).replace("%d",str(today.day))
-                DataRecorderPath = DataRecorderPath + log_path_format
-                # create the folder if it doesn't exist.
-                if not os.path.exists(DataRecorderPath):
-                    os.makedirs(DataRecorderPath)
-                openFileName = self.getNextLogFile(DataRecorderPath,fileExtension)
-            if isBinary == True:
+            log_path_format = log_path_format.replace("%Y",str(today.year)).replace("%m",str(today.month)).replace("%d",str(today.day))
+            DataRecorderPath = DataRecorderPath + log_path_format
+            # create the folder if it doesn't exist.
+            if not os.path.exists(DataRecorderPath):
+                os.makedirs(DataRecorderPath)
+
+            openFileName = self.getNextLogFile(DataRecorderPath,fileExtension)
+            if self.output_logBinary == True:
                 logFile = open(openFileName, "w+b")
             else:
                 logFile = open(openFileName, "w")
-            #.GrowlManager.add_message(self.name + ": Created log file: " + openFileName)
+            
+            # growl message
+            shared.GrowlManager.add_message(self.name + ": Created log : " + openFileName)
             return logFile,openFileName
         except Exception as e: 
             print(e)
@@ -126,7 +147,7 @@ class Input:
             # print full stack trace
             import traceback
             traceback.print_exc()
-            return  "",""
+            return None,None
 
     #############################################
     ## Method: closeLogFile
@@ -146,9 +167,22 @@ class Input:
     def addToLog(self,logfile,dataline):
         #print ("write")
         try:
-            logfile.write(dataline)
-        except :
+            if self.output_logBinary == True:
+                # Ensure dataline is a bytes object before writing
+                if isinstance(dataline, str):
+                    dataline = dataline.encode('utf-8')
+                elif isinstance(dataline, int):
+                    dataline = str(dataline).encode('utf-8')
+                self.output_logFile.write(dataline)
+            else:
+                if isinstance(dataline, (bytes, bytearray)):
+                    dataline = dataline.decode('utf-8', errors='ignore')
+                self.output_logFile.write(dataline)
+        except Exception as e:
             print("Error addToLog()")
+            print(e)
+            import traceback
+            traceback.print_exc()
 
     #############################################
     ## Method: getNextLogFile
@@ -175,7 +209,7 @@ class Input:
     ## tell this input to create log file and start logging data
     def startLog(self,aircraft):
         if self.output_logFile == None:
-            self.output_logFile,self.output_logFileName = Input.createLogFile(self,".dat",True)
+            self.output_logFile,self.output_logFileName = Input.createLogFile(self,".dat")
             print("Creating log output: %s"%(self.output_logFileName))
             self.RecFile = self.output_logFile
         else:
@@ -197,15 +231,15 @@ class Input:
     #############################################
     # fast forward if reading from a file.
     def fastForward(self,aircraft,bytesToSkip):
-            if self.PlayFile != None:
-                current = self.ser.tell()
-                moveTo = current - bytesToSkip
-                try:
+            try:
+                if self.PlayFile != None:
+                    current = self.ser.tell()
+                    moveTo = current - bytesToSkip
                     for _ in range(bytesToSkip):
                         next(self.ser) # have to use next...
-                except:
-                    # if error then just to start of file
-                    self.ser.seek(0)
+            except:
+                # if error then just to start of file
+                self.ser.seek(0)
                 #print("fastForward() before="+str(current)+" goto:"+str(moveTo)+" done="+str(self.ser.tell()))
                 print("fastForward->"+self.name)
 

@@ -5,6 +5,8 @@
 - sub menu work
 - variable selection
 - theme updates for gui
+- fixes for gauges (bar and arc).  now pick from drop down.
+- updated engine template.
 
 
 

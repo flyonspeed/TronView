@@ -144,6 +144,17 @@ def main_edit_loop():
                 active_dropdown.update(event_list)
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                     active_dropdown = None
+                    shared.active_dropdown = None  # Also clear shared dropdown
+            # Also check shared.active_dropdown if it exists
+            elif shared.active_dropdown and shared.active_dropdown.visible:
+                print(f"Processing event for shared.active_dropdown: {shared.active_dropdown.id}")
+                # Synchronize with local active_dropdown
+                active_dropdown = shared.active_dropdown
+                # Process the event
+                active_dropdown.update(event_list)
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                    active_dropdown = None
+                    shared.active_dropdown = None
             else:
                 ############################################################################################
                 # KEY MAPPINGS
@@ -504,10 +515,13 @@ def main_edit_loop():
                                 temp_current_text.set_text(temp_current_text.get_text() + text + "}")
                                 temp_current_text.enable()
                                 temp_current_text.focus()
-                                time.sleep(0.1)
-                                temp_current_text.rebuild()
-                                time.sleep(0.1)
-                                temp_current_text.redraw()
+                                # time.sleep(0.1)
+                                # temp_current_text.rebuild()
+                                # time.sleep(0.1)
+                                # temp_current_text.redraw()
+                                # get global active dropdown
+                                global text_entry_active
+                                text_entry_active = temp_current_text # make sure the text entry active is the one that was just updated
                             else:
                                 print("text_entry_active is None")
 
@@ -520,7 +534,7 @@ def main_edit_loop():
                             callback=choose_variable_callback)
                         active_dropdown.visible = True
                         active_dropdown.draw_menu = True
-                        active_dropdown.storeObject = {"lastEditTextLine": text_entry_active}
+                        active_dropdown.storeObject = {"lastEditTextLine": text_entry_active} # store the text entry active object
 
                 # check for joystick events
                 if event.type == pygame.JOYBUTTONDOWN or event.type == pygame.JOYBUTTONUP:
@@ -821,6 +835,19 @@ def main_edit_loop():
             overlay.set_alpha(200)    # 50% transparency (0-255)
             pygamescreen.blit(overlay, (0, 0))            
             active_dropdown.draw(pygamescreen)
+        # Check for active_dropdown in shared as a fallback
+        elif shared.active_dropdown and shared.active_dropdown.visible:
+            print(f"Using shared.active_dropdown: {shared.active_dropdown.id}")
+            # Create a semi-transparent overlay
+            screen_width = shared.smartdisplay.x_end
+            screen_height = shared.smartdisplay.y_end
+            overlay = pygame.Surface((screen_width, screen_height))
+            overlay.fill((0, 0, 0))  # Black background
+            overlay.set_alpha(200)    # 50% transparency (0-255)
+            pygamescreen.blit(overlay, (0, 0))            
+            shared.active_dropdown.draw(pygamescreen)
+            # Also sync it with local active_dropdown
+            active_dropdown = shared.active_dropdown
         else:
             # if event details window is visible, create a semi transparent overlay
             if (edit_events_window and edit_events_window.details_window) or \

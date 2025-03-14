@@ -103,7 +103,7 @@ def main_graphical():
                 elif event.key == pygame.K_l:
                     mx, my = pygame.mouse.get_pos()
                     print("Load screen key pressed at %d x %d" % (mx, my))
-                    def load_template_callback(id, index_path, text):
+                    def load_template_callback(dropdown,id, index_path, text):
                         print("Load template callback: %s" % text)
                         if index_path[0] == 0:
                             shared.CurrentScreen.clear()

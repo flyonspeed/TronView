@@ -1,10 +1,4 @@
 {
-    "#options_window": {
-        "misc": {
-            "enable_close_button": "0"
-        }
-    },
-
     "defaults": {
         "misc": {
             "enable_close_button": "0"
@@ -31,5 +25,26 @@
             "filled_bar":"#f4251b",
             "unfilled_bar":"#CCCCCC"
         }
+    },
+    "#options_window": {
+        "misc": {
+            "enable_close_button": "0"
+        }
+    },
+    "#handler_details_window": {
+        "misc": {
+            "enable_close_button": "0"
+        }
+    },
+    "#events_window": {
+        "misc": {
+            "enable_close_button": "0"
+        }
+    },
+    "#help_window": {
+        "misc": {
+            "enable_close_button": "0"
+        }
     }
+
 }

@@ -5,6 +5,7 @@ import json
 from pygame_gui.elements import UIWindow, UILabel, UIButton, UITextEntryLine, UIDropDownMenu
 from pygame_gui.windows import UIColourPickerDialog
 from lib.common import shared
+from lib.common.graphic.edit_dropdown import DropDown
 
 ############################################################################################
 ############################################################################################
@@ -16,6 +17,9 @@ class EditOptionsBar:
         self.visible = True
         self.ui_elements = []
         self.text_entry_active: UITextEntryLine | None = None  # Add this line
+        self.last_dropdown_click_time = 0  # Track when dropdown was clicked
+        
+        print(f"Creating EditOptionsBar for {screen_object.title}")
         
         window_width = 260
         window_height = self.calculate_height()
@@ -195,6 +199,39 @@ class EditOptionsBar:
                 dropdown.option_name = option
                 dropdown.object_id = "#options_dropdown_" + option
                 self.ui_elements.append(dropdown)
+            elif details['type'] == 'dataship_var':
+                current_value = getattr(self.screen_object.module, option)
+                
+                # Check if current value is "Error" and handle specially
+                if current_value == "Error":
+                    var_button = UIButton(
+                        relative_rect=pygame.Rect(x_offset, y_offset, 180, 20),
+                        text="Error (click to reset)",
+                        manager=self.pygame_gui_manager,
+                        container=self.scrollable_container,
+                        tool_tip_text="Variable has error value. Click to select a different variable."
+                    )
+                    # Set error colors (red background)
+                    #var_button.colours['normal_bg'] = pygame.Color(255, 100, 100)
+                    #var_button.colours['hovered_bg'] = pygame.Color(255, 150, 150)
+                    var_button.rebuild()
+                else:
+                    var_button = UIButton(
+                        relative_rect=pygame.Rect(x_offset, y_offset, 180, 20),
+                        text=current_value if current_value else 'Select variable ▼',
+                        manager=self.pygame_gui_manager,
+                        container=self.scrollable_container,
+                        tool_tip_text="Click to select a Dataship variable"
+                    )
+                    # Set a different color to make it stand out
+                    #var_button.colours['normal_bg'] = pygame.Color(200, 230, 255)
+                    #var_button.colours['hovered_bg'] = pygame.Color(150, 200, 250)
+                    var_button.rebuild()
+                
+                var_button.option_name = option
+                var_button.object_id = "#options_dataship_var_" + option
+                self.ui_elements.append(var_button)
+                print(f"Created dataship_var button for option: {option}, value: {current_value}")
 
             y_offset += 30 # move down 30 pixels so we can draw another control
             total_height += 5  # Padding between options
@@ -219,14 +256,32 @@ class EditOptionsBar:
                 self.text_entry_active = None # else they didn't click on a text entry field
 
         if event.type == pygame_gui.UI_BUTTON_PRESSED:
+            print(f"Button pressed: {event.ui_element}")
             for element in self.ui_elements:
                 if isinstance(element, UIButton) and event.ui_element == element:
+                    print(f"Found matching button: {element.object_id}")
                     if hasattr(element, 'option_name'):
                         option = element.option_name
-                        if self.screen_object.module.get_module_options()[option]['type'] == 'color':
-                            self.show_color_picker(option)  # clicked on a button to open a color picker
+                        print(f"Button has option_name: {option}")
+                        
+                        # Get the option type
+                        options = self.screen_object.module.get_module_options()
+                        if option in options:
+                            option_type = options[option]['type']
+                            print(f"Option type: {option_type}")
+                            
+                            if option_type == 'color':
+                                self.show_color_picker(option)  # clicked on a button to open a color picker
+                            elif option_type == 'dataship_var':
+                                print("Calling show_variable_picker")
+                                self.show_variable_picker(option)  # clicked on a button to open variable picker
+                                return  # Return to prevent further processing
+                            else:
+                                self.on_checkbox_click(option)
                         else:
-                            self.on_checkbox_click(option)
+                            print(f"Option {option} not found in module options")
+                    else:
+                        print("Button does not have option_name attribute")
         elif event.type == pygame_gui.UI_COLOUR_PICKER_COLOUR_PICKED:
             # check if this event is for a color picker
             for option, picker in list(self.color_pickers.items()):
@@ -404,6 +459,85 @@ class EditOptionsBar:
         # refesh all the options in the EditOptionsWindow
         self.build_ui()
 
+    def show_variable_picker(self, option):
+        """Show dropdown menu with available Dataship variables"""
+        # Get mouse position for the dropdown
+        mx, my = pygame.mouse.get_pos()
+        print(f"Show variable picker at {mx}, {my} for option {option}")
+        self.last_dropdown_click_time = pygame.time.get_ticks()
+        
+        def variable_selected_callback(dropdown, id, index_path, text):
+            """Handle variable selection from dropdown"""
+            print(f"Variable selected: {text}")
+            
+            # Store the old value for change history
+            old_value = getattr(self.screen_object.module, option)
+            
+            # Update the module with the selected variable
+            shared.Change_history.add_change("option_change", {
+                "object": self.screen_object,
+                "option": option,
+                "old_value": old_value,
+                "new_value": text
+            })
+            
+            # Set the new value
+            setattr(self.screen_object.module, option, text)
+            
+            # Update UI to show the selected variable name
+            for element in self.ui_elements:
+                if isinstance(element, UIButton) and element.option_name == option:
+                    element.set_text(text)
+                    break
+            
+            # Call update_option if it exists
+            if hasattr(self.screen_object.module, 'update_option'):
+                self.screen_object.module.update_option(option, text)
+            
+            # Check for post_change_function
+            options = self.screen_object.module.get_module_options()
+            if 'post_change_function' in options[option]:
+                post_change_function = getattr(self.screen_object.module, options[option]['post_change_function'], None)
+                if post_change_function:
+                    post_change_function()
+        
+        # Create the dropdown with all available Dataship variables
+        try:
+            # Get all available Dataship fields
+            dataship_fields = shared.Dataship._get_all_fields()
+            print(f"Available Dataship fields: {len(dataship_fields)}")
+            
+            # Create the dropdown and set it directly in shared
+            dropdown = DropDown(
+                id="dropdown_select_dataship_var",
+                x=mx, y=my, w=200, h=30,
+                menuTitle="Choose Variable", 
+                options=dataship_fields,
+                callback=variable_selected_callback
+            )
+            
+            # These properties are essential for the dropdown to be visible and drawn
+            dropdown.visible = True
+            dropdown.draw_menu = True
+            
+            # Set storeObject with all necessary info
+            dropdown.storeObject = {
+                "type": "dataship_var", 
+                "option": option,
+                "x": mx, 
+                "y": my,
+                "origin": "EditOptionsBar"
+            }
+            
+            # Set it in shared module directly
+            shared.active_dropdown = dropdown
+            
+            print("Created dropdown and stored in shared.active_dropdown")
+            
+        except Exception as e:
+            print(f"Error creating variable picker dropdown: {e}")
+            import traceback
+            traceback.print_exc()
 
     def update_position(self):
         window_width = self.window.get_abs_rect().width
@@ -463,4 +597,13 @@ class EditOptionsBar:
             for picker in self.color_pickers.values():
                 if picker.visible:
                     return True
+                    
+        # Check if there's an active dropdown in edit_mode
+        try:
+            from lib.common.graphic import edit_mode
+            if edit_mode.active_dropdown and edit_mode.active_dropdown.visible:
+                return True
+        except (ImportError, AttributeError):
+            pass
+            
         return False

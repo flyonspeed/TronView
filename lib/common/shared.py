@@ -83,5 +83,10 @@ GrowlManager = GrowlManager()
 ## This is a global object that is used to manage events.
 EventManager = EventManager()
 
+####################################
+## Active Dropdown
+## This is a global reference to the currently active dropdown menu in edit mode
+active_dropdown = None
+
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python
 

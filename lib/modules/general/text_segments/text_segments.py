@@ -299,7 +299,7 @@ class text_segments(Module):
         super().clear()
 
     def get_module_options(self):
-        data_fields = shared.Dataship._get_all_fields()
+        #data_fields = shared.Dataship._get_all_fields()
 
         return {
             # "template": {

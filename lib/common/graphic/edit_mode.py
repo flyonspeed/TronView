@@ -80,7 +80,7 @@ def main_edit_loop():
     ruler_color = (100, 100, 100, 6)  # Light gray for non-selected objects
     selected_ruler_color = (0, 255, 0, 6)  # Green for selected objects
     help_window = None
-    text_entry_active = False
+    text_entry_active = None
     drag_start_positions = {}  # To store initial positions of dragged objects
 
     shared.GrowlManager.clear()
@@ -141,7 +141,7 @@ def main_edit_loop():
             else:
                 ############################################################################################
                 # KEY MAPPINGS
-                if event.type == pygame.KEYDOWN and not text_entry_active:
+                if event.type == pygame.KEYDOWN and text_entry_active is None:
                     mods = pygame.key.get_mods()
                     if event.key == pygame.K_3 or event.key == pygame.K_KP3:
                         # do nothing
@@ -388,7 +388,7 @@ def main_edit_loop():
                                 nonlocal text_input, text_entry_active
                                 text_input.kill()
                                 text_input = None
-                                text_entry_active = False
+                                text_entry_active = None
 
                             if shared.CurrentScreen.loaded_from_template is not None:
                                 filenameToUse = shared.CurrentScreen.loaded_from_template
@@ -482,7 +482,7 @@ def main_edit_loop():
                     # Undo functionality
                     elif event.key == pygame.K_z and (mods & pygame.KMOD_CTRL):
                         undo_last_change(shared.Change_history, shared)
-                elif event.type == pygame.KEYDOWN and text_entry_active:
+                elif event.type == pygame.KEYDOWN and text_entry_active is not None:
                     # handle text input
                     # check if key is {
                     if event.key == pygame.K_LEFTBRACKET:
@@ -494,6 +494,14 @@ def main_edit_loop():
                         def choose_variable_callback(id, index_path, text):
                             print("Choose variable callback: %s" % text)
                             active_dropdown = None
+                            if text_entry_active is not None:
+                                text_entry_active.set_text(text_entry_active.get_text() + text + "}")
+                                text_entry_active.enable()
+                                text_entry_active.focus()
+                                time.sleep(0.1)
+                                text_entry_active.rebuild()
+                                time.sleep(0.1)
+                                text_entry_active.redraw()
 
                         #########################################################
                         active_dropdown = DropDown(
@@ -504,8 +512,6 @@ def main_edit_loop():
                             callback=choose_variable_callback)
                         active_dropdown.visible = True
                         active_dropdown.draw_menu = True
-                        active_dropdown.storeObject = {"type": "variable", "x": mx, "y": my} # store the mouse position
-
 
                 # check for joystick events
                 if event.type == pygame.JOYBUTTONDOWN or event.type == pygame.JOYBUTTONUP:

@@ -13,7 +13,7 @@ class EditOptionsBar:
         self.pygame_gui_manager = pygame_gui_manager
         self.visible = True
         self.ui_elements = []
-        self.text_entry_active = False  # Add this line
+        self.text_entry_active: UITextEntryLine | None = None  # Add this line
         
         window_width = 260
         window_height = self.calculate_height()
@@ -209,11 +209,11 @@ class EditOptionsBar:
             for element in self.ui_elements:
                 if isinstance(element, UITextEntryLine) and element.rect.collidepoint(event.pos):
                     print("Text entry field clicked")
-                    self.text_entry_active = True
+                    self.text_entry_active = element
                     foundClickedTextEntry = True
                     break           
             if foundClickedTextEntry == False:
-                self.text_entry_active = False # else they didn't click on a text entry field
+                self.text_entry_active = None # else they didn't click on a text entry field
 
         if event.type == pygame_gui.UI_BUTTON_PRESSED:
             for element in self.ui_elements:
@@ -234,10 +234,10 @@ class EditOptionsBar:
                 if isinstance(element, pygame_gui.elements.UIHorizontalSlider) and event.ui_element == element:
                     self.on_slider_moved(element.option_name, event.value)
         elif event.type == pygame_gui.UI_TEXT_ENTRY_CHANGED:
-            self.text_entry_active = True
+            self.text_entry_active = event.ui_element
         elif event.type == pygame_gui.UI_TEXT_ENTRY_FINISHED:
             print("Text entry finished")
-            self.text_entry_active = False
+            self.text_entry_active = None
             self.on_text_submit_change(event.ui_element.option_name, event.text) # send the option name and the text entered
         elif event.type == pygame_gui.UI_DROP_DOWN_MENU_CHANGED:
             for element in self.ui_elements:

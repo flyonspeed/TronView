@@ -268,13 +268,13 @@ class gauge_arc(Module):
         #print(f"templates: {data_fields}")
 
         return {
-            "data_field": {
-                "type": "dropdown",
-                "default": self.data_field,
-                "options": data_fields,
-                "label": "Data Field",
-                "description": "Select a data field to display",
-            },
+            # "data_field": {
+            #     "type": "dropdown",
+            #     "default": self.data_field,
+            #     "options": data_fields,
+            #     "label": "Data Field",
+            #     "description": "Select a data field to display",
+            # },
             "minValue": {
                 "type": "int",
                 "default": self.minValue,

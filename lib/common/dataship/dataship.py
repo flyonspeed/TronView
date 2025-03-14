@@ -10,6 +10,7 @@ from lib.common.dataship.dataship_targets import TargetData
 from lib.common.dataship.dataship_engine_fuel import EngineData, FuelData
 from lib.common.dataship.dataship_nav import NavData
 from lib.common.dataship.dataship_analog import AnalogData
+from lib.common.graphic.edit_dropdown import menu_item
 
 class Interface(Enum):
     TEXT = "text"
@@ -44,7 +45,7 @@ class Dataship(object):
 
     
     # get a list of all fields and functions in the aircraft object
-    def _get_all_fields(self, prefix: str = '', force_rebuild: bool = False) -> List[str]:
+    def _get_all_fields(self, prefix: str = '', force_rebuild: bool = False) -> List[Any]:
         """
         Get a list of all fields in the aircraft object.
         
@@ -53,67 +54,116 @@ class Dataship(object):
             force_rebuild (bool): If True, rebuild the field list even if cached.
         
         Returns:
-            List[str]: List of all fields in the aircraft object.
+            List[menu_item]: List of all fields in the aircraft object represented as menu_item objects.
+
+        EXAMPLE:
+        options = [
+            menu_item("imuData", [
+                menu_item("imuData[0]", [
+                    menu_item("imuData[0].id"),
+                    menu_item("imuData[0].name"),
+                    menu_item("imuData[0].purpose"),
+                    menu_item("imuData[0].address"),
+                    menu_item("imuData[0].hz"),
+                ]),
+                menu_item("imuData[1]", [
+                    menu_item("imuData[1].id"),
+                    menu_item("imuData[1].name"),
+                    menu_item("imuData[1].purpose"),
+                    menu_item("imuData[1].address"),
+                    menu_item("imuData[1].hz"),
+                ]),
+            ]),
+            menu_item("gpsData", [
+                menu_item("gpsData[0]", [
+                    menu_item("gpsData[0].id"),
+                    menu_item("gpsData[0].name"),
+                    menu_item("gpsData[0].address"),
+                    menu_item("gpsData[0].hz"),
+                    menu_item("gpsData[0].latitude"),
+                    menu_item("gpsData[0].longitude"),
+                    menu_item("gpsData[0].altitude"),
+                ]),
+            ])
+        ]
+
         """
-        if not force_rebuild and hasattr(self, '_all_fields'):
-            #print(f"Using cached aircraft field list. len: {len(self._all_fields)}")
-            return self._all_fields
+        # if not force_rebuild and hasattr(self, '_all_fields'):
+        #     #print(f"Using cached aircraft field list. len: {len(self._all_fields)}")
+        #     return self._all_fields
 
         fields = []
+        structured_fields = []
 
         def add_field(name: str, value: Any, current_prefix: str):
             full_name = f"{current_prefix}{name}" if current_prefix else name
-            #print(f"Checking field: {full_name} with type: {type(value).__name__}", end=' ')
-
-            if isinstance(value, str):
-                fields.append(full_name)
-            elif isinstance(value, int):
-                fields.append(full_name)
-            elif isinstance(value, float):
-                fields.append(full_name)
-            elif isinstance(value, complex):
-                fields.append(full_name)
-            elif isinstance(value, bool):
+            
+            # Add the basic field to the flat list
+            if isinstance(value, str) or isinstance(value, int) or isinstance(value, float) or \
+               isinstance(value, complex) or isinstance(value, bool) or value is None:
                 fields.append(full_name)
             elif isinstance(value, list):
                 fields.append(f"{full_name}[{len(value)}]")
-                # show all items in the list
-                for i, item in enumerate(value):
-                    fields.append(f"{full_name}[{i}]")
+                
+                # Process list items
+                if value and hasattr(value[0], '__dict__'):
+                    # This is a list of objects
+                    list_menu_item = menu_item(full_name)
+                    
+                    # For each item in the list, create a submenu
+                    for i, item in enumerate(value):
+                        item_name = f"{full_name}[{i}]"
+                        item_menu = menu_item(item_name)
+                        
+                        # Add each attribute of the item to both the flat list and the submenu
+                        for attr, attr_value in inspect.getmembers(item):
+                            if not attr.startswith('_') and not inspect.ismethod(attr_value) and not inspect.isfunction(attr_value):
+                                attr_full_name = f"{item_name}.{attr}"
+                                fields.append(attr_full_name)
+                                item_menu.add_submenu(menu_item(attr_full_name))
+                        
+                        # Add the item submenu to the list submenu
+                        if item_menu.submenus:
+                            list_menu_item.add_submenu(item_menu)
+                    
+                    # Add the list menu item to the structured fields
+                    if list_menu_item.submenus:
+                        structured_fields.append(list_menu_item)
+                else:
+                    # Simple list of values
+                    for i, item in enumerate(value):
+                        fields.append(f"{full_name}[{i}]")
             elif isinstance(value, tuple):
                 fields.append(full_name)
             elif isinstance(value, dict):
                 fields.append(full_name)
-            elif value is None:
-                fields.append(full_name)
+                for key, dict_value in value.items():
+                    fields.append(f"{full_name}['{key}']")
             elif inspect.ismethod(value) or inspect.isfunction(value):
                 fields.append(f"{full_name}()")
-                #print("(added as method)")
             elif isinstance(value, object):
-                #print("(skipped class)")
                 fields.append(f"{full_name}<obj>")
 
-            # if it has a __dict__ then recurse through it.
-            if hasattr(value, '__dict__'):
-                # if it's enum then skip it
-                if isinstance(value, Enum):
-                    return
-                # get type of value
-                print(f"(recursing) {full_name} {type(value)}", end=' ')
+            # Recursively process objects with __dict__
+            if hasattr(value, '__dict__') and not isinstance(value, Enum):
+                obj_fields = []
                 for attr, attr_value in inspect.getmembers(value):
                     if not attr.startswith('_') and not attr == 'get_all_fields':
                         add_field(attr, attr_value, f"{full_name}.")
-            # else:
-            #     fields.append(full_name)
-            #     #print("(added as unknown type)")
+                        if not inspect.ismethod(attr_value) and not inspect.isfunction(attr_value):
+                            obj_fields.append(attr)
 
+
+        # Process all members of the main object
         for name, value in inspect.getmembers(self):
             if not name.startswith('_'):
                 add_field(name, value, prefix)
 
         self._all_fields = fields
-        #print(f"Built field list with {len(fields)} items")
-        return fields
+        self._structured_fields = structured_fields
+        #print(f"fields: {fields}")
+        print(f"structured_fields: {structured_fields}")
+        return structured_fields
 
 
 #############################################

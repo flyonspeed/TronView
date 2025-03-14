@@ -90,7 +90,7 @@ class text(Module):
     # return a dict of objects that are used to configure the module.
     def get_module_options(self):
 
-        data_fields = shared.Dataship._get_all_fields()
+        #data_fields = shared.Dataship._get_all_fields()
         #print(f"templates: {data_fields}")
 
         return {

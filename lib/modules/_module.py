@@ -189,6 +189,48 @@ class Module:
                 button["selected"] = selected
                 return
 
+    def get_nested_attr(self, obj, attr):
+        parts = attr.split('.')
+        for part in parts:
+            if part.endswith('()'):
+                # It's a function call
+                func_name = part[:-2]
+                obj = getattr(obj, func_name)()
+            elif part.endswith('<obj>'):
+                # It's an object
+                obj = getattr(obj, part[:-5])
+            elif part.endswith(']'):
+                # It's an index. example: "gpsData[0]"
+                # parse the index from the string
+                index = part[1:-1]
+                # remove the beginning of the string until the first [
+                index = index[index.find('[')+1:]
+                # get the name of the object (from part) example: gpsData
+                name = part[:part.find('[')]
+                # get the value
+                obj = getattr(obj, name)[int(index)]
+                #print(f"obj: {obj}")
+            else:
+                obj = getattr(obj, part)
+        return obj
+
+    def format_object(self,obj):
+        # check if None
+        if obj is None:
+            obj = "None"
+        else:
+            sub_vars = obj.__dict__
+            final_value = ""
+            for sub_var in sub_vars:
+                # check if it starts with _ then skip it.
+                if sub_var.startswith('_'):
+                    continue
+                # check if it has a __dict__.. if so skip it cause it's probably a child object. (for now...)
+                if hasattr(sub_vars[sub_var], '__dict__'):
+                    continue
+                final_value += f"{sub_var}: {sub_vars[sub_var]}\n"
+            obj = final_value
+        return obj
 
     def parse_text(self, inputText: str, dataship: Dataship):
         """
@@ -198,48 +240,7 @@ class Module:
         Objects are enclosed in angle brackets.
         Indexes are enclosed in square brackets.
         """
-        def get_nested_attr(obj, attr):
-            parts = attr.split('.')
-            for part in parts:
-                if part.endswith('()'):
-                    # It's a function call
-                    func_name = part[:-2]
-                    obj = getattr(obj, func_name)()
-                elif part.endswith('<obj>'):
-                    # It's an object
-                    obj = getattr(obj, part[:-5])
-                elif part.endswith(']'):
-                    # It's an index. example: "gpsData[0]"
-                    # parse the index from the string
-                    index = part[1:-1]
-                    # remove the beginning of the string until the first [
-                    index = index[index.find('[')+1:]
-                    # get the name of the object (from part) example: gpsData
-                    name = part[:part.find('[')]
-                    # get the value
-                    obj = getattr(obj, name)[int(index)]
-                    #print(f"obj: {obj}")
-                else:
-                    obj = getattr(obj, part)
-            return obj
-    
-        def format_object(obj):
-            # check if None
-            if obj is None:
-                obj = "None"
-            else:
-                sub_vars = obj.__dict__
-                final_value = ""
-                for sub_var in sub_vars:
-                    # check if it starts with _ then skip it.
-                    if sub_var.startswith('_'):
-                        continue
-                    # check if it has a __dict__.. if so skip it cause it's probably a child object. (for now...)
-                    if hasattr(sub_vars[sub_var], '__dict__'):
-                        continue
-                    final_value += f"{sub_var}: {sub_vars[sub_var]}\n"
-                obj = final_value
-            return obj
+
 
         words = inputText.split()
         result = inputText
@@ -255,9 +256,9 @@ class Module:
 
                 try:
                     if variable_name == "self":
-                        variable_value = format_object(dataship)
+                        variable_value = self.format_object(dataship)
                     else:
-                        variable_value = get_nested_attr(dataship, variable_name)
+                        variable_value = self.get_nested_attr(dataship, variable_name)
                     # check if variable_name is a object if so get the object vars
 
                     # check if its a string, int, float, list, tuple, dict. and if format_specifier is not None then format it.
@@ -270,11 +271,11 @@ class Module:
                         # go through each item in the list and format it by calling this function recursively.
                         final_value = ""
                         for item in variable_value:
-                            final_value += f"\n{format_object(item)}\n======================="
+                            final_value += f"\n{self.format_object(item)}\n======================="
                         variable_value = final_value
 
                     elif isinstance(variable_value, object):
-                        variable_value = format_object(variable_value)
+                        variable_value = self.format_object(variable_value)
                     else:
                         variable_value = str(variable_value)
                 except Exception as e:
@@ -288,6 +289,36 @@ class Module:
                 result = result.replace(word, word)
         return result
 
-
+    def get_data_field(self, dataship, data_field, default_value=0, default_value_on_error=0):
+        """
+        Get a data field from the dataship object.
+        Useful for passing in object string name and getting back the value.
+        """
+        def get_nested_attr(obj, attr):
+            parts = attr.split('.')
+            for part in parts:
+                # check if its a list if it ends with ]. example: listname[1]
+                if part.endswith(']'):
+                    index = part[1:-1]
+                    # remove the beginning of the string until the first [
+                    index = index[index.find('[')+1:]
+                    # get the name of the object (from part) example: gpsData
+                    name = part[:part.find('[')]
+                    # get the value
+                    obj = getattr(obj, name)[int(index)]
+                elif part.endswith('()'):
+                    # It's a function call
+                    func_name = part[:-2]
+                    obj = getattr(obj, func_name)()
+                else:
+                    obj = getattr(obj, part)
+            return obj
+        if data_field == "":
+            return default_value
+        try:
+            return get_nested_attr(dataship, data_field)
+        except Exception as e:
+            print(f"Error getting data field {data_field}: {e}")
+            return default_value_on_error
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

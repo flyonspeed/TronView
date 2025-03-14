@@ -9,14 +9,13 @@ Project for connecting EFIS or any external sensor data to a Screen, HUD, or AR 
 ## Active development! (March 2025!)
 If you want to help with development or testing please join our [Join Discord](https://discord.gg/pdnxWa32aW) sever.
 We are working on several new features. 
+- Meshtastic integration (Working on)
 - XReal and Viture AR glasses support
-- Editor to make creating or editing your own screen very easy.
+- Editor to make creating or editing your own screen very easy. (DONE)
 - Better G3x support
 - Show/Hide screen modules based on key commands or other inputs. (event handlers)
-- Additional IMU/Gyro support (BNO085, BNO055)
-- Looking into live data broadcast to other TronView displays (that would be cool!)
+- Additional IMU/Gyro support (BNO085, BNO055) (DONE)
 - Moving Map.
-- More external sensors (Pressure, Voltage, GPS, etc)
 - Touch screen support (New Raspberry Pi Touchscreen v2)
 
 

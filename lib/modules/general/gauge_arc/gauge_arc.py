@@ -112,24 +112,7 @@ class gauge_arc(Module):
             self._cached_surfaces[key] = text_surface
         return self._cached_surfaces[key]
 
-    def get_data_field(self, aircraft, data_field):
-        def get_nested_attr(obj, attr):
-            parts = attr.split('.')
-            for part in parts:
-                if part.endswith('()'):
-                    # It's a function call
-                    func_name = part[:-2]
-                    obj = getattr(obj, func_name)()
-                else:
-                    obj = getattr(obj, part)
-            return obj
-        if data_field == "":
-            return 0
-        try:
-            return get_nested_attr(aircraft, data_field)
-        except Exception as e:
-            print(f"Error getting data field {data_field}: {e}")
-            return 0
+
 
     # called every redraw for the mod
     def draw(self, aircraft, smartdisplay, pos=(None,None)):
@@ -140,10 +123,45 @@ class gauge_arc(Module):
         self.surface2.fill((0,0,0,0))
         
         # Get and smooth value
-        target_value = self.get_data_field(aircraft, self.data_field)
+        target_value = self.get_data_field(aircraft, self.data_field, default_value=0, default_value_on_error="Error")
         actual_value = target_value
         
+        # Check if we have an error condition or actual_value is not a number
+        if actual_value == "Error" or not isinstance(actual_value, (float, int)):
+            # Draw basic gauge background
+            for i in range(3):
+                pygame.draw.circle(self.surface2, (20, 20, 20, 255 - i * 20), 
+                                 self.arcCenter, self.arcRadius - 4 - i)
+            
+            # Draw error message in the middle
+            error_font = pygame.font.SysFont(self.font_name, 
+                                           int(self.font_size * 1.2), 
+                                           True)  # Bold font for error
+            error_surface = error_font.render("ERROR", True, (255, 0, 0))  # Red error text
+            error_rect = error_surface.get_rect()
+            error_x = self.arcCenter[0] - error_rect.width / 2
+            error_y = self.arcCenter[1] - error_rect.height / 2
+            
+            # Draw shadow and then text
+            shadow_surface = error_font.render("ERROR", True, (30, 30, 30))
+            self.surface2.blit(shadow_surface, (error_x + 1, error_y + 1))
+            self.surface2.blit(error_surface, (error_x, error_y))
+            
+            # Draw bezel with red outline to indicate error
+            for i in range(4):
+                color = (255, 50, 50)  # Red outline for error
+                pygame.draw.circle(self.surface2, color, self.arcCenter, 
+                                 self.arcRadius - i, max(1, self.outline_weight))
+                
+            # Final blit to screen
+            self.pygamescreen.blit(self.surface2, (x, y))
+            return  # Exit early, don't draw the rest of the gauge
+        
         if target_value is not None:
+            # make sure target_value is a float or int.. if not return 0
+            if not isinstance(target_value, (float, int)):
+                target_value = 0
+            
             self.current_smooth_value += (target_value - self.current_smooth_value) * self.smooth_factor
             value = max(self.minValue, min(self.maxValue, self.current_smooth_value))
         else:
@@ -268,6 +286,13 @@ class gauge_arc(Module):
         #print(f"templates: {data_fields}")
 
         return {
+            "data_field": {
+                "type": "dataship_var",
+                "default": self.data_field,
+                "label": "Data Field",
+                "description": "Select a data field to display",
+                "post_change_function": "update_cached_positions"
+            },
             # "data_field": {
             #     "type": "dropdown",
             #     "default": self.data_field,

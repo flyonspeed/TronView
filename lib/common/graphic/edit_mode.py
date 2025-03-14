@@ -32,6 +32,8 @@ from lib.common.graphic.edit_dropdown import DropDown
 from lib.common.graphic.growl_manager import GrowlManager, GrowlPosition
 from lib.common.dataship.dataship import Interface
 from lib.common.graphic.edit_textinput import TextInput
+from pygame_gui.elements import UITextEntryLine
+
 
 #############################################
 ## Function: main edit loop
@@ -70,7 +72,11 @@ def main_edit_loop():
     modulesFound, listModules = find_module(debugOutput=False)
     showAllBoundryBoxes = False
     selected_screen_objects = []
-    pygame_gui_manager = pygame_gui.UIManager((shared.smartdisplay.x_end, shared.smartdisplay.y_end))
+    theme_path = os.path.join(os.path.dirname(__file__), "theme.json")
+    pygame_gui_manager = pygame_gui.UIManager(
+                            (shared.smartdisplay.x_end, shared.smartdisplay.y_end), 
+                            theme_path=theme_path,
+                            enable_live_theme_updates=False)
     edit_options_bar: EditOptionsBar = None
     edit_events_window: EditEventsWindow = None
     text_input: TextInput = None
@@ -80,7 +86,7 @@ def main_edit_loop():
     ruler_color = (100, 100, 100, 6)  # Light gray for non-selected objects
     selected_ruler_color = (0, 255, 0, 6)  # Green for selected objects
     help_window = None
-    text_entry_active = None
+    text_entry_active = None # can be a UITextEntryLine or None or False
     drag_start_positions = {}  # To store initial positions of dragged objects
 
     shared.GrowlManager.clear()
@@ -138,6 +144,17 @@ def main_edit_loop():
                 active_dropdown.update(event_list)
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                     active_dropdown = None
+                    shared.active_dropdown = None  # Also clear shared dropdown
+            # Also check shared.active_dropdown if it exists
+            elif shared.active_dropdown and shared.active_dropdown.visible:
+                print(f"Processing event for shared.active_dropdown: {shared.active_dropdown.id}")
+                # Synchronize with local active_dropdown
+                active_dropdown = shared.active_dropdown
+                # Process the event
+                active_dropdown.update(event_list)
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                    active_dropdown = None
+                    shared.active_dropdown = None
             else:
                 ############################################################################################
                 # KEY MAPPINGS
@@ -278,11 +295,11 @@ def main_edit_loop():
                         # Show the dropdown menu for adding a new module
                         mx, my = pygame.mouse.get_pos()
                         #########################################################
-                        def add_module_callback(id, index_path, text):
+                        def add_module_callback(dropdown, id, index_path, text):
                             print("Add module callback: %s" % text)
                             selection = index_path[0]
-                            new_x = active_dropdown.storeObject["x"]  # get the x,y postion stored in the dropdown
-                            new_y = active_dropdown.storeObject["y"]
+                            new_x = dropdown.storeObject["x"]  # get the x,y postion stored in the dropdown
+                            new_y = dropdown.storeObject["y"]
                             print("Adding module: %s at %d x %d" % (listModules[selection], new_x, new_y))
                             newObject = TronViewScreenObject(
                                 pygamescreen, 
@@ -312,7 +329,7 @@ def main_edit_loop():
                     elif event.key == pygame.K_l:
                         mx, my = pygame.mouse.get_pos()
                         print("Load screen key pressed at %d x %d" % (mx, my))
-                        def load_template_callback(id, index_path, text):
+                        def load_template_callback(dropdown, id, index_path, text):
                             print("Load template callback: %s" % text)
                             if index_path[0] == 0:
                                 shared.CurrentScreen.clear()
@@ -396,7 +413,7 @@ def main_edit_loop():
                                 filenameToUse = "" # default filename to use for new screens?
 
                             # show a dialog using edit_textinput.py
-                            text_entry_active = True
+                            text_entry_active = True  # set to true to indicate that the text input is active
                             text_input = TextInput(manager=pygame_gui_manager,
                                                  x=None, y=None, width=200, height=50, 
                                                  with_background=True,
@@ -482,7 +499,7 @@ def main_edit_loop():
                     # Undo functionality
                     elif event.key == pygame.K_z and (mods & pygame.KMOD_CTRL):
                         undo_last_change(shared.Change_history, shared)
-                elif event.type == pygame.KEYDOWN and text_entry_active is not None:
+                elif event.type == pygame.KEYDOWN and isinstance(text_entry_active, UITextEntryLine):  # if it's a UITextEntryLine object
                     # handle text input
                     # check if key is {
                     if event.key == pygame.K_LEFTBRACKET:
@@ -491,17 +508,22 @@ def main_edit_loop():
                         # TODO: show dropdown menu with list of variables
                         mx, my = pygame.mouse.get_pos()
                         #########################################################
-                        def choose_variable_callback(id, index_path, text):
+                        def choose_variable_callback(dropdown, id, index_path, text):
                             print("Choose variable callback: %s" % text)
-                            active_dropdown = None
-                            if text_entry_active is not None:
-                                text_entry_active.set_text(text_entry_active.get_text() + text + "}")
-                                text_entry_active.enable()
-                                text_entry_active.focus()
-                                time.sleep(0.1)
-                                text_entry_active.rebuild()
-                                time.sleep(0.1)
-                                text_entry_active.redraw()
+                            temp_current_text = dropdown.storeObject["lastEditTextLine"]
+                            if temp_current_text is not None:
+                                temp_current_text.set_text(temp_current_text.get_text() + text + "}")
+                                temp_current_text.enable()
+                                temp_current_text.focus()
+                                # time.sleep(0.1)
+                                # temp_current_text.rebuild()
+                                # time.sleep(0.1)
+                                # temp_current_text.redraw()
+                                # get global active dropdown
+                                global text_entry_active
+                                text_entry_active = temp_current_text # make sure the text entry active is the one that was just updated
+                            else:
+                                print("text_entry_active is None")
 
                         #########################################################
                         active_dropdown = DropDown(
@@ -512,6 +534,7 @@ def main_edit_loop():
                             callback=choose_variable_callback)
                         active_dropdown.visible = True
                         active_dropdown.draw_menu = True
+                        active_dropdown.storeObject = {"lastEditTextLine": text_entry_active} # store the text entry active object
 
                 # check for joystick events
                 if event.type == pygame.JOYBUTTONDOWN or event.type == pygame.JOYBUTTONUP:
@@ -812,6 +835,19 @@ def main_edit_loop():
             overlay.set_alpha(200)    # 50% transparency (0-255)
             pygamescreen.blit(overlay, (0, 0))            
             active_dropdown.draw(pygamescreen)
+        # Check for active_dropdown in shared as a fallback
+        elif shared.active_dropdown and shared.active_dropdown.visible:
+            print(f"Using shared.active_dropdown: {shared.active_dropdown.id}")
+            # Create a semi-transparent overlay
+            screen_width = shared.smartdisplay.x_end
+            screen_height = shared.smartdisplay.y_end
+            overlay = pygame.Surface((screen_width, screen_height))
+            overlay.fill((0, 0, 0))  # Black background
+            overlay.set_alpha(200)    # 50% transparency (0-255)
+            pygamescreen.blit(overlay, (0, 0))            
+            shared.active_dropdown.draw(pygamescreen)
+            # Also sync it with local active_dropdown
+            active_dropdown = shared.active_dropdown
         else:
             # if event details window is visible, create a semi transparent overlay
             if (edit_events_window and edit_events_window.details_window) or \

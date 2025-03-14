@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.0.29] - 2025-03-13
+
+- sub menu work
+- variable selection
+- theme updates for gui
+- fixes for gauges (bar and arc).  now pick from drop down.
+- updated engine template.
+
+
+
 ## [0.0.28] - 2025-03-10
 
 - data logging work. _input.py saves to correct file.

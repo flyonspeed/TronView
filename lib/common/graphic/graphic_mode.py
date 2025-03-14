@@ -14,7 +14,7 @@ import time
 import configparser
 import importlib
 import curses
-import pygame, pygame_gui
+import pygame
 from lib.common import shared
 from lib import hud_utils
 from lib.common.graphic.edit_save_load import load_screen_from_json
@@ -103,7 +103,7 @@ def main_graphical():
                 elif event.key == pygame.K_l:
                     mx, my = pygame.mouse.get_pos()
                     print("Load screen key pressed at %d x %d" % (mx, my))
-                    def load_template_callback(id, index_path, text):
+                    def load_template_callback(dropdown,id, index_path, text):
                         print("Load template callback: %s" % text)
                         if index_path[0] == 0:
                             shared.CurrentScreen.clear()

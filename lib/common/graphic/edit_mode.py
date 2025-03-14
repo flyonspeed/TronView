@@ -482,7 +482,31 @@ def main_edit_loop():
                     # Undo functionality
                     elif event.key == pygame.K_z and (mods & pygame.KMOD_CTRL):
                         undo_last_change(shared.Change_history, shared)
-                
+                elif event.type == pygame.KEYDOWN and text_entry_active:
+                    # handle text input
+                    # check if key is {
+                    if event.key == pygame.K_LEFTBRACKET:
+                        # show dropdown menu with list of variables
+                        print("Left bracket key pressed")
+                        # TODO: show dropdown menu with list of variables
+                        mx, my = pygame.mouse.get_pos()
+                        #########################################################
+                        def choose_variable_callback(id, index_path, text):
+                            print("Choose variable callback: %s" % text)
+                            active_dropdown = None
+
+                        #########################################################
+                        active_dropdown = DropDown(
+                            id="dropdown_choose_variable",
+                            x=mx, y=my, w=140, h=30,
+                            menuTitle="Choose Variable", 
+                            options=shared.Dataship._get_all_fields(),
+                            callback=choose_variable_callback)
+                        active_dropdown.visible = True
+                        active_dropdown.draw_menu = True
+                        active_dropdown.storeObject = {"type": "variable", "x": mx, "y": my} # store the mouse position
+
+
                 # check for joystick events
                 if event.type == pygame.JOYBUTTONDOWN or event.type == pygame.JOYBUTTONUP:
                     print("Joystick event: %s" % pygame.event.event_name(event.type))

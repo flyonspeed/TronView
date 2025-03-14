@@ -77,6 +77,8 @@ class DropDown():
         self.submenu_indicator = ">"  # Symbol to indicate submenu presence
         self.expanded_indicator = ""  # Symbol to indicate expanded submenu
         self.current_path = []  # Track the current submenu path
+        self.last_mouse_pos = pygame.mouse.get_pos()  # Track last mouse position
+        self.keyboard_navigation_active = False  # Track if keyboard navigation is active
 
     def _convert_options(self, options):
         """Convert plain options to DropDownOption objects"""
@@ -212,18 +214,108 @@ class DropDown():
                 
         return current_y
 
+    def _handle_keyboard_navigation(self, event):
+        """Handle keyboard navigation for dropdown menu"""
+        if not self.draw_menu:
+            return
+            
+        if event.key == pygame.K_UP:
+            # Handle tuple structure of active_option
+            if isinstance(self.active_option, tuple) and len(self.active_option) == 2:
+                level, index = self.active_option
+                if index > 0:
+                    self.active_option = (level, index - 1)
+                    self.keyboard_navigation_active = True
+            elif self.active_option == -1 and self.options:
+                # If no option is active, select the last option
+                self.active_option = (0, len(self.options) - 1)
+                self.keyboard_navigation_active = True
+                
+        elif event.key == pygame.K_DOWN:
+            # Handle tuple structure of active_option
+            if isinstance(self.active_option, tuple) and len(self.active_option) == 2:
+                level, index = self.active_option
+                # Need to check if we're at the end of the current level's options
+                current_options = self.options
+                for _ in range(level):
+                    if not current_options:
+                        break
+                    # Navigate to the correct submenu level
+                    for opt in current_options:
+                        if opt.is_expanded and opt.submenu:
+                            current_options = opt.submenu
+                            break
+                if current_options and index < len(current_options) - 1:
+                    self.active_option = (level, index + 1)
+                    self.keyboard_navigation_active = True
+            elif self.active_option == -1 and self.options:
+                # If no option is active, select the first option
+                self.active_option = (0, 0)
+                self.keyboard_navigation_active = True
+                
+        elif event.key == pygame.K_RETURN or event.key == pygame.K_SPACE:
+            # Select the current option
+            if isinstance(self.active_option, tuple) and len(self.active_option) == 2:
+                level, index = self.active_option
+                # Find the option at this level/index
+                current_options = self.options
+                for _ in range(level):
+                    if not current_options:
+                        break
+                    # Navigate to the correct submenu level
+                    for opt in current_options:
+                        if opt.is_expanded and opt.submenu:
+                            current_options = opt.submenu
+                            break
+                
+                if current_options and 0 <= index < len(current_options):
+                    option = current_options[index]
+                    if not option.submenu:  # Only close menu if leaf option selected
+                        self.draw_menu = False
+                        self.visible = False
+                        if self.callback:
+                            # Build the index path
+                            index_path = self._build_index_path(level, index)
+                            self.callback(self.id, index_path, option.text)
+                            return index_path, option.text
+                    else:
+                        # Toggle submenu expansion
+                        option.is_expanded = not option.is_expanded
+
+    def _build_index_path(self, level, index):
+        """Build an index path for a given level and index"""
+        # This is a simplified implementation - for a complete solution,
+        # you would need to track the full path during navigation
+        return [index]
+
     def update(self, event_list):
         mpos = pygame.mouse.get_pos()
         self.menu_active = self.rect.collidepoint(mpos)
         
-        # Update active option and handle submenu expansion on hover
-        self.active_option, hovered_option = self._find_active_option(mpos, self.options)
+        # Check if mouse has moved more than 10 pixels
+        mouse_moved = False
+        if self.keyboard_navigation_active:
+            dx = mpos[0] - self.last_mouse_pos[0]
+            dy = mpos[1] - self.last_mouse_pos[1]
+            distance = (dx*dx + dy*dy) ** 0.5  # Pythagorean distance
+            if distance > 10:
+                mouse_moved = True
+                self.keyboard_navigation_active = False
         
-        # Expand/collapse submenus based on hover
-        self._update_submenu_states(mpos, self.options)
+        # Only update active option based on mouse position if keyboard navigation is not active
+        if not self.keyboard_navigation_active:
+            self.active_option, hovered_option = self._find_active_option(mpos, self.options)
+        
+        # Update last mouse position
+        self.last_mouse_pos = mpos
+        
+        # Expand/collapse submenus based on hover (only if keyboard navigation is not active)
+        if not self.keyboard_navigation_active:
+            self._update_submenu_states(mpos, self.options)
         
         for event in event_list:
             if event.type == pygame.MOUSEBUTTONDOWN or event.type == pygame.FINGERDOWN:
+                self.keyboard_navigation_active = False  # Disable keyboard navigation on mouse click
                 if self.menu_active:
                     self.draw_menu = not self.draw_menu
                     self.visible = not self.visible
@@ -239,6 +331,12 @@ class DropDown():
                     else:
                         self.draw_menu = False
                         self.visible = False
+            # Handle keyboard navigation
+            if event.type == pygame.KEYDOWN:
+                result = self._handle_keyboard_navigation(event)
+                if result:
+                    return result
+                
         return -1, None
 
     def _find_active_option(self, pos, options, level=0):

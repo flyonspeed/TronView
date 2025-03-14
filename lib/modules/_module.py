@@ -190,6 +190,103 @@ class Module:
                 return
 
 
+    def parse_text(self, inputText: str, dataship: Dataship):
+        """
+        Parse text with variables and functions.
+        Variables are enclosed in curly braces.
+        Functions are enclosed in parentheses.
+        Objects are enclosed in angle brackets.
+        Indexes are enclosed in square brackets.
+        """
+        def get_nested_attr(obj, attr):
+            parts = attr.split('.')
+            for part in parts:
+                if part.endswith('()'):
+                    # It's a function call
+                    func_name = part[:-2]
+                    obj = getattr(obj, func_name)()
+                elif part.endswith('<obj>'):
+                    # It's an object
+                    obj = getattr(obj, part[:-5])
+                elif part.endswith(']'):
+                    # It's an index. example: "gpsData[0]"
+                    # parse the index from the string
+                    index = part[1:-1]
+                    # remove the beginning of the string until the first [
+                    index = index[index.find('[')+1:]
+                    # get the name of the object (from part) example: gpsData
+                    name = part[:part.find('[')]
+                    # get the value
+                    obj = getattr(obj, name)[int(index)]
+                    #print(f"obj: {obj}")
+                else:
+                    obj = getattr(obj, part)
+            return obj
+    
+        def format_object(obj):
+            # check if None
+            if obj is None:
+                obj = "None"
+            else:
+                sub_vars = obj.__dict__
+                final_value = ""
+                for sub_var in sub_vars:
+                    # check if it starts with _ then skip it.
+                    if sub_var.startswith('_'):
+                        continue
+                    # check if it has a __dict__.. if so skip it cause it's probably a child object. (for now...)
+                    if hasattr(sub_vars[sub_var], '__dict__'):
+                        continue
+                    final_value += f"{sub_var}: {sub_vars[sub_var]}\n"
+                obj = final_value
+            return obj
+
+        words = inputText.split()
+        result = inputText
+        for word in words:
+            if "{" in word and "}" in word:
+                variable_name = word[1:-1]
+                if "%" in variable_name:
+                    variable_name, format_specifier = variable_name.split("%")
+                elif ":" in variable_name:
+                    variable_name, format_specifier = variable_name.split(":")
+                else:
+                    format_specifier = None
+
+                try:
+                    if variable_name == "self":
+                        variable_value = format_object(dataship)
+                    else:
+                        variable_value = get_nested_attr(dataship, variable_name)
+                    # check if variable_name is a object if so get the object vars
+
+                    # check if its a string, int, float, list, tuple, dict. and if format_specifier is not None then format it.
+                    if format_specifier:
+                        variable_value = f"{variable_value:{format_specifier}}"
+                    elif isinstance(variable_value, (str, int, float, tuple, dict)):
+                        variable_value = f"{variable_value}"
+                    
+                    elif isinstance(variable_value, list):
+                        # go through each item in the list and format it by calling this function recursively.
+                        final_value = ""
+                        for item in variable_value:
+                            final_value += f"\n{format_object(item)}\n======================="
+                        variable_value = final_value
+
+                    elif isinstance(variable_value, object):
+                        variable_value = format_object(variable_value)
+                    else:
+                        variable_value = str(variable_value)
+                except Exception as e:
+                    # get instance type of variable_value
+                    #var_type = type(variable_value)
+                    variable_value = f"Error: {str(e)}"
+
+                result = result.replace(word, variable_value)
+            else:
+                # this is a normal word
+                result = result.replace(word, word)
+        return result
 
 
 

@@ -14,7 +14,7 @@ import time
 import configparser
 import importlib
 import curses
-import pygame, pygame_gui
+import pygame
 from lib.common import shared
 from lib import hud_utils
 from lib.common.graphic.edit_save_load import load_screen_from_json

@@ -1,5 +1,7 @@
 import pygame
 import pygame_gui
+import os
+import json
 from pygame_gui.elements import UIWindow, UILabel, UIButton, UITextEntryLine, UIDropDownMenu
 from pygame_gui.windows import UIColourPickerDialog
 from lib.common import shared
@@ -26,12 +28,13 @@ class EditOptionsBar:
         if y + window_height > smartdisplay.y_end:
             y = max(0, smartdisplay.y_end - window_height)
         
+        
         self.window = UIWindow(
             pygame.Rect(x, y, window_width, window_height),
             self.pygame_gui_manager,
             window_display_title=f"Options: {screen_object.title}",
             object_id="#options_window",
-            draggable=False 
+            draggable=False
         )
         
         # Create a scrollable container inside the window

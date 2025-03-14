@@ -163,6 +163,25 @@ class Dataship(object):
         self._structured_fields = structured_fields
         #print(f"fields: {fields}")
         print(f"structured_fields: {structured_fields}")
+
+
+        #add a few test items
+        structured_fields.append(menu_item("test"))
+        structured_fields.append(menu_item("test2", [
+            menu_item("test2.1"),
+            menu_item("test2.2"),
+            menu_item("test2.3"),
+        ]))
+        structured_fields.append(menu_item("testSub", [
+            menu_item("testSub.1"),
+            menu_item("testSub.2"),
+            menu_item("testSub.3"),
+            menu_item("testSub.4Sub", [
+                menu_item("testSub.4.1"),
+                menu_item("testSub.4.2"),
+                menu_item("testSub.4.3"),
+            ]),
+        ]))
         return structured_fields
 
 

@@ -73,7 +73,8 @@ run_python() {
 
     # if $ADD_ARGS contains --console-log-debug, then remove it and replace with the following:
     # of if $* contains --console-log-debug, then remove it and replace with the following:
-    if [[ "$ADD_ARGS" == *"--console-log-debug"* ]]; then
+    # or if $LAST_ADD_ARGS contains --console-log-debug, then remove it and replace with the following:
+    if [[ "$ADD_ARGS" == *"--console-log-debug"* || "$LAST_ADD_ARGS" == *"--console-log-debug"* ]]; then
         echo "Opening console log file: data/console_logs/last-console.log"
         # remove --console-log-debug from the command line arguments
         ADD_ARGS=$(echo "$ADD_ARGS" | sed 's/--console-log-debug//g')
@@ -88,11 +89,21 @@ run_python() {
         BUILD_VERSION=$(PYTHONPATH=$TRONVIEW_DIR python3 -c "from lib.version import __build_version__; print(__build_version__)")
         echo "##Build Version: $BUILD_VERSION" | $RUN_PREFIX tee -a $log_file > /dev/null
         echo "" | $RUN_PREFIX tee -a $log_file > /dev/null
-        if command -v $RUN_PREFIX tee &> /dev/null; then
-            ADD_ARGS="$ADD_ARGS 2>&1 | $RUN_PREFIX tee -a $log_file"
+        
+        # Setup Python to run with unbuffered output
+        # The -u flag to Python forces unbuffered output
+        echo "Running with unbuffered output to console and log file..."
+        
+        if command -v stdbuf &> /dev/null; then
+            # Use stdbuf to force unbuffered standard output and error
+            $RUN_PREFIX stdbuf -o0 -e0 python3 -u $TRONVIEW_DIR/main.py $choice $ADD_ARGS 2>&1 | $RUN_PREFIX tee -a $log_file
         else
-            ADD_ARGS="$ADD_ARGS >> $log_file 2>&1"
+            # If stdbuf isn't available, just use Python's unbuffered mode (-u flag)
+            # Setting PYTHONUNBUFFERED ensures all Python output is unbuffered
+            PYTHONUNBUFFERED=1 $RUN_PREFIX python3 -u $TRONVIEW_DIR/main.py $choice $ADD_ARGS 2>&1 | $RUN_PREFIX tee -a $log_file
         fi
+        
+        return $?
     fi
 
     # run the python app with any additional arguments
@@ -201,7 +212,7 @@ if [[ ! " $* " =~ "--skiplastrun" ]]; then
                 SHOW_ADDITIONAL_OPTIONS=false
                 # Run the command immediately
                 if [ ! -z "$choice" ]; then
-                    run_python "$choice" "$ADD_ARGS"
+                    run_python "$choice" "$LAST_ADD_ARGS"
                 fi
                 exit 0
                 ;;

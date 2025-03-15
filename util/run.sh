@@ -26,7 +26,7 @@ $RUN_PREFIX mkdir -p "$TRONVIEW_DIR/data"
 $RUN_PREFIX mkdir -p "$TRONVIEW_DIR/data/system"
 
 # refresh available serial ports output file.
-python3 $TRONVIEW_DIR/util/menu/serial_getlist.py -o data/system/available_serial_ports.json
+$RUN_PREFIX python3 $TRONVIEW_DIR/util/menu/serial_getlist.py -o data/system/available_serial_ports.json
 
 # Check if ccze is installed (for colorizing console logs)
 if ! command -v ccze &> /dev/null; then
@@ -488,7 +488,7 @@ while $RUN_MENU_AGAIN; do
                     
                     if handle_menu_exit $exit_status "sub"; then
                         case $subchoice in
-                            1) FULL_COMMAND="python3 $TRONVIEW_DIR/util/rpi/i2c/calibrate_bno085.py" 
+                            1) FULL_COMMAND="$RUN_PREFIX python3 $TRONVIEW_DIR/util/rpi/i2c/calibrate_bno085.py" 
                                choice=""
                                break 2 
                                ;;
@@ -577,14 +577,14 @@ while $RUN_MENU_AGAIN; do
                                     FULL_COMMAND="less $TRONVIEW_DIR/data/console_logs/last-console.log"
                                fi
                                ;;
-                            4) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/joystick.py" ;;
-                            5) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/serial_raw.py" ;;
-                            6) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/serial_read.py -m" ;;
-                            7) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/serial_read.py -s" ;;
-                            8) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/serial_read.py -g" ;;
-                            9) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/nmea_gps.py -a" ;;
-                            10) FULL_COMMAND="$TRONVIEW_DIR/util/tests/test_stratux_wifi.sh" ;;
-                            11) FULL_COMMAND="python3 $TRONVIEW_DIR/util/tests/i2c_test.py" ;;
+                            4) FULL_COMMAND="$RUN_PREFIX python3 $TRONVIEW_DIR/util/tests/joystick.py" ;;
+                            5) FULL_COMMAND="$RUN_PREFIX python3 $TRONVIEW_DIR/util/tests/serial_raw.py" ;;
+                            6) FULL_COMMAND="$RUN_PREFIX python3 $TRONVIEW_DIR/util/tests/serial_read.py -m" ;;
+                            7) FULL_COMMAND="$RUN_PREFIX python3 $TRONVIEW_DIR/util/tests/serial_read.py -s" ;;
+                            8) FULL_COMMAND="$RUN_PREFIX python3 $TRONVIEW_DIR/util/tests/serial_read.py -g" ;;
+                            9) FULL_COMMAND="$RUN_PREFIX python3 $TRONVIEW_DIR/util/tests/nmea_gps.py -a" ;;
+                            10) FULL_COMMAND="$RUN_PREFIX $TRONVIEW_DIR/util/tests/test_stratux_wifi.sh" ;;
+                            11) FULL_COMMAND="$RUN_PREFIX python3 $TRONVIEW_DIR/util/tests/i2c_test.py" ;;
                         esac
                         echo "Running: $FULL_COMMAND"
                         #exit 0

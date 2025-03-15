@@ -561,7 +561,7 @@ while $RUN_MENU_AGAIN; do
                     
                     if handle_menu_exit $exit_status "sub"; then
                         case $subchoice in
-                            1) FULL_COMMAND="python3 $TRONVIEW_DIR/util/menu/serial_getlist.py --select" 
+                            1) FULL_COMMAND="$RUN_PREFIX python3 $TRONVIEW_DIR/util/menu/serial_getlist.py --select" 
                                 SKIP_PAUSE=false;;
                             2) FULL_COMMAND="pico $TRONVIEW_DIR/config.cfg"
                                # check if $TRONVIEW_DIR/config.cfg exists.. if not

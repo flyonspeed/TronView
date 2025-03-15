@@ -79,15 +79,15 @@ run_python() {
         ADD_ARGS=$(echo "$ADD_ARGS" | sed 's/--console-log-debug//g')
         today=$(date +%Y-%m-%d_%H:%M:%S)
         log_file="data/console_logs/last-console.log"
-        mkdir -p data/console_logs
-        touch $log_file
+        $RUN_PREFIX mkdir -p data/console_logs
+        $RUN_PREFIX touch $log_file
         # clear the file and put today's date on the first line. then line feed.
-        echo -n "" > $log_file
-        echo "##Date Run: $today" >> $log_file
+        $RUN_PREFIX echo -n "" > $log_file
+        $RUN_PREFIX echo "##Date Run: $today" >> $log_file
         # get __build_version__ from lib/version.py
         BUILD_VERSION=$(PYTHONPATH=$TRONVIEW_DIR python3 -c "from lib.version import __build_version__; print(__build_version__)")
-        echo "##Build Version: $BUILD_VERSION" >> $log_file
-        echo "" >> $log_file
+        $RUN_PREFIX echo "##Build Version: $BUILD_VERSION" >> $log_file
+        $RUN_PREFIX echo "" >> $log_file
         if command -v tee &> /dev/null; then
             ADD_ARGS="$ADD_ARGS 2>&1 | tee -a $log_file"
         else

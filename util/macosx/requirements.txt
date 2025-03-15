@@ -9,5 +9,6 @@ numpy-stl>=2.17.1
 pynmea2
 textual
 configupdater
+geographiclib
 
 

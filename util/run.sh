@@ -80,16 +80,16 @@ run_python() {
         today=$(date +%Y-%m-%d_%H:%M:%S)
         log_file="data/console_logs/last-console.log"
         $RUN_PREFIX mkdir -p data/console_logs
-        $RUN_PREFIX touch $log_file
+        $RUN_PREFIX rm -f $log_file
+        echo "log_file: $log_file run_prefix: $RUN_PREFIX"
         # clear the file and put today's date on the first line. then line feed.
-        $RUN_PREFIX echo -n "" > $log_file
-        $RUN_PREFIX echo "##Date Run: $today" >> $log_file
+        echo "##Date Run: $today" | $RUN_PREFIX tee $log_file > /dev/null
         # get __build_version__ from lib/version.py
         BUILD_VERSION=$(PYTHONPATH=$TRONVIEW_DIR python3 -c "from lib.version import __build_version__; print(__build_version__)")
-        $RUN_PREFIX echo "##Build Version: $BUILD_VERSION" >> $log_file
-        $RUN_PREFIX echo "" >> $log_file
-        if command -v tee &> /dev/null; then
-            ADD_ARGS="$ADD_ARGS 2>&1 | tee -a $log_file"
+        echo "##Build Version: $BUILD_VERSION" | $RUN_PREFIX tee -a $log_file > /dev/null
+        echo "" | $RUN_PREFIX tee -a $log_file > /dev/null
+        if command -v $RUN_PREFIX tee &> /dev/null; then
+            ADD_ARGS="$ADD_ARGS 2>&1 | $RUN_PREFIX tee -a $log_file"
         else
             ADD_ARGS="$ADD_ARGS >> $log_file 2>&1"
         fi
@@ -201,7 +201,7 @@ if [[ ! " $* " =~ "--skiplastrun" ]]; then
                 SHOW_ADDITIONAL_OPTIONS=false
                 # Run the command immediately
                 if [ ! -z "$choice" ]; then
-                    run_python "$choice"
+                    run_python "$choice" "$ADD_ARGS"
                 fi
                 exit 0
                 ;;
@@ -572,9 +572,9 @@ while $RUN_MENU_AGAIN; do
                             3) 
                                # check if ccze is installed.. if not use just less
                                if command -v ccze &> /dev/null; then
-                                    FULL_COMMAND="cat $TRONVIEW_DIR/data/console_logs/last-console.log | ccze -A | less -R"
+                                    FULL_COMMAND="$RUN_PREFIX cat $TRONVIEW_DIR/data/console_logs/last-console.log | ccze -A | less -R"
                                else
-                                    FULL_COMMAND="less $TRONVIEW_DIR/data/console_logs/last-console.log"
+                                    FULL_COMMAND="$RUN_PREFIX less $TRONVIEW_DIR/data/console_logs/last-console.log"
                                fi
                                ;;
                             4) FULL_COMMAND="$RUN_PREFIX python3 $TRONVIEW_DIR/util/tests/joystick.py" ;;

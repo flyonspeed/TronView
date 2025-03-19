@@ -142,8 +142,6 @@ class serial_g3x(Input):
                             )
                             if CRLF[0] == self.EOL:
                                 while suppress(ValueError):
-                                    if(not dataship.gps.Source == "G3X" and not dataship.gps.Source == None):
-                                        return dataship
                                     self.gpsData.msg_count += 1
                                     #self.gpsData.sys_time_string = "%d:%d:%d"%(int(UTCHour),int(UTCMin),int(UTCSec))
                                     self.gpsData.GPSTime_string = self.gpsData.sys_time_string

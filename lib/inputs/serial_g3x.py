@@ -221,6 +221,7 @@ class serial_g3x(Input):
                             if len(self.readings1) == self.max_samples1:
                                 self.readings1.pop(0)
                             self.imuData.mag_head = int(Heading)
+                            self.imuData.yaw = int(Heading)
                             self.airData.Baro = (int(AltSet) + 2750.0) / 100.0
                             self.airData.Baro_diff = self.airData.Baro - 29.9213
                             self.airData.Alt = int(

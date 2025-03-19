@@ -426,8 +426,8 @@ class horizon_v2(Module):
         '''
         Draw the flight path indicator.
         '''
-        # Check if VSI is None - if so, return without drawing
-        if self.airData.VSI is None:
+        # Check if VSI is None or yaw is None - if so, return without drawing
+        if self.airData.VSI is None or self.imuData.yaw is None:
             return
         
         def mean(nums):
@@ -439,6 +439,8 @@ class horizon_v2(Module):
         if self.caged_mode == 1:
             fpv_x = 0.0
         else:
+            if self.gpsData.GndTrack is None:
+                return
             fpv_x = ((((self.imuData.yaw - self.gpsData.GndTrack) + 180) % 360) - 180) * 1.5  + (
                 self.imuData.turn_rate * 5
             )
@@ -564,17 +566,27 @@ class horizon_v2(Module):
         # Clear the surface before drawing
         self.surface.fill((0, 0, 0, 0))
 
-        if self.imuData.roll is None or self.imuData.pitch is None:
+        if self.imuData.roll is None or self.imuData.pitch is None or self.imuData.yaw is None:
             # draw a red X on the screen.
             pygame.draw.line(self.surface, (255,0,0), (0,0), (self.width,self.height), 4)
             pygame.draw.line(self.surface, (255,0,0), (self.width,0), (0,self.height), 4)
+
+            # if no yaw then say no yaw
+            if self.imuData.yaw is None:
+                self.surface.blit(self.font.render("No Yaw", True, (255,255,255)), (self.width // 2, self.height // 2 - 100))
+            # if no pitch then say no pitch
+            if self.imuData.pitch is None:
+                self.surface.blit(self.font.render("No Pitch", True, (255,255,255)), (self.width // 2, self.height // 2 - 50))
+            # if no roll then say no roll
+            if self.imuData.roll is None:
+                self.surface.blit(self.font.render("No Roll", True, (255,255,255)), (self.width // 2, self.height // 2 + 50))
         else:
             # Calculate camera head offsets if present
             camera_pitch = 0
             camera_roll = 0
             camera_yaw = 0
             
-            if self.camera_head_imu is not None and self.camera_head_imu.pitch is not None and self.camera_head_imu.roll is not None:
+            if self.camera_head_imu is not None and self.camera_head_imu.pitch is not None and self.camera_head_imu.roll is not None and self.camera_head_imu.yaw is not None:
                 camera_pitch = -self.camera_head_imu.pitch
                 camera_roll = self.camera_head_imu.roll
                 camera_yaw = ((self.camera_head_imu.yaw - self.imuData.yaw + 180) % 360) - 180
@@ -613,14 +625,14 @@ class horizon_v2(Module):
             )
 
             # Only show targets if camera is roughly aligned with aircraft heading
-            if self.show_targets and abs(camera_yaw) < 45:
+            if self.show_targets and (camera_yaw is None or abs(camera_yaw) < 45):
                 list(map(lambda t: self.draw_target(t, dataship), 
                         filter(lambda t: t.dist is not None and t.dist < self.target_distance_threshold and t.brng is not None, 
                                 self.targetData.targets)))
 
             # Draw center and flight path
             self.draw_center(smartdisplay, x, y)
-            if abs(camera_yaw) < 45:  # Only show flight path when looking forward
+            if camera_yaw is None or abs(camera_yaw) < 45:  # Only show flight path when looking forward
                 self.draw_flight_path(dataship, smartdisplay, x, y)
 
         # Blit the entire surface to the screen at the specified position
@@ -630,9 +642,12 @@ class horizon_v2(Module):
         '''
         Draw a target on the screen.
         '''
-        heading_to_use = self.imuData.mag_head
+        if self.imuData.yaw is None:
+            return
+            
+        heading_to_use = self.imuData.yaw
         # if aircraft.mag_head is None then check if aircraft.gndtrack is not None
-        if self.imuData.mag_head is None and self.gpsData.GndTrack is not None:
+        if self.imuData.yaw is None and self.gpsData.GndTrack is not None:
             heading_to_use = self.gpsData.GndTrack
         else:
             # else can't use either so don't draw it.

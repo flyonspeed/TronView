@@ -29,9 +29,11 @@ from lib.common.dataship.dataship_gps import GPSData
 import traceback
 
 def checkInputVal(value):
-    if(type(value) == int):
+    try:
+        newval = int(value)
         return True
-    else: return False
+    except:
+        return False
 
 class serial_g3x(Input):
     def __init__(self):
@@ -200,7 +202,6 @@ class serial_g3x(Input):
                         "c2s2s2s2s4s5s3s4s6s4s3s3s2s4s3s3s2s2s", msg
                     )
                     if int(SentVer) == 1 and CRLF[0] == self.EOL:
-                        print(checkInputVal(Roll))
                         if checkInputVal(Roll):
                             self.imuData.roll = (int(Roll) / 10) * -1
                         if checkInputVal(Pitch):

@@ -31,7 +31,7 @@ import traceback
 def checkInputVal(value):
     if(type(value) == int):
         return True
-    return False
+    else: return False
 
 class serial_g3x(Input):
     def __init__(self):

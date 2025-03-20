@@ -70,10 +70,6 @@ class gcross(Module):
 
         x, y = pos
 
-        # Adjust all drawing operations to use self.surface instead of smartdisplay.pygamescreen or self.pygamescreen
-        pipper_posn = (int(self.width / 2), int((self.height / 2 + self.y_offset) - (self.airData.VSI / 4)))
-        color = self.GColor_color   
-        traffic_nm = 0.95
         
         # Set circle radius and line width
         circle_radius = 150
@@ -117,6 +113,19 @@ class gcross(Module):
         elif self.GunSightMode == 4:
             pygame.draw.line(self.surface, self.GColor_color, (self.width / 2 - 15, self.height / 2 - 120), (self.width / 2 + 15, self.height / 2 - 120), 4)
             pygame.draw.line(self.surface, self.GColor_color, (self.width / 2, self.height / 2 - 135), (self.width / 2, self.height / 2 - 105), 4)
+
+            # Check if VSI data is available
+            if not hasattr(self.airData, 'VSI') or self.airData.VSI is None:
+                # Display NO VSI DATA message
+                text = self.font.render("NO VSI DATA", True, self.GColor_color)
+                text_rect = text.get_rect(center=(self.width / 2, self.height / 2))
+                self.surface.blit(text, text_rect)
+                return
+
+            # Adjust all drawing operations to use self.surface instead of smartdisplay.pygamescreen or self.pygamescreen
+            pipper_posn = (int(self.width / 2), int((self.height / 2 + self.y_offset) - (self.airData.VSI / 4)))
+            color = self.GColor_color   
+            traffic_nm = 0.95
 
             if traffic_nm <= 1.5:
                 gun_rng = ((270 * traffic_nm) / 1.5)

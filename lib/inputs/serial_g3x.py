@@ -143,16 +143,8 @@ class serial_g3x(Input):
                             if CRLF[0] == self.EOL:
                                 while suppress(ValueError):
                                     self.gpsData.msg_count += 1
-                                    #self.gpsData.sys_time_string = "%d:%d:%d"%(int(UTCHour),int(UTCMin),int(UTCSec))
+                                    self.gpsData.sys_time_string = "%d:%d:%d"%(int(UTCHour),int(UTCMin),int(UTCSec))
                                     self.gpsData.GPSTime_string = self.gpsData.sys_time_string
-                                    #self.gpsData.time_stamp_min = int(UTCMin)
-                                    #self.gpsData.time_stamp_sec = int(UTCSec)
-                                    #self.gpsData.LatHemi = LatHemi.decode('utf-8')  # North or South
-                                    #self.gpsData.Lat = int(LatDeg)
-                                    #self.gpsData.LatMin = int(LatMin) * 0.001  # x.xxx
-                                    #self.gpsData.LonHemi = LonHemi.decode('utf-8')  # East or West
-                                    #self.gpsData.Lon = int(LonDeg)
-                                    #self.gpsData.LonMin = int(LonMin) * 0.001  # x.xxx
                                     self.gpsData.Alt = int(GPSAlt) * 3.28084
                                     self.gpsData.EWVelDir = EWVelDir.decode('utf-8')  # E or W
                                     self.gpsData.EWVelmag = int(EWVelmag) * 0.1
@@ -247,7 +239,6 @@ class serial_g3x(Input):
                                 current_time = time.time() # calculate hz.
                                 self.imuData.hz = round(1 / (current_time - self.last_read_time), 1)
                                 self.last_read_time = current_time
-
                             return dataship
                     else:
                         self.msg_bad += 1
@@ -258,10 +249,6 @@ class serial_g3x(Input):
                     )
                     if int(SentVer) == 1 and CRLF[0] == self.EOL:
                         with suppress(ValueError):
-                            # dataship.gps.UTCHour = int(UTCHour)
-                            # dataship.gps.UTCMin = int(UTCMin)
-                            # dataship.gps.UTCSec = int(UTCSec)
-                            ## WHY IS THIS HERE? we just read the IMU data in the previous message.
                             self.imuData.roll = int(Roll) * 0.1
                             self.imuData.pitch = int(Pitch) * 0.1
                             self.airData.IAS = int(Airspeed) * 0.115078 # convert knots to mph * 0.1

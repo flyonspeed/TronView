@@ -203,8 +203,8 @@ class serial_g3x(Input):
                     )
                     if int(SentVer) == 1 and CRLF[0] == self.EOL:
                         while suppress(ValueError):
-                            self.imuData.roll = int(Roll) / 10
-                            self.imuData.pitch = int(Pitch) / 10
+                            self.imuData.roll = (int(Roll) / 10) * -1
+                            self.imuData.pitch = (int(Pitch) / 10)
                             self.airData.IAS = int(Airspeed) * 0.115078 # convert knots to mph * 0.1
                             self.airData.Alt_pres = int(PressAlt)
                             self.airData.OAT = (int(OAT) * 1.8) + 32 # c to f

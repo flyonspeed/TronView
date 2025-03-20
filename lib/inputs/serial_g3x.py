@@ -28,6 +28,11 @@ from lib.common.dataship.dataship_nav import NavData
 from lib.common.dataship.dataship_gps import GPSData
 import traceback
 
+def checkInputVal(value):
+    if(type(value) == int):
+        return True
+    return False
+
 class serial_g3x(Input):
     def __init__(self):
         self.name = "garmin_g3x"
@@ -118,6 +123,7 @@ class serial_g3x(Input):
             self.ser.close()
         else:
             self.ser.close()
+    
 
     #############################################
     ## Function: readMessage
@@ -194,33 +200,44 @@ class serial_g3x(Input):
                         "c2s2s2s2s4s5s3s4s6s4s3s3s2s4s3s3s2s2s", msg
                     )
                     if int(SentVer) == 1 and CRLF[0] == self.EOL:
-                        while suppress(ValueError):
+                        if checkInputVal(Roll):
                             self.imuData.roll = (int(Roll) / 10) * -1
+                        if checkInputVal(Pitch):
                             self.imuData.pitch = (int(Pitch) / 10)
+                        if checkInputVal(Airspeed):
                             self.airData.IAS = int(Airspeed) * 0.115078 # convert knots to mph * 0.1
+                        if checkInputVal(PressAlt):
                             self.airData.Alt_pres = int(PressAlt)
+                        if checkInputVal(OAT):
                             self.airData.OAT = (int(OAT) * 1.8) + 32 # c to f
-                            if _utils.is_number(AOA) == True:
-                                self.airData.AOA = int(AOA)
-                                self.readings1.append(self.airData.AOA)
-                                self.airData.AOA = mean(
-                                    self.readings1
-                                )  # Moving average to smooth a bit
-                            else:
-                                self.airData.AOA = 0
-                            if len(self.readings1) == self.max_samples1:
-                                self.readings1.pop(0)
+                        if _utils.is_number(AOA) == True:
+                            self.airData.AOA = int(AOA)
+                            self.readings1.append(self.airData.AOA)
+                            self.airData.AOA = mean(
+                                self.readings1
+                            )  # Moving average to smooth a bit
+                        else:
+                            self.airData.AOA = 0
+                        if len(self.readings1) == self.max_samples1:
+                            self.readings1.pop(0)
+                        if checkInputVal(Heading):
                             self.imuData.mag_head = int(Heading)
                             self.imuData.yaw = int(Heading)
+                        if checkInputVal(AltSet):
                             self.airData.Baro = (int(AltSet) + 2750.0) / 100.0
                             self.airData.Baro_diff = self.airData.Baro - 29.9213
+                        if checkInputVal(PressAlt):
                             self.airData.Alt = int(
                                 int(PressAlt) + (self.airData.Baro_diff / 0.00108)
                             )  # 0.00108 of inches of mercury change per foot.
-                            self.airData.BALT = self.airData.Alt
+                        self.airData.BALT = self.airData.Alt
+                        if checkInputVal(VertSpeed):
                             self.airData.VSI = int(VertSpeed) * 10 # vertical speed in fpm
+                        if checkInputVal(RateofTurn):
                             self.imuData.turn_rate = int(RateofTurn) * 0.1
+                        if checkInputVal(VertAcc):
                             self.imuData.vert_G = int(VertAcc) * 0.1
+                        if checkInputVal(LatAcc):
                             self.imuData.slip_skid = int(LatAcc) * 0.01
                             self.readings.append(self.imuData.slip_skid)
                             self.imuData.slip_skid = mean(
@@ -228,18 +245,18 @@ class serial_g3x(Input):
                             )  # Moving average to smooth a bit
                             if len(self.readings) == self.max_samples:
                                 self.readings.pop(0)
-                            self.imuData.msg_count += 1
-                            if (self.isPlaybackMode):  # if playback mode then add a delay.  Else reading a file is way to fast.
-                                time.sleep(0.08)
-                            if self.output_logFile != None:
-                                Input.addToLog(self,self.output_logFile,bytes([61,ord(SentID)]))
-                                Input.addToLog(self,self.output_logFile,msg)
-                            # Update IMU data
-                            if dataship.debug_mode > 0:
-                                current_time = time.time() # calculate hz.
-                                self.imuData.hz = round(1 / (current_time - self.last_read_time), 1)
-                                self.last_read_time = current_time
-                            return dataship
+                        self.imuData.msg_count += 1
+                        if (self.isPlaybackMode):  # if playback mode then add a delay.  Else reading a file is way to fast.
+                            time.sleep(0.08)
+                        if self.output_logFile != None:
+                            Input.addToLog(self,self.output_logFile,bytes([61,ord(SentID)]))
+                            Input.addToLog(self,self.output_logFile,msg)
+                        # Update IMU data
+                        if dataship.debug_mode > 0:
+                            current_time = time.time() # calculate hz.
+                            self.imuData.hz = round(1 / (current_time - self.last_read_time), 1)
+                            self.last_read_time = current_time
+                        return dataship
                     else:
                         self.msg_bad += 1
                 elif len(msg) == 45:

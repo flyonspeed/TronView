@@ -300,7 +300,7 @@ class serial_g3x(Input):
                             self.airData.TAS = int(TAS) * 0.115078 # convert knots to mph * 0.1
                             if(not HeadingSel.decode('utf-8') == ''):
                                 self.navData.HeadBug = int(HeadingSel)
-                            if(not AltSel.decode('utf-8') == ''):
+                            if(not AltSel.decode('utf-8') == '______'):
                                 self.navData.AltBug = int(AltSel)
                             if(not AirspeedSel.decode('utf-8') == '____'):
                                 self.navData.ASIBug = int(AirspeedSel) * 0.115078 # convert knots to mph * 0.1

@@ -200,6 +200,7 @@ class serial_g3x(Input):
                         "c2s2s2s2s4s5s3s4s6s4s3s3s2s4s3s3s2s2s", msg
                     )
                     if int(SentVer) == 1 and CRLF[0] == self.EOL:
+                        print(checkInputVal(Roll))
                         if checkInputVal(Roll):
                             self.imuData.roll = (int(Roll) / 10) * -1
                         if checkInputVal(Pitch):

@@ -46,7 +46,10 @@ class gauge_arc(Module):
         self.pointer_distance = 15
 
         self.arc_mode = 0 # 0 = normal, 1 = 3d, 2 = 3d with highlight
-    
+
+        self.range1 = (0, 0)
+        self.range1_color = (0, 255, 0)  # Default to green
+        self.range1_label = ""
 
         # Add new attributes for gauge drawing
         self.startAngle = 225  # Start angle in degrees (bottom left)
@@ -132,6 +135,46 @@ class gauge_arc(Module):
             
         self._cached_gradients[(radius, str(color))] = surface
         return surface
+
+    def _draw_range_band(self, range_values, range_color):
+        """Draw a colored band for a given range on the gauge
+        Args:
+            range_values (tuple): (min, max) values for the range
+            range_color (tuple): (r,g,b) color for the range band
+        """
+        if not range_values or range_values[0] == range_values[1]:
+            return
+
+        # Find the angles for the range start and end
+        start_angle = math.radians(self.startAngle - 
+                                 (range_values[0] - self.minValue) * self.sweepAngle / 
+                                 (self.maxValue - self.minValue))
+        end_angle = math.radians(self.startAngle - 
+                               (range_values[1] - self.minValue) * self.sweepAngle / 
+                               (self.maxValue - self.minValue))
+
+        # Draw the arc with a semi-transparent color
+        band_color = (*range_color[:3], 80)  # Add alpha for semi-transparency
+        band_radius = self.arcRadius - 10  # Slightly smaller than the main arc
+        band_width = 8
+
+        if self.arc_mode == 1:  # 3D mode
+            # Create a more pronounced 3D effect for the band
+            for offset in range(3):
+                current_alpha = 80 - (offset * 20)
+                current_color = (*range_color[:3], current_alpha)
+                pygame.draw.arc(self.surface2, current_color,
+                              (self.arcCenter[0] - band_radius + offset,
+                               self.arcCenter[1] - band_radius + offset,
+                               band_radius * 2, band_radius * 2),
+                              end_angle, start_angle, band_width - offset)
+        else:
+            # Standard mode
+            pygame.draw.arc(self.surface2, band_color,
+                          (self.arcCenter[0] - band_radius,
+                           self.arcCenter[1] - band_radius,
+                           band_radius * 2, band_radius * 2),
+                          end_angle, start_angle, band_width)
 
     # called every redraw for the mod
     def draw(self, aircraft, smartdisplay, pos=(None,None)):
@@ -289,6 +332,10 @@ class gauge_arc(Module):
             self.surface2.blit(text_surface,
                              (text_x - text_rect.width/2,
                               text_y - text_rect.height/2))
+
+        # Draw range1 band if defined
+        if self.range1 and self.range1[0] != self.range1[1]:
+            self._draw_range_band(self.range1, self.range1_color)
 
         # Draw modern pointer with gradient and glow
         if value is not None:
@@ -449,6 +496,26 @@ class gauge_arc(Module):
                 "description": "Step size to use",
                 "post_change_function": "update_cached_positions"
             },
+            "range1": {
+                "type": "tuple_int",
+                "default": self.range1,
+                "labels": ["Min", "Max"],
+                "label": "Range 1",
+                "description": "Range 1 to use",
+                "post_change_function": "update_range"
+            },
+            "range1_label": {
+                "type": "text",
+                "default": self.range1_label,
+                "label": "Range 1 Label",
+                "description": "Label of the range 1 to use"
+            },
+            "range1_color": {
+                "type": "color",
+                "default": self.range1_color,
+                "label": "Range 1 Color",
+                "description": "Color of the range 1 to use"
+            },
             "show_text": {
                 "type": "bool",
                 "default": self.show_text,
@@ -537,6 +604,12 @@ class gauge_arc(Module):
 
     def update_arc_mode(self):
         self._precalculate_positions()
+    
+    def update_range(self):
+        print(f"range1: {self.range1}")
+
+    # def update_option(self, option, value):
+    #     print(f"update_option: {option} = {value}")
 
     # handle events
     def processEvent(self,event,aircraft,smartdisplay):

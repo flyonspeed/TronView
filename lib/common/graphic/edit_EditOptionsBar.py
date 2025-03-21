@@ -244,9 +244,6 @@ class EditOptionsBar:
                         container=self.scrollable_container,
                         tool_tip_text="Variable has error value. Click to select a different variable."
                     )
-                    # Set error colors (red background)
-                    #var_button.colours['normal_bg'] = pygame.Color(255, 100, 100)
-                    #var_button.colours['hovered_bg'] = pygame.Color(255, 150, 150)
                     var_button.rebuild()
                 else:
                     var_button = UIButton(
@@ -256,9 +253,6 @@ class EditOptionsBar:
                         container=self.scrollable_container,
                         tool_tip_text="Click to select a Dataship variable"
                     )
-                    # Set a different color to make it stand out
-                    #var_button.colours['normal_bg'] = pygame.Color(200, 230, 255)
-                    #var_button.colours['hovered_bg'] = pygame.Color(150, 200, 250)
                     var_button.rebuild()
                 
                 var_button.option_name = option
@@ -266,26 +260,81 @@ class EditOptionsBar:
                 self.ui_elements.append(var_button)
                 print(f"Created dataship_var button for option: {option}, value: {current_value}")
 
+            elif details['type'] == 'tuple_int':
+                current_value = getattr(self.screen_object.module, option)
+                labels = details.get('labels', [f"Value {i+1}" for i in range(len(current_value))])
+                
+                # Create a text entry for each tuple element, 2 per row
+                for i, (value, label) in enumerate(zip(current_value, labels)):
+                    # Calculate position for 2-column layout
+                    row = i // 2  # Integer division to determine row
+                    col = i % 2   # Modulo to determine column (0 or 1)
+                    
+                    # Position calculations
+                    entry_width = 85  # Narrower width to fit 2 per row
+                    entry_x = x_offset + (col * (entry_width + 10))  # 10px spacing between columns
+                    entry_y = y_offset + (row * 50)  # 50px per row to accommodate label + entry
+                    
+                    # Create label for this tuple element
+                    tuple_label = UILabel(
+                        relative_rect=pygame.Rect(entry_x, entry_y, entry_width, 20),
+                        text=label,
+                        manager=self.pygame_gui_manager,
+                        container=self.scrollable_container
+                    )
+                    self.ui_elements.append(tuple_label)
+                    
+                    # Create text entry for this tuple element
+                    text_entry = UITextEntryLine(
+                        relative_rect=pygame.Rect(entry_x, entry_y + 20, entry_width, 20),
+                        manager=self.pygame_gui_manager,
+                        container=self.scrollable_container
+                    )
+                    text_entry.set_text(str(value))
+                    text_entry.option_name = option
+                    text_entry.tuple_index = i  # Store the index in the tuple
+                    text_entry.object_id = f"#options_tuple_{option}_{i}"
+                    self.ui_elements.append(text_entry)
+                
+                # Adjust y_offset based on number of rows needed
+                num_rows = (len(current_value) + 1) // 2  # Round up division
+                y_offset += (num_rows * 50) - 30  # Subtract 30 since we'll add it back at the end of the loop
+
             y_offset += 30 # move down 30 pixels so we can draw another control
             total_height += 5  # Padding between options
 
         # Set the scrollable area
         self.scrollable_container.set_scrollable_area_dimensions((180, total_height))
 
-    def handle_event(self, event):
 
-        #print("event: %s" % event)
+    def handle_event(self, event):
+        """
+        Handle events for the EditOptionsBar.  This is called by the main event loop.
+        Args:
+            event: pygame event
+        """
+        #if event.type != pygame.MOUSEMOTION and event.type != pygame.USEREVENT:
+        #    print("EditOptionsBar handle_event: %s " % event)
         if event.type == pygame.MOUSEBUTTONDOWN:
             #print("MOUSEBUTTONDOWN")
+            if self.text_entry_active is not None: # check if there is a current text entry field.
+                # update the value of the text entry field
+                self.on_text_submit_change( 
+                    self.text_entry_active.option_name, 
+                    self.text_entry_active.text, 
+                    self.text_entry_active)
+
             # check if they clicked on a text entry field
             foundClickedTextEntry = False
             for element in self.ui_elements:
                 if isinstance(element, UITextEntryLine) and element.rect.collidepoint(event.pos):
-                    print("Text entry field clicked")
+                    print("EditOptionsBar handle_event: Text entry field clicked")
                     self.text_entry_active = element
                     foundClickedTextEntry = True
+                    element.is_focused = True
                     break           
             if foundClickedTextEntry == False:
+                #
                 self.text_entry_active = None # else they didn't click on a text entry field
 
         if event.type == pygame_gui.UI_BUTTON_PRESSED:
@@ -329,7 +378,7 @@ class EditOptionsBar:
         elif event.type == pygame_gui.UI_TEXT_ENTRY_FINISHED:
             print("Text entry finished")
             self.text_entry_active = None
-            self.on_text_submit_change(event.ui_element.option_name, event.text) # send the option name and the text entered
+            self.on_text_submit_change(event.ui_element.option_name, event.text, event.ui_element) # send the option name and the text entered
         elif event.type == pygame_gui.UI_DROP_DOWN_MENU_CHANGED:
             for element in self.ui_elements:
                 if isinstance(element, UIDropDownMenu) and event.ui_element == element:
@@ -409,28 +458,58 @@ class EditOptionsBar:
                         element.set_text(options[option]['label'] + ": " + value_str)
                         break
 
-    def on_text_submit_change(self, option, text):
+    def on_text_submit_change(self, option, text, element):
         old_value = getattr(self.screen_object.module, option)
         option_type = self.screen_object.module.get_module_options()[option]['type']
-        if option_type == 'float':
-            # check if there is a decimal point
-            if '.' in text:
-                value = float(text)
-            else:
-                value = int(text)
-        elif option_type == 'int':
-            value = int(text)
+        
+        if option_type == 'tuple_int':
+            #id = self.text_entry_active.object_id
+            print(f"tuple_int on_text_submit_change: {option} = {text} index: {element.tuple_index}")
+            # For tuple_int, we need to update just one element of the tuple
+            current_value = list(getattr(self.screen_object.module, option))
+
+            try:
+                # get object_id from element
+                index = element.tuple_index
+                value = int(text)  # Convert to integer
+                current_value[index] = value  # Update the specific tuple element
+                new_value = tuple(current_value)  # Convert back to tuple
+                print(f"new_value: {new_value}")
+                shared.Change_history.add_change("option_change", {
+                    "object": self.screen_object,
+                    "option": option,
+                    "old_value": old_value,
+                    "new_value": new_value
+                })
+                
+                setattr(self.screen_object.module, option, new_value)
+                if hasattr(self.screen_object.module, 'update_option'):
+                    self.screen_object.module.update_option(option, new_value)
+            except ValueError:
+                # If conversion fails, revert to old value
+                element.set_text(str(old_value[index]))
         else:
-            value = text
-        shared.Change_history.add_change("option_change", {
-            "object": self.screen_object,
-            "option": option,
-            "old_value": old_value,
-            "new_value": value
-        })
-        setattr(self.screen_object.module, option, value)
-        if hasattr(self.screen_object.module, 'update_option'):
-            self.screen_object.module.update_option(option, value)
+            # Existing handling for other types
+            if option_type == 'float':
+                # check if there is a decimal point
+                if '.' in text:
+                    value = float(text)
+                else:
+                    value = int(text)
+            elif option_type == 'int':
+                value = int(text)
+            else:
+                value = text
+                
+            shared.Change_history.add_change("option_change", {
+                "object": self.screen_object,
+                "option": option,
+                "old_value": old_value,
+                "new_value": value
+            })
+            setattr(self.screen_object.module, option, value)
+            if hasattr(self.screen_object.module, 'update_option'):
+                self.screen_object.module.update_option(option, value)
         
         # Check for post_change_function
         options = self.screen_object.module.get_module_options()
@@ -438,6 +517,7 @@ class EditOptionsBar:
             post_change_function = getattr(self.screen_object.module, options[option]['post_change_function'], None)
             if post_change_function:
                 post_change_function()
+                
         # unfocus the text entry
         for element in self.ui_elements:
             if isinstance(element, UITextEntryLine) and element.option_name == option:

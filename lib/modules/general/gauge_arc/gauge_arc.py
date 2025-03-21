@@ -35,7 +35,7 @@ class gauge_arc(Module):
         self.outline_color = (255,255,255)
         self.outline_weight = 0
         self.outline_radius = 0
-        self.value_color = (255,255,255)
+        self.value_color = (0,150,255)  # Changed to a modern blue
 
         self.data_field = ""
         self.minValue = 0
@@ -61,6 +61,7 @@ class gauge_arc(Module):
         self._cached_tick_positions = []
         self._cached_text_positions = []
         self._cached_surfaces = {}
+        self._cached_gradients = {}
 
     # called once for setup
     def initMod(self, pygamescreen, width=None, height=None):
@@ -112,7 +113,23 @@ class gauge_arc(Module):
             self._cached_surfaces[key] = text_surface
         return self._cached_surfaces[key]
 
-
+    def _create_gradient_surface(self, radius, color):
+        """Create a radial gradient surface"""
+        if (radius, str(color)) in self._cached_gradients:
+            return self._cached_gradients[(radius, str(color))]
+            
+        # Convert radius to integer for the surface creation
+        radius_int = int(radius)
+        surface = pygame.Surface((radius_int * 2, radius_int * 2), pygame.SRCALPHA)
+        center = (radius_int, radius_int)
+        
+        for i in range(radius_int, -1, -1):
+            alpha = int(255 * (i / radius_int) ** 0.5)  # Square root for smoother gradient
+            current_color = (*color[:3], alpha)
+            pygame.draw.circle(surface, current_color, center, i)
+            
+        self._cached_gradients[(radius, str(color))] = surface
+        return surface
 
     # called every redraw for the mod
     def draw(self, aircraft, smartdisplay, pos=(None,None)):
@@ -126,36 +143,33 @@ class gauge_arc(Module):
         target_value = self.get_data_field(aircraft, self.data_field, default_value=0, default_value_on_error="Error")
         actual_value = target_value
         
-        # Check if we have an error condition or actual_value is not a number
         if actual_value == "Error" or not isinstance(actual_value, (float, int)):
-            # Draw basic gauge background
-            for i in range(3):
-                pygame.draw.circle(self.surface2, (20, 20, 20, 255 - i * 20), 
-                                 self.arcCenter, self.arcRadius - 4 - i)
+            # Draw modern error state
+            error_color = (255, 50, 50)
+            glow_surface = self._create_gradient_surface(self.arcRadius + 5, (*error_color, 30))
+            self.surface2.blit(glow_surface, 
+                             (self.arcCenter[0] - glow_surface.get_width()//2,
+                              self.arcCenter[1] - glow_surface.get_height()//2))
+
+            # Draw gauge background with error tint
+            pygame.draw.circle(self.surface2, (40, 10, 10), self.arcCenter, self.arcRadius)
+            pygame.draw.circle(self.surface2, (60, 15, 15), self.arcCenter, self.arcRadius - 2)
             
-            # Draw error message in the middle
-            error_font = pygame.font.SysFont(self.font_name, 
-                                           int(self.font_size * 1.2), 
-                                           True)  # Bold font for error
-            error_surface = error_font.render("ERROR", True, (255, 0, 0))  # Red error text
-            error_rect = error_surface.get_rect()
-            error_x = self.arcCenter[0] - error_rect.width / 2
-            error_y = self.arcCenter[1] - error_rect.height / 2
+            error_font = pygame.font.SysFont(self.font_name, int(self.font_size * 1.2), True)
+            error_surface = error_font.render("ERROR", True, error_color)
+            error_rect = error_surface.get_rect(center=self.arcCenter)
             
-            # Draw shadow and then text
-            shadow_surface = error_font.render("ERROR", True, (30, 30, 30))
-            self.surface2.blit(shadow_surface, (error_x + 1, error_y + 1))
-            self.surface2.blit(error_surface, (error_x, error_y))
+            # Draw error text with glow
+            glow_size = 2
+            for offset in range(glow_size, 0, -1):
+                glow_surface = error_font.render("ERROR", True, (*error_color, 50))
+                glow_rect = glow_surface.get_rect(center=self.arcCenter)
+                self.surface2.blit(glow_surface, (glow_rect.x - offset, glow_rect.y - offset))
             
-            # Draw bezel with red outline to indicate error
-            for i in range(4):
-                color = (255, 50, 50)  # Red outline for error
-                pygame.draw.circle(self.surface2, color, self.arcCenter, 
-                                 self.arcRadius - i, max(1, self.outline_weight))
-                
-            # Final blit to screen
+            self.surface2.blit(error_surface, error_rect)
+            
             self.pygamescreen.blit(self.surface2, (x, y))
-            return  # Exit early, don't draw the rest of the gauge
+            return
         
         if target_value is not None:
             # make sure target_value is a float or int.. if not return 0
@@ -167,104 +181,110 @@ class gauge_arc(Module):
         else:
             value = None
 
-        # Draw bezel (3D effect)
+        # Create and apply background glow
+        glow_color = (*self.value_color, 30)  # Semi-transparent glow
+        glow_surface = self._create_gradient_surface(self.arcRadius + 5, glow_color)
+        self.surface2.blit(glow_surface, 
+                          (self.arcCenter[0] - glow_surface.get_width()//2,
+                           self.arcCenter[1] - glow_surface.get_height()//2))
+
+        # Draw modern bezel with gradient
         for i in range(4):
             color = tuple(max(0, c - 40 + i * 10) for c in self.outline_color)
+            alpha = 255 - i * 40
+            color = (*color[:3], alpha)
             pygame.draw.circle(self.surface2, color, self.arcCenter, 
                              self.arcRadius - i, max(1, self.outline_weight))
 
-        # Draw dial face
+        # Draw modern dial face with gradient background
+        base_color = (30, 30, 35)  # Slightly blue-tinted dark background
         for i in range(3):
-            pygame.draw.circle(self.surface2, (20, 20, 20, 255 - i * 20), 
+            alpha = 255 - i * 20
+            pygame.draw.circle(self.surface2, (*base_color, alpha), 
                              self.arcCenter, self.arcRadius - 4 - i)
 
-        # Draw tick marks and values using cached positions
-        shadow_color = (50, 50, 50)
+        # Draw modern tick marks
         for (inner_pos, outer_pos), (text_x, text_y, text) in zip(
             self._cached_tick_positions, self._cached_text_positions):
             
-            # Draw tick shadow and main tick
-            pygame.draw.line(self.surface2, shadow_color,
-                           (inner_pos[0] + 2, inner_pos[1] + 2),
-                           (outer_pos[0] + 2, outer_pos[1] + 2), 2)
-            pygame.draw.line(self.surface2, self.outline_color,
-                           inner_pos, outer_pos, 2)
+            # Draw tick with gradient
+            tick_color = (*self.outline_color[:3], 180)  # Semi-transparent
+            pygame.draw.line(self.surface2, tick_color, inner_pos, outer_pos, 1)
             
-            # Draw text with shadow
-            text_surface = self._get_cached_text_surface(text, self.text_color)
-            shadow_surface = self._get_cached_text_surface(text, shadow_color)
+            # Draw modern text with anti-aliasing
+            text_surface = self._get_cached_text_surface(text, (*self.text_color[:3], 200))
             text_rect = text_surface.get_rect()
-            
-            self.surface2.blit(shadow_surface, 
-                             (text_x - text_rect.width/2 + 1, 
-                              text_y - text_rect.height/2 + 1))
             self.surface2.blit(text_surface, 
                              (text_x - text_rect.width/2, 
                               text_y - text_rect.height/2))
 
-        # Draw pointer (optimized calculation)
+        # Draw modern pointer with gradient and glow
         if value is not None:
             value_angle = math.radians(self.startAngle - 
                                      (value - self.minValue) * self.sweepAngle / 
                                      (self.maxValue - self.minValue))
             
-            center_offset = (self.arcRadius * 0.3) * (self.pointer_distance/10)
-            base_x = self.arcCenter[0] + center_offset * math.cos(value_angle)
-            base_y = self.arcCenter[1] - center_offset * math.sin(value_angle)
+            # Calculate pointer dimensions
+            pointer_length = self.arcRadius * 0.7
+            pointer_width = self.arcRadius * 0.04
+            center_offset = self.arcRadius * 0.15
+
+            # Calculate pointer points
+            tip_x = self.arcCenter[0] + pointer_length * math.cos(value_angle)
+            tip_y = self.arcCenter[1] - pointer_length * math.sin(value_angle)
             
-            # Calculate pointer points once
-            cos_val = math.cos(value_angle)
-            sin_val = math.sin(value_angle)
-            pointer_length = self.arcRadius * 0.15
-            pointer_base_width = self.pointer_width * 1.5
+            base_left_x = self.arcCenter[0] + center_offset * math.cos(value_angle + math.pi/2)
+            base_left_y = self.arcCenter[1] - center_offset * math.sin(value_angle + math.pi/2)
             
-            pointer_points = [
-                (base_x + pointer_length * cos_val,
-                 base_y - pointer_length * sin_val),
-                (base_x + pointer_base_width * math.cos(value_angle + math.pi/2),
-                 base_y - pointer_base_width * math.sin(value_angle + math.pi/2)),
-                (base_x + pointer_base_width * math.cos(value_angle - math.pi/2),
-                 base_y - pointer_base_width * math.sin(value_angle - math.pi/2))
-            ]
+            base_right_x = self.arcCenter[0] + center_offset * math.cos(value_angle - math.pi/2)
+            base_right_y = self.arcCenter[1] - center_offset * math.sin(value_angle - math.pi/2)
             
-            # Draw pointer with shadow and highlight
-            pygame.draw.polygon(self.surface2, (50, 50, 50), 
-                              [(x + 2, y + 2) for x, y in pointer_points])
+            pointer_points = [(tip_x, tip_y), 
+                            (base_left_x, base_left_y),
+                            (base_right_x, base_right_y)]
+
+            # Draw pointer glow
+            glow_color = (*self.value_color[:3], 30)
+            for i in range(3):
+                offset = 2 - i
+                offset_points = [(x + offset, y + offset) for x, y in pointer_points]
+                pygame.draw.polygon(self.surface2, glow_color, offset_points)
+
+            # Draw main pointer with gradient
             pygame.draw.polygon(self.surface2, self.value_color, pointer_points)
             
-            # # Highlight calculation
-            # highlight_points = [
-            #     pointer_points[0],
-            #     (pointer_points[1][0] * 0.8 + self.arcCenter[0] * 0.2,
-            #      pointer_points[1][1] * 0.8 + self.arcCenter[1] * 0.2),
-            #     (pointer_points[2][0] * 0.8 + self.arcCenter[0] * 0.2,
-            #      pointer_points[2][1] * 0.8 + self.arcCenter[1] * 0.2)
-            # ]
-            # highlight_color = tuple(min(255, c + 50) for c in self.value_color)
-            # pygame.draw.polygon(self.surface2, highlight_color, highlight_points)
+            # Add highlight to pointer
+            highlight_points = [
+                pointer_points[0],
+                (pointer_points[1][0] * 0.9 + self.arcCenter[0] * 0.1,
+                 pointer_points[1][1] * 0.9 + self.arcCenter[1] * 0.1),
+                (pointer_points[2][0] * 0.9 + self.arcCenter[0] * 0.1,
+                 pointer_points[2][1] * 0.9 + self.arcCenter[1] * 0.1)
+            ]
+            highlight_color = tuple(min(255, c + 70) for c in self.value_color[:3])
+            pygame.draw.polygon(self.surface2, (*highlight_color, 150), highlight_points)
 
-        # Draw value text if enabled
+        # Draw value text with modern styling
         if self.show_text and actual_value is not None:
             value_str = f"{actual_value:.1f}"
-            # Convert color to string for the key
-            text_key = (value_str, str(self.text_color))
+            value_font = pygame.font.SysFont(self.font_name, 
+                                           int(self.font_size * 1.2), 
+                                           self.font_bold)
             
-            if text_key not in self._cached_surfaces:
-                value_font = pygame.font.SysFont(self.font_name, 
-                                               int(self.font_size * 1.2), 
-                                               self.font_bold)
-                self._cached_surfaces[text_key] = value_font.render(
-                    value_str, True, self.text_color)
+            # Draw text with glow effect
+            glow_color = (*self.value_color[:3], 30)
+            for offset in range(2, 0, -1):
+                glow_surface = value_font.render(value_str, True, glow_color)
+                glow_rect = glow_surface.get_rect()
+                text_x = self.arcCenter[0] - glow_rect.width / 2
+                text_y = self.arcCenter[1] + self.arcRadius * (self.text_offset/10)
+                self.surface2.blit(glow_surface, (text_x + offset, text_y + offset))
             
-            value_surface = self._cached_surfaces[text_key]
+            # Draw main text
+            value_surface = value_font.render(value_str, True, self.text_color)
             text_rect = value_surface.get_rect()
             text_x = self.arcCenter[0] - text_rect.width / 2
             text_y = self.arcCenter[1] + self.arcRadius * (self.text_offset/10)
-            
-            # Use string conversion for shadow color key as well
-            shadow_text_key = (value_str, str((30, 30, 30)))
-            self.surface2.blit(self._get_cached_text_surface(value_str, (30, 30, 30)), 
-                             (text_x + 1, text_y + 1))
             self.surface2.blit(value_surface, (text_x, text_y))
 
         # Final blit to screen
@@ -293,18 +313,11 @@ class gauge_arc(Module):
                 "description": "Select a data field to display",
                 "post_change_function": "update_cached_positions"
             },
-            # "data_field": {
-            #     "type": "dropdown",
-            #     "default": self.data_field,
-            #     "options": data_fields,
-            #     "label": "Data Field",
-            #     "description": "Select a data field to display",
-            # },
             "minValue": {
                 "type": "int",
                 "default": self.minValue,
                 "label": "Min Value",
-                "min": 0,
+                "min": -1000,
                 "max": 1000,
                 "description": "Minimum value to display",
                 "post_change_function": "update_cached_positions"

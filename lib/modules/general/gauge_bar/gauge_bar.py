@@ -44,6 +44,7 @@ class gauge_bar(Module):
         self.draw_mode = 0
 
         # Range parameters
+        self.range_alpha = 150
         self.range1 = (0, 0)
         self.range1_color = (0, 255, 0)  # Default to green
         self.range1_label = ""
@@ -110,30 +111,26 @@ class gauge_bar(Module):
             """Draw a colored section between two range positions"""
             # Ensure color is a tuple of 4 elements (RGB + alpha)
             if len(color) == 3:
-                range_color = (*color, 100)  # Add alpha for semi-transparency
+                range_color = (*color, self.range_alpha)  # Use range_alpha for transparency
             else:
-                range_color = color  # Color already has alpha
+                #remove alpha from color
+                range_color = color[:3]
+                range_color = (*range_color, self.range_alpha)
                 
             if is_vertical:
                 start_y = padding + bar_height - (end_pos - self.minValue) * bar_height / (self.maxValue - self.minValue)
                 end_y = padding + bar_height - (start_pos - self.minValue) * bar_height / (self.maxValue - self.minValue)
                 section_height = end_y - start_y
-                # Draw thin colored strips on both sides
-                strip_width = 3
+                # Draw colored overlay on the bar
                 pygame.draw.rect(surface, range_color,
-                               (bar_x - strip_width, start_y, strip_width, section_height))
-                pygame.draw.rect(surface, range_color,
-                               (bar_x + bar_width, start_y, strip_width, section_height))
+                               (bar_x, start_y, bar_width, section_height))
             else:
                 start_x = padding + (start_pos - self.minValue) * bar_width / (self.maxValue - self.minValue)
                 end_x = padding + (end_pos - self.minValue) * bar_width / (self.maxValue - self.minValue)
                 section_width = end_x - start_x
-                # Draw thin colored strips on both sides
-                strip_height = 3
+                # Draw colored overlay on the bar
                 pygame.draw.rect(surface, range_color,
-                               (start_x, bar_y - strip_height, section_width, strip_height))
-                pygame.draw.rect(surface, range_color,
-                               (start_x, bar_y + bar_height, section_width, strip_height))
+                               (start_x, bar_y, section_width, bar_height))
 
         
         # Draw colored sections for each range first (so they appear behind markers)
@@ -218,13 +215,8 @@ class gauge_bar(Module):
                     bar_color = self._get_range_color(value)
                     
                     if self.draw_mode == 1:  # Line mode
-                        # Draw background with 3D effect
-                        for step in range(self.gradient_steps):
-                            shade = max(0, self.background_color[0] - (step * 5))
-                            bg_color = (shade, shade, shade, self.background_alpha)
-                            bar_rect = pygame.Rect(bar_x, padding + step, 
-                                                 bar_width, bar_height - step)
-                            pygame.draw.rect(self.surface2, bg_color, bar_rect)
+                        # Draw range markers after background but before line
+                        self._draw_range_markers(self.surface2, padding, bar_x, None, bar_width, bar_height, True)
                         
                         # Draw thick line at value position - horizontal line for vertical mode
                         line_y = padding + (bar_height - value_height)  # Calculate correct height position
@@ -233,6 +225,9 @@ class gauge_bar(Module):
                                           (bar_x + bar_width - 1, line_y),
                                           10)
                     else:  # Normal filled bar mode
+                        # Draw range markers after background but before value bar
+                        self._draw_range_markers(self.surface2, padding, bar_x, None, bar_width, bar_height, True)
+                        
                         # Draw value bar with 3D effect
                         for step in range(self.gradient_steps):
                             bar_shade = (
@@ -246,9 +241,6 @@ class gauge_bar(Module):
                                                  bar_width - step,
                                                  value_height - step)
                             pygame.draw.rect(self.surface2, bar_shade, bar_rect)
-                    
-                    # Draw range markers
-                    self._draw_range_markers(self.surface2, padding, bar_x, None, bar_width, bar_height, True)
                     
                     # Draw borders for individual bar
                     if self.show_borders:
@@ -280,21 +272,18 @@ class gauge_bar(Module):
                     bar_color = self._get_range_color(value)
                     
                     if self.draw_mode == 1:  # Line mode
-                        # Draw background with 3D effect
-                        for step in range(self.gradient_steps):
-                            shade = max(0, self.background_color[0] - (step * 5))
-                            bg_color = (shade, shade, shade, self.background_alpha)
-                            bar_rect = pygame.Rect(padding + step, bar_y + step, 
-                                                 bar_width - step, bar_height - step)
-                            pygame.draw.rect(self.surface2, bg_color, bar_rect)
+                        # Draw range markers after background but before line
+                        self._draw_range_markers(self.surface2, padding, None, bar_y, bar_width, bar_height, False)
                         
                         # Draw thick line at value position
                         pygame.draw.line(self.surface2, bar_color,
                                           (padding + value_width, bar_y),
                                           (padding + value_width, bar_y + bar_height -1),
                                           10)
-                        
                     else:  # Normal filled bar mode
+                        # Draw range markers after background but before value bar
+                        self._draw_range_markers(self.surface2, padding, None, bar_y, bar_width, bar_height, False)
+                        
                         # Draw value bar with 3D effect
                         for step in range(self.gradient_steps):
                             bar_shade = (
@@ -306,9 +295,6 @@ class gauge_bar(Module):
                             bar_rect = pygame.Rect(padding + step, bar_y + step,
                                                  value_width - step, bar_height - step)
                             pygame.draw.rect(self.surface2, bar_shade, bar_rect)
-                    
-                    # Draw range markers
-                    self._draw_range_markers(self.surface2, padding, None, bar_y, bar_width, bar_height, False)
                     
                     # Draw borders for individual bar
                     if self.show_borders:
@@ -549,6 +535,14 @@ class gauge_bar(Module):
                 "default": self.range3_label,
                 "label": "Range 3 Label",
                 "description": "Label for the third range"
+            },
+            "range_alpha": {
+                "type": "int",
+                "default": self.range_alpha,
+                "label": "Range Alpha",
+                "description": "Alpha of the range",
+                "min": 0,
+                "max": 255
             }
         }
 

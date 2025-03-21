@@ -152,6 +152,37 @@ class EditOptionsBar:
                 self.ui_elements.append(slider)
                 # show the current value by appending it to the label already created
                 label.set_text(label.text + " " + str(getattr(self.screen_object.module, option)))
+            elif details['type'] == 'float':
+                # check if min and max are set. if not then show a text entry field
+                if 'min' not in details or 'max' not in details:
+                    text_entry = UITextEntryLine(
+                        relative_rect=pygame.Rect(x_offset, y_offset, 180, 20),
+                        manager=self.pygame_gui_manager,
+                        container=self.scrollable_container
+                    )
+                    text_entry.set_text(str(getattr(self.screen_object.module, option)))
+                    text_entry.option_name = option
+                    text_entry.object_id = "#options_text_" + option
+                    self.ui_elements.append(text_entry)
+                else:
+                    # For float sliders, use a smaller click increment for finer control
+                    click_increment = details.get('increment', 0.001)  # Default to 0.001 if not specified
+                    slider = pygame_gui.elements.UIHorizontalSlider(
+                        relative_rect=pygame.Rect(x_offset, y_offset, 180, 20),
+                        start_value=getattr(self.screen_object.module, option),
+                        value_range=(details['min'], details['max']),
+                        manager=self.pygame_gui_manager,
+                        container=self.scrollable_container,
+                        click_increment=click_increment
+                    )   
+                    slider.option_name = option
+                    slider.object_id = "#float_slider_" + option
+                    self.ui_elements.append(slider)
+                    # show the current value by appending it to the label with 3 decimal places
+                    current_value = getattr(self.screen_object.module, option)
+                    label.set_text(label.text + f" {current_value:.3f}")
+
+            
             elif details['type'] in ['float', 'text']:
                 text_entry = UITextEntryLine(
                     relative_rect=pygame.Rect(x_offset, y_offset, 180, 20),
@@ -328,15 +359,24 @@ class EditOptionsBar:
 
     def on_slider_moved(self, option, value):
         old_value = getattr(self.screen_object.module, option)
+        # Get the option type to handle float values correctly
+        option_type = self.screen_object.module.get_module_options()[option]['type']
+        
+        if option_type == 'float':
+            # Round to 3 decimal places for floats
+            value = round(float(value), 3)
+        else:
+            value = int(value)
+            
         shared.Change_history.add_change("option_change", {
             "object": self.screen_object,
             "option": option,
             "old_value": old_value,
-            "new_value": int(value)
+            "new_value": value
         })
-        setattr(self.screen_object.module, option, int(value))
+        setattr(self.screen_object.module, option, value)
         if hasattr(self.screen_object.module, 'update_option'):
-            self.screen_object.module.update_option(option, int(value))
+            self.screen_object.module.update_option(option, value)
         
         # Check for post_change_function
         options = self.screen_object.module.get_module_options()
@@ -347,12 +387,14 @@ class EditOptionsBar:
         # update the label with the new value by finding it by object_id
         for element in self.ui_elements:
             if isinstance(element, UILabel):
-                # make sure element has object_id
-                #print("element.text: %s" % element.text)
                 if hasattr(element, 'object_id'):
-                    #print("element.object_id: %s" % element.object_id)
                     if element.object_id == "#options_label_" + option:
-                        element.set_text(options[option]['label'] + ": " + str(int(value)))
+                        # Format float values with 3 decimal places
+                        if option_type == 'float':
+                            value_str = f"{value:.3f}"
+                        else:
+                            value_str = str(value)
+                        element.set_text(options[option]['label'] + ": " + value_str)
                         break
 
     def on_text_submit_change(self, option, text):

@@ -373,7 +373,7 @@ class serial_g3x(Input):
                 else:
                     self.msg_bad += 1
 
-            elif SentID == "3":  # GPS AGL data message
+            '''elif SentID == "3":  # Engine Data Message
                 msg = self.ser.readline()
                 if(isinstance(msg,str)): msg = msg.encode() # if read from file then convert to bytes
                 #dataship.msg_last = msg
@@ -426,7 +426,7 @@ class serial_g3x(Input):
                     time.sleep(0.01)
                 else:
                     self.ser.flushInput()  # flush the serial after every message else we see delays
-                return dataship
+                return dataship'''
 
         except Exception as e:
             print("G3X serial exception")

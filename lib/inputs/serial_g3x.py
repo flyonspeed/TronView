@@ -159,7 +159,8 @@ class serial_g3x(Input):
                                 self.gpsData.msg_count += 1
                                 self.gpsData.sys_time_string = "%d:%d:%d"%(int(UTCHour),int(UTCMin),int(UTCSec))
                                 self.gpsData.GPSTime_string = self.gpsData.sys_time_string
-                                self.gpsData.Alt = int(GPSAlt) * 3.28084
+                                if checkInputVal(GPSAlt):
+                                    self.gpsData.Alt = int(GPSAlt) * 3.28084
                                 self.gpsData.EWVelDir = EWVelDir.decode('utf-8')  # E or W
                                 self.gpsData.EWVelmag = int(EWVelmag) * 0.1
                                 self.gpsData.NSVelDir = NSVelDir.decode('utf-8')  # N or S

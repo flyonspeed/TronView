@@ -179,8 +179,11 @@ class gauge_bar(Module):
                         pygame.draw.rect(self.surface2, bg_color, bar_rect)
 
                     # Calculate value width
-                    value_percent = (value - self.minValue) / (self.maxValue - self.minValue)
-                    value_width = int(bar_width * value_percent)
+                    try:
+                        value_percent = (value - self.minValue) / (self.maxValue - self.minValue)
+                        value_width = int(bar_width * value_percent)
+                    except:
+                        value_width = 0
                     
                     # Draw value bar with 3D effect
                     for step in range(self.gradient_steps):
@@ -240,18 +243,11 @@ class gauge_bar(Module):
                 "label": "Data Field",
                 "description": "Select a data field to display",
             },
-            # "data_field": {
-            #     "type": "dropdown",
-            #     "default": self.data_field,
-            #     "options": data_fields,
-            #     "label": "Data Field",
-            #     "description": "Select a data field to display",
-            # },
             "minValue": {
                 "type": "int",
                 "default": self.minValue,
                 "label": "Min Value",
-                "min": 0,
+                "min": -1000,
                 "max": 1000,
                 "description": "Minimum value"
             },

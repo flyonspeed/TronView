@@ -162,12 +162,15 @@ class serial_g3x(Input):
                                 if checkInputVal(GPSAlt):
                                     self.gpsData.Alt = int(GPSAlt) * 3.28084
                                 self.gpsData.EWVelDir = EWVelDir.decode('utf-8')  # E or W
-                                self.gpsData.EWVelmag = int(EWVelmag) * 0.1
+                                if checkInputVal(EWVelmag):
+                                    self.gpsData.EWVelmag = int(EWVelmag) * 0.1
                                 self.gpsData.NSVelDir = NSVelDir.decode('utf-8')  # N or S
-                                self.gpsData.NSVelmag = int(NSVelmag) * 0.1
+                                if checkInputVal(NSVelmag):
+                                    self.gpsData.NSVelmag = int(NSVelmag) * 0.1
                                 self.gpsData.VVelDir = VVelDir.decode('utf-8')  # U or D
-                                self.gpsData.VVelmag = int(VVelmag) * 0.1
-                                self.gpsData.Mag_Decl, self.gpsData.Lat, self.gpsData.Lon = _utils.calc_geomag(
+                                if checkInputVal(VVelmag):
+                                    self.gpsData.VVelmag = int(VVelmag) * 0.1
+                                '''self.gpsData.Mag_Decl, self.gpsData.Lat, self.gpsData.Lon = _utils.calc_geomag(
                                     LatHemi.decode('utf-8'),
                                     int(LatDeg),
                                     int(LatMin) * 0.001,
@@ -178,7 +181,7 @@ class serial_g3x(Input):
                                 self.gpsData.GndSpeed = _utils.gndspeed(EWVelmag, NSVelmag) * 1.15078 # convert back to mph
                                 self.gpsData.GndTrack = _utils.gndtrack(
                                     EWVelDir, EWVelmag, NSVelDir, NSVelmag
-                                )
+                                )'''
                                 # dataship.wind_speed, dataship.wind_dir, dataship.norm_wind_dir = _utils.windSpdDir(
                                 #     dataship.tas * 0.8689758, # back to knots.
                                 #     dataship.gndspeed * 0.8689758, # convert back to knots

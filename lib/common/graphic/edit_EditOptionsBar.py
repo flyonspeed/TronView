@@ -230,6 +230,8 @@ class EditOptionsBar:
                 dropdown.option_name = option
                 dropdown.object_id = "#options_dropdown_" + option
                 self.ui_elements.append(dropdown)
+
+
             elif details['type'] == 'dataship_var':
                 current_value = getattr(self.screen_object.module, option)
                 
@@ -389,11 +391,21 @@ class EditOptionsBar:
             if isinstance(element, UILabel):
                 if hasattr(element, 'object_id'):
                     if element.object_id == "#options_label_" + option:
-                        # Format float values with 3 decimal places
-                        if option_type == 'float':
-                            value_str = f"{value:.3f}"
+                        # check if there is a details['options'] and set if there is postion in the list
+                        if 'options' in options[option]:
+                            # how many options are there? see if we can get the label in the options for this postion.
+                            try:
+                                value_str = options[option]['options'][value]
+                            except:
+                                value_str = str(value)
                         else:
-                            value_str = str(value)
+                            # else its a float or int
+                            # Format float values with 3 decimal places
+                            if option_type == 'float':
+                                value_str = f"{value:.3f}"
+                            else:
+                                value_str = str(value)
+                        
                         element.set_text(options[option]['label'] + ": " + value_str)
                         break
 

@@ -47,9 +47,16 @@ class gauge_arc(Module):
 
         self.arc_mode = 0 # 0 = normal, 1 = 3d, 2 = 3d with highlight
 
+        # ranges
         self.range1 = (0, 0)
         self.range1_color = (0, 255, 0)  # Default to green
         self.range1_label = ""
+        self.range2 = (0, 0)
+        self.range2_color = (255, 0, 0)  # Default to red
+        self.range2_label = ""
+        self.range3 = (0, 0)
+        self.range3_color = (0, 0, 255)  # Default to blue
+        self.range3_label = ""
 
         # Add new attributes for gauge drawing
         self.startAngle = 225  # Start angle in degrees (bottom left)
@@ -337,6 +344,14 @@ class gauge_arc(Module):
         if self.range1 and self.range1[0] != self.range1[1]:
             self._draw_range_band(self.range1, self.range1_color)
 
+        # Draw range2 band if defined
+        if self.range2 and self.range2[0] != self.range2[1]:
+            self._draw_range_band(self.range2, self.range2_color)
+
+        # Draw range3 band if defined
+        if self.range3 and self.range3[0] != self.range3[1]:
+            self._draw_range_band(self.range3, self.range3_color)
+        
         # Draw modern pointer with gradient and glow
         if value is not None:
             value_angle = math.radians(self.startAngle -
@@ -496,26 +511,6 @@ class gauge_arc(Module):
                 "description": "Step size to use",
                 "post_change_function": "update_cached_positions"
             },
-            "range1": {
-                "type": "tuple_int",
-                "default": self.range1,
-                "labels": ["Min", "Max"],
-                "label": "Range 1",
-                "description": "Range 1 to use",
-                "post_change_function": "update_range"
-            },
-            "range1_label": {
-                "type": "text",
-                "default": self.range1_label,
-                "label": "Range 1 Label",
-                "description": "Label of the range 1 to use"
-            },
-            "range1_color": {
-                "type": "color",
-                "default": self.range1_color,
-                "label": "Range 1 Color",
-                "description": "Color of the range 1 to use"
-            },
             "show_text": {
                 "type": "bool",
                 "default": self.show_text,
@@ -597,6 +592,66 @@ class gauge_arc(Module):
                 "label": "Smooth Factor",
                 "description": "How quickly the pointer moves to new values (0.01=slow, 1.0=instant)"
             },
+            "range1": {
+                "type": "tuple_int",
+                "default": self.range1,
+                "labels": ["Min", "Max"],
+                "label": "Range 1",
+                "description": "Range 1 to use",
+                "post_change_function": "update_range"
+            },
+            "range1_label": {
+                "type": "text",
+                "default": self.range1_label,
+                "label": "Range 1 Label",
+                "description": "Label of the range 1 to use"
+            },
+            "range1_color": {
+                "type": "color",
+                "default": self.range1_color,
+                "label": "Range 1 Color",
+                "description": "Color of the range 1 to use"
+            },
+            "range2": {
+                "type": "tuple_int",
+                "default": self.range2,
+                "labels": ["Min", "Max"],
+                "label": "Range 2",
+                "description": "Range 2 to use",
+                "post_change_function": "update_range"
+            },
+            "range2_label": {
+                "type": "text",
+                "default": self.range2_label,
+                "label": "Range 2 Label",
+                "description": "Label of the range 2 to use"
+            },
+            "range2_color": {
+                "type": "color",
+                "default": self.range2_color,
+                "label": "Range 2 Color",
+                "description": "Color of the range 2 to use"
+            },
+            "range3": {
+                "type": "tuple_int",
+                "default": self.range3,
+                "labels": ["Min", "Max"],
+                "label": "Range 3",
+                "description": "Range 3 to use",
+                "post_change_function": "update_range"
+            },
+            "range3_label": {
+                "type": "text",
+                "default": self.range3_label,
+                "label": "Range 3 Label",
+                "description": "Label of the range 3 to use"
+            },
+            "range3_color": {
+                "type": "color",
+                "default": self.range3_color,
+                "label": "Range 3 Color",
+                "description": "Color of the range 3 to use"
+            }
         }
     
     def update_cached_positions(self):

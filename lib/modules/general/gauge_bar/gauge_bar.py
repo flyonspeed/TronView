@@ -40,7 +40,8 @@ class gauge_bar(Module):
         self.show_borders = True
         self.border_width = 2
         self.max_bars = 8
-        
+        self.draw_mode = 0
+
         # Range parameters
         self.range1 = (0, 0)
         self.range1_color = (0, 255, 0)  # Default to green
@@ -215,19 +216,35 @@ class gauge_bar(Module):
                     # Get color based on ranges
                     bar_color = self._get_range_color(value)
                     
-                    # Draw value bar with 3D effect
-                    for step in range(self.gradient_steps):
-                        bar_shade = (
-                            max(0, bar_color[0] - (step * 15)),
-                            max(0, bar_color[1] - (step * 15)),
-                            max(0, bar_color[2] - (step * 15))
-                        )
+                    if self.draw_mode == 1:  # Line mode
+                        # Draw background with 3D effect
+                        for step in range(self.gradient_steps):
+                            shade = max(0, self.background_color[0] - (step * 5))
+                            bg_color = (shade, shade, shade)
+                            bar_rect = pygame.Rect(bar_x, padding + step, 
+                                                 bar_width, bar_height - step)
+                            pygame.draw.rect(self.surface2, bg_color, bar_rect)
                         
-                        bar_rect = pygame.Rect(bar_x,
-                                             padding + (bar_height - value_height) + step,
-                                             bar_width - step,
-                                             value_height - step)
-                        pygame.draw.rect(self.surface2, bar_shade, bar_rect)
+                        # Draw thick line at value position - horizontal line for vertical mode
+                        line_y = padding + (bar_height - value_height)  # Calculate correct height position
+                        pygame.draw.line(self.surface2, bar_color,
+                                          (bar_x, line_y),
+                                          (bar_x + bar_width - 1, line_y),
+                                          10)
+                    else:  # Normal filled bar mode
+                        # Draw value bar with 3D effect
+                        for step in range(self.gradient_steps):
+                            bar_shade = (
+                                max(0, bar_color[0] - (step * 15)),
+                                max(0, bar_color[1] - (step * 15)),
+                                max(0, bar_color[2] - (step * 15))
+                            )
+                            
+                            bar_rect = pygame.Rect(bar_x,
+                                                 padding + (bar_height - value_height) + step,
+                                                 bar_width - step,
+                                                 value_height - step)
+                            pygame.draw.rect(self.surface2, bar_shade, bar_rect)
                     
                     # Draw range markers
                     self._draw_range_markers(self.surface2, padding, bar_x, None, bar_width, bar_height, True)
@@ -261,17 +278,33 @@ class gauge_bar(Module):
                     # Get color based on ranges
                     bar_color = self._get_range_color(value)
                     
-                    # Draw value bar with 3D effect
-                    for step in range(self.gradient_steps):
-                        bar_shade = (
-                            max(0, bar_color[0] - (step * 15)),
-                            max(0, bar_color[1] - (step * 15)),
-                            max(0, bar_color[2] - (step * 15))
-                        )
+                    if self.draw_mode == 1:  # Line mode
+                        # Draw background with 3D effect
+                        for step in range(self.gradient_steps):
+                            shade = max(0, self.background_color[0] - (step * 5))
+                            bg_color = (shade, shade, shade)
+                            bar_rect = pygame.Rect(padding + step, bar_y + step, 
+                                                 bar_width - step, bar_height - step)
+                            pygame.draw.rect(self.surface2, bg_color, bar_rect)
                         
-                        bar_rect = pygame.Rect(padding + step, bar_y + step,
-                                             value_width - step, bar_height - step)
-                        pygame.draw.rect(self.surface2, bar_shade, bar_rect)
+                        # Draw thick line at value position
+                        pygame.draw.line(self.surface2, bar_color,
+                                          (padding + value_width, bar_y),
+                                          (padding + value_width, bar_y + bar_height -1),
+                                          10)
+                        
+                    else:  # Normal filled bar mode
+                        # Draw value bar with 3D effect
+                        for step in range(self.gradient_steps):
+                            bar_shade = (
+                                max(0, bar_color[0] - (step * 15)),
+                                max(0, bar_color[1] - (step * 15)),
+                                max(0, bar_color[2] - (step * 15))
+                            )
+                            
+                            bar_rect = pygame.Rect(padding + step, bar_y + step,
+                                                 value_width - step, bar_height - step)
+                            pygame.draw.rect(self.surface2, bar_shade, bar_rect)
                     
                     # Draw range markers
                     self._draw_range_markers(self.surface2, padding, None, bar_y, bar_width, bar_height, False)
@@ -367,6 +400,15 @@ class gauge_bar(Module):
                 "default": self.vertical,
                 "label": "Vertical",
                 "description": "Display bar vertically"
+            },
+            "draw_mode": {
+                "type": "int",
+                "default": self.draw_mode,
+                "label": "Draw Mode",
+                "description": "Draw mode for the bar",
+                "min": 0,
+                "max": 1,
+                "options": ["default", "line"]
             },
             "show_text": {
                 "type": "bool",

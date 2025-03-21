@@ -33,7 +33,7 @@ class text(Module):
         self.box_color = (255,255,255)
         self.box_weight = 0
         self.box_radius = 0
-        self.box_padding = 0
+        self.box_padding = 1
         self.template = ""
         self.shrink_right_chars = 0
         self.shrink_size = 30

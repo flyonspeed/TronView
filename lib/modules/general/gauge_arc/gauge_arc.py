@@ -44,6 +44,8 @@ class gauge_arc(Module):
         self.show_text = True
         self.text_offset = 7
         self.pointer_distance = 15
+
+        self.arc_mode = 0 # 0 = normal, 1 = 3d, 2 = 3d with highlight
     
 
         # Add new attributes for gauge drawing
@@ -193,37 +195,107 @@ class gauge_arc(Module):
             color = tuple(max(0, c - 40 + i * 10) for c in self.outline_color)
             alpha = 255 - i * 40
             color = (*color[:3], alpha)
+            
+            if self.arc_mode == 1:  # 3D mode
+                # Create a more pronounced bevel effect
+                bevel_width = 4
+                for j in range(bevel_width):
+                    # Top light reflection
+                    light_alpha = int(200 * (1 - j/bevel_width))
+                    light_color = tuple(min(255, c + 100) for c in self.outline_color[:3])
+                    pygame.draw.circle(self.surface2, (*light_color, light_alpha),
+                                    (self.arcCenter[0], self.arcCenter[1] - 2),
+                                    self.arcRadius - j, 1)
+                    
+                    # Bottom shadow
+                    shadow_alpha = int(200 * (j/bevel_width))
+                    shadow_color = tuple(max(0, c - 100) for c in self.outline_color[:3])
+                    pygame.draw.circle(self.surface2, (*shadow_color, shadow_alpha),
+                                    (self.arcCenter[0], self.arcCenter[1] + 2),
+                                    self.arcRadius - j, 1)
+            
             pygame.draw.circle(self.surface2, color, self.arcCenter, 
                              self.arcRadius - i, max(1, self.outline_weight))
 
         # Draw modern dial face with gradient background
         base_color = (30, 30, 35)  # Slightly blue-tinted dark background
-        for i in range(3):
-            alpha = 255 - i * 20
-            pygame.draw.circle(self.surface2, (*base_color, alpha), 
-                             self.arcCenter, self.arcRadius - 4 - i)
+        if self.arc_mode == 1:  # 3D mode
+            # Create a metallic-looking surface with gradient
+            for i in range(int(self.arcRadius - 4)):
+                progress = i / (self.arcRadius - 4)
+                # Create a subtle metallic effect
+                intensity = 35 + int(20 * math.sin(progress * math.pi * 2))
+                color = (intensity, intensity, intensity + 5)
+                alpha = 255 - int(progress * 50)
+                pygame.draw.circle(self.surface2, (*color, alpha),
+                                self.arcCenter, self.arcRadius - 4 - i)
+        else:
+            for i in range(3):
+                alpha = 255 - i * 20
+                pygame.draw.circle(self.surface2, (*base_color, alpha), 
+                                 self.arcCenter, self.arcRadius - 4 - i)
 
         # Draw modern tick marks
         for (inner_pos, outer_pos), (text_x, text_y, text) in zip(
             self._cached_tick_positions, self._cached_text_positions):
             
-            # Draw tick with gradient
-            tick_color = (*self.outline_color[:3], 180)  # Semi-transparent
-            pygame.draw.line(self.surface2, tick_color, inner_pos, outer_pos, 1)
+            if self.arc_mode == 1:  # 3D mode
+                # Create 3D effect for tick marks
+                tick_length = 8
+                tick_angle = math.atan2(outer_pos[1] - inner_pos[1],
+                                      outer_pos[0] - inner_pos[0])
+                
+                # Draw tick shadow
+                shadow_offset = 2
+                shadow_start = (inner_pos[0] + shadow_offset,
+                              inner_pos[1] + shadow_offset)
+                shadow_end = (outer_pos[0] + shadow_offset,
+                            outer_pos[1] + shadow_offset)
+                pygame.draw.line(self.surface2, (0, 0, 0, 100),
+                               shadow_start, shadow_end, 2)
+                
+                # Draw main tick with highlight
+                tick_color = (*self.outline_color[:3], 180)
+                highlight_color = tuple(min(255, c + 70) for c in self.outline_color[:3])
+                pygame.draw.line(self.surface2, tick_color, inner_pos, outer_pos, 2)
+                pygame.draw.line(self.surface2, (*highlight_color, 100),
+                               inner_pos, 
+                               (inner_pos[0] + tick_length * 0.3 * math.cos(tick_angle),
+                                inner_pos[1] + tick_length * 0.3 * math.sin(tick_angle)), 1)
+            else:
+                # Original tick drawing
+                tick_color = (*self.outline_color[:3], 180)
+                pygame.draw.line(self.surface2, tick_color, inner_pos, outer_pos, 1)
             
-            # Draw modern text with anti-aliasing
+            # Draw text with 3D effect if in 3D mode
+            if self.arc_mode == 1:
+                # Draw text shadow
+                shadow_surface = self._get_cached_text_surface(text, (0, 0, 0, 100))
+                shadow_rect = shadow_surface.get_rect()
+                self.surface2.blit(shadow_surface,
+                                 (text_x - shadow_rect.width/2 + 2,
+                                  text_y - shadow_rect.height/2 + 2))
+                
+                # Draw text highlight
+                highlight_surface = self._get_cached_text_surface(text, (*self.text_color[:3], 255))
+                highlight_rect = highlight_surface.get_rect()
+                self.surface2.blit(highlight_surface,
+                                 (text_x - highlight_rect.width/2 - 1,
+                                  text_y - highlight_rect.height/2 - 1))
+            
+            # Draw main text
             text_surface = self._get_cached_text_surface(text, (*self.text_color[:3], 200))
             text_rect = text_surface.get_rect()
-            self.surface2.blit(text_surface, 
-                             (text_x - text_rect.width/2, 
+            self.surface2.blit(text_surface,
+                             (text_x - text_rect.width/2,
                               text_y - text_rect.height/2))
 
         # Draw modern pointer with gradient and glow
         if value is not None:
-            value_angle = math.radians(self.startAngle - 
-                                     (value - self.minValue) * self.sweepAngle / 
+            value_angle = math.radians(self.startAngle -
+                                     (value - self.minValue) * self.sweepAngle /
                                      (self.maxValue - self.minValue))
-            
+
             # Calculate pointer dimensions
             pointer_length = self.arcRadius * 0.7
             pointer_width = self.arcRadius * 0.04
@@ -239,30 +311,58 @@ class gauge_arc(Module):
             base_right_x = self.arcCenter[0] + center_offset * math.cos(value_angle - math.pi/2)
             base_right_y = self.arcCenter[1] - center_offset * math.sin(value_angle - math.pi/2)
             
-            pointer_points = [(tip_x, tip_y), 
+            pointer_points = [(tip_x, tip_y),
                             (base_left_x, base_left_y),
                             (base_right_x, base_right_y)]
 
-            # Draw pointer glow
-            glow_color = (*self.value_color[:3], 30)
-            for i in range(3):
-                offset = 2 - i
-                offset_points = [(x + offset, y + offset) for x, y in pointer_points]
-                pygame.draw.polygon(self.surface2, glow_color, offset_points)
+            if self.arc_mode == 1:  # 3D mode
+                # Draw pointer shadow
+                shadow_offset = 3
+                shadow_points = [(x + shadow_offset, y + shadow_offset) for x, y in pointer_points]
+                pygame.draw.polygon(self.surface2, (0, 0, 0, 80), shadow_points)
+                
+                # Draw pointer base (gives depth)
+                base_color = tuple(max(0, c - 40) for c in self.value_color[:3])
+                pygame.draw.circle(self.surface2, (*base_color, 200),
+                                self.arcCenter, center_offset + 2)
+                
+                # Draw pointer with 3D lighting effect
+                light_angle = value_angle + math.pi/4  # Light source angle
+                light_intensity = abs(math.cos(light_angle))
+                highlight_color = tuple(min(255, int(c + 70 * light_intensity)) 
+                                     for c in self.value_color[:3])
+                
+                # Draw main pointer body
+                pygame.draw.polygon(self.surface2, self.value_color, pointer_points)
+                
+                # Draw highlight edge
+                highlight_points = [
+                    pointer_points[0],
+                    (pointer_points[1][0] * 0.95 + self.arcCenter[0] * 0.05,
+                     pointer_points[1][1] * 0.95 + self.arcCenter[1] * 0.05),
+                    (pointer_points[2][0] * 0.95 + self.arcCenter[0] * 0.05,
+                     pointer_points[2][1] * 0.95 + self.arcCenter[1] * 0.05)
+                ]
+                pygame.draw.polygon(self.surface2, (*highlight_color, 150), highlight_points)
+            else:
+                # Original pointer drawing
+                glow_color = (*self.value_color[:3], 30)
+                for i in range(3):
+                    offset = 2 - i
+                    offset_points = [(x + offset, y + offset) for x, y in pointer_points]
+                    pygame.draw.polygon(self.surface2, glow_color, offset_points)
 
-            # Draw main pointer with gradient
-            pygame.draw.polygon(self.surface2, self.value_color, pointer_points)
-            
-            # Add highlight to pointer
-            highlight_points = [
-                pointer_points[0],
-                (pointer_points[1][0] * 0.9 + self.arcCenter[0] * 0.1,
-                 pointer_points[1][1] * 0.9 + self.arcCenter[1] * 0.1),
-                (pointer_points[2][0] * 0.9 + self.arcCenter[0] * 0.1,
-                 pointer_points[2][1] * 0.9 + self.arcCenter[1] * 0.1)
-            ]
-            highlight_color = tuple(min(255, c + 70) for c in self.value_color[:3])
-            pygame.draw.polygon(self.surface2, (*highlight_color, 150), highlight_points)
+                pygame.draw.polygon(self.surface2, self.value_color, pointer_points)
+                
+                highlight_points = [
+                    pointer_points[0],
+                    (pointer_points[1][0] * 0.9 + self.arcCenter[0] * 0.1,
+                     pointer_points[1][1] * 0.9 + self.arcCenter[1] * 0.1),
+                    (pointer_points[2][0] * 0.9 + self.arcCenter[0] * 0.1,
+                     pointer_points[2][1] * 0.9 + self.arcCenter[1] * 0.1)
+                ]
+                highlight_color = tuple(min(255, c + 70) for c in self.value_color[:3])
+                pygame.draw.polygon(self.surface2, (*highlight_color, 150), highlight_points)
 
         # Draw value text with modern styling
         if self.show_text and actual_value is not None:
@@ -328,6 +428,16 @@ class gauge_arc(Module):
                 "label": "Max Value",
                 "description": "Maximum value to display",
                 "post_change_function": "update_cached_positions"
+            },
+            "arc_mode": {
+                "type": "int",
+                "default": self.arc_mode,
+                "min": 0,
+                "max": 2,
+                "label": "Arc Mode",
+                "description": "Mode of the arc to use",
+                "options": ["Normal", "3D", "Test"],
+                "post_change_function": "update_arc_mode"
             },
 
             "step": {
@@ -425,6 +535,8 @@ class gauge_arc(Module):
     def update_cached_positions(self):
         self._precalculate_positions()
 
+    def update_arc_mode(self):
+        self._precalculate_positions()
 
     # handle events
     def processEvent(self,event,aircraft,smartdisplay):

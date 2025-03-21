@@ -140,6 +140,10 @@ class EditOptionsBar:
                 checkbox.object_id = "#options_checkbox_" + option
                 self.ui_elements.append(checkbox)
             elif details['type'] == 'int':
+                # check if min and max are set. if not then show a Error message
+                if 'min' not in details or 'max' not in details:
+                    label.set_text("Int Min and Max not set")
+                    continue
                 slider = pygame_gui.elements.UIHorizontalSlider(
                     relative_rect=pygame.Rect(x_offset, y_offset, 180, 20),
                     start_value=getattr(self.screen_object.module, option),

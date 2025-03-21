@@ -29,6 +29,7 @@ class gauge_bar(Module):
         self.text_color = (200,255,255)
         self.bar_color = (0,255,0)  # Main bar color
         self.background_color = (40,40,40)  # Bar background
+        self.background_alpha = 255  # Background transparency (0-255)
         self.border_color = (100,100,100)  # Border color
         
         # Gauge parameters
@@ -204,7 +205,7 @@ class gauge_bar(Module):
                     # Draw background with 3D effect
                     for step in range(self.gradient_steps):
                         shade = max(0, self.background_color[0] - (step * 5))
-                        bg_color = (shade, shade, shade)
+                        bg_color = (shade, shade, shade, self.background_alpha)
                         bar_rect = pygame.Rect(bar_x, padding + step, 
                                              bar_width, bar_height - step)
                         pygame.draw.rect(self.surface2, bg_color, bar_rect)
@@ -220,7 +221,7 @@ class gauge_bar(Module):
                         # Draw background with 3D effect
                         for step in range(self.gradient_steps):
                             shade = max(0, self.background_color[0] - (step * 5))
-                            bg_color = (shade, shade, shade)
+                            bg_color = (shade, shade, shade, self.background_alpha)
                             bar_rect = pygame.Rect(bar_x, padding + step, 
                                                  bar_width, bar_height - step)
                             pygame.draw.rect(self.surface2, bg_color, bar_rect)
@@ -263,7 +264,7 @@ class gauge_bar(Module):
                     # Draw background with 3D effect
                     for step in range(self.gradient_steps):
                         shade = max(0, self.background_color[0] - (step * 5))
-                        bg_color = (shade, shade, shade)
+                        bg_color = (shade, shade, shade, self.background_alpha)
                         bar_rect = pygame.Rect(padding + step, bar_y + step, 
                                              bar_width - step, bar_height - step)
                         pygame.draw.rect(self.surface2, bg_color, bar_rect)
@@ -282,7 +283,7 @@ class gauge_bar(Module):
                         # Draw background with 3D effect
                         for step in range(self.gradient_steps):
                             shade = max(0, self.background_color[0] - (step * 5))
-                            bg_color = (shade, shade, shade)
+                            bg_color = (shade, shade, shade, self.background_alpha)
                             bar_rect = pygame.Rect(padding + step, bar_y + step, 
                                                  bar_width - step, bar_height - step)
                             pygame.draw.rect(self.surface2, bg_color, bar_rect)
@@ -441,6 +442,14 @@ class gauge_bar(Module):
                 "default": self.background_color,
                 "label": "Background Color",
                 "description": "Color of the background"
+            },
+            "background_alpha": {
+                "type": "int",
+                "default": self.background_alpha,
+                "label": "Background Alpha",
+                "description": "Alpha of the background",
+                "min": 0,
+                "max": 255
             },
             "border_color": {
                 "type": "color",

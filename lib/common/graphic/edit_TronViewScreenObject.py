@@ -21,7 +21,7 @@ class TronViewScreenObject:
         self.mouse_offset_y = 0
         self.showOptions = False
         self.showEvents = False
-        self.debug_font = pygame.font.SysFont("monospace", 25, bold=False)
+        self.debug_font = pygame.font.SysFont("monospace", 15, bold=False)
         
         if type == 'group':
             self.childScreenObjects = []

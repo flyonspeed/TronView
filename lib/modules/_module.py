@@ -232,6 +232,41 @@ class Module:
             obj = final_value
         return obj
 
+    def special_format_specifier(self, theVariable: str, format_specifier: str, dataship: Dataship):
+        """
+        Handle special format specifiers.
+        """
+        if format_specifier == "kts":
+            # convert mph to knots.
+            return f"{theVariable * 0.868976:0.0f}"
+        elif format_specifier == "kph":
+            # convert mph to kph. (kilometers per hour)
+            return f"{theVariable * 1.60934:0.0f}"
+        elif format_specifier == "mph":
+            # convert mph .. it's already in mph.
+            return f"{theVariable:0.0f}"
+        elif format_specifier == "km":
+            # convert miles to kilometers.
+            return f"{theVariable * 1.60934:0.1f}"
+        elif format_specifier == "nm":
+            # convert miles to nautical miles.
+            return f"{theVariable * 1.852:0.1f}"
+        elif format_specifier == "ft":
+            # it's already in feet.
+            return f"{theVariable:0.1f}"
+        elif format_specifier == "m":
+            # convert feet to meters.
+            return f"{theVariable * 0.3048:0.1f}"
+        elif format_specifier == "c":
+            # convert fahrenheit to celsius.
+            return f"{((theVariable - 32) * 5/9):0.1f}"
+        elif format_specifier == "f":
+            # it's already in fahrenheit.
+            return f"{theVariable:0.1f}"
+        else:
+            # else just use the built in python format specifier.
+            return f"{theVariable:{format_specifier}}"
+
     def parse_text(self, inputText: str, dataship: Dataship):
         """
         Parse text with variables and functions.
@@ -239,54 +274,66 @@ class Module:
         Functions are enclosed in parentheses.
         Objects are enclosed in angle brackets.
         Indexes are enclosed in square brackets.
+        supported format specifiers:
+        %d - integer
+        %f - float
+        %s - string
+        %t - tuple
+        %l - list
+        %d - dictionary
+        examples:
+        {gpsData.latitude}
+        {gpsData.latitude:0.2f}
+        {airData[0].IAS:kts}
         """
-
-
-        words = inputText.split()
         result = inputText
-        for word in words:
-            if "{" in word and "}" in word:
-                variable_name = word[1:-1]
-                if "%" in variable_name:
-                    variable_name, format_specifier = variable_name.split("%")
-                elif ":" in variable_name:
-                    variable_name, format_specifier = variable_name.split(":")
-                else:
-                    format_specifier = None
-
-                try:
-                    if variable_name == "self":
-                        variable_value = self.format_object(dataship)
-                    else:
-                        variable_value = self.get_nested_attr(dataship, variable_name)
-                    # check if variable_name is a object if so get the object vars
-
-                    # check if its a string, int, float, list, tuple, dict. and if format_specifier is not None then format it.
-                    if format_specifier:
-                        variable_value = f"{variable_value:{format_specifier}}"
-                    elif isinstance(variable_value, (str, int, float, tuple, dict)):
-                        variable_value = f"{variable_value}"
-                    
-                    elif isinstance(variable_value, list):
-                        # go through each item in the list and format it by calling this function recursively.
-                        final_value = ""
-                        for item in variable_value:
-                            final_value += f"\n{self.format_object(item)}\n======================="
-                        variable_value = final_value
-
-                    elif isinstance(variable_value, object):
-                        variable_value = self.format_object(variable_value)
-                    else:
-                        variable_value = str(variable_value)
-                except Exception as e:
-                    # get instance type of variable_value
-                    #var_type = type(variable_value)
-                    variable_value = f"Error: {str(e)}"
-
-                result = result.replace(word, variable_value)
+        # Find all variables enclosed in curly braces
+        start = 0
+        while True:
+            open_brace = result.find('{', start)
+            if open_brace == -1:
+                break
+            close_brace = result.find('}', open_brace)
+            if close_brace == -1:
+                break
+                
+            variable_name = result[open_brace + 1:close_brace]
+            if "%" in variable_name:
+                variable_name, format_specifier = variable_name.split("%")
+            elif ":" in variable_name:
+                variable_name, special_format_specifier = variable_name.split(":")
+                format_specifier = None
             else:
-                # this is a normal word
-                result = result.replace(word, word)
+                format_specifier = None
+                special_format_specifier = None
+
+            try:
+                if variable_name == "self":
+                    variable_value = self.format_object(dataship)
+                else:
+                    variable_value = self.get_nested_attr(dataship, variable_name)
+
+                if format_specifier:
+                    variable_value = f"{variable_value:{format_specifier}}"
+                elif special_format_specifier:
+                    variable_value = self.special_format_specifier(variable_value, special_format_specifier, dataship)
+                elif isinstance(variable_value, (str, int, float, tuple, dict)):
+                    variable_value = f"{variable_value}"
+                elif isinstance(variable_value, list):
+                    final_value = ""
+                    for item in variable_value:
+                        final_value += f"\n{self.format_object(item)}\n======================="
+                    variable_value = final_value
+                elif isinstance(variable_value, object):
+                    variable_value = self.format_object(variable_value)
+                else:
+                    variable_value = str(variable_value)
+            except Exception as e:
+                variable_value = f"Err:{str(e)}"
+
+            result = result[:open_brace] + variable_value + result[close_brace + 1:]
+            start = open_brace + len(variable_value)
+
         return result
 
     def get_data_field(self, dataship, data_field, default_value=0, default_value_on_error=0):

@@ -70,7 +70,9 @@ def main_edit_loop():
     resizing = False  # are we resizing?
     active_dropdown = None  # Single dropdown menu for all dropdown needs
     modulesFound, listModules = find_module(debugOutput=False)
-    showAllBoundryBoxes = False
+    showAllBoundryBoxes = True # default to show all boundry boxes
+    for sObject in shared.CurrentScreen.ScreenObjects:
+        sObject.setShowBounds(showAllBoundryBoxes)  # set all boundry boxes to show
     selected_screen_objects = []
     theme_path = os.path.join(os.path.dirname(__file__), "theme.json")
     pygame_gui_manager = pygame_gui.UIManager(
@@ -942,7 +944,7 @@ def get_ready_to_exit_edit_mode():
     shared.Dataship.interface = Interface.GRAPHIC_2D
     shared.CurrentScreen.show_FPS = False # turn off showing FPS
 
-    shared.GrowlManager.add_message("2d PLAYER MODE", position=GrowlPosition.CENTER, duration=2)
+    shared.GrowlManager.add_message("TronView 2D MODE", position=GrowlPosition.CENTER, duration=2)
 
     return True
 

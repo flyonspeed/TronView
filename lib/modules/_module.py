@@ -232,6 +232,41 @@ class Module:
             obj = final_value
         return obj
 
+    def special_format_specifier(self, theVariable: str, format_specifier: str, dataship: Dataship):
+        """
+        Handle special format specifiers.
+        """
+        if format_specifier == "kts":
+            # convert mph to knots.
+            return f"{theVariable * 0.868976:0.0f}"
+        elif format_specifier == "kph":
+            # convert mph to kph. (kilometers per hour)
+            return f"{theVariable * 1.60934:0.0f}"
+        elif format_specifier == "mph":
+            # convert mph .. it's already in mph.
+            return f"{theVariable:0.0f}"
+        elif format_specifier == "km":
+            # convert miles to kilometers.
+            return f"{theVariable * 1.60934:0.1f}"
+        elif format_specifier == "nm":
+            # convert miles to nautical miles.
+            return f"{theVariable * 1.852:0.1f}"
+        elif format_specifier == "ft":
+            # it's already in feet.
+            return f"{theVariable:0.1f}"
+        elif format_specifier == "m":
+            # convert feet to meters.
+            return f"{theVariable * 0.3048:0.1f}"
+        elif format_specifier == "c":
+            # convert fahrenheit to celsius.
+            return f"{((theVariable - 32) * 5/9):0.1f}"
+        elif format_specifier == "f":
+            # it's already in fahrenheit.
+            return f"{theVariable:0.1f}"
+        else:
+            # else just use the built in python format specifier.
+            return f"{theVariable:{format_specifier}}"
+
     def parse_text(self, inputText: str, dataship: Dataship):
         """
         Parse text with variables and functions.
@@ -249,6 +284,7 @@ class Module:
         examples:
         {gpsData.latitude}
         {gpsData.latitude:0.2f}
+        {airData[0].IAS:kts}
         """
         result = inputText
         # Find all variables enclosed in curly braces
@@ -265,9 +301,11 @@ class Module:
             if "%" in variable_name:
                 variable_name, format_specifier = variable_name.split("%")
             elif ":" in variable_name:
-                variable_name, format_specifier = variable_name.split(":")
+                variable_name, special_format_specifier = variable_name.split(":")
+                format_specifier = None
             else:
                 format_specifier = None
+                special_format_specifier = None
 
             try:
                 if variable_name == "self":
@@ -277,6 +315,8 @@ class Module:
 
                 if format_specifier:
                     variable_value = f"{variable_value:{format_specifier}}"
+                elif special_format_specifier:
+                    variable_value = self.special_format_specifier(variable_value, special_format_specifier, dataship)
                 elif isinstance(variable_value, (str, int, float, tuple, dict)):
                     variable_value = f"{variable_value}"
                 elif isinstance(variable_value, list):
@@ -289,7 +329,7 @@ class Module:
                 else:
                     variable_value = str(variable_value)
             except Exception as e:
-                variable_value = f"Error: {str(e)}"
+                variable_value = f"Err:{str(e)}"
 
             result = result[:open_brace] + variable_value + result[close_brace + 1:]
             start = open_brace + len(variable_value)

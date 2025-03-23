@@ -170,7 +170,7 @@ class serial_g3x(Input):
                                 self.gpsData.VVelDir = VVelDir.decode('utf-8')  # U or D
                                 if checkInputVal(VVelmag):
                                     self.gpsData.VVelmag = int(VVelmag) * 0.1
-                                '''self.gpsData.Mag_Decl, self.gpsData.Lat, self.gpsData.Lon = _utils.calc_geomag(
+                                self.gpsData.Mag_Decl, self.gpsData.Lat, self.gpsData.Lon = _utils.calc_geomag(
                                     LatHemi.decode('utf-8'),
                                     int(LatDeg),
                                     int(LatMin) * 0.001,
@@ -178,10 +178,10 @@ class serial_g3x(Input):
                                     int(LonDeg),
                                     int(LonMin) * 0.001,
                                 )
-                                self.gpsData.GndSpeed = _utils.gndspeed(EWVelmag, NSVelmag) * 1.15078 # convert back to mph
+                                #self.gpsData.GndSpeed = _utils.gndspeed(EWVelmag, NSVelmag) * 1.15078 # convert back to mph
                                 self.gpsData.GndTrack = _utils.gndtrack(
                                     EWVelDir, EWVelmag, NSVelDir, NSVelmag
-                                )'''
+                                )
                                 # dataship.wind_speed, dataship.wind_dir, dataship.norm_wind_dir = _utils.windSpdDir(
                                 #     dataship.tas * 0.8689758, # back to knots.
                                 #     dataship.gndspeed * 0.8689758, # convert back to knots
@@ -351,7 +351,7 @@ class serial_g3x(Input):
                             Input.addToLog(self,self.output_logFile,msg)
                         return dataship
                 else:
-                    dataship.msg_bad += 1
+                    self.airData.msg_bad += 1
             elif SentID == "7":  # GPS AGL data message
                 msg = self.ser.readline()
                 if(isinstance(msg,str)): msg = msg.encode() # if read from file then convert to bytes

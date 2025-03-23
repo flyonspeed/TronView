@@ -149,6 +149,9 @@ class serial_g3x(Input):
                     x = ord(t)
                     if x == 64:  # 64(@) is start of garmin g3x GPS sentence.
                         msg = self.ser.readline()
+                        if(dataship.debug_mode>1):
+                            print("g3x: "+str(msg))
+
                         if(isinstance(msg,str)): msg = msg.encode() # if read from file then convert to bytes
                         #dataship.msg_last = msg
                         if len(msg) == 56:
@@ -156,6 +159,9 @@ class serial_g3x(Input):
                                 "2s2s2s2s2s2sc2s5sc3s5sc3s6sc4sc4sc4s2s", msg
                             )
                             if CRLF[0] == self.EOL:
+                                if(dataship.debug_mode>1):
+                                    print("g3x: GPS Sentence")
+
                                 self.gpsData.msg_count += 1
                                 self.gpsData.sys_time_string = "%d:%d:%d"%(int(UTCHour),int(UTCMin),int(UTCSec))
                                 self.gpsData.GPSTime_string = self.gpsData.sys_time_string
@@ -207,6 +213,8 @@ class serial_g3x(Input):
                 msg = self.ser.readline()
                 self.imuData.msg_last = msg
                 if len(msg) == 57:
+                    if(dataship.debug_mode>1):
+                        print("g3x: Attitude/Air Data Sentence (id:1)")
                     if(isinstance(msg,str)): msg = msg.encode() # if read from file then convert to bytes
                     SentVer, UTCHour, UTCMin, UTCSec, UTCSecFrac, Pitch, Roll, Heading, Airspeed, PressAlt, RateofTurn, LatAcc, VertAcc, AOA, VertSpeed, OAT, AltSet, Checksum, CRLF = struct.unpack(
                         "c2s2s2s2s4s5s3s4s6s4s3s3s2s4s3s3s2s2s", msg
@@ -271,6 +279,8 @@ class serial_g3x(Input):
                     else:
                         self.airData.msg_bad += 1
                 elif len(msg) == 45:
+                    if(dataship.debug_mode>1):
+                        print("g3x: Attitude/Air Data Sentence")
                     if(isinstance(msg,str)): msg = msg.encode() # if read from file then convert to bytes
                     SentVer, UTCHour, UTCMin, UTCSec, UTCSecFrac, Pitch, Roll, Heading, Airspeed, PressAlt, VertSpeed, OAT, AltSet, Checksum, CRLF = struct.unpack(
                         "c2s2s2s2s4s5s3s4s6s4s3s3s2s2s", msg
@@ -312,6 +322,8 @@ class serial_g3x(Input):
                 msg = self.ser.readline()
                 self.airData.msg_last = msg
                 if len(msg) == 40:
+                    if(dataship.debug_mode>1):
+                        print("g3x: Attitude/Air Data Sentence (id:2) TAS, DAlt, HeadingSel, AltSel, AirspeedSel, VSSel")
                     if(isinstance(msg,str)): msg = msg.encode() # if read from file then convert to bytes
                     SentVer, UTCHour, UTCMin, UTCSec, UTCSecFrac, TAS, DAlt, HeadingSel, AltSel, AirspeedSel, VSSel, Checksum, CRLF = struct.unpack(
                         "c2s2s2s2s4s6s3s6s4s4s2s2s", msg
@@ -337,6 +349,8 @@ class serial_g3x(Input):
                     else:
                         self.airData.msg_bad += 1
                 elif len(msg) == 28:
+                    if(dataship.debug_mode>1):
+                        print("g3x: Attitude/Air Data Sentence (id:2) TAS")
                     if(isinstance(msg,str)): msg = msg.encode() # if read from file then convert to bytes
                     SentVer, UTCHour, UTCMin, UTCSec, UTCSecFrac, TAS, unknownvalue, Checksum, CRLF = struct.unpack(
                         "c2s2s2s2s4s11s2s2s", msg
@@ -358,6 +372,8 @@ class serial_g3x(Input):
                 if(isinstance(msg,str)): msg = msg.encode() # if read from file then convert to bytes
                 #dataship.msg_last = msg
                 if len(msg) == 20:
+                    if(dataship.debug_mode>1):
+                        print("g3x: GPS AGL data message")
                     msg = (msg[:20]) if len(msg) > 20 else msg
                     SentVer, UTCHour, UTCMin, UTCSec, UTCSecFrac, HeightAGL, GroundSpeed, Checksum, CRLF = struct.unpack(
                         "c2s2s2s2s3s4s2s2s", msg
@@ -377,6 +393,10 @@ class serial_g3x(Input):
 
                 else:
                     self.airData.msg_bad += 1
+                    if(dataship.debug_mode>1):
+                        print("g3x: unknown message")
+
+                
 
             '''elif SentID == "3":  # Engine Data Message
                 msg = self.ser.readline()

@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.0.30] - 2025-03-22
+
+- Gauges show color ranges. different modes. alpha transparency.
+- text parsing better.
+- support knots,mph,kph,c,f.. using format_specifier example {airData[0].IAS:kts}
+- added image object. supports alpha. saves base64 in screen json. scale or fit modes.
+
+
+
 ## [0.0.29] - 2025-03-13
 
 - sub menu work

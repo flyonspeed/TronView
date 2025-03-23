@@ -21,7 +21,7 @@ class TronViewScreenObject:
         self.mouse_offset_y = 0
         self.showOptions = False
         self.showEvents = False
-        self.debug_font = pygame.font.SysFont("monospace", 25, bold=False)
+        self.debug_font = pygame.font.SysFont("monospace", 15, bold=False)
         
         if type == 'group':
             self.childScreenObjects = []
@@ -212,10 +212,16 @@ class TronViewScreenObject:
             if hasattr(self.module, "get_module_options"):
                 options = self.module.get_module_options()
                 for option, details in options.items():
+                    value = getattr(self.module, option)
+                    # Handle custom objects that have to_dict method
+                    if hasattr(value, 'to_dict') and callable(value.to_dict):
+                        option_value = value.to_dict()
+                    else:
+                        option_value = value
                     data["module"]["options"].append({
-                    "name": option,
-                    "value": getattr(self.module, option)
-                })
+                        "name": option,
+                        "value": option_value
+                    })
 
         if self.type == 'group' and self.childScreenObjects:
             data["screenObjects"] = []

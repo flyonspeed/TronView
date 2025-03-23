@@ -6,6 +6,7 @@ from pygame_gui.elements import UIWindow, UILabel, UIButton, UITextEntryLine, UI
 from pygame_gui.windows import UIColourPickerDialog
 from lib.common import shared
 from lib.common.graphic.edit_dropdown import DropDown
+from PIL import Image
 
 ############################################################################################
 ############################################################################################
@@ -140,6 +141,10 @@ class EditOptionsBar:
                 checkbox.object_id = "#options_checkbox_" + option
                 self.ui_elements.append(checkbox)
             elif details['type'] == 'int':
+                # check if min and max are set. if not then show a Error message
+                if 'min' not in details or 'max' not in details:
+                    label.set_text("Int Min and Max not set")
+                    continue
                 slider = pygame_gui.elements.UIHorizontalSlider(
                     relative_rect=pygame.Rect(x_offset, y_offset, 180, 20),
                     start_value=getattr(self.screen_object.module, option),
@@ -152,6 +157,37 @@ class EditOptionsBar:
                 self.ui_elements.append(slider)
                 # show the current value by appending it to the label already created
                 label.set_text(label.text + " " + str(getattr(self.screen_object.module, option)))
+            elif details['type'] == 'float':
+                # check if min and max are set. if not then show a text entry field
+                if 'min' not in details or 'max' not in details:
+                    text_entry = UITextEntryLine(
+                        relative_rect=pygame.Rect(x_offset, y_offset, 180, 20),
+                        manager=self.pygame_gui_manager,
+                        container=self.scrollable_container
+                    )
+                    text_entry.set_text(str(getattr(self.screen_object.module, option)))
+                    text_entry.option_name = option
+                    text_entry.object_id = "#options_text_" + option
+                    self.ui_elements.append(text_entry)
+                else:
+                    # For float sliders, use a smaller click increment for finer control
+                    click_increment = details.get('increment', 0.001)  # Default to 0.001 if not specified
+                    slider = pygame_gui.elements.UIHorizontalSlider(
+                        relative_rect=pygame.Rect(x_offset, y_offset, 180, 20),
+                        start_value=getattr(self.screen_object.module, option),
+                        value_range=(details['min'], details['max']),
+                        manager=self.pygame_gui_manager,
+                        container=self.scrollable_container,
+                        click_increment=click_increment
+                    )   
+                    slider.option_name = option
+                    slider.object_id = "#float_slider_" + option
+                    self.ui_elements.append(slider)
+                    # show the current value by appending it to the label with 3 decimal places
+                    current_value = getattr(self.screen_object.module, option)
+                    label.set_text(label.text + f" {current_value:.3f}")
+
+            
             elif details['type'] in ['float', 'text']:
                 text_entry = UITextEntryLine(
                     relative_rect=pygame.Rect(x_offset, y_offset, 180, 20),
@@ -199,6 +235,8 @@ class EditOptionsBar:
                 dropdown.option_name = option
                 dropdown.object_id = "#options_dropdown_" + option
                 self.ui_elements.append(dropdown)
+
+
             elif details['type'] == 'dataship_var':
                 current_value = getattr(self.screen_object.module, option)
                 
@@ -211,9 +249,6 @@ class EditOptionsBar:
                         container=self.scrollable_container,
                         tool_tip_text="Variable has error value. Click to select a different variable."
                     )
-                    # Set error colors (red background)
-                    #var_button.colours['normal_bg'] = pygame.Color(255, 100, 100)
-                    #var_button.colours['hovered_bg'] = pygame.Color(255, 150, 150)
                     var_button.rebuild()
                 else:
                     var_button = UIButton(
@@ -223,9 +258,6 @@ class EditOptionsBar:
                         container=self.scrollable_container,
                         tool_tip_text="Click to select a Dataship variable"
                     )
-                    # Set a different color to make it stand out
-                    #var_button.colours['normal_bg'] = pygame.Color(200, 230, 255)
-                    #var_button.colours['hovered_bg'] = pygame.Color(150, 200, 250)
                     var_button.rebuild()
                 
                 var_button.option_name = option
@@ -233,26 +265,97 @@ class EditOptionsBar:
                 self.ui_elements.append(var_button)
                 print(f"Created dataship_var button for option: {option}, value: {current_value}")
 
+            elif details['type'] == 'tuple_int':
+                current_value = getattr(self.screen_object.module, option)
+                labels = details.get('labels', [f"Value {i+1}" for i in range(len(current_value))])
+                
+                # Create a text entry for each tuple element, 2 per row
+                for i, (value, label) in enumerate(zip(current_value, labels)):
+                    # Calculate position for 2-column layout
+                    row = i // 2  # Integer division to determine row
+                    col = i % 2   # Modulo to determine column (0 or 1)
+                    
+                    # Position calculations
+                    entry_width = 85  # Narrower width to fit 2 per row
+                    entry_x = x_offset + (col * (entry_width + 10))  # 10px spacing between columns
+                    entry_y = y_offset + (row * 50)  # 50px per row to accommodate label + entry
+                    
+                    # Create label for this tuple element
+                    tuple_label = UILabel(
+                        relative_rect=pygame.Rect(entry_x, entry_y, entry_width, 20),
+                        text=label,
+                        manager=self.pygame_gui_manager,
+                        container=self.scrollable_container
+                    )
+                    self.ui_elements.append(tuple_label)
+                    
+                    # Create text entry for this tuple element
+                    text_entry = UITextEntryLine(
+                        relative_rect=pygame.Rect(entry_x, entry_y + 20, entry_width, 20),
+                        manager=self.pygame_gui_manager,
+                        container=self.scrollable_container
+                    )
+                    text_entry.set_text(str(value))
+                    text_entry.option_name = option
+                    text_entry.tuple_index = i  # Store the index in the tuple
+                    text_entry.object_id = f"#options_tuple_{option}_{i}"
+                    self.ui_elements.append(text_entry)
+                
+                # Adjust y_offset based on number of rows needed
+                num_rows = (len(current_value) + 1) // 2  # Round up division
+                y_offset += (num_rows * 50) - 30  # Subtract 30 since we'll add it back at the end of the loop
+
+            elif details['type'] == 'filedrop':
+                # Create a button that shows the current file or default text
+                current_value = getattr(self.screen_object.module, option)
+                button_text = 'Drop image file here' if not current_value else current_value.file_name
+                
+                file_button = UIButton(
+                    relative_rect=pygame.Rect(x_offset, y_offset, 180, 20),
+                    text=button_text,
+                    manager=self.pygame_gui_manager,
+                    container=self.scrollable_container,
+                    tool_tip_text="Drop a PNG or JPG image file here"
+                )
+                file_button.option_name = option
+                file_button.object_id = "#options_filedrop_" + option
+                self.ui_elements.append(file_button)
+
             y_offset += 30 # move down 30 pixels so we can draw another control
             total_height += 5  # Padding between options
 
         # Set the scrollable area
         self.scrollable_container.set_scrollable_area_dimensions((180, total_height))
 
-    def handle_event(self, event):
 
-        #print("event: %s" % event)
+    def handle_event(self, event):
+        """
+        Handle events for the EditOptionsBar.  This is called by the main event loop.
+        Args:
+            event: pygame event
+        """
+        #if event.type != pygame.MOUSEMOTION and event.type != pygame.USEREVENT:
+        #    print("EditOptionsBar handle_event: %s " % event)
         if event.type == pygame.MOUSEBUTTONDOWN:
             #print("MOUSEBUTTONDOWN")
+            if self.text_entry_active is not None: # check if there is a current text entry field.
+                # update the value of the text entry field
+                self.on_text_submit_change( 
+                    self.text_entry_active.option_name, 
+                    self.text_entry_active.text, 
+                    self.text_entry_active)
+
             # check if they clicked on a text entry field
             foundClickedTextEntry = False
             for element in self.ui_elements:
                 if isinstance(element, UITextEntryLine) and element.rect.collidepoint(event.pos):
-                    print("Text entry field clicked")
+                    print("EditOptionsBar handle_event: Text entry field clicked")
                     self.text_entry_active = element
                     foundClickedTextEntry = True
+                    element.is_focused = True
                     break           
             if foundClickedTextEntry == False:
+                #
                 self.text_entry_active = None # else they didn't click on a text entry field
 
         if event.type == pygame_gui.UI_BUTTON_PRESSED:
@@ -296,26 +399,50 @@ class EditOptionsBar:
         elif event.type == pygame_gui.UI_TEXT_ENTRY_FINISHED:
             print("Text entry finished")
             self.text_entry_active = None
-            self.on_text_submit_change(event.ui_element.option_name, event.text) # send the option name and the text entered
+            self.on_text_submit_change(event.ui_element.option_name, event.text, event.ui_element) # send the option name and the text entered
         elif event.type == pygame_gui.UI_DROP_DOWN_MENU_CHANGED:
             for element in self.ui_elements:
                 if isinstance(element, UIDropDownMenu) and event.ui_element == element:
                     self.on_dropdown_selection(element.option_name, event.text)
+        elif event.type == pygame.DROPFILE:
+            # Handle file drops
+            for element in self.ui_elements:
+                if isinstance(element, UIButton) and hasattr(element, 'option_name'):
+                    options = self.screen_object.module.get_module_options()
+                    if element.option_name in options and options[element.option_name]['type'] == 'filedrop':
+                        # Check if mouse position is over the button
+                        if element.rect.collidepoint(pygame.mouse.get_pos()):
+                            self.handle_file_drop(event.file, element.option_name)
+                            break
 
     def on_checkbox_click(self, option):
         current_value = getattr(self.screen_object.module, option)
         new_value = not current_value
+        for element in self.ui_elements:
+            if isinstance(element, UIButton) and element.option_name == option:
+                if element.text == 'On' or element.text == 'Off':
+                    element.set_text('On' if new_value else 'Off')
+                
+                elif element.object_id.startswith('#options_filedrop_'):
+                    # else is this a filedrop button (object_id has #options_filedrop_)
+                    # delete the current value
+                    #delattr(self.screen_object.module, option)
+                    # set the new value
+                    #setattr(self.screen_object.module, option, None)
+                    # update the label
+                    #element.set_text('Drop image file here')
+                    print(f"filedrop button clicked: {option}")
+                    return
+                break
+        # save the change to the change history
         shared.Change_history.add_change("option_change", {
             "object": self.screen_object,
             "option": option,
             "old_value": current_value,
             "new_value": new_value
         })
-        setattr(self.screen_object.module, option, new_value)
-        for element in self.ui_elements:
-            if isinstance(element, UIButton) and element.option_name == option:
-                element.set_text('On' if new_value else 'Off')
-                break
+        setattr(self.screen_object.module, option, new_value)  # update the module option
+        # does it have a callback function?
         if hasattr(self.screen_object.module, 'update_option'):
             self.screen_object.module.update_option(option, new_value)
         
@@ -328,46 +455,15 @@ class EditOptionsBar:
 
     def on_slider_moved(self, option, value):
         old_value = getattr(self.screen_object.module, option)
-        shared.Change_history.add_change("option_change", {
-            "object": self.screen_object,
-            "option": option,
-            "old_value": old_value,
-            "new_value": int(value)
-        })
-        setattr(self.screen_object.module, option, int(value))
-        if hasattr(self.screen_object.module, 'update_option'):
-            self.screen_object.module.update_option(option, int(value))
-        
-        # Check for post_change_function
-        options = self.screen_object.module.get_module_options()
-        if 'post_change_function' in options[option]:
-            post_change_function = getattr(self.screen_object.module, options[option]['post_change_function'], None)
-            if post_change_function:
-                post_change_function()
-        # update the label with the new value by finding it by object_id
-        for element in self.ui_elements:
-            if isinstance(element, UILabel):
-                # make sure element has object_id
-                #print("element.text: %s" % element.text)
-                if hasattr(element, 'object_id'):
-                    #print("element.object_id: %s" % element.object_id)
-                    if element.object_id == "#options_label_" + option:
-                        element.set_text(options[option]['label'] + ": " + str(int(value)))
-                        break
-
-    def on_text_submit_change(self, option, text):
-        old_value = getattr(self.screen_object.module, option)
+        # Get the option type to handle float values correctly
         option_type = self.screen_object.module.get_module_options()[option]['type']
+        
         if option_type == 'float':
-            # check if there is a decimal point
-            if '.' in text:
-                value = float(text)
-            else:
-                value = int(text)
-        elif option_type == 'int':
-            value = int(text)
+            # Round to 3 decimal places for floats
+            value = round(float(value), 3)
         else:
-            value = text
+            value = int(value)
+            
         shared.Change_history.add_change("option_change", {
             "object": self.screen_object,
             "option": option,
@@ -384,6 +480,89 @@ class EditOptionsBar:
             post_change_function = getattr(self.screen_object.module, options[option]['post_change_function'], None)
             if post_change_function:
                 post_change_function()
+        # update the label with the new value by finding it by object_id
+        for element in self.ui_elements:
+            if isinstance(element, UILabel):
+                if hasattr(element, 'object_id'):
+                    if element.object_id == "#options_label_" + option:
+                        # check if there is a details['options'] and set if there is postion in the list
+                        if 'options' in options[option]:
+                            # how many options are there? see if we can get the label in the options for this postion.
+                            try:
+                                value_str = options[option]['options'][value]
+                            except:
+                                value_str = str(value)
+                        else:
+                            # else its a float or int
+                            # Format float values with 3 decimal places
+                            if option_type == 'float':
+                                value_str = f"{value:.3f}"
+                            else:
+                                value_str = str(value)
+                        
+                        element.set_text(options[option]['label'] + ": " + value_str)
+                        break
+
+    def on_text_submit_change(self, option, text, element):
+        old_value = getattr(self.screen_object.module, option)
+        option_type = self.screen_object.module.get_module_options()[option]['type']
+        
+        if option_type == 'tuple_int':
+            #id = self.text_entry_active.object_id
+            print(f"tuple_int on_text_submit_change: {option} = {text} index: {element.tuple_index}")
+            # For tuple_int, we need to update just one element of the tuple
+            current_value = list(getattr(self.screen_object.module, option))
+
+            try:
+                # get object_id from element
+                index = element.tuple_index
+                value = int(text)  # Convert to integer
+                current_value[index] = value  # Update the specific tuple element
+                new_value = tuple(current_value)  # Convert back to tuple
+                print(f"new_value: {new_value}")
+                shared.Change_history.add_change("option_change", {
+                    "object": self.screen_object,
+                    "option": option,
+                    "old_value": old_value,
+                    "new_value": new_value
+                })
+                
+                setattr(self.screen_object.module, option, new_value)
+                if hasattr(self.screen_object.module, 'update_option'):
+                    self.screen_object.module.update_option(option, new_value)
+            except ValueError:
+                # If conversion fails, revert to old value
+                element.set_text(str(old_value[index]))
+        else:
+            # Existing handling for other types
+            if option_type == 'float':
+                # check if there is a decimal point
+                if '.' in text:
+                    value = float(text)
+                else:
+                    value = int(text)
+            elif option_type == 'int':
+                value = int(text)
+            else:
+                value = text
+                
+            shared.Change_history.add_change("option_change", {
+                "object": self.screen_object,
+                "option": option,
+                "old_value": old_value,
+                "new_value": value
+            })
+            setattr(self.screen_object.module, option, value)
+            if hasattr(self.screen_object.module, 'update_option'):
+                self.screen_object.module.update_option(option, value)
+        
+        # Check for post_change_function
+        options = self.screen_object.module.get_module_options()
+        if 'post_change_function' in options[option]:
+            post_change_function = getattr(self.screen_object.module, options[option]['post_change_function'], None)
+            if post_change_function:
+                post_change_function()
+                
         # unfocus the text entry
         for element in self.ui_elements:
             if isinstance(element, UITextEntryLine) and element.option_name == option:
@@ -607,3 +786,70 @@ class EditOptionsBar:
             pass
             
         return False
+
+    def handle_file_drop(self, file_path, option):
+        """Handle dropped files for filedrop type options"""
+        # Check if file is an image
+        lower_path = file_path.lower()
+        if not (lower_path.endswith('.png') or lower_path.endswith('.jpg') or lower_path.endswith('.jpeg')):
+            print(f"Unsupported file type: {file_path}")
+            return
+
+        file_name = os.path.basename(file_path)
+        # create object that holds details about the image like file_name, file_path, file_size, file_type
+        image_object = {
+            "file_name": file_name,
+            "file_path": file_path,
+            "file_size": os.path.getsize(file_path),
+            "file_type": "image",
+            "base64": None
+        }
+
+        try:
+            import base64
+            # Read the image file and convert to base64
+            with open(file_path, 'rb') as image_file:
+                encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
+                image_object['base64'] = encoded_string
+                # calculate the width and height of the image using PIL
+                image = Image.open(file_path)
+                image_object['width'] = image.width
+                image_object['height'] = image.height
+            
+            # Store the old value for change history
+            old_value = getattr(self.screen_object.module, option)
+            
+            # Update the module with the base64 encoded image
+            shared.Change_history.add_change("option_change", {
+                "object": self.screen_object,
+                "option": option,
+                "old_value": old_value,
+                "new_value": image_object
+            })
+            
+            # Set the new value
+            setattr(self.screen_object.module, option, image_object)
+            
+            # Update the button text
+            for element in self.ui_elements:
+                if isinstance(element, UIButton) and element.option_name == option:
+                    # get the file name from the image_object
+                    file_name = image_object['file_name']
+                    element.set_text(file_name)
+                    break
+            
+            # Call update_option if it exists
+            if hasattr(self.screen_object.module, 'update_option'):
+                self.screen_object.module.update_option(option, image_object)
+            
+            # Check for post_change_function
+            options = self.screen_object.module.get_module_options()
+            if 'post_change_function' in options[option]:
+                post_change_function = getattr(self.screen_object.module, options[option]['post_change_function'], None)
+                if post_change_function:
+                    post_change_function()
+                
+        except Exception as e:
+            print(f"Error processing image file: {e}")
+            import traceback
+            traceback.print_exc()

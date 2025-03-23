@@ -5,6 +5,7 @@
 # A bar gauge displays a value as a horizontal or vertical bar.
 # The bar has a 3D appearance with gradients and shadows.
 # The bar can show min/max values and current value text.
+# Supports multiple ranges with different colors.
 # Topher 2024.
 # 
 
@@ -28,6 +29,7 @@ class gauge_bar(Module):
         self.text_color = (200,255,255)
         self.bar_color = (0,255,0)  # Main bar color
         self.background_color = (40,40,40)  # Bar background
+        self.background_alpha = 255  # Background transparency (0-255)
         self.border_color = (100,100,100)  # Border color
         
         # Gauge parameters
@@ -39,6 +41,19 @@ class gauge_bar(Module):
         self.show_borders = True
         self.border_width = 2
         self.max_bars = 8
+        self.draw_mode = 0
+
+        # Range parameters
+        self.range_alpha = 150
+        self.range1 = (0, 0)
+        self.range1_color = (0, 255, 0)  # Default to green
+        self.range1_label = ""
+        self.range2 = (0, 0)
+        self.range2_color = (255, 0, 0)  # Default to red
+        self.range2_label = ""
+        self.range3 = (0, 0)
+        self.range3_color = (0, 0, 255)  # Default to blue
+        self.range3_label = ""
         
         # 3D effect parameters
         self.gradient_steps = 5  # Number of gradient steps for 3D effect
@@ -75,6 +90,57 @@ class gauge_bar(Module):
     #     except Exception as e:
     #         print(f"Error getting data field {data_field}: {e}")
     #         return 0
+
+    def _get_range_color(self, value):
+        """Get the color for a given value based on defined ranges"""
+        # Check each range in order
+        if self.range1[0] != self.range1[1] and self.range1[0] <= value <= self.range1[1]:
+            return self.range1_color
+        if self.range2[0] != self.range2[1] and self.range2[0] <= value <= self.range2[1]:
+            return self.range2_color
+        if self.range3[0] != self.range3[1] and self.range3[0] <= value <= self.range3[1]:
+            return self.range3_color
+        return self.bar_color
+
+    def _draw_range_markers(self, surface, padding, bar_x, bar_y, bar_width, bar_height, is_vertical):
+        """Draw markers for range boundaries and colored range sections"""
+        marker_length = 5  # Length of the marker line
+        marker_color = (200, 200, 200)  # Light gray color for markers
+        
+        def draw_range_section(start_pos, end_pos, color, is_vertical):
+            """Draw a colored section between two range positions"""
+            # Ensure color is a tuple of 4 elements (RGB + alpha)
+            if len(color) == 3:
+                range_color = (*color, self.range_alpha)  # Use range_alpha for transparency
+            else:
+                #remove alpha from color
+                range_color = color[:3]
+                range_color = (*range_color, self.range_alpha)
+                
+            if is_vertical:
+                start_y = padding + bar_height - (end_pos - self.minValue) * bar_height / (self.maxValue - self.minValue)
+                end_y = padding + bar_height - (start_pos - self.minValue) * bar_height / (self.maxValue - self.minValue)
+                section_height = end_y - start_y
+                # Draw colored overlay on the bar
+                pygame.draw.rect(surface, range_color,
+                               (bar_x, start_y, bar_width, section_height))
+            else:
+                start_x = padding + (start_pos - self.minValue) * bar_width / (self.maxValue - self.minValue)
+                end_x = padding + (end_pos - self.minValue) * bar_width / (self.maxValue - self.minValue)
+                section_width = end_x - start_x
+                # Draw colored overlay on the bar
+                pygame.draw.rect(surface, range_color,
+                               (start_x, bar_y, section_width, bar_height))
+
+        
+        # Draw colored sections for each range first (so they appear behind markers)
+        if self.range1[0] != self.range1[1]:
+            draw_range_section(self.range1[0], self.range1[1], self.range1_color, is_vertical)
+        if self.range2[0] != self.range2[1]:
+            draw_range_section(self.range2[0], self.range2[1], self.range2_color, is_vertical)
+        if self.range3[0] != self.range3[1]:
+            draw_range_section(self.range3[0], self.range3[1], self.range3_color, is_vertical)
+        
 
     def draw(self, aircraft, smartdisplay, pos=(None,None)):
         if pos[0] is None:
@@ -136,7 +202,7 @@ class gauge_bar(Module):
                     # Draw background with 3D effect
                     for step in range(self.gradient_steps):
                         shade = max(0, self.background_color[0] - (step * 5))
-                        bg_color = (shade, shade, shade)
+                        bg_color = (shade, shade, shade, self.background_alpha)
                         bar_rect = pygame.Rect(bar_x, padding + step, 
                                              bar_width, bar_height - step)
                         pygame.draw.rect(self.surface2, bg_color, bar_rect)
@@ -145,19 +211,36 @@ class gauge_bar(Module):
                     value_percent = (value - self.minValue) / (self.maxValue - self.minValue)
                     value_height = int(bar_height * value_percent)
                     
-                    # Draw value bar with 3D effect
-                    for step in range(self.gradient_steps):
-                        bar_shade = (
-                            max(0, self.bar_color[0] - (step * 15)),
-                            max(0, self.bar_color[1] - (step * 15)),
-                            max(0, self.bar_color[2] - (step * 15))
-                        )
+                    # Get color based on ranges
+                    bar_color = self._get_range_color(value)
+                    
+                    if self.draw_mode == 1:  # Line mode
+                        # Draw range markers after background but before line
+                        self._draw_range_markers(self.surface2, padding, bar_x, None, bar_width, bar_height, True)
                         
-                        bar_rect = pygame.Rect(bar_x,
-                                             padding + (bar_height - value_height) + step,
-                                             bar_width - step,
-                                             value_height - step)
-                        pygame.draw.rect(self.surface2, bar_shade, bar_rect)
+                        # Draw thick line at value position - horizontal line for vertical mode
+                        line_y = padding + (bar_height - value_height)  # Calculate correct height position
+                        pygame.draw.line(self.surface2, bar_color,
+                                          (bar_x, line_y),
+                                          (bar_x + bar_width - 1, line_y),
+                                          10)
+                    else:  # Normal filled bar mode
+                        # Draw range markers after background but before value bar
+                        self._draw_range_markers(self.surface2, padding, bar_x, None, bar_width, bar_height, True)
+                        
+                        # Draw value bar with 3D effect
+                        for step in range(self.gradient_steps):
+                            bar_shade = (
+                                max(0, bar_color[0] - (step * 15)),
+                                max(0, bar_color[1] - (step * 15)),
+                                max(0, bar_color[2] - (step * 15))
+                            )
+                            
+                            bar_rect = pygame.Rect(bar_x,
+                                                 padding + (bar_height - value_height) + step,
+                                                 bar_width - step,
+                                                 value_height - step)
+                            pygame.draw.rect(self.surface2, bar_shade, bar_rect)
                     
                     # Draw borders for individual bar
                     if self.show_borders:
@@ -173,26 +256,45 @@ class gauge_bar(Module):
                     # Draw background with 3D effect
                     for step in range(self.gradient_steps):
                         shade = max(0, self.background_color[0] - (step * 5))
-                        bg_color = (shade, shade, shade)
+                        bg_color = (shade, shade, shade, self.background_alpha)
                         bar_rect = pygame.Rect(padding + step, bar_y + step, 
                                              bar_width - step, bar_height - step)
                         pygame.draw.rect(self.surface2, bg_color, bar_rect)
 
                     # Calculate value width
-                    value_percent = (value - self.minValue) / (self.maxValue - self.minValue)
-                    value_width = int(bar_width * value_percent)
+                    try:
+                        value_percent = (value - self.minValue) / (self.maxValue - self.minValue)
+                        value_width = int(bar_width * value_percent)
+                    except:
+                        value_width = 0
                     
-                    # Draw value bar with 3D effect
-                    for step in range(self.gradient_steps):
-                        bar_shade = (
-                            max(0, self.bar_color[0] - (step * 15)),
-                            max(0, self.bar_color[1] - (step * 15)),
-                            max(0, self.bar_color[2] - (step * 15))
-                        )
+                    # Get color based on ranges
+                    bar_color = self._get_range_color(value)
+                    
+                    if self.draw_mode == 1:  # Line mode
+                        # Draw range markers after background but before line
+                        self._draw_range_markers(self.surface2, padding, None, bar_y, bar_width, bar_height, False)
                         
-                        bar_rect = pygame.Rect(padding + step, bar_y + step,
-                                             value_width - step, bar_height - step)
-                        pygame.draw.rect(self.surface2, bar_shade, bar_rect)
+                        # Draw thick line at value position
+                        pygame.draw.line(self.surface2, bar_color,
+                                          (padding + value_width, bar_y),
+                                          (padding + value_width, bar_y + bar_height -1),
+                                          10)
+                    else:  # Normal filled bar mode
+                        # Draw range markers after background but before value bar
+                        self._draw_range_markers(self.surface2, padding, None, bar_y, bar_width, bar_height, False)
+                        
+                        # Draw value bar with 3D effect
+                        for step in range(self.gradient_steps):
+                            bar_shade = (
+                                max(0, bar_color[0] - (step * 15)),
+                                max(0, bar_color[1] - (step * 15)),
+                                max(0, bar_color[2] - (step * 15))
+                            )
+                            
+                            bar_rect = pygame.Rect(padding + step, bar_y + step,
+                                                 value_width - step, bar_height - step)
+                            pygame.draw.rect(self.surface2, bar_shade, bar_rect)
                     
                     # Draw borders for individual bar
                     if self.show_borders:
@@ -227,6 +329,32 @@ class gauge_bar(Module):
                     self.surface2.blit(shadow_surface, (text_x + 1, text_y + 1))
                     self.surface2.blit(text_surface, (text_x, text_y))
 
+                    # Draw range labels if defined
+                    if self.vertical:
+                        label_x = bar_x + bar_width + 15  # Moved further right to account for markers
+                        label_y = padding
+                        if self.range1_label and self.range1[0] != self.range1[1]:
+                            label_surface = self.font.render(self.range1_label, True, self.range1_color)
+                            self.surface2.blit(label_surface, (label_x, label_y))
+                        if self.range2_label and self.range2[0] != self.range2[1]:
+                            label_surface = self.font.render(self.range2_label, True, self.range2_color)
+                            self.surface2.blit(label_surface, (label_x, label_y + 20))
+                        if self.range3_label and self.range3[0] != self.range3[1]:
+                            label_surface = self.font.render(self.range3_label, True, self.range3_color)
+                            self.surface2.blit(label_surface, (label_x, label_y + 40))
+                    else:
+                        label_x = padding + bar_width + 15  # Moved further right to account for markers
+                        label_y = bar_y
+                        if self.range1_label and self.range1[0] != self.range1[1]:
+                            label_surface = self.font.render(self.range1_label, True, self.range1_color)
+                            self.surface2.blit(label_surface, (label_x, label_y))
+                        if self.range2_label and self.range2[0] != self.range2[1]:
+                            label_surface = self.font.render(self.range2_label, True, self.range2_color)
+                            self.surface2.blit(label_surface, (label_x + 60, label_y))
+                        if self.range3_label and self.range3[0] != self.range3[1]:
+                            label_surface = self.font.render(self.range3_label, True, self.range3_color)
+                            self.surface2.blit(label_surface, (label_x + 120, label_y))
+
         # Blit to screen
         self.pygamescreen.blit(self.surface2, (x, y))
 
@@ -240,18 +368,11 @@ class gauge_bar(Module):
                 "label": "Data Field",
                 "description": "Select a data field to display",
             },
-            # "data_field": {
-            #     "type": "dropdown",
-            #     "default": self.data_field,
-            #     "options": data_fields,
-            #     "label": "Data Field",
-            #     "description": "Select a data field to display",
-            # },
             "minValue": {
                 "type": "int",
                 "default": self.minValue,
                 "label": "Min Value",
-                "min": 0,
+                "min": -1000,
                 "max": 1000,
                 "description": "Minimum value"
             },
@@ -266,6 +387,15 @@ class gauge_bar(Module):
                 "default": self.vertical,
                 "label": "Vertical",
                 "description": "Display bar vertically"
+            },
+            "draw_mode": {
+                "type": "int",
+                "default": self.draw_mode,
+                "label": "Draw Mode",
+                "description": "Draw mode for the bar",
+                "min": 0,
+                "max": 1,
+                "options": ["default", "line"]
             },
             "show_text": {
                 "type": "bool",
@@ -298,6 +428,14 @@ class gauge_bar(Module):
                 "default": self.background_color,
                 "label": "Background Color",
                 "description": "Color of the background"
+            },
+            "background_alpha": {
+                "type": "int",
+                "default": self.background_alpha,
+                "label": "Background Alpha",
+                "description": "Alpha of the background",
+                "min": 0,
+                "max": 255
             },
             "border_color": {
                 "type": "color",
@@ -343,6 +481,68 @@ class gauge_bar(Module):
                 "max": 20,
                 "label": "Max Bars",
                 "description": "Maximum number of bars to show for list/tuple values"
+            },
+            "range1": {
+                "type": "tuple_int",
+                "default": self.range1,
+                "label": "Range 1",
+                "description": "First range"
+            },
+            "range1_color": {
+                "type": "color",
+                "default": self.range1_color,
+                "label": "Range 1 Color",
+                "description": "Color for the first range"
+            },
+            "range1_label": {
+                "type": "text",
+                "default": self.range1_label,
+                "label": "Range 1 Label",
+                "description": "Label for the first range"
+            },
+            "range2": {
+                "type": "tuple_int",
+                "default": self.range2,
+                "label": "Range 2",
+                "description": "Second range"
+            },
+            "range2_color": {
+                "type": "color",
+                "default": self.range2_color,
+                "label": "Range 2 Color",
+                "description": "Color for the second range"
+            },
+            "range2_label": {
+                "type": "text",
+                "default": self.range2_label,
+                "label": "Range 2 Label",
+                "description": "Label for the second range"
+            },
+            "range3": {
+                "type": "tuple_int",
+                "default": self.range3,
+                "label": "Range 3",
+                "description": "Third range"
+            },
+            "range3_color": {
+                "type": "color",
+                "default": self.range3_color,
+                "label": "Range 3 Color",
+                "description": "Color for the third range"
+            },
+            "range3_label": {
+                "type": "text",
+                "default": self.range3_label,
+                "label": "Range 3 Label",
+                "description": "Label for the third range"
+            },
+            "range_alpha": {
+                "type": "int",
+                "default": self.range_alpha,
+                "label": "Range Alpha",
+                "description": "Alpha of the range",
+                "min": 0,
+                "max": 255
             }
         }
 

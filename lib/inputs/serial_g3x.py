@@ -266,6 +266,7 @@ class serial_g3x(Input):
                             current_time = time.time() # calculate hz.
                             self.imuData.hz = round(1 / (current_time - self.last_read_time), 1)
                             self.last_read_time = current_time
+                            print(current_time)
                         return dataship
                     else:
                         self.airData.msg_bad += 1

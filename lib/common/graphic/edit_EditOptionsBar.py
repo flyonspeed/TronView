@@ -6,6 +6,7 @@ from pygame_gui.elements import UIWindow, UILabel, UIButton, UITextEntryLine, UI
 from pygame_gui.windows import UIColourPickerDialog
 from lib.common import shared
 from lib.common.graphic.edit_dropdown import DropDown
+from PIL import Image
 
 ############################################################################################
 ############################################################################################
@@ -304,6 +305,22 @@ class EditOptionsBar:
                 num_rows = (len(current_value) + 1) // 2  # Round up division
                 y_offset += (num_rows * 50) - 30  # Subtract 30 since we'll add it back at the end of the loop
 
+            elif details['type'] == 'filedrop':
+                # Create a button that shows the current file or default text
+                current_value = getattr(self.screen_object.module, option)
+                button_text = 'Drop image file here' if not current_value else 'Image loaded'
+                
+                file_button = UIButton(
+                    relative_rect=pygame.Rect(x_offset, y_offset, 180, 20),
+                    text=button_text,
+                    manager=self.pygame_gui_manager,
+                    container=self.scrollable_container,
+                    tool_tip_text="Drop a PNG or JPG image file here"
+                )
+                file_button.option_name = option
+                file_button.object_id = "#options_filedrop_" + option
+                self.ui_elements.append(file_button)
+
             y_offset += 30 # move down 30 pixels so we can draw another control
             total_height += 5  # Padding between options
 
@@ -387,6 +404,16 @@ class EditOptionsBar:
             for element in self.ui_elements:
                 if isinstance(element, UIDropDownMenu) and event.ui_element == element:
                     self.on_dropdown_selection(element.option_name, event.text)
+        elif event.type == pygame.DROPFILE:
+            # Handle file drops
+            for element in self.ui_elements:
+                if isinstance(element, UIButton) and hasattr(element, 'option_name'):
+                    options = self.screen_object.module.get_module_options()
+                    if element.option_name in options and options[element.option_name]['type'] == 'filedrop':
+                        # Check if mouse position is over the button
+                        if element.rect.collidepoint(pygame.mouse.get_pos()):
+                            self.handle_file_drop(event.file, element.option_name)
+                            break
 
     def on_checkbox_click(self, option):
         current_value = getattr(self.screen_object.module, option)
@@ -745,3 +772,68 @@ class EditOptionsBar:
             pass
             
         return False
+
+    def handle_file_drop(self, file_path, option):
+        """Handle dropped files for filedrop type options"""
+        # Check if file is an image
+        lower_path = file_path.lower()
+        if not (lower_path.endswith('.png') or lower_path.endswith('.jpg') or lower_path.endswith('.jpeg')):
+            print(f"Unsupported file type: {file_path}")
+            return
+
+        file_name = os.path.basename(file_path)
+        # create object that holds details about the image like file_name, file_path, file_size, file_type
+        image_object = {
+            "file_name": file_name,
+            "file_path": file_path,
+            "file_size": os.path.getsize(file_path),
+            "file_type": "image",
+            "base64": None
+        }
+
+        try:
+            import base64
+            # Read the image file and convert to base64
+            with open(file_path, 'rb') as image_file:
+                encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
+                image_object['base64'] = encoded_string
+                # calculate the width and height of the image using PIL
+                image = Image.open(file_path)
+                image_object['width'] = image.width
+                image_object['height'] = image.height
+            
+            # Store the old value for change history
+            old_value = getattr(self.screen_object.module, option)
+            
+            # Update the module with the base64 encoded image
+            shared.Change_history.add_change("option_change", {
+                "object": self.screen_object,
+                "option": option,
+                "old_value": old_value,
+                "new_value": image_object
+            })
+            
+            # Set the new value
+            setattr(self.screen_object.module, option, image_object)
+            
+            # Update the button text
+            for element in self.ui_elements:
+                if isinstance(element, UIButton) and element.option_name == option:
+                    element.set_text('Image loaded')
+                    break
+            
+            # Call update_option if it exists
+            if hasattr(self.screen_object.module, 'update_option'):
+                self.screen_object.module.update_option(option, image_object)
+            
+            # Check for post_change_function
+            options = self.screen_object.module.get_module_options()
+            if 'post_change_function' in options[option]:
+                post_change_function = getattr(self.screen_object.module, options[option]['post_change_function'], None)
+                if post_change_function:
+                    post_change_function()
+                
+        except Exception as e:
+            print(f"Error processing image file: {e}")
+            import traceback
+            traceback.print_exc()

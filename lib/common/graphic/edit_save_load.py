@@ -24,6 +24,16 @@ def save_screen_to_json(filename=None, update_settings_last_run=True):
     if shared.CurrentScreen.name == "" or shared.CurrentScreen.name is None:
         shared.CurrentScreen.name = shared.CurrentScreen.filename.split(".")[0]
 
+    # Convert screen objects to dictionaries, ensuring proper serialization
+    screen_objects_data = []
+    for obj in shared.CurrentScreen.ScreenObjects:
+        try:
+            obj_dict = obj.to_dict()
+            screen_objects_data.append(obj_dict)
+        except Exception as e:
+            print(f"Warning: Failed to serialize screen object {obj.title}: {str(e)}")
+            continue
+
     data = {
         "ver": {"version": "1.0"},  # You can update this version as needed
         "screen": {
@@ -33,7 +43,7 @@ def save_screen_to_json(filename=None, update_settings_last_run=True):
             "height": shared.smartdisplay.y_end,
             "date_updated": datetime.now().strftime("%Y%m%d_%H%M%S")
         },
-        "screenObjects": [obj.to_dict() for obj in shared.CurrentScreen.ScreenObjects]
+        "screenObjects": screen_objects_data
     }
     
     filename = shared.CurrentScreen.filename

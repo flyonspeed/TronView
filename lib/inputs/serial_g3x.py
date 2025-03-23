@@ -268,7 +268,7 @@ class serial_g3x(Input):
                             self.last_read_time = current_time
                         return dataship
                     else:
-                        self.msg_bad += 1
+                        self.airData.msg_bad += 1
                 elif len(msg) == 45:
                     if(isinstance(msg,str)): msg = msg.encode() # if read from file then convert to bytes
                     SentVer, UTCHour, UTCMin, UTCSec, UTCSecFrac, Pitch, Roll, Heading, Airspeed, PressAlt, VertSpeed, OAT, AltSet, Checksum, CRLF = struct.unpack(
@@ -306,7 +306,7 @@ class serial_g3x(Input):
                             Input.addToLog(self,self.output_logFile,msg)
                         return dataship
                 else:
-                    self.msg_bad += 1
+                    self.airData.msg_bad += 1
             elif SentID == "2":
                 msg = self.ser.readline()
                 self.airData.msg_last = msg
@@ -334,7 +334,7 @@ class serial_g3x(Input):
                             Input.addToLog(self,self.output_logFile,msg)
                         return dataship
                     else:
-                        self.msg_bad += 1
+                        self.airData.msg_bad += 1
                 elif len(msg) == 28:
                     if(isinstance(msg,str)): msg = msg.encode() # if read from file then convert to bytes
                     SentVer, UTCHour, UTCMin, UTCSec, UTCSecFrac, TAS, unknownvalue, Checksum, CRLF = struct.unpack(
@@ -372,10 +372,10 @@ class serial_g3x(Input):
                             Input.addToLog(self,self.output_logFile,msg)
                         return dataship
                     else:
-                        self.msg_bad += 1
+                        self.airData.msg_bad += 1
 
                 else:
-                    self.msg_bad += 1
+                    self.airData.msg_bad += 1
 
             '''elif SentID == "3":  # Engine Data Message
                 msg = self.ser.readline()
@@ -419,10 +419,10 @@ class serial_g3x(Input):
                         self.engineData.msg_count = +1
                         return dataship
                     else:
-                        self.msg_bad += 1
+                        self.airData.msg_bad += 1
 
                 else:
-                    self.msg_bad += 1
+                    self.airData.msg_bad += 1
 
             else:
                 self.msg_unknown += 1  # else unknown message.

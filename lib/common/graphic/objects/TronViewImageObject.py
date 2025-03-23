@@ -37,8 +37,12 @@ class TronViewImageObject:
         """Create an instance from a dictionary"""
         # if no width and height.. figure it out based on the base64
         if 'width' not in data or 'height' not in data:
-            # use PIL to get the width and height
-            image = Image.open(data['file_path'])
+            # use PIL to get the width and height.  load from base64
+            if data['base64']:
+                image = Image.open(io.BytesIO(base64.b64decode(data['base64'])))
+            else:
+                # else error
+                raise ValueError("No base64 data provided")
             data['width'] = image.width
             data['height'] = image.height
             print(f"calculated width: {data['width']}, height: {data['height']}")

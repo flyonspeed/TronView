@@ -12,5 +12,6 @@ pynmea2
 textual
 configupdater
 geographiclib
+pillow
 
 

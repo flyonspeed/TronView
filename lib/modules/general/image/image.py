@@ -40,6 +40,10 @@ class image(Module):
         # check if image is a dict
         if isinstance(self.image, dict):
             self.image = TronViewImageObject.from_dict(self.image)
+        elif not isinstance(self.image, TronViewImageObject):
+            # if it's not a TronViewImageObject, then make sure its None
+            self.image = None
+            return
 
         if self.image and self.image.base64:
             try:
@@ -135,7 +139,7 @@ class image(Module):
             "image": {
                 "type": "filedrop",
                 "default": self.image,
-                "label": "Image (Drop Image Here)",
+                "label": "Image (Drag and Drop)",
                 "description": "Select an image file to display",
                 "post_change_function": "preload_image"
             },

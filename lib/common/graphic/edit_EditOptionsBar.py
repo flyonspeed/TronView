@@ -308,7 +308,7 @@ class EditOptionsBar:
             elif details['type'] == 'filedrop':
                 # Create a button that shows the current file or default text
                 current_value = getattr(self.screen_object.module, option)
-                button_text = 'Drop image file here' if not current_value else 'Image loaded'
+                button_text = 'Drop image file here' if not current_value else current_value.file_name
                 
                 file_button = UIButton(
                     relative_rect=pygame.Rect(x_offset, y_offset, 180, 20),
@@ -418,17 +418,31 @@ class EditOptionsBar:
     def on_checkbox_click(self, option):
         current_value = getattr(self.screen_object.module, option)
         new_value = not current_value
+        for element in self.ui_elements:
+            if isinstance(element, UIButton) and element.option_name == option:
+                if element.text == 'On' or element.text == 'Off':
+                    element.set_text('On' if new_value else 'Off')
+                
+                elif element.object_id.startswith('#options_filedrop_'):
+                    # else is this a filedrop button (object_id has #options_filedrop_)
+                    # delete the current value
+                    #delattr(self.screen_object.module, option)
+                    # set the new value
+                    #setattr(self.screen_object.module, option, None)
+                    # update the label
+                    #element.set_text('Drop image file here')
+                    print(f"filedrop button clicked: {option}")
+                    return
+                break
+        # save the change to the change history
         shared.Change_history.add_change("option_change", {
             "object": self.screen_object,
             "option": option,
             "old_value": current_value,
             "new_value": new_value
         })
-        setattr(self.screen_object.module, option, new_value)
-        for element in self.ui_elements:
-            if isinstance(element, UIButton) and element.option_name == option:
-                element.set_text('On' if new_value else 'Off')
-                break
+        setattr(self.screen_object.module, option, new_value)  # update the module option
+        # does it have a callback function?
         if hasattr(self.screen_object.module, 'update_option'):
             self.screen_object.module.update_option(option, new_value)
         
@@ -819,7 +833,9 @@ class EditOptionsBar:
             # Update the button text
             for element in self.ui_elements:
                 if isinstance(element, UIButton) and element.option_name == option:
-                    element.set_text('Image loaded')
+                    # get the file name from the image_object
+                    file_name = image_object['file_name']
+                    element.set_text(file_name)
                     break
             
             # Call update_option if it exists

@@ -161,7 +161,6 @@ class serial_g3x(Input):
                             if CRLF[0] == self.EOL:
                                 if(dataship.debug_mode>1):
                                     print("g3x: GPS Sentence")
-
                                 self.gpsData.msg_count += 1
                                 self.gpsData.sys_time_string = "%d:%d:%d"%(int(UTCHour),int(UTCMin),int(UTCSec))
                                 self.gpsData.GPSTime_string = self.gpsData.sys_time_string
@@ -212,7 +211,7 @@ class serial_g3x(Input):
                     if (self.isPlaybackMode ):  # if no bytes read and in playback mode.  then reset the file pointer to the start of the file.
                         self.ser.seek(0)
 
-            '''SentID = self.ser.read(1) # get message id
+            SentID = self.ser.read(1) # get message id
             if(not isinstance(SentID,str)): SentID = SentID.decode('utf-8')
             if SentID == "1":  # atittude/air data message
                 msg = self.ser.readline()
@@ -279,7 +278,8 @@ class serial_g3x(Input):
                             current_time = time.time() # calculate hz.
                             self.imuData.hz = round(1 / (current_time - self.last_read_time), 1)
                             self.last_read_time = current_time
-                            print(current_time)
+                            print("System Time: " + str(current_time))
+                            print("GPS Time: " + self.gpsData.GPSTime_string)
                         return dataship
                     else:
                         self.airData.msg_bad += 1
@@ -320,6 +320,12 @@ class serial_g3x(Input):
                         if self.output_logFile != None:
                             Input.addToLog(self,self.output_logFile,bytes([61,ord(SentID)]))
                             Input.addToLog(self,self.output_logFile,msg)
+                        if dataship.debug_mode > 0:
+                            current_time = time.time() # calculate hz.
+                            self.imuData.hz = round(1 / (current_time - self.last_read_time), 1)
+                            self.last_read_time = current_time
+                            print("System Time: " + str(current_time))
+                            print("GPS Time: " + self.gpsData.GPSTime_string)
                         return dataship
                 else:
                     self.airData.msg_bad += 1
@@ -399,7 +405,7 @@ class serial_g3x(Input):
                 else:
                     self.airData.msg_bad += 1
                     if(dataship.debug_mode>1):
-                        print("g3x: unknown message") '''
+                        print("g3x: unknown message")
 
                 
 

@@ -147,6 +147,8 @@ class serial_g3x(Input):
         if dataship.errorFoundNeedToExit:
             return dataship
         try:
+            if(dataship.debug_mode > 0):
+                print("Serial Waiting Bytes: " + str(self.ser.in_waiting()))
             x = 0
             while x != 61:  # 61(=) is start of garmin g3x sentence.
                 t = self.ser.read(1)

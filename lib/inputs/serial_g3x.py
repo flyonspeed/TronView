@@ -87,6 +87,7 @@ class serial_g3x(Input):
                 bytesize=serial.EIGHTBITS,
                 timeout=1,
             )
+        print("G3X input init'd")
 
         # create a empty imu object.
         self.imuData = IMUData()
@@ -95,6 +96,7 @@ class serial_g3x(Input):
         self.imu_index = len(dataship.imuData)  # Start at 0
         dataship.imuData.append(self.imuData)
         self.last_read_time = time.time()
+        print("G3X: IMU Init")
 
         # create a empty air object.
         self.airData = AirData()
@@ -102,6 +104,7 @@ class serial_g3x(Input):
         self.airData.name = self.name
         self.air_index = len(dataship.airData)  # Start at 0
         dataship.airData.append(self.airData)
+        print("G3X: AirData Init")
 
         # create a empty nav object.
         self.navData = NavData()
@@ -109,6 +112,7 @@ class serial_g3x(Input):
         self.navData.name = self.name
         self.nav_index = len(dataship.navData)  # Start at 0
         dataship.navData.append(self.navData)
+        print("G3X: NavData Init")
 
         # create a empty gps object.
         self.gpsData = GPSData()
@@ -116,6 +120,7 @@ class serial_g3x(Input):
         self.gpsData.name = self.name
         self.gps_index = len(dataship.gpsData)  # Start at 0
         dataship.gpsData.append(self.gpsData)
+        print("G3X: GPS Data Init")
 
         # create a empty engine object.
         self.engineData = EngineData()
@@ -123,7 +128,7 @@ class serial_g3x(Input):
         self.engineData.name = self.name
         self.engine_index = len(dataship.engineData)  # Start at 0
         dataship.engineData.append(self.engineData)
-        
+        print("G3X: Engine Data Init")
 
 
     # close this input source

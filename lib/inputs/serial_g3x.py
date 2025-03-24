@@ -170,7 +170,7 @@ class serial_g3x(Input):
                                     current_time = time.time() # calculate hz.
                                     self.imuData.hz = round(1 / (current_time - self.last_read_time), 1)
                                     self.last_read_time = current_time
-                                    print("System Time: " + current_time)
+                                    print("System Time: " + str(current_time))
                                 if checkInputVal(GPSAlt):
                                     self.gpsData.Alt = int(GPSAlt) * 3.28084
                                 self.gpsData.EWVelDir = EWVelDir.decode('utf-8')  # E or W

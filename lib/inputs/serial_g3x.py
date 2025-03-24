@@ -165,6 +165,12 @@ class serial_g3x(Input):
                                 self.gpsData.msg_count += 1
                                 self.gpsData.sys_time_string = "%d:%d:%d"%(int(UTCHour),int(UTCMin),int(UTCSec))
                                 self.gpsData.GPSTime_string = self.gpsData.sys_time_string
+                                if(dataship.debug_mode>1):
+                                    print("GPS Time: " + self.gpsData.GPSTime_string)
+                                    current_time = time.time() # calculate hz.
+                                    self.imuData.hz = round(1 / (current_time - self.last_read_time), 1)
+                                    self.last_read_time = current_time
+                                    print("System Time: " + current_time)
                                 if checkInputVal(GPSAlt):
                                     self.gpsData.Alt = int(GPSAlt) * 3.28084
                                 self.gpsData.EWVelDir = EWVelDir.decode('utf-8')  # E or W

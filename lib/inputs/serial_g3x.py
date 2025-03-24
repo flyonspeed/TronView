@@ -204,16 +204,16 @@ class serial_g3x(Input):
                                 if self.output_logFile != None:
                                     Input.addToLog(self,self.output_logFile,bytes([64]))
                                     Input.addToLog(self,self.output_logFile,msg)
-                                #dataship.gps.msg_count += 1
+                                dataship.gpsData.msg_count += 1
                                 return dataship
                             else:
-                                dataship.gps.msg_bad += 1
+                                dataship.gpsData.msg_bad += 1
 
                 else:
                     if (self.isPlaybackMode ):  # if no bytes read and in playback mode.  then reset the file pointer to the start of the file.
                         self.ser.seek(0)
 
-            SentID = self.ser.read(1) # get message id
+            '''SentID = self.ser.read(1) # get message id
             if(not isinstance(SentID,str)): SentID = SentID.decode('utf-8')
             if SentID == "1":  # atittude/air data message
                 msg = self.ser.readline()
@@ -400,7 +400,7 @@ class serial_g3x(Input):
                 else:
                     self.airData.msg_bad += 1
                     if(dataship.debug_mode>1):
-                        print("g3x: unknown message")
+                        print("g3x: unknown message") '''
 
                 
 

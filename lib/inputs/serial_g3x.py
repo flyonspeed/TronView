@@ -204,7 +204,6 @@ class serial_g3x(Input):
                                 if self.output_logFile != None:
                                     Input.addToLog(self,self.output_logFile,bytes([64]))
                                     Input.addToLog(self,self.output_logFile,msg)
-                                dataship.gpsData.msg_count += 1
                                 return dataship
                             else:
                                 dataship.gpsData.msg_bad += 1

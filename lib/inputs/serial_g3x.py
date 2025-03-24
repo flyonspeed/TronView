@@ -147,15 +147,13 @@ class serial_g3x(Input):
         if dataship.errorFoundNeedToExit:
             return dataship
         try:
-            if(dataship.debug_mode > 0):
-                print("Serial Waiting Bytes: " + self.ser.in_waiting())
             x = 0
             while x != 61:  # 61(=) is start of garmin g3x sentence.
                 t = self.ser.read(1)
                 if len(t) != 0:
                     x = ord(t)
                     if x == 64:  # 64(@) is start of garmin g3x GPS sentence.
-                        msg = self.ser.readline()
+                        msg = self.ser.read_until(expected=serial.to_bytes([13]), size=None)
                         if(dataship.debug_mode>1):
                             print("g3x: "+str(msg))
 
@@ -221,7 +219,7 @@ class serial_g3x(Input):
             SentID = self.ser.read(1) # get message id
             if(not isinstance(SentID,str)): SentID = SentID.decode('utf-8')
             if SentID == "1":  # atittude/air data message
-                msg = self.ser.readline()
+                msg = self.ser.read_until(expected=serial.to_bytes([13]), size=None)
                 self.imuData.msg_last = msg
                 if len(msg) == 57:
                     if(dataship.debug_mode>1):
@@ -337,7 +335,7 @@ class serial_g3x(Input):
                 else:
                     self.airData.msg_bad += 1
             elif SentID == "2":
-                msg = self.ser.readline()
+                msg = self.ser.read_until(expected=serial.to_bytes([13]), size=None)
                 self.airData.msg_last = msg
                 if len(msg) == 40:
                     if(dataship.debug_mode>1):
@@ -386,7 +384,7 @@ class serial_g3x(Input):
                 else:
                     self.airData.msg_bad += 1
             elif SentID == "7":  # GPS AGL data message
-                msg = self.ser.readline()
+                msg = self.ser.read_until(expected=serial.to_bytes([13]), size=None)
                 if(isinstance(msg,str)): msg = msg.encode() # if read from file then convert to bytes
                 #dataship.msg_last = msg
                 if len(msg) == 20:

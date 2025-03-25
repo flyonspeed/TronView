@@ -239,6 +239,7 @@ class serial_g3x(Input):
                         if checkInputVal(OAT):
                             self.airData.OAT = (int(OAT) * 1.8) + 32 # c to f
                         if _utils.is_number(AOA) == True:
+                            print(int(AOA))
                             self.airData.AOA = int(AOA)
                             self.readings1.append(self.airData.AOA)
                             self.airData.AOA = mean(

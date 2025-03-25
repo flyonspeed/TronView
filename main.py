@@ -56,8 +56,8 @@ class myThreadEfisInputReader(threading.Thread):
                     shared.Dataship.targetData[0].cleanUp(shared.Dataship) # check if old traffic targets should be cleared up.
                 #print(f"Input Thread: {shared.Inputs[0].name} looped")
 
-            if (shared.Inputs[0].PlayFile != None): # if playing back a file.. add a little delay so it's closer to real world time.
-               time.sleep(.04)
+            #if (shared.Inputs[0].PlayFile != None): # if playing back a file.. add a little delay so it's closer to real world time.
+               #time.sleep(.04)
             # if shared.Dataship.textMode == True: # if in text mode.. lets delay a bit.. this keeps the cpu from heating up on my mac.
             #     time.sleep(.01)
 

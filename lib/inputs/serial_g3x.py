@@ -194,7 +194,7 @@ class serial_g3x(Input):
                                     int(LonDeg),
                                     int(LonMin) * 0.001,
                                 )
-                                #self.gpsData.GndSpeed = _utils.gndspeed(EWVelmag, NSVelmag) * 1.15078 # convert back to mph
+                                #self.gpsData.GndSpeed = _utils.gndspeed(EWVelmag, NSVelmag) * 1.15078 # convert back to mph - commented due to G3X sentence already existing
                                 self.gpsData.GndTrack = _utils.gndtrack(
                                     EWVelDir, EWVelmag, NSVelDir, NSVelmag
                                 )
@@ -239,7 +239,6 @@ class serial_g3x(Input):
                         if checkInputVal(OAT):
                             self.airData.OAT = (int(OAT) * 1.8) + 32 # c to f
                         if _utils.is_number(AOA) == True:
-                            print(int(AOA))
                             self.airData.AOA = int(AOA)
                             self.readings1.append(self.airData.AOA)
                             self.airData.AOA = mean(
@@ -286,6 +285,9 @@ class serial_g3x(Input):
                             self.last_read_time = current_time
                             print("System Time: " + str(current_time))
                             print("GPS Time: " + self.gpsData.GPSTime_string)
+                        if self.output_logFile != None:
+                            Input.addToLog(self,self.output_logFile,bytes([61,ord(SentID)]))
+                            Input.addToLog(self,self.output_logFile,msg)
                         return dataship
                     else:
                         self.airData.msg_bad += 1
@@ -332,6 +334,9 @@ class serial_g3x(Input):
                             self.last_read_time = current_time
                             print("System Time: " + str(current_time))
                             print("GPS Time: " + self.gpsData.GPSTime_string)
+                        if self.output_logFile != None:
+                            Input.addToLog(self,self.output_logFile,bytes([61,ord(SentID)]))
+                            Input.addToLog(self,self.output_logFile,msg)
                         return dataship
                 else:
                     self.airData.msg_bad += 1
@@ -412,11 +417,17 @@ class serial_g3x(Input):
                     self.airData.msg_bad += 1
                     if(dataship.debug_mode>1):
                         print("g3x: unknown message")
+            else:
+                self.msg_unknown += 1  # else unknown message.
+                if self.isPlaybackMode:
+                    time.sleep(0.01)
+                else:
+                    self.ser.flushInput()  # flush the serial after every message else we see delays
+                return dataship
 
-                
-
+            #The following commented out due to lack of testing. To be re-integrated in following further testing
             '''elif SentID == "3":  # Engine Data Message
-                msg = self.ser.readline()
+                msg = self.ser.read_until(expected=serial.to_bytes([10]), size=None)
                 if(isinstance(msg,str)): msg = msg.encode() # if read from file then convert to bytes
                 #dataship.msg_last = msg
                 if len(msg) == 219:
@@ -460,15 +471,7 @@ class serial_g3x(Input):
                         self.airData.msg_bad += 1
 
                 else:
-                    self.airData.msg_bad += 1
-
-            else:
-                self.msg_unknown += 1  # else unknown message.
-                if self.isPlaybackMode:
-                    time.sleep(0.01)
-                else:
-                    self.ser.flushInput()  # flush the serial after every message else we see delays
-                return dataship'''
+                    self.airData.msg_bad += 1'''
 
         except Exception as e:
             print("G3X serial exception")

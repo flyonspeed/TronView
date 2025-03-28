@@ -22,6 +22,7 @@ class Input:
 
     def initInput(self, num, aircraft):
         self.ser = None # is is the input source... File, serial device, network connection...
+        self.onMessagePriority = 0 # 0 is default high priority, None means onMessage is never called.
 
         self.path_datarecorder = "../data/"
         self.datarecorder_check_usb = _input_file_utils.readConfigBool("DataRecorder", "check_usb_drive", True)

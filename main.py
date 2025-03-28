@@ -57,6 +57,7 @@ class myThreadEfisInputReader(threading.Thread):
                 #print(f"Input Thread: {shared.Inputs[0].name} looped")
 
             if (shared.Inputs[0].PlayFile != None): # if playing back a file.. add a little delay so it's closer to real world time.
+               print(f"sleep")
                time.sleep(.04)
             # if shared.Dataship.textMode == True: # if in text mode.. lets delay a bit.. this keeps the cpu from heating up on my mac.
             #     time.sleep(.01)
@@ -103,6 +104,7 @@ class SingleInputReader(threading.Thread):
                         #print(f"Input Thread: {self.input_index} {shared.Inputs[self.input_index].name} looped")
 
             if shared.Inputs[self.input_index].PlayFile != None: # if playing back a file.. add a little delay so it's closer to real world time.
+                print(f"sleep")
                 time.sleep(.04)
             # if shared.Dataship.textMode == True:
             #     time.sleep(.01)
@@ -189,7 +191,7 @@ if __name__ == "__main__":
         # set all the inputs to playback mode.
         allPlayback = True
     else:
-        allPlayback = False
+        allPlayback = None # None means no playback
     if args.c:  # this is the same as --playfile1        
         args.playfile1 = args.c
     if args.i:

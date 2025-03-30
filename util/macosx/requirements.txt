@@ -14,5 +14,5 @@ configupdater
 geographiclib
 pillow
 opencv-python
-
+prettytable
 

@@ -40,6 +40,13 @@ class myThreadEfisInputReader(threading.Thread):
     def run(self):
         internalLoopCounter = 1
         input_count = len(shared.Inputs)
+        # make sure at least one input is not onMessagePriority None
+        for i in range(input_count):
+            if shared.Inputs[i].onMessagePriority is not None:
+                break
+        else:
+            print("No inputs with onMessagePriority set, exiting input thread")
+            return
         while shared.Dataship.errorFoundNeedToExit == False:
             # loop through all inputs and read messages from them.
             for i in range(input_count):
@@ -92,6 +99,11 @@ class SingleInputReader(threading.Thread):
             print("os.sched_setaffinity not available on this platform")
         except Exception as e:
             print(f"Could not set CPU affinity: {e}")
+
+        # check if onMessagePriority is None.. is so then this thread can exit.
+        if shared.Inputs[self.input_index].onMessagePriority is None:
+            print(f"Input Thread {self.input_index}: {shared.Inputs[self.input_index].name} has no onMessagePriority, exiting")
+            return
 
         internalLoopCounter = 1
         print(f"Input Thread {self.input_index}: {shared.Inputs[self.input_index].name} started")

@@ -138,9 +138,13 @@ class meshtastic(Input):
 
                 # send postion.
                 if len(self.dataship.gpsData) > 0:
-                    gps = self.dataship.gpsData[0]
-                    print("sending position {} {} {}".format(gps.Lat, gps.Lon, gps.Alt))
-                    self.interface.sendPosition(gps.Lat, gps.Lon, gps.Alt)
+                    if self.dataship.gpsData[0].Lat is not None or self.dataship.gpsData[0].Lon is not None:
+                        alt = 0
+                        if self.dataship.gpsData[0].Alt is not None:
+                            alt = self.dataship.gpsData[0].Alt
+                        gps = self.dataship.gpsData[0]
+                        print("sending position {} {} {}".format(gps.Lat, gps.Lon, alt))
+                        self.interface.sendPosition(gps.Lat, gps.Lon, alt)
                 
         except Exception as e:
             print(f"Error processing meshtastic message: {e}")

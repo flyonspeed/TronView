@@ -13,5 +13,5 @@ textual
 configupdater
 geographiclib
 pillow
-
+prettytable
 

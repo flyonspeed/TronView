@@ -94,6 +94,7 @@ if [ $(cat /etc/os-release | grep "Debian GNU/Linux 12" | wc -l) -eq 1 ]; then
 	sudo pip3 install configupdater --break-system-packages
 	sudo pip3 install meshtastic --break-system-packages
 	sudo pip3 install pillow --break-system-packages
+	sudo pip3 install prettytable --break-system-packages
 	pip_args="--break-system-packages"
 
 fi
@@ -124,7 +125,7 @@ if [ $(cat /etc/os-release | grep "GNU/Linux 11" | wc -l) -eq 1 ]; then
 	sudo pip3 install configupdater
 	sudo pip3 install meshtastic
 	sudo pip3 install pillow
-
+	sudo pip3 install prettytable
 	# check if python 3.9.2 is installed
 	if [ $(python3 --version | grep "3.9.2" | wc -l) -eq 1 ]; then
 		$pip_args=""

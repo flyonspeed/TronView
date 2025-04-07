@@ -45,6 +45,9 @@ class video_in(Module):
         self.adaptive_block_size = 11   # Must be odd number
         self.adaptive_c = 2             # Constant subtracted from mean/gaussian
         self.use_otsu = False          # Whether to use Otsu's method
+        self.skip_frames = 0           # Number of frames to skip between reads
+        self.frame_counter = 0         # Counter to track skipped frames
+        self.last_frame = None         # Store the last captured frame
         
     def initMod(self, pygamescreen, width=None, height=None):
         if width is None:
@@ -98,8 +101,26 @@ class video_in(Module):
 
         # Capture and process webcam frame
         if self.cap is not None:
-            ret, frame = self.cap.read()
-            if ret:
+            frame = None
+            ret = False
+            
+            # Skip frames if configured
+            if self.frame_counter < self.skip_frames:
+                self.frame_counter += 1
+                #self.cap.read()  # Read and discard the frame
+                if self.last_frame is not None:
+                    frame = self.last_frame.copy()  # Use the last frame
+            else:
+                # Reset counter and read frame
+                self.frame_counter = 0
+                ret, new_frame = self.cap.read()
+                if ret:
+                    frame = new_frame
+                    self.last_frame = frame.copy()  # Store the new frame
+                elif self.last_frame is not None:
+                    frame = self.last_frame.copy()  # Use last frame if read failed
+
+            if frame is not None:
                 # Apply threshold if enabled
                 if self.threshold_enabled:
                     # Convert to grayscale first
@@ -216,6 +237,14 @@ class video_in(Module):
                 "description": "Select the video resolution (lower resolution = better performance)",
                 "options": ["low", "medium", "high"],
                 "post_change_function": "initialize_webcam"
+            },
+            "skip_frames": {
+                "type": "int",
+                "default": self.skip_frames,
+                "label": "Skip Frames",
+                "description": "Number of frames to skip between reads (0-100)",
+                "min": 0,
+                "max": 100
             },
             "convert_bgr_to_rgb": {
                 "type": "bool",

@@ -36,6 +36,9 @@ class video_in(Module):
             "high": (1280, 720)
         }
         self.convert_bgr_to_rgb = True  # Default to converting BGR to RGB
+        self.threshold_enabled = False  # Threshold control
+        self.threshold_value = 128      # Default threshold value
+        self.threshold_max = 255        # Maximum value for threshold
         
     def initMod(self, pygamescreen, width=None, height=None):
         if width is None:
@@ -60,6 +63,7 @@ class video_in(Module):
             width, height = self.resolution_presets[self.resolution]
             self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
             self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
+            print(f"VideoIn: Resolution set to {width}x{height}")
             
         except Exception as e:
             print(f"Error initializing webcam: {str(e)}")
@@ -90,6 +94,14 @@ class video_in(Module):
         if self.cap is not None:
             ret, frame = self.cap.read()
             if ret:
+                # Apply threshold if enabled
+                if self.threshold_enabled:
+                    # Convert to grayscale first
+                    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+                    _, frame = cv2.threshold(gray, self.threshold_value, self.threshold_max, cv2.THRESH_BINARY)
+                    # Convert back to BGR for consistency with rest of pipeline
+                    frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
+
                 # Convert BGR to RGB if enabled
                 if self.convert_bgr_to_rgb:
                     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -187,6 +199,28 @@ class video_in(Module):
                 "min": 0,
                 "max": 3,
                 "description": "Rotate the video"
+            },
+            "threshold_enabled": {
+                "type": "bool",
+                "default": self.threshold_enabled,
+                "label": "Threshold Enabled",
+                "description": "Enable threshold processing for the video"
+            },
+            "threshold_value": {
+                "type": "int",
+                "default": self.threshold_value,
+                "label": "Threshold Value",
+                "min": 0,
+                "max": 255,
+                "description": "Value for thresholding"
+            },
+            "threshold_max": {
+                "type": "int",
+                "default": self.threshold_max,
+                "label": "Threshold Max",
+                "min": 0,
+                "max": 255,
+                "description": "Maximum value for thresholding"
             }
         }
 

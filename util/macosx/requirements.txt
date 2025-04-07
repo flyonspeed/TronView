@@ -13,5 +13,6 @@ textual
 configupdater
 geographiclib
 pillow
+opencv-python
 
 

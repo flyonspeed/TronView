@@ -27,7 +27,15 @@ class video_in(Module):
         self.draw_mode = "fit"
         self.alpha = 255
         self.cap = None
-        self.video_source = 0  # Default to first video source
+        self.video_source = -1  # Default to no video source
+        self.rotation = 0  # Rotation angle in degrees
+        self.resolution = "medium"  # Default resolution setting
+        self.resolution_presets = {
+            "low": (320, 240),
+            "medium": (640, 480),
+            "high": (1280, 720)
+        }
+        self.convert_bgr_to_rgb = True  # Default to converting BGR to RGB
         
     def initMod(self, pygamescreen, width=None, height=None):
         if width is None:
@@ -46,6 +54,13 @@ class video_in(Module):
             if not self.cap.isOpened():
                 print(f"Error: Could not open video source {self.video_source}")
                 self.cap = None
+                return
+                
+            # Set resolution based on the selected preset
+            width, height = self.resolution_presets[self.resolution]
+            self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
+            self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
+            
         except Exception as e:
             print(f"Error initializing webcam: {str(e)}")
             self.cap = None
@@ -64,19 +79,37 @@ class video_in(Module):
         else:
             y = pos[1]
 
+        # Return early if no video source is selected
+        if self.video_source == -1:
+            return
+
         # Clear surface
-        self.surface2.fill((0,0,0,0))
+        #self.surface2.fill((0,0,0,0))
 
         # Capture and process webcam frame
         if self.cap is not None:
             ret, frame = self.cap.read()
             if ret:
-                # Convert BGR to RGB
-                frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                # Convert BGR to RGB if enabled
+                if self.convert_bgr_to_rgb:
+                    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                
                 # Rotate frame to correct orientation
-                frame = cv2.rotate(frame, cv2.ROTATE_180)
+                #frame = cv2.rotate(frame, cv2.ROTATE_180)
                 # Convert to pygame surface
                 frame_surface = pygame.surfarray.make_surface(frame)
+                
+                # Apply rotation if needed
+                if self.rotation == 1:
+                    frame_surface = pygame.transform.rotate(frame_surface, 90)
+                elif self.rotation == 2:
+                    frame_surface = pygame.transform.rotate(frame_surface, 180)
+                elif self.rotation == 3:
+                    frame_surface = pygame.transform.rotate(frame_surface, 270)
+                
+                # Apply alpha if not fully opaque
+                if self.alpha != 255:
+                    frame_surface.set_alpha(self.alpha)
                 
                 if self.draw_mode == "stretch":
                     scaled_img = pygame.transform.scale(frame_surface, (self.width, self.height))
@@ -119,11 +152,25 @@ class video_in(Module):
             "video_source": {
                 "type": "int",
                 "default": self.video_source,
-                "label": "Video Source",
+                "label": "Video Source (-1:None)",
                 "description": "Select the video source (0 for first camera)",
-                "min": 0,
+                "min": -1,
                 "max": 10,
                 "post_change_function": "initialize_webcam"
+            },
+            "resolution": {
+                "type": "dropdown",
+                "default": self.resolution,
+                "label": "Resolution",
+                "description": "Select the video resolution (lower resolution = better performance)",
+                "options": ["low", "medium", "high"],
+                "post_change_function": "initialize_webcam"
+            },
+            "convert_bgr_to_rgb": {
+                "type": "bool",
+                "default": self.convert_bgr_to_rgb,
+                "label": "Convert BGR to RGB",
+                "description": "Convert from OpenCV BGR to RGB format (recommended for correct colors)",
             },
             "alpha": {
                 "type": "int",
@@ -132,6 +179,14 @@ class video_in(Module):
                 "min": 0,
                 "max": 255,
                 "description": "Enable alpha channel for the video"
+            },
+            "rotation": {
+                "type": "int",
+                "default": self.rotation,
+                "label": "Rotation",
+                "min": 0,
+                "max": 3,
+                "description": "Rotate the video"
             }
         }
 

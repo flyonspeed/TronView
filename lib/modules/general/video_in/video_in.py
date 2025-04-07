@@ -39,6 +39,12 @@ class video_in(Module):
         self.threshold_enabled = False  # Threshold control
         self.threshold_value = 128      # Default threshold value
         self.threshold_max = 255        # Maximum value for threshold
+        # New threshold properties
+        self.threshold_type = "binary"  # binary, binary_inv, trunc, tozero, tozero_inv
+        self.adaptive_method = "none"   # none, mean, gaussian
+        self.adaptive_block_size = 11   # Must be odd number
+        self.adaptive_c = 2             # Constant subtracted from mean/gaussian
+        self.use_otsu = False          # Whether to use Otsu's method
         
     def initMod(self, pygamescreen, width=None, height=None):
         if width is None:
@@ -98,9 +104,42 @@ class video_in(Module):
                 if self.threshold_enabled:
                     # Convert to grayscale first
                     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-                    _, frame = cv2.threshold(gray, self.threshold_value, self.threshold_max, cv2.THRESH_BINARY)
-                    # Convert back to BGR for consistency with rest of pipeline
-                    frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
+                    
+                    # Handle different threshold types
+                    if self.adaptive_method != "none":
+                        # Ensure block size is odd and valid
+                        block_size = max(3, self.adaptive_block_size)  # Ensure minimum size of 3
+                        block_size = block_size + (1 if block_size % 2 == 0 else 0)  # Make odd if even
+                        
+                        # Adaptive thresholding
+                        adapt_method = cv2.ADAPTIVE_THRESH_MEAN_C if self.adaptive_method == "mean" else cv2.ADAPTIVE_THRESH_GAUSSIAN_C
+                        binary = cv2.adaptiveThreshold(
+                            gray,
+                            self.threshold_max,
+                            adapt_method,
+                            cv2.THRESH_BINARY,
+                            block_size,
+                            self.adaptive_c
+                        )
+                    else:
+                        # Regular thresholding
+                        threshold_types = {
+                            "binary": cv2.THRESH_BINARY,
+                            "binary_inv": cv2.THRESH_BINARY_INV,
+                            "trunc": cv2.THRESH_TRUNC,
+                            "tozero": cv2.THRESH_TOZERO,
+                            "tozero_inv": cv2.THRESH_TOZERO_INV
+                        }
+                        
+                        thresh_type = threshold_types[self.threshold_type]
+                        if self.use_otsu:
+                            thresh_type |= cv2.THRESH_OTSU
+                            _, binary = cv2.threshold(gray, 0, self.threshold_max, thresh_type)
+                        else:
+                            _, binary = cv2.threshold(gray, self.threshold_value, self.threshold_max, thresh_type)
+                    
+                    # Convert back to BGR for consistency
+                    frame = cv2.cvtColor(binary, cv2.COLOR_GRAY2BGR)
 
                 # Convert BGR to RGB if enabled
                 if self.convert_bgr_to_rgb:
@@ -152,7 +191,7 @@ class video_in(Module):
     def get_module_options(self):
         data_fields = shared.Dataship._get_all_fields()
         
-        return {
+        options = {
             "draw_mode": {
                 "type": "dropdown",
                 "default": self.draw_mode,
@@ -206,6 +245,43 @@ class video_in(Module):
                 "label": "Threshold Enabled",
                 "description": "Enable threshold processing for the video"
             },
+            "threshold_type": {
+                "type": "dropdown",
+                "default": self.threshold_type,
+                "label": "Threshold Type",
+                "description": "Select the type of thresholding to apply",
+                "options": ["binary", "binary_inv", "trunc", "tozero", "tozero_inv"]
+            },
+            "adaptive_method": {
+                "type": "dropdown",
+                "default": self.adaptive_method,
+                "label": "Adaptive Method",
+                "description": "Select adaptive thresholding method",
+                "options": ["none", "mean", "gaussian"]
+            },
+            "adaptive_block_size": {
+                "type": "int",
+                "default": self.adaptive_block_size,
+                "label": "Adaptive Block Size",
+                "min": 3,
+                "max": 99,
+                "step": 2,  # Must be odd number
+                "description": "Block size for adaptive threshold"
+            },
+            "adaptive_c": {
+                "type": "int",
+                "default": self.adaptive_c,
+                "label": "Adaptive C",
+                "min": -255,
+                "max": 255,
+                "description": "Constant subtracted from mean/gaussian"
+            },
+            "use_otsu": {
+                "type": "bool",
+                "default": self.use_otsu,
+                "label": "Use Otsu's Method",
+                "description": "Automatically determine optimal threshold value"
+            },
             "threshold_value": {
                 "type": "int",
                 "default": self.threshold_value,
@@ -223,6 +299,10 @@ class video_in(Module):
                 "description": "Maximum value for thresholding"
             }
         }
+        # Merge with existing options
+        existing_options = super().get_module_options()
+        existing_options.update(options)
+        return existing_options
 
     def __del__(self):
         if self.cap is not None:

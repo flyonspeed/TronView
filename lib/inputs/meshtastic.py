@@ -165,7 +165,7 @@ class meshtastic(Input):
         if self.isPlaybackMode:
             self.ser.close()
         else:
-            if self.interface:
+            if self.interface and self.interface.isConnected:
                 self.interface.close()
 
 

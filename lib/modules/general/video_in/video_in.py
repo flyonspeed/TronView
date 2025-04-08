@@ -51,9 +51,9 @@ class video_in(Module):
         
     def initMod(self, pygamescreen, width=None, height=None):
         if width is None:
-            width = 200
+            width = 400
         if height is None:
-            height = 50
+            height = 400
         Module.initMod(self, pygamescreen, width, height)        
         self.surface2 = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
         self.initialize_webcam()

@@ -28,6 +28,7 @@ from lib.common.graphic import edit_save_load
 from lib.common.graphic.growl_manager import GrowlPosition
 from lib.version import __version__, __build_date__, __build__, __build_time__
 from lib.common.dataship.dataship import Interface
+from lib.inputs import _input
 
 #############################################
 ## Class: myThreadEfisInputReader
@@ -39,16 +40,30 @@ class myThreadEfisInputReader(threading.Thread):
     def run(self):
         internalLoopCounter = 1
         input_count = len(shared.Inputs)
+        # make sure at least one input is not onMessagePriority None
+        for i in range(input_count):
+            if shared.Inputs[i].onMessagePriority is not None:
+                break
+        else:
+            print("No inputs with onMessagePriority set, exiting input thread")
+            return
         while shared.Dataship.errorFoundNeedToExit == False:
             # loop through all inputs and read messages from them.
             for i in range(input_count):
                 if(shared.Inputs[i].isPaused==True):
                     pass
                 else:
-                    shared.Inputs[i].readMessage(shared.Dataship)
-                    shared.Inputs[i].time_stamp = shared.Inputs[i].time_stamp_string
+                    if shared.Inputs[i].onMessagePriority == 0:
+                        shared.Inputs[i].readMessage(shared.Dataship)
+                        shared.Inputs[i].time_stamp = shared.Inputs[i].time_stamp_string
+                    elif shared.Inputs[i].onMessagePriority is not None:
+                        # mod the internalLoopCounter by the priority and if it's 0, read messages.
+                        if internalLoopCounter % shared.Inputs[i].onMessagePriority == 0:
+                            shared.Inputs[i].readMessage(shared.Dataship)
+                            shared.Inputs[i].time_stamp = shared.Inputs[i].time_stamp_string
 
             internalLoopCounter = internalLoopCounter - 1
+            #print(f"{internalLoopCounter}", end=" ")
             if internalLoopCounter < 1:
                 internalLoopCounter = 100
                 checkInternals()
@@ -85,16 +100,29 @@ class SingleInputReader(threading.Thread):
         except Exception as e:
             print(f"Could not set CPU affinity: {e}")
 
+        # check if onMessagePriority is None.. is so then this thread can exit.
+        if shared.Inputs[self.input_index].onMessagePriority is None:
+            print(f"Input Thread {self.input_index}: {shared.Inputs[self.input_index].name} has no onMessagePriority, exiting")
+            return
+
         internalLoopCounter = 1
         print(f"Input Thread {self.input_index}: {shared.Inputs[self.input_index].name} started")
         while shared.Dataship.errorFoundNeedToExit == False:
             if shared.Inputs[self.input_index].isPaused == True:
                 pass
             else:
-                shared.Inputs[self.input_index].readMessage(shared.Dataship)
-                shared.Inputs[self.input_index].time_stamp = shared.Inputs[self.input_index].time_stamp_string
-                
+                # if priority is 0, read messages every cycle of the loop.
+                if shared.Inputs[self.input_index].onMessagePriority == 0:
+                    shared.Inputs[self.input_index].readMessage(shared.Dataship)
+                    shared.Inputs[self.input_index].time_stamp = shared.Inputs[self.input_index].time_stamp_string
+                elif shared.Inputs[self.input_index].onMessagePriority is not None:
+                    # mod the internalLoopCounter by the priority and if it's 0, read messages.
+                    if internalLoopCounter % shared.Inputs[self.input_index].onMessagePriority == 0:
+                        shared.Inputs[self.input_index].readMessage(shared.Dataship)
+                        shared.Inputs[self.input_index].time_stamp = shared.Inputs[self.input_index].time_stamp_string
+
                 internalLoopCounter = internalLoopCounter - 1
+                #print(f"{internalLoopCounter}", end=" ")
                 if self.input_index == 0:  # Only do cleanup on one thread
                     if internalLoopCounter < 1:
                         internalLoopCounter = 1000

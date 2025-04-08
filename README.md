@@ -6,18 +6,15 @@
 Project for connecting EFIS or any external sensor data to a Screen, HUD, or AR glasses.  This was created for the aviation community but can be used for any application where you want to display data in a custom GUI (and interact with it).
 
 ![cockpit1](docs/efis_cockpit1.jpeg?raw=true)
-## Active development! (March 2025!)
+## Active development! (April 2025)
 If you want to help with development or testing please join our [Join Discord](https://discord.gg/pdnxWa32aW) sever.
 We are working on several new features. 
-- Meshtastic integration (Working on)
+- Meshtastic integration (Works, but still adding more)
 - XReal and Viture AR glasses support
-- Editor to make creating or editing your own screen very easy. (DONE)
-- Better G3x support
 - Show/Hide screen modules based on key commands or other inputs. (event handlers)
-- Additional IMU/Gyro support (BNO085, BNO055) (DONE)
 - Moving Map.
-- Touch screen support (New Raspberry Pi Touchscreen v2)
-
+- Video Input (Done)
+- Add images to screen design (Done)
 
 ## Features Include:
 - Build custom efis or hud screens or AR glasses screen. (or any kinda of screen you want)
@@ -98,6 +95,8 @@ BNO055 IMU (9DOF) and BNO085 (9DOF)
 Generic serial logger (Used for recording any serial data)
 
 Joystick (USB or Bluetooth)
+
+Meshtastic SDK
 
 We are using the rapberry pi 4, or 5 for taking serial data from a EFIS (MGL,Dynon,G3x,etc) and displaying a graphical Display out the hdmi output on the pi.  This can be displayed on a screen (touchscreen, etc) ,a HUD, or glasses.  
 

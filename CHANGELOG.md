@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.0.31] - 2025-04-07
+
+- video in screen module
+
+
+
 ## [0.0.30] - 2025-03-22
 
 - Gauges show color ranges. different modes. alpha transparency.

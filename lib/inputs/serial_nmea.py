@@ -89,6 +89,8 @@ class serial_nmea(Input):
         self.efis_data_baudrate = hud_utils.readConfigInt(
             self.name, "baudrate", 9600
         )
+        print("nmea_data_port: "+self.efis_data_port)
+        print("nmea_data_baudrate: "+str(self.efis_data_baudrate))
 
         # open serial connection.
         self.ser = serial.Serial(
@@ -110,6 +112,7 @@ class serial_nmea(Input):
         # create a empty gps object.
         self.gpsData = GPSData()
         self.gpsData.id = "nmea_gps"
+        self.gpsData.inputSrcName = "nmea"
         self.gpsData.name = self.name
         self.gps_index = len(dataship.gpsData)  # Start at 0
         print("new nmea gps "+str(self.gps_index)+": "+str(self.gpsData))

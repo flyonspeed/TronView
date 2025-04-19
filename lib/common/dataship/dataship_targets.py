@@ -1,6 +1,16 @@
 import time
 import math
 from geographiclib.geodesic import Geodesic
+from lib.common.dataship.dataship_gps import GPSData
+
+# class to store messages received from a target.
+class TargetPayloadMessage(object):
+    def __init__(self):
+        self.address = None
+        self.payload = None
+        self.time = None
+
+
 # Target class
 class Target(object):
     def __init__(self, callsign):
@@ -50,6 +60,9 @@ class Target(object):
         self.brng = None     # bearing to target from self
         self.altDiff = None  # difference in alt from self. (in feet MSL)
 
+        # last payload message received from this target.
+        self.payload_last: TargetPayloadMessage | None = None
+
         self.age = 0
 
     def get_cat_name(self):
@@ -97,6 +110,7 @@ class Target(object):
 #     distance = (R * c) * 0.6213712 # convert to miles.
 #     return distance
 
+        
 
 #############################################
 ## Class: TargetData
@@ -112,21 +126,51 @@ class TargetData(object):
         self.src_gndtrack = None
         self.src_gndspeed = None
         self.lcl_time_string = ""
+        self.src_gps: GPSData | None = None  # if set then use this gps data as the source gps.
 
         self.targets: list[Target] = [] # list of targets
         self.buoyCount = 0
         self.selected_target = None
 
-        # messages count (number of messages received from this source)
+        # messages count (number of input messages received from this source)
         self.msg_count = 0
         self.msg_last = None
         self.msg_bad = 0
 
-        # meshtastic node id
+        # meshtastic node id (if this is a meshtastic source)
         self.meshtastic_node_id = None
 
         # check if we should ignore traffic beyond a certain distance (in miles.)
         self.ignore_traffic_beyond_distance = 30
+
+        # list of target messages
+        self.target_payload_messages: list[TargetPayloadMessage] = []
+
+    def add_target_payload_message(self, address: str, payload: str):
+        tPayload = TargetPayloadMessage()
+        tPayload.address = address
+        tPayload.payload = str(payload)
+        tPayload.time = time.time()
+        self.target_payload_messages.append(tPayload)
+        # only keep the last 10 messages for each callsign.
+        self.target_payload_messages = self.target_payload_messages[-10:]
+        # check if the callsign is in the list of targets.
+        for target in self.targets:
+            if target.address == address:
+                target.payload_last = self.target_payload_messages[-1]
+                break
+        print(f"add_target_payload_message: {self.target_payload_messages}")
+
+    def get_target_payload_messages(self, address: str) -> list[TargetPayloadMessage]:
+        return [msg for msg in self.target_payload_messages if msg.address == address]
+    
+    def get_last_target_payload_message(self, address: str) -> TargetPayloadMessage | None:
+        print(f"get_last_target_payload_message: {address}")
+        messages = self.get_target_payload_messages(address)
+        if len(messages) > 0:
+            print(f"get_last_target_payload_message(): {messages[-1]}")
+            return messages[-1]
+        return None
 
     def get_selected_target(self) -> Target | None:
         # find the target that has the same address as the selected target.
@@ -159,12 +203,23 @@ class TargetData(object):
 
         # check if the target.callsign is set.. if not then set it to the address.
         if target.callsign == None or target.callsign == "":
-            target.callsign = str(target.address)
+            if target.address != None and target.address != "":
+                target.callsign = str(target.address)
+            else:
+                target.callsign = "Unknown"
 
         # if dist&brng was not calculated... check distance and brng to target. if we know our location..
         # use geographiclib to solve this.
         # https://geographiclib.sourceforge.io/1.46/python/code.html#geographiclib.geodesic.Geodesic.Direct
-        # use lat/lon from traffic source. 
+        # use lat/lon from traffic source.
+
+        if(self.src_gps != None):
+            self.src_lat = self.src_gps.Lat
+            self.src_lon = self.src_gps.Lon
+            self.src_alt = self.src_gps.Alt
+            self.src_gndtrack = self.src_gps.GndTrack
+            self.src_gndspeed = self.src_gps.GndSpeed
+
         if(self.src_lat != None and self.src_lon != None and target.lat != None and target.lon != None):
             solve = Geodesic.WGS84.Inverse(self.src_lat,self.src_lon,target.lat,target.lon)
             brng = solve['azi1'] # forward azimuth.
@@ -188,6 +243,7 @@ class TargetData(object):
                 if(self.contains(target)):
                     self.remove(target.callsign)
                 self.count = len(self.targets)
+                print(f"ignoring target: {target.callsign}")
                 return
             
         # check difference in altitude from self.
@@ -199,9 +255,14 @@ class TargetData(object):
             # elif(aircraft.gps.GPSAlt != None):
             #     target.altDiff = target.alt - aircraft.gps.GPSAlt
 
+        # update the last payload message received from this target.
+        target.payload_last = self.get_last_target_payload_message(target.address)
+
         if(self.contains(target)==False):
+            #print(f"Adding target: {target.callsign}")
             self.targets.append(target)
         else:
+            #print(f"Replacing target: {target.callsign}")
             self.replace(target)
 
         self.count = len(self.targets)
@@ -284,4 +345,5 @@ class TargetData(object):
             t.speed = 100 # default speed?
         self.addTarget(t)
         pass
+
 

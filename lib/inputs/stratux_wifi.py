@@ -96,6 +96,7 @@ class stratux_wifi(Input):
         # create a empty gps object.
         self.gpsData = GPSData()
         self.gpsData.id = "stratux_gps"
+        self.gpsData.inputSrcName = "stratux"
         self.gpsData.name = self.name
         self.gps_index = len(dataship.gpsData)  # Start at 0
         print("new stratux gps "+str(self.gps_index)+": "+str(self.gpsData))

@@ -10,7 +10,7 @@ from lib import hud_graphics
 from lib import hud_utils
 from lib import smartdisplay
 from lib.common.dataship.dataship import Dataship
-from lib.common.dataship.dataship_targets import TargetData
+from lib.common.dataship.dataship_targets import TargetData, Target
 from lib.common.dataship.dataship_gps import GPSData
 from lib.common.dataship.dataship_imu import IMUData
 
@@ -160,7 +160,7 @@ class trafficscope(Module):
         # Get aircraft heading or ground track, if both are None then use 0
         target_heading = self.imuData.yaw if self.imuData.yaw is not None else self.gpsData.GndTrack if self.gpsData.GndTrack is not None else 0
 
-        def draw_target(t):
+        def draw_target(t: Target):
             if t.dist is None or t.dist >= 100 or t.brng is None:
                 return
 
@@ -237,7 +237,7 @@ class trafficscope(Module):
 
         self.pygamescreen.blit(self.surface2, pos)
 
-    def draw_target_details(self, t, xx, yy, x_text, y_text, label_rect, target_heading):
+    def draw_target_details(self, t: Target, xx, yy, x_text, y_text, label_rect, target_heading):
         if t.speed is not None and t.speed > -1 and t.track is not None:
             t.targetBrngToUse = (t.track - target_heading) % 360
             radianTargetTrack = math.radians(t.targetBrngToUse - 90)
@@ -278,7 +278,11 @@ class trafficscope(Module):
                 labelLat_rect = labelLat.get_rect()
                 labelLon = self.font_target.render(f"{t.lon:.6f}", False, (200,255,255), (0,0,0))
                 self.surface2.blit(labelLon, (x_text, y_text + next_text_y_offset + labelLat_rect.height))
+                next_text_y_offset += labelLon.get_rect().height
 
+            if t.payload_last is not None:
+                labelPayload = self.font_target.render("msg: "+t.payload_last.payload, False, (200,255,255), (0,0,0))
+                self.surface2.blit(labelPayload, (x_text, y_text + next_text_y_offset))
 
     # draw aircraft icon based on the type of aircraft
     def drawAircraftIcon(self, surface, target, xx, yy, scale):

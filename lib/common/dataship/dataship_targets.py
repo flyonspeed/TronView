@@ -260,14 +260,16 @@ class TargetData(object):
                 else: target.brng = brng
 
         # target is beyond distance that we want to listen to.. so bye bye baby!
-        if(self.ignore_traffic_beyond_distance != 0):
-            if(target.dist == None or target.dist > self.ignore_traffic_beyond_distance):
-                # remove it.
-                if(self.contains(target)):
-                    self.remove(target.callsign)
-                self.count = len(self.targets)
-                print(f"ignoring target: {target.callsign}")
-                return
+        # don't ignore meshtastic nodes.
+        if(target.type != 101):
+            if(self.ignore_traffic_beyond_distance != 0):
+                if(target.dist == None or target.dist > self.ignore_traffic_beyond_distance):
+                    # remove it.
+                    if(self.contains(target)):
+                        self.remove(target.callsign)
+                    self.count = len(self.targets)
+                    print(f"ignoring target: {target.callsign} dist:{target.dist} > ignore_traffic_beyond_distance:{self.ignore_traffic_beyond_distance}")
+                    return
             
         # check difference in altitude from self.
         if(target.alt != None):

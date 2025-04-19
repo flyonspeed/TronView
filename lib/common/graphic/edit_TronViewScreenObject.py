@@ -42,6 +42,10 @@ class TronViewScreenObject:
         #print("Click on %s at %d, %d" % (self.title, mx, my))
         if hasattr(self.module, "processClick"):
             self.module.processClick(aircraft, mx, my)
+    
+    def mouseWheel(self, aircraft, mx, my, wheel_position):
+        if hasattr(self.module, "processMouseWheel"):
+            self.module.processMouseWheel(aircraft, mx, my, wheel_position)
 
     def setShowBounds(self, show):
         self.showBounds = show

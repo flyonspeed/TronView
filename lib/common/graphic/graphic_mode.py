@@ -147,6 +147,21 @@ def main_graphical():
                         sObject.click(shared.Dataship, mx - sObject.x, my - sObject.y)
                         break
 
+            # send mouse wheel events to the screen objects if the mouse wheel is inside any screenObject
+            if event.type == pygame.MOUSEWHEEL:
+                # print(event)
+                # if event.y > 0:
+                #     print("Mouse wheel up ")
+                # else:
+                #     print("Mouse wheel down")
+                # Check if the mouse wheel is inside any screenObject
+                for sObject in shared.CurrentScreen.ScreenObjects[::-1]:
+                    if sObject.x <= mx <= sObject.x + sObject.width and sObject.y <= my <= sObject.y + sObject.height:
+                        # send a mouse wheel event to the screen object
+                        sObject.mouseWheel(shared.Dataship, mx - sObject.x, my - sObject.y, event.y)
+                        break
+                
+                    
         # Draw the modules
         for sObject in shared.CurrentScreen.ScreenObjects:
             sObject.draw(shared.Dataship, shared.smartdisplay, False)  # Never draw toolbar in view mode

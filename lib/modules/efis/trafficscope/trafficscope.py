@@ -256,7 +256,10 @@ class trafficscope(Module):
 
         # if there is a selected target then draw some buttons.
         if self.targetData.selected_target is not None:
-            self.buttonsDraw(dataship, smartdisplay, pos)  # draw buttons
+            selectedTarget = self.targetData.get_selected_target()
+            if selectedTarget is not None:
+                if selectedTarget.type == 101:   # meshtastic type target.
+                    self.buttonsDraw(dataship, smartdisplay, pos)  # draw buttons
 
         self.pygamescreen.blit(self.surface2, pos)
 
@@ -291,7 +294,7 @@ class trafficscope(Module):
             if hasattr(t, 'time'):
                 time_since_update = int(time.time() - t.time)
                 labelUpdate = self.font_target.render(f"{time_since_update}s ago", False, (200,255,255), (0,0,0))
-                self.surface2.blit(labelUpdate, (x_text, y_text + label_rect.height + next_text_y_offset))
+                self.surface2.blit(labelUpdate, (x_text, y_text + next_text_y_offset))
                 next_text_y_offset += labelUpdate.get_rect().height
 
             if self.target_show_lat_lon:
@@ -509,6 +512,17 @@ class trafficscope(Module):
                 break
             
 
+    # handle mouse wheel events
+    def processMouseWheel(self, dataship:Dataship, mx, my, wheel_position):
+        #print("TrafficScope processMouseWheel: %d x %d" % (mx, my))
+        if wheel_position > 0:
+            # zoom in
+            self.setScaleInMiles(self.scope_scale_miles + 5)
+        else:
+            # zoom out
+            self.scope_scale_miles = max(1, self.scope_scale_miles - 5)
+            self.setScaleInMiles(self.scope_scale_miles)
+
     # send a message to the selected target (called by self.buttonsCheckClick)
     def sendMsg(self,dataship:Dataship,button):
         # go through all buttons.
@@ -519,12 +533,12 @@ class trafficscope(Module):
         # get the text from the button.
         text = button["text"] # remove the "Send " from the text.
         text = text.replace("Send ", "")
-        if self.targetData.selected_target is not None:
-            # get the address from the selected target.
-            theTarget = self.targetData.get_selected_target()
-            if theTarget is not None:
-                print("targetScope: Sending Msg ", text, " to ", theTarget.address)
-                self.targetData.sendMsg(text, theTarget)
+        theTarget = self.targetData.get_selected_target()
+        if theTarget is not None:
+            print("targetScope: Sending Msg ", text, " to ", theTarget.address)
+        else:
+            print(f"targetScope: sendMsg: {text} to ALL")    
+        self.targetData.sendMsg(text, theTarget)
         
 
     # handle events

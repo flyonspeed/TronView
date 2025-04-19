@@ -39,6 +39,8 @@ class meshtastic(Input):
             self.name, "port", "/dev/ttyUSB0"
         )
 
+        self.ignore_self = hud_utils.readConfig( self.name, "ignore_self", True)
+
         # create targetData
         if (len(dataship.targetData) == 0):
             self.targetData = TargetData()
@@ -85,7 +87,12 @@ class meshtastic(Input):
                 
                 # Store our node info
                 if self.interface.myInfo:
-                    self.targetData.meshtastic_node_id = self.interface.myInfo.my_node_num
+                    print(f"meshtastic node id: {self.interface.myInfo.my_node_num}")
+                    print(f"{self.interface.myInfo}")
+                    print(f"{self.interface}")
+                    self.targetData.meshtastic_node_num = self.interface.myInfo.my_node_num
+                    self.targetData.meshtastic_node_name = self.interface.myInfo.pio_env
+                    self.targetData.meshtastic_node_device_id = self.interface.myInfo.device_id
 
                 # send startup message
                 self.sendPayloadMsg("TronView Startup", None)
@@ -103,6 +110,11 @@ class meshtastic(Input):
         """Handle incoming meshtastic messages"""
         try:
             self.print_debug(f"packet: {packet}")
+            if self.ignore_self and packet["from"] == self.targetData.meshtastic_node_num:
+                # get nodeId from packet
+                self.targetData.meshtastic_node_id = packet["fromId"]
+                self.print_debug(f"Ignoring self packet from {self.targetData.meshtastic_node_id} {self.targetData.meshtastic_node_num}")
+                return
             if packet.get("decoded"):
                 decoded = packet["decoded"]
                 portnum = decoded["portnum"]  # what type of message is this?
@@ -135,10 +147,10 @@ class meshtastic(Input):
                 if portnum == 'TEXT_MESSAGE_APP':
                     # convert decoded['payload'] from bytes to string
                     payload = decoded["payload"].decode('utf-8')
-                    print(f"Recv: from:{target.address} to:{self.targetData.meshtastic_node_id} msg: {payload}")
+                    print(f"Recv: from:{target.address} to:{self.targetData.meshtastic_node_num} msg: {payload}")
                     # add the payload message to the target payload messages. (before adding the target to the target list)
                     self.targetData.add_target_payload_message(target.address, target.callsign, packet["to"], payload)
-                    if(packet["to"] == self.targetData.meshtastic_node_id):
+                    if(packet["to"] == self.targetData.meshtastic_node_num):
                         # send a payload message to the sender.
                         if payload != "ACK": # don't send an ack to the sender.
                             self.sendPayloadMsg("ACK", target)
@@ -156,8 +168,6 @@ class meshtastic(Input):
                         target.track = int(pos["groundTrack"]) # round to the nearest integer
                     self.print_debug(f"Target Position: {target.lat}, {target.lon}, {target.alt}, {target.speed}, {target.track}")
 
-
-                
                 # Add the target to our target list
                 self.targetData.addTarget(target)
                 self.targetData.msg_count += 1
@@ -202,7 +212,10 @@ class meshtastic(Input):
                     print("meshtastic: no gps data. cant send position.")
             else:
                 # else send a text message.
-                self.interface.sendText(text,target.address)
+                if target is not None:
+                    self.interface.sendText(text,target.address)
+                else:
+                    self.interface.sendText(text)
         else:
             print("no meshtastic interface connected")
 

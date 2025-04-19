@@ -146,7 +146,10 @@ class TargetData(object):
         self.msg_bad = 0
 
         # meshtastic node id (if this is a meshtastic source)
+        self.meshtastic_node_num = None
         self.meshtastic_node_id = None
+        self.meshtastic_node_name = None
+        self.meshtastic_node_device_id = None
 
         # check if we should ignore traffic beyond a certain distance (in miles.)
         self.ignore_traffic_beyond_distance = 30
@@ -174,7 +177,8 @@ class TargetData(object):
         # go through self.target_payload_messages and get the last payload message and add it to a list.
         messages = []
         for msg in self.target_payload_messages:
-            messages.append(f"{msg.address}: {msg.payload}")
+            time_ago = time.time() - msg.time
+            messages.append(f"{msg.address}({msg.callsign}): {msg.payload} {time_ago:.0f}s ago")
         return "\n".join(messages)
 
     def get_last_target_payload_message(self, address: str) -> TargetPayloadMessage | None:

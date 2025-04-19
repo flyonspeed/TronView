@@ -2,6 +2,8 @@ import time
 import math
 from geographiclib.geodesic import Geodesic
 from lib.common.dataship.dataship_gps import GPSData
+from lib.common import shared # global shared objects stored here.
+
 
 # class to store messages received from a target.
 class TargetPayloadMessage(object):
@@ -128,6 +130,11 @@ class TargetData(object):
         self.src_gndspeed = None
         self.lcl_time_string = ""
         self.src_gps: GPSData | None = None  # if set then use this gps data as the source gps.
+
+        # meshtastic input source (if set then use this meshtastic input source to send messages to targets.)
+        from lib.inputs.meshtastic import meshtastic
+
+        self.src_meshtastic_input: meshtastic | None = None
 
         self.targets: list[Target] = [] # list of targets
         self.buoyCount = 0
@@ -353,5 +360,17 @@ class TargetData(object):
             t.speed = 100 # default speed?
         self.addTarget(t)
         pass
+
+    # send a message to a target.
+    def sendMsg(self,text:str, target:Target=None):
+        # find the target that has the same address as the selected target.
+        if target is None:
+            # sending to all targets?
+            print("sending to all targets..")
+        else:
+            if self.src_meshtastic_input is not None:
+                self.src_meshtastic_input.sendPayloadMsg(text, target)
+            else:
+                print("no meshtastic input source set")
 
 

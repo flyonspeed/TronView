@@ -145,6 +145,9 @@ class Module:
         }
         self.buttons.append(button)
 
+    # clear all buttons
+    def buttonsClear(self):
+        self.buttons = []
 
     # draw all buttons (if any)
     def buttonsDraw(self, dataship: Dataship, smartdisplay, pos=(0,0)):

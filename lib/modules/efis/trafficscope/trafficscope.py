@@ -83,6 +83,10 @@ class trafficscope(Module):
         if len(shared.Dataship.imuData) > 0:
             self.imuData = shared.Dataship.imuData[0]
 
+        # setup buttons
+        self.buttonsClear()
+        self.buttonAdd("send_yo", "Send Yo", self.sendMsg)
+        self.buttonAdd("send_position", "Send position", self.sendMsg)
 
     def buildBaseSurface(self):
         self.surfaceBase = pygame.Surface((self.width, self.height),pygame.SRCALPHA)
@@ -249,6 +253,10 @@ class trafficscope(Module):
         
         # Draw selected targets last (so they appear on top)
         list(map(draw_target, selected_targets))
+
+        # if there is a selected target then draw some buttons.
+        if self.targetData.selected_target is not None:
+            self.buttonsDraw(dataship, smartdisplay, pos)  # draw buttons
 
         self.pygamescreen.blit(self.surface2, pos)
 
@@ -469,7 +477,12 @@ class trafficscope(Module):
             }
         }
 
+    # handle mouse clicks
     def processClick(self, dataship:Dataship, mx, my):
+        # check if a button was clicked.
+        if self.buttonsCheckClick(dataship, mx, my): # call parent.
+            return
+
         if dataship.debug_mode > 0:
             print("TrafficScope processClick: %d x %d" % (mx, my))
         # clear any selected targets from self.targetDetails
@@ -494,6 +507,25 @@ class trafficscope(Module):
                 if shared.Dataship.debug_mode > 0:
                     print("selected target: %s" % target)
                 break
+            
+
+    # send a message to the selected target (called by self.buttonsCheckClick)
+    def sendMsg(self,dataship:Dataship,button):
+        # go through all buttons.
+        # for b in self.buttons:
+        #     if b["id"].startswith("send_yo"):
+        #         b["selected"] = False
+
+        # get the text from the button.
+        text = button["text"] # remove the "Send " from the text.
+        text = text.replace("Send ", "")
+        if self.targetData.selected_target is not None:
+            # get the address from the selected target.
+            theTarget = self.targetData.get_selected_target()
+            if theTarget is not None:
+                print("targetScope: Sending Msg ", text, " to ", theTarget.address)
+                self.targetData.sendMsg(text, theTarget)
+        
 
     # handle events
     def processEvent(self,event,aircraft,smartdisplay):

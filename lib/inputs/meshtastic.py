@@ -46,11 +46,13 @@ class meshtastic(Input):
             self.targetData.source = "meshtastic"
             self.targetData.name = self.name
             self.targetData_index = len(dataship.targetData)  # Start at 0
+            self.targetData.src_meshtastic_input = self # set the meshtastic input source.
             print("new meshtastic targets object "+str(self.targetData_index)+": "+str(self.targetData))
             dataship.targetData.append(self.targetData)
         else:
             print("meshtastic using existing targets object")
             self.targetData = dataship.targetData[0]
+            self.targetData.src_meshtastic_input = self # set the meshtastic input source.
 
         # create gpsData
         self.gpsData = GPSData()
@@ -86,7 +88,7 @@ class meshtastic(Input):
                     self.targetData.meshtastic_node_id = self.interface.myInfo.my_node_num
 
                 # send startup message
-                self.interface.sendText(self.targetData.meshtastic_node_id, "TronView Startup")
+                self.sendPayloadMsg("TronView Startup", None)
                 
             except Exception as e:
                 print(f"Failed to initialize meshtastic interface: {e}")
@@ -137,8 +139,9 @@ class meshtastic(Input):
                     # add the payload message to the target payload messages. (before adding the target to the target list)
                     self.targetData.add_target_payload_message(target.address, target.callsign, packet["to"], payload)
                     if(packet["to"] == self.targetData.meshtastic_node_id):
-                        # send a reply to the sender
-                        self.interface.sendText("ACK",target.address)
+                        # send a payload message to the sender.
+                        if payload != "ACK": # don't send an ack to the sender.
+                            self.sendPayloadMsg("ACK", target)
 
                 # Extract position data if available
                 if "position" in decoded:
@@ -160,17 +163,6 @@ class meshtastic(Input):
                 self.targetData.msg_count += 1
                 self.targetData.msg_last = time.time()
 
-
-                # # send position.
-                # if len(self.dataship.gpsData) > 0:
-                #     if self.dataship.gpsData[0].Lat is not None or self.dataship.gpsData[0].Lon is not None:
-                #         alt = 0
-                #         if self.dataship.gpsData[0].Alt is not None:
-                #             alt = self.dataship.gpsData[0].Alt
-                #         gps = self.dataship.gpsData[0]
-                #         print("sending position {} {} {}".format(gps.Lat, gps.Lon, alt))
-                #         self.interface.sendPosition(gps.Lat, gps.Lon, alt)
-                
         except Exception as e:
             print(f"Error processing meshtastic message: {e}")
             traceback.print_exc()
@@ -192,6 +184,27 @@ class meshtastic(Input):
         else:
             if self.interface and self.interface.isConnected:
                 self.interface.close()
+    
+    # send a payload message to a target.
+    def sendPayloadMsg(self,text:str, target:Target=None):
+        if self.interface and self.interface.isConnected:
+
+            if text == "position":
+                if len(self.dataship.gpsData) > 0:
+                    if self.dataship.gpsData[0].Lat is not None or self.dataship.gpsData[0].Lon is not None:
+                        alt = 0
+                        if self.dataship.gpsData[0].Alt is not None:
+                            alt = self.dataship.gpsData[0].Alt
+                        gps = self.dataship.gpsData[0]
+                        print("sending position {} {} {}".format(gps.Lat, gps.Lon, alt))
+                        self.interface.sendPosition(gps.Lat, gps.Lon, alt)
+                else:
+                    print("meshtastic: no gps data. cant send position.")
+            else:
+                # else send a text message.
+                self.interface.sendText(text,target.address)
+        else:
+            print("no meshtastic interface connected")
 
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

@@ -460,7 +460,7 @@ class stratux_wifi(Input):
                         target.cat = int(msg[19]) # emitter category (type/size of aircraft)
 
                         self.targetData.addTarget(target) # add/update target to traffic list.
-                        if(dataship.debug_mode>0):
+                        if(dataship.debug_mode>1):
                             print(f"GDL 90 Target: {target.callsign} {target.type} {target.address} {target.lat} {target.lon} {target.alt} {target.speed} {target.track} {target.vspeed}")
 
                         self.targetData.msg_count += 1
@@ -471,7 +471,7 @@ class stratux_wifi(Input):
                     pass
                 
                 else: # unknown message id
-                    if(self.dataship.debug_mode>0):
+                    if(self.dataship.debug_mode>1):
                         print("stratuxmessage unkown id:"+str(msg[1])+" "+str(msg[2])+" "+str(msg[3])+" len:"+str(len(msg)))
                     pass
 

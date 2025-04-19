@@ -228,6 +228,14 @@ class TargetData(object):
         # https://geographiclib.sourceforge.io/1.46/python/code.html#geographiclib.geodesic.Geodesic.Direct
         # use lat/lon from traffic source.
 
+        # check if target does not have a lat/lon.  if so then check if we have that target.address in our list of targets. and use that target's lat/lon.
+        if target.lat == None or target.lon == None:
+            for t in self.targets:
+                if t.address == target.address:
+                    target.lat = t.lat
+                    target.lon = t.lon
+                    break
+
         if(self.src_gps != None):
             self.src_lat = self.src_gps.Lat
             self.src_lon = self.src_gps.Lon

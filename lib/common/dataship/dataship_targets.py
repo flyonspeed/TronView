@@ -5,11 +5,12 @@ from lib.common.dataship.dataship_gps import GPSData
 
 # class to store messages received from a target.
 class TargetPayloadMessage(object):
-    def __init__(self):
-        self.address = None
-        self.payload = None
-        self.time = None
-
+    def __init__(self, from_address: str, from_callsign: str, to_address: str = None, payload: str = None):
+        self.address = from_address
+        self.callsign = from_callsign
+        self.to_address = to_address
+        self.payload = payload
+        self.time = time.time()
 
 # Target class
 class Target(object):
@@ -146,29 +147,34 @@ class TargetData(object):
         # list of target messages
         self.target_payload_messages: list[TargetPayloadMessage] = []
 
-    def add_target_payload_message(self, address: str, payload: str):
-        tPayload = TargetPayloadMessage()
-        tPayload.address = address
-        tPayload.payload = str(payload)
-        tPayload.time = time.time()
+    def add_target_payload_message(self, from_address: str, from_callsign: str, to_address: str, payload: str):
+        tPayload = TargetPayloadMessage(from_address, from_callsign, to_address, payload)
         self.target_payload_messages.append(tPayload)
         # only keep the last 10 messages for each callsign.
         self.target_payload_messages = self.target_payload_messages[-10:]
         # check if the callsign is in the list of targets.
         for target in self.targets:
-            if target.address == address:
+            if target.address == to_address:
                 target.payload_last = self.target_payload_messages[-1]
                 break
-        print(f"add_target_payload_message: {self.target_payload_messages}")
+        #print(f"add_target_payload_message: {self.target_payload_messages}")
 
     def get_target_payload_messages(self, address: str) -> list[TargetPayloadMessage]:
-        return [msg for msg in self.target_payload_messages if msg.address == address]
-    
+        # get all messages for a given address.
+        return [ msg for msg in self.target_payload_messages if msg.address == address ]
+
+    def get_all_messages_as_text(self) -> str:
+        # go through self.target_payload_messages and get the last payload message and add it to a list.
+        messages = []
+        for msg in self.target_payload_messages:
+            messages.append(f"{msg.address}: {msg.payload}")
+        return "\n".join(messages)
+
     def get_last_target_payload_message(self, address: str) -> TargetPayloadMessage | None:
-        print(f"get_last_target_payload_message: {address}")
+        #print(f"get_last_target_payload_message: {address}")
         messages = self.get_target_payload_messages(address)
         if len(messages) > 0:
-            print(f"get_last_target_payload_message(): {messages[-1]}")
+            #print(f"get_last_target_payload_message(): {messages[-1]}")
             return messages[-1]
         return None
 
@@ -181,6 +187,8 @@ class TargetData(object):
 
     def contains(self, target: Target): # search for callsign
         for x in self.targets:
+            if x.address == target.address:
+                return True
             if x.callsign == target.callsign:
                 return True
         return False
@@ -193,7 +201,7 @@ class TargetData(object):
 
     def replace(self,target:Target): # replace target with new one..
         for i, t in enumerate(self.targets):
-            if t.callsign == target.callsign:
+            if t.address == target.address:
                 self.targets[i] = target
                 return
 

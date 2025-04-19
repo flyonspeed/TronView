@@ -232,8 +232,23 @@ class trafficscope(Module):
                 self.targetDetails[t.callsign]["x"] = target_x
                 self.targetDetails[t.callsign]["y"] = target_y
 
-        # Use map() to apply draw_target to all targets
-        list(map(draw_target, filter(lambda t: t.dist is not None and t.dist < 100 and t.brng is not None, self.targetData.targets)))
+        # Separate targets into selected and non-selected lists
+        valid_targets = list(filter(lambda t: t.dist is not None and t.dist < 100 and t.brng is not None, self.targetData.targets))
+        
+        selected_targets = []
+        other_targets = []
+
+        for t in valid_targets:
+            if t.callsign in self.targetDetails and self.targetDetails[t.callsign]["selected"]:
+                selected_targets.append(t)
+            else:
+                other_targets.append(t)
+
+        # Draw non-selected targets first
+        list(map(draw_target, other_targets))
+        
+        # Draw selected targets last (so they appear on top)
+        list(map(draw_target, selected_targets))
 
         self.pygamescreen.blit(self.surface2, pos)
 
@@ -260,25 +275,21 @@ class trafficscope(Module):
                 labelAlt = self.font_target.render(f"{prefix}{t.altDiff:,}ft", False, (200,255,255), (0,0,0))
                 self.surface2.blit(labelAlt, (x_text + labelSpeed_rect.width + 10, y_text + label_rect.height))
 
-            labelDist = self.font_target.render(f"{t.dist:.1f} mi.", False, (200,255,255), (0,0,0))
+            labelDist = self.font_target.render(f"{t.dist:.1f}mi ", False, (200,255,255), (0,0,0))
             self.surface2.blit(labelDist, (x_text + label_rect.width + 10, y_text))
-            next_text_y_offset = 0
+            next_text_y_offset = labelSpeed_rect.height + label_rect.height
 
             # Add time since last update
             if hasattr(t, 'time'):
                 time_since_update = int(time.time() - t.time)
                 labelUpdate = self.font_target.render(f"{time_since_update}s ago", False, (200,255,255), (0,0,0))
-                self.surface2.blit(labelUpdate, (x_text, y_text + label_rect.height + labelSpeed_rect.height))
-                next_text_y_offset = labelUpdate.get_rect().height
-
+                self.surface2.blit(labelUpdate, (x_text, y_text + label_rect.height + next_text_y_offset))
+                next_text_y_offset += labelUpdate.get_rect().height
 
             if self.target_show_lat_lon:
-                labelLat = self.font_target.render(f"{t.lat:.6f}", False, (200,255,255), (0,0,0))
+                labelLat = self.font_target.render(f"{t.lat:.6f} {t.lon:.6f}", False, (200,255,255), (0,0,0))
                 self.surface2.blit(labelLat, (x_text, y_text + next_text_y_offset))
-                labelLat_rect = labelLat.get_rect()
-                labelLon = self.font_target.render(f"{t.lon:.6f}", False, (200,255,255), (0,0,0))
-                self.surface2.blit(labelLon, (x_text, y_text + next_text_y_offset + labelLat_rect.height))
-                next_text_y_offset += labelLon.get_rect().height
+                next_text_y_offset += labelLat.get_rect().height
 
             if t.payload_last is not None:
                 labelPayload = self.font_target.render("msg: "+t.payload_last.payload, False, (200,255,255), (0,0,0))
@@ -343,6 +354,23 @@ class trafficscope(Module):
             pygame.draw.line(surface, (0, 255, 129), tail, blade_pos, 1)
             # draw a line through the middle of the helicopter.
             pygame.draw.line(surface, (0, 255, 129), nose, tail, 1)
+        elif(target.type == 101):
+            # Draw the Meshtastic logo ( /< )
+            logo_color = (0, 255, 129)
+            line_thickness = 2 # Adjusted thickness
+
+            # Diagonal line (/) - Adjust coordinates for better representation
+            start_diag = (int(xx - scale * 0.7), int(yy + scale * 0.6))
+            end_diag = (int(xx - scale * 0.1), int(yy - scale * 0.6))
+            pygame.draw.line(surface, logo_color, start_diag, end_diag, line_thickness)
+
+            # Angle line (<) - Adjust coordinates for better representation
+            point_top = (int(xx + scale * 0.3), int(yy - scale * 0.6))
+            point_mid_left = (int(xx - scale * 0.1), int(yy + scale * 0.6)) # Connects near the bottom-right of the diagonal
+            point_bottom_right = (int(xx + scale * 0.7), int(yy + scale * 0.6))
+
+            pygame.draw.line(surface, logo_color, point_top, point_mid_left, line_thickness)
+            pygame.draw.line(surface, logo_color, point_mid_left, point_bottom_right, line_thickness)
         else:
             # Draw a smiley face as the default
             # Main circle (face)

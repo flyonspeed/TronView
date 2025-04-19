@@ -100,7 +100,7 @@ class meshtastic(Input):
     def onReceive(self, packet, interface):
         """Handle incoming meshtastic messages"""
         try:
-            print(f"Received meshtastic message: {packet}")
+            self.print_debug(f"packet: {packet}")
             if packet.get("decoded"):
                 decoded = packet["decoded"]
                 portnum = decoded["portnum"]  # what type of message is this?
@@ -125,28 +125,35 @@ class meshtastic(Input):
                 target = Target(str(packet["fromId"]))
                 #target.inputSrcName = self.name
                 #target.inputSrcNum = self.num
-                target.address = packet["fromId"]
+                target.address = packet["from"]
                 target.cat = 101  # meshtastic node type
                 target.type = 101  # meshtastic node type
             
                 # text message payload so save to target payload messages.
                 if portnum == 'TEXT_MESSAGE_APP':
-                    print(f"Received text message: {decoded['payload']}")
+                    # convert decoded['payload'] from bytes to string
+                    payload = decoded["payload"].decode('utf-8')
+                    print(f"Recv: from:{target.address} to:{self.targetData.meshtastic_node_id} msg: {payload}")
                     # add the payload message to the target payload messages. (before adding the target to the target list)
-                    self.targetData.add_target_payload_message(target.address, decoded["payload"])
+                    self.targetData.add_target_payload_message(target.address, target.callsign, packet["to"], payload)
+                    if(packet["to"] == self.targetData.meshtastic_node_id):
+                        # send a reply to the sender
+                        self.interface.sendText("ACK",target.address)
 
                 # Extract position data if available
                 if "position" in decoded:
                     pos = decoded["position"]
                     target.lat = pos.get("latitude")
                     target.lon = pos.get("longitude")
-                    target.alt = pos.get("altitude", 0) * 3.28084  # Convert meters to feet
+                    target.alt = int(pos.get("altitude", 0) * 3.28084) # Convert meters to feet and round to the nearest integer
                     
                     if "groundSpeed" in pos:
-                        target.speed = pos["groundSpeed"] * 2.23694  # Convert m/s to mph
+                        target.speed = int(pos["groundSpeed"] * 2.23694) # Convert m/s to mph and round to the nearest integer
                     if "groundTrack" in pos:
-                        target.track = pos["groundTrack"]
+                        target.track = int(pos["groundTrack"]) # round to the nearest integer
                     self.print_debug(f"Target Position: {target.lat}, {target.lon}, {target.alt}, {target.speed}, {target.track}")
+
+
                 
                 # Add the target to our target list
                 self.targetData.addTarget(target)

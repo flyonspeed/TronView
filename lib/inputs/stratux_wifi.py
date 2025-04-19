@@ -18,6 +18,7 @@ import time
 import math
 from geographiclib.geodesic import Geodesic
 import datetime
+import select
 from ..common.dataship.dataship import Dataship
 from ..common.dataship.dataship_imu import IMUData
 from ..common.dataship.dataship_gps import GPSData
@@ -126,53 +127,39 @@ class stratux_wifi(Input):
         else:
             self.ser.close()
 
-    def getNextChunck(self,aircraft):
-        if self.isPlaybackMode:
-            
-            x = 0
-            while x != 126: # read until ~
-                t = self.ser.read(1)
-                if len(t) != 0:
-                    x = ord(t)
-                    #print(str(x), end ="." )
-                else:
-                    self.ser.seek(0)
-                    print("Stratux file reset")
+    def getNextFileChunck(self,aircraft):
+        x = 0
+        while x != 126: # read until ~
+            t = self.ser.read(1)
+            if len(t) != 0:
+                x = ord(t)
+                #print(str(x), end ="." )
+            else:
+                self.ser.seek(0)
+                print("Stratux file reset")
 
-            #print("first ~", end ="." )
-            x = 0
-            data = bytearray(b"~")
-            while x != 126: # read until ~
-                t = self.ser.read(1)
-                if len(t) != 0:
-                    x = ord(t)
-                    data.extend(t)
-                    #print(str(x), end ="." )
-                else:
-                    self.ser.seek(0)
-                    print("Stratux file reset")
-            #print("end ~", end ="." )
-            return data
-            
-            #data = self.ser.read(80)
-            #if(len(data)==0): 
-            #    self.ser.seek(0)
-            #    print("Replaying file: "+self.input_logFileName)
-            #TODO: read to the next ~ in the file??
-            #print(type(data))
-            #return data
-        else:
-            try:
-                #Attempt to receive up to 1024 bytes of data
-                data = self.ser.recvfrom(1024)
-                return data[0]
-            except socket.timeout:
-                pass
-            except socket.error:
-                #If no data is received, you get here, but it's not an error
-                #Ignore and continue
-                pass
-        return bytes(0)
+        #print("first ~", end ="." )
+        x = 0
+        data = bytearray(b"~")
+        while x != 126: # read until ~
+            t = self.ser.read(1)
+            if len(t) != 0:
+                x = ord(t)
+                data.extend(t)
+                #print(str(x), end ="." )
+            else:
+                self.ser.seek(0)
+                print("Stratux file reset")
+        #print("end ~", end ="." )
+        return data
+        
+        #data = self.ser.read(80)
+        #if(len(data)==0): 
+        #    self.ser.seek(0)
+        #    print("Replaying file: "+self.input_logFileName)
+        #TODO: read to the next ~ in the file??
+        #print(type(data))
+        #return data
 
     #############################################
     ## Function: readMessage
@@ -180,12 +167,36 @@ class stratux_wifi(Input):
         if self.shouldExit == True: dataship.errorFoundNeedToExit = True
         if dataship.errorFoundNeedToExit: return dataship
         if self.skipReadInput == True: return dataship
-        msg = self.getNextChunck(dataship)
+
+        msg = bytes(0)
+        if self.isPlaybackMode:
+            # Playback mode: Read next chunk from file
+            msg = self.getNextFileChunck(dataship)
+        else:
+            # Live mode: Wait for data on UDP socket
+            readable, _, _ = select.select([self.ser], [], [], 0.1) # Timeout 0.1s
+            if self.ser in readable:
+                try:
+                    #Attempt to receive up to 1024 bytes of data
+                    data, addr = self.ser.recvfrom(1024)
+                    msg = data
+                except socket.timeout:
+                    pass # Should not happen with select, but good practice
+                except socket.error as e:
+                    # If no data is received, you get here, but it's not an error
+                    # Ignore and continue
+                    print(f"Stratux socket error on recvfrom: {e}") # Log error for debugging
+                    pass
+
+        if(len(msg)==0):
+            return dataship
         #count = msg.count(b'~~')
-        #print("-----------------------------------------------\nNEW Chunk len:"+str(len(msg))+" seperator count:"+str(count))
-        if(dataship.debug_mode>2):
+        #print("-----------------------------------------------\nNEW Chunk len:" + str(len(msg)) + " seperator count:" + str(count))
+        if(dataship.debug_mode>1):
             if len(msg) >= 4:
                 print("stratux: "+str(msg[1])+" "+str(msg[2])+" "+str(msg[3])+" "+str(len(msg))+" "+str(msg))
+            else:
+                print("stratux: BAD? "+str(len(msg))+" "+str(msg))
             
 
         for line in msg.split(b'~~'):
@@ -288,7 +299,7 @@ class stratux_wifi(Input):
                     self.gpsData.GPSWAAS = WAASstatus
 
                     if(dataship.debug_mode>1):
-                        print(f"GPS status: {WAASstatus} Sats:{Sats} Power:{Power} OutRate:{OutRate}")
+                        print(f"stratux GPS status: {WAASstatus} Sats:{Sats} Power:{Power} OutRate:{OutRate}")
 
                 else:
                     #print("unkown message id:"+str(msg[3])+" len:"+str(len(msg)))
@@ -384,14 +395,14 @@ class stratux_wifi(Input):
                         self.gpsData.msg_count += 1
 
                         if(dataship.debug_mode>0):
-                            print(f"GPS Data: {self.gpsData.GPSTime_string} {self.gpsData.Lat} {self.gpsData.Lon} {self.gpsData.GndSpeed} {self.gpsData.GndTrack}")
+                            print(f"stratux GPS Data: {self.gpsData.GPSTime_string} {self.gpsData.Lat} {self.gpsData.Lon} {self.gpsData.GndSpeed} {self.gpsData.GndTrack}")
 
 
                 elif(msg[1]==11): # GDL OwnershipGeometricAltitude
                     # get alt from GDL90
                     self.gpsData.AltPressure = _signed16(msg[2:]) * 5
                     if(dataship.debug_mode>1):
-                        print(f"GPS Altitude: {self.gpsData.AltPressure}m")
+                        print(f"stratux GPS Altitude: {self.gpsData.AltPressure}m")
 
                 elif(msg[1]==20): # Traffic report
                     '''
@@ -480,7 +491,7 @@ class stratux_wifi(Input):
             print(traceback.format_exc())
         except struct.error:
             #error with read in length.. ignore for now?
-            #print("Error with read in length")
+            print("stratux: Error with read in length")
             pass
         except Exception as e:
             dataship.errorFoundNeedToExit = True

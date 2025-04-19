@@ -394,7 +394,7 @@ class stratux_wifi(Input):
 
                         self.gpsData.msg_count += 1
 
-                        if(dataship.debug_mode>0):
+                        if(dataship.debug_mode>1):
                             print(f"stratux GPS Data: {self.gpsData.GPSTime_string} {self.gpsData.Lat} {self.gpsData.Lon} {self.gpsData.GndSpeed} {self.gpsData.GndTrack}")
 
 

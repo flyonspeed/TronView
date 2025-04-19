@@ -1,10 +1,11 @@
 import pygame
 import random
 import string
-from lib.common.graphic.edit_EditToolBar import EditToolBar
 import time
 from lib.common.graphic.edit_find_module import find_module
 from lib.common import shared
+from lib.common.graphic.edit_EditToolBar import EditToolBar
+
 class TronViewScreenObject:
     def __init__(self, pgscreen, type, title, module=None, x=0, y=0, width=100, height=100, id=None):
         self.pygamescreen = shared.pygamescreen
@@ -15,7 +16,10 @@ class TronViewScreenObject:
         self.width = width
         self.height = height
         self.selected = False
-        self.id = id or 'M_' + ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(5))
+        if(module is not None and id is None):
+            self.id = module.name + '_' + ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(5))
+        else:
+            self.id = id or 'M_' + ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(5))
         self.showBounds = False
         self.mouse_offset_x = 0
         self.mouse_offset_y = 0
@@ -33,6 +37,8 @@ class TronViewScreenObject:
             else:
                 self.module = None
 
+        # Import EditToolBar here to avoid circular dependencies
+        from lib.common.graphic.edit_EditToolBar import EditToolBar
         self.edit_toolbar = EditToolBar(self)
 
     def isClickInside(self, mx, my):
@@ -287,6 +293,7 @@ class TronViewScreenObject:
                     except Exception as e:
                         print(f"NOTICE: error calling post_change_function: {str(e)}")
 
+        # load the child screen objects if this is a group of screen objects
         if self.type == 'group' and data['screenObjects']:
             self.childScreenObjects = []
             for childSObj in data['screenObjects']:

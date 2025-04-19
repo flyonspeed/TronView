@@ -9,7 +9,6 @@ from lib.common.dataship import dataship
 from lib import smartdisplay
 from lib.common.graphic.growl_manager import GrowlManager
 from lib.common.event_manager import EventManager
-from lib.common.graphic.edit_TronViewScreenObject import TronViewScreenObject
 
 ####################################
 ## DataShip object
@@ -17,6 +16,8 @@ from lib.common.graphic.edit_TronViewScreenObject import TronViewScreenObject
 ## Then dataship object is passed on to different screens for displaying data.
 Dataship = dataship.Dataship()
 
+# Import TronViewScreenObject after all other imports to avoid circular dependencies
+from lib.common.graphic.edit_TronViewScreenObject import TronViewScreenObject
 
 ####################################
 ## Input objects

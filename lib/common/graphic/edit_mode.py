@@ -109,6 +109,7 @@ def main_edit_loop():
         ## loop through events and process them
         for event in event_list:
             if text_input:      # if text input is active, process the event...
+                print("text_input active: %s" % text_input.text, "event: %s" % event)
                 text_input.process_event(event) 
 
             pygame_gui_manager.process_events(event)
@@ -503,7 +504,7 @@ def main_edit_loop():
                         undo_last_change(shared.Change_history, shared)
                 elif event.type == pygame.KEYDOWN and isinstance(text_entry_active, UITextEntryLine):  # if it's a UITextEntryLine object
                     # handle text input
-                    # check if key is {
+                    # check if key is { .. This is a special key that allows you to choose a variable name.. 
                     if event.key == pygame.K_LEFTBRACKET:
                         # show dropdown menu with list of variables
                         print("Left bracket key pressed")

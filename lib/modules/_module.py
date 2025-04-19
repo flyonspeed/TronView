@@ -47,8 +47,12 @@ class Module:
         self.widthCenter = width / 2
         self.heightCenter = height / 2
     
-    # return a dict of objects that are used to configure the module.
+    # return a dict of objects that are used to configure the module. These are shown in the edit mode.
     def get_module_options(self):
+        return {}
+    
+    # return a dict of functions that can be called to control the module.
+    def get_module_functions(self):
         return {}
 
     ##########################################################

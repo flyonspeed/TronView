@@ -208,7 +208,8 @@ class HandlerDetailsWindow:
                                            container=self.window)
         y_offset += 60
 
-        UILabel(relative_rect=pygame.Rect(10, y_offset, 80, 20),
+        # Create but initially hide the operator field
+        self.operator_label = UILabel(relative_rect=pygame.Rect(10, y_offset, 80, 20),
                 text="Operator:",
                 manager=self.pygame_gui_manager,
                 container=self.window)
@@ -222,7 +223,8 @@ class HandlerDetailsWindow:
                                                 container=self.window)
         y_offset += 30
 
-        UILabel(relative_rect=pygame.Rect(10, y_offset, 80, 20),
+        # Create but initially hide the value field
+        self.value_label = UILabel(relative_rect=pygame.Rect(10, y_offset, 80, 20),
                 text="Value:",
                 manager=self.pygame_gui_manager,
                 container=self.window)
@@ -231,7 +233,8 @@ class HandlerDetailsWindow:
                                            container=self.window)
         y_offset += 30
 
-        UILabel(relative_rect=pygame.Rect(10, y_offset, 80, 20),
+        # Create but initially hide the action field
+        self.action_label = UILabel(relative_rect=pygame.Rect(10, y_offset, 80, 20),
                 text="Action:",
                 manager=self.pygame_gui_manager,
                 container=self.window)
@@ -245,7 +248,8 @@ class HandlerDetailsWindow:
                                               container=self.window)
         y_offset += 30
 
-        UILabel(relative_rect=pygame.Rect(10, y_offset, 80, 20),
+        # Create but initially hide the target ID field
+        self.target_id_label = UILabel(relative_rect=pygame.Rect(10, y_offset, 80, 20),
                 text="Target ID:",
                 manager=self.pygame_gui_manager,
                 container=self.window)
@@ -275,9 +279,15 @@ class HandlerDetailsWindow:
                                     manager=self.pygame_gui_manager,
                                     container=self.window)
         
+        # Add cancel button next to save button
+        self.cancel_button = UIButton(relative_rect=pygame.Rect(100, y_offset, 80, 30),
+                                    text="Cancel",
+                                    manager=self.pygame_gui_manager,
+                                    container=self.window)
+        
         # if we are editing an existing handler, add a delete button
         if self.handler:
-            self.delete_button = UIButton(relative_rect=pygame.Rect(100, y_offset, 80, 30),
+            self.delete_button = UIButton(relative_rect=pygame.Rect(190, y_offset, 80, 30),
                                       text="Delete",
                                       manager=self.pygame_gui_manager,
                                       container=self.window)
@@ -285,7 +295,7 @@ class HandlerDetailsWindow:
         # update the UI with the current handler data (if any)
         if self.handler:
             self.id_entry.set_text(self.handler['id'])
-            #self.event_type_dropdown.set_selected_option(self.handler['event_type'])
+            self.event_type_dropdown.selected_option = self.handler['event_type']
             self.field_entry.set_text(self.handler['field'])
             self.value_entry.set_text(str(self.handler['value']))
             self.target_id_entry.set_text(self.handler['target_id'])
@@ -293,17 +303,60 @@ class HandlerDetailsWindow:
             if 'priority' in self.handler:
                 self.priority_slider.set_current_value(self.handler['priority'])
         
-        # make sure the window is tall enough to show all the elements
-        self.window
+        # Update visibility based on event type
+        self.update_fields_visibility()
+
+    def update_fields_visibility(self):
+        is_lambda = self.event_type_dropdown.selected_option[0] == 'lambda'
+        
+        # Show/hide operator fields
+        self.operator_label.visible = not is_lambda
+        self.operator_dropdown.visible = not is_lambda
+        
+        # Show/hide value fields
+        self.value_label.visible = not is_lambda
+        self.value_entry.visible = not is_lambda
+        
+        # Show/hide action fields
+        self.action_label.visible = not is_lambda
+        self.action_dropdown.visible = not is_lambda
+        
+        # Show/hide target ID fields
+        self.target_id_label.visible = not is_lambda
+        self.target_id_entry.visible = not is_lambda
+
+        # Recalculate window height based on visible fields
+        base_height = 300  # Base height for ID, Event Type, Field, and Priority
+        if not is_lambda:
+            base_height += 150  # Additional height for operator, value, action, and target ID fields
+        
+        # Update window dimensions
+        current_rect = self.window.get_abs_rect()
+        self.window.set_dimensions((current_rect.width, base_height))
+        
+        # Force a redraw
+        self.window.rebuild_from_changed_theme_data()
 
     def handle_event(self, event):
-        print(f"HandlerDetailsWindow handling event type: {event.type}")
+        # 32866 is tick event
+        # 1024 is mouse move event
+        if event.type != 32866 and event.type != 1024 and event.type != pygame.KEYDOWN and event.type != pygame.KEYUP:
+            print(f"HandlerDetailsWindow handling event type: {event.type}")
+
+        if event.type == pygame.KEYDOWN:
+            print(f"HandlerDetailsWindow handling event type: {event.key}")
+            if event.key == pygame.K_RETURN:
+                print("HandlerDetailsWindow Enter key pressed")
         if event.type == pygame_gui.UI_BUTTON_PRESSED:
             print("HandlerDetailsWindow handle_event UI_BUTTON_PRESSED %s type %s" % (self.screen_object.title, event.ui_element))
             if event.ui_element == self.save_button:
                 self.save_handler()
+            elif event.ui_element == self.cancel_button:
+                self.window.kill()
+                self.parent_EditEventsWindow.close_handler_details()
             elif event.ui_element == self.event_type_dropdown:
                 print("clicked event_type_dropdown ")
+                self.update_fields_visibility()
             elif self.handler and event.ui_element == self.delete_button:
                 self.delete_handler()
         elif event.type == pygame_gui.UI_HORIZONTAL_SLIDER_MOVED:
@@ -311,6 +364,11 @@ class HandlerDetailsWindow:
             if event.ui_element == self.priority_slider:
                 print(f"Priority slider moved to value: {event.value}")
                 self.priority_label.set_text(f"Priority: {int(event.value)}")
+        elif event.type == pygame_gui.UI_DROP_DOWN_MENU_CHANGED:
+            print("Dropdown menu changed event detected")
+            if event.ui_element == self.event_type_dropdown:
+                print("Event type dropdown changed")
+                self.update_fields_visibility()
 
     def save_handler(self):
         # make sure the id is unique

@@ -67,6 +67,7 @@ class Target(object):
         self.payload_last: TargetPayloadMessage | None = None
 
         self.age = 0
+        self.meshtastic_node = None
 
     def get_cat_name(self):
         if self.cat == 1:
@@ -150,6 +151,7 @@ class TargetData(object):
         self.meshtastic_node_id = None
         self.meshtastic_node_name = None
         self.meshtastic_node_device_id = None
+        self.meshtastic_node_device_name = None
 
         # check if we should ignore traffic beyond a certain distance (in miles.)
         self.ignore_traffic_beyond_distance = 30

@@ -91,8 +91,10 @@ class meshtastic(Input):
                     print(f"{self.interface.myInfo}")
                     print(f"{self.interface}")
                     self.targetData.meshtastic_node_num = self.interface.myInfo.my_node_num
-                    self.targetData.meshtastic_node_name = self.interface.myInfo.pio_env
+                    self.targetData.meshtastic_node_device_name = self.interface.myInfo.pio_env
                     self.targetData.meshtastic_node_device_id = self.interface.myInfo.device_id
+                
+                self.targetData.meshtastic_node_name = self.interface.getLongName()
 
                 # send startup message
                 self.sendPayloadMsg("TronView Startup", None)
@@ -135,14 +137,20 @@ class meshtastic(Input):
                 else:
                     self.print_debug("Unknown message type")
 
+                node = self.interface.nodesByNum[packet["from"]];
+                #print(f"node: {node}")
+                #print(f"node.user: {node['user']}")
+                print(f"node.user.longName: {node['user']['longName']}")
+
                 # Create a new target for the sender
-                target = Target(str(packet["fromId"]))
+                target = Target(node['user']['longName'])
                 #target.inputSrcName = self.name
                 #target.inputSrcNum = self.num
-                target.address = packet["from"]
+                target.address = packet["from"] # node number
                 target.cat = 101  # meshtastic node type
                 target.type = 101  # meshtastic node type
-            
+                target.meshtastic_node = node
+                
                 # text message payload so save to target payload messages.
                 if portnum == 'TEXT_MESSAGE_APP':
                     # convert decoded['payload'] from bytes to string
@@ -172,6 +180,10 @@ class meshtastic(Input):
                 self.targetData.addTarget(target)
                 self.targetData.msg_count += 1
                 self.targetData.msg_last = time.time()
+
+
+
+                # print(self.interface.showNodes())
 
         except Exception as e:
             print(f"Error processing meshtastic message: {e}")

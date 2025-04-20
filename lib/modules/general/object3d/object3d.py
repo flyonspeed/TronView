@@ -477,8 +477,8 @@ class object3d(Module):
             self.source_imu_index2 = self.imu_ids2.index(self.source_imu_index2_name)
             shared.Dataship.imuData[self.source_imu_index2].home(delete=True) 
 
-    def processClick(self, dataship: Dataship, mx, my):
-        if self.buttonsCheckClick(dataship, mx, my):
+    def processClick(self, dataship: Dataship, mx, my, buttonNum):
+        if self.buttonsCheckClick(dataship, mx, my, buttonNum):
             return
     
     def zeroPosition(self, dataship: Dataship, button):

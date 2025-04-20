@@ -38,10 +38,10 @@ class TronViewScreenObject:
     def isClickInside(self, mx, my):
         return self.x <= mx <= self.x + self.width and self.y <= my <= self.y + self.height
 
-    def click(self, aircraft, mx, my):
+    def click(self, aircraft, mx, my, buttonNum):
         #print("Click on %s at %d, %d" % (self.title, mx, my))
         if hasattr(self.module, "processClick"):
-            self.module.processClick(aircraft, mx, my)
+            self.module.processClick(aircraft, mx, my, buttonNum)
     
     def mouseWheel(self, aircraft, mx, my, wheel_position):
         if hasattr(self.module, "processMouseWheel"):

@@ -136,25 +136,24 @@ def main_graphical():
                     mx, my = event.x, event.y
                 else:
                     mx, my = pygame.mouse.get_pos()
+                # get button click number
+                button = event.button
+                # button 4 and 5 are the mouse wheel events
+                if button == 4 or button == 5:
+                    continue
                 if shared.Dataship.debug_mode > 0:
-                    print("Click %d x %d" % (mx, my))
+                    print("Click %d x %d" % (mx, my) + " button: %d" % button)
 
                 # Check if the mouse click is inside any screenObject
                 for sObject in shared.CurrentScreen.ScreenObjects[::-1]:
                     if sObject.x <= mx <= sObject.x + sObject.width and sObject.y <= my <= sObject.y + sObject.height:
                         selected_screen_object = sObject
                         # Send click to the screen object
-                        sObject.click(shared.Dataship, mx - sObject.x, my - sObject.y)
+                        sObject.click(shared.Dataship, mx - sObject.x, my - sObject.y, button)
                         break
 
             # send mouse wheel events to the screen objects if the mouse wheel is inside any screenObject
             if event.type == pygame.MOUSEWHEEL:
-                # print(event)
-                # if event.y > 0:
-                #     print("Mouse wheel up ")
-                # else:
-                #     print("Mouse wheel down")
-                # Check if the mouse wheel is inside any screenObject
                 for sObject in shared.CurrentScreen.ScreenObjects[::-1]:
                     if sObject.x <= mx <= sObject.x + sObject.width and sObject.y <= my <= sObject.y + sObject.height:
                         # send a mouse wheel event to the screen object

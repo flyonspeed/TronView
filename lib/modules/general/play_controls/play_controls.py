@@ -71,8 +71,8 @@ class play_controls(Module):
 
 
     # handle mouse clicks
-    def processClick(self, aircraft: dataship, mx, my):
-        self.buttonsCheckClick(aircraft, mx, my) # call parent.
+    def processClick(self, aircraft: dataship, mx, my, buttonNum):
+        self.buttonsCheckClick(aircraft, mx, my, buttonNum) # call parent.
 
     # button to play the scenario
     def buttonPlay(self,aircraft,button):

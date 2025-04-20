@@ -481,13 +481,13 @@ class trafficscope(Module):
         }
 
     # handle mouse clicks
-    def processClick(self, dataship:Dataship, mx, my):
+    def processClick(self, dataship:Dataship, mx, my, buttonNum):
         # check if a button was clicked.
-        if self.buttonsCheckClick(dataship, mx, my): # call parent.
+        if self.buttonsCheckClick(dataship, mx, my, buttonNum): # call parent.
             return
 
         if dataship.debug_mode > 0:
-            print("TrafficScope processClick: %d x %d" % (mx, my))
+            print("TrafficScope processClick: %d x %d" % (mx, my) + " buttonNum: %d" % buttonNum)
         # clear any selected targets from self.targetDetails
         for target in self.targetDetails:
             self.targetDetails[target]["selected"] = False
@@ -540,27 +540,6 @@ class trafficscope(Module):
             print(f"targetScope: sendMsg: {text} to ALL")    
         self.targetData.sendMsg(text, theTarget)
         
-
-    # handle events
-    def processEvent(self,event,aircraft,smartdisplay):
-        if(event.type=="modechange"):
-            if(event.key=="traffic"):
-                if(event.value==2):
-                    self.show_callsign = True
-                    print("TrafficScope showing callsigns. 5mi.")
-                    self.setScaleInMiles(5)
-                    self.show_details = True
-                elif(event.value==3):
-                    print("TrafficScope showing callsigns & details. 2mi.")
-                    self.show_details = True
-                    self.show_callsign = True
-                    self.setScaleInMiles(2)
-                else:
-                    self.setScaleInMiles(10)
-                    self.show_callsign = False
-                    self.show_details = False
-
-        pass
 
 
 

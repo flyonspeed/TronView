@@ -39,7 +39,9 @@ class meshtastic(Input):
             self.name, "port", "/dev/ttyUSB0"
         )
 
-        self.ignore_self = hud_utils.readConfig( self.name, "ignore_self", True)
+        self.ignore_self = hud_utils.readConfigBool( self.name, "ignore_self", True)
+        self.auto_reply = hud_utils.readConfigBool( self.name, "auto_reply", True)
+        self.auto_reply_message = hud_utils.readConfig( self.name, "auto_reply_message", "ACK")
 
         # create targetData
         if (len(dataship.targetData) == 0):
@@ -150,7 +152,7 @@ class meshtastic(Input):
                 target.cat = 101  # meshtastic node type
                 target.type = 101  # meshtastic node type
                 target.meshtastic_node = node
-                
+
                 # text message payload so save to target payload messages.
                 if portnum == 'TEXT_MESSAGE_APP':
                     # convert decoded['payload'] from bytes to string
@@ -160,8 +162,9 @@ class meshtastic(Input):
                     self.targetData.add_target_payload_message(target.address, target.callsign, packet["to"], payload)
                     if(packet["to"] == self.targetData.meshtastic_node_num):
                         # send a payload message to the sender.
-                        if payload != "ACK": # don't send an ack to the sender.
-                            self.sendPayloadMsg("ACK", target)
+                        if payload != self.auto_reply_message: # don't send an ack to the sender.
+                            if self.auto_reply:
+                                self.sendPayloadMsg(self.auto_reply_message, target)
 
                 # Extract position data if available
                 if "position" in decoded:
@@ -211,6 +214,7 @@ class meshtastic(Input):
     def sendPayloadMsg(self,text:str, target:Target=None):
         if self.interface and self.interface.isConnected:
 
+            # if text is "position", send a position message with gps lat/lon/alt
             if text == "position":
                 if len(self.dataship.gpsData) > 0:
                     if self.dataship.gpsData[0].Lat is not None or self.dataship.gpsData[0].Lon is not None:

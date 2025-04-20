@@ -6,6 +6,7 @@ from lib.common import shared # global shared objects stored here.
 
 
 # class to store messages received from a target.
+# used for meshtastic nodes.
 class TargetPayloadMessage(object):
     def __init__(self, from_address: str, from_callsign: str, to_address: str = None, payload: str = None):
         self.address = from_address

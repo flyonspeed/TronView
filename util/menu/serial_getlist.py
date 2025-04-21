@@ -1276,7 +1276,7 @@ if __name__ == "__main__":
     if args.select:
         # The function now handles the interaction and config update.
         # The return value might not be needed unless we want to report the last assignment.
-        select_serial_port(title="Assign Serial Port (Enter to Assign, S to Save)", debug=args.debug)
+        select_serial_port(title="Assign Serial Port (Enter to Assign)", debug=args.debug)
         print("Interactive session finished. Check config.cfg for assignments.")
 
     # if output file is provided, save to file (Keep this functionality?)

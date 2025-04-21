@@ -22,6 +22,7 @@ class Target(object):
         self.inputSrcNum = None
 
         self.callsign = callsign
+        self.flightNumber = None # if flight has a flight number then set it here.
         self.source = None
         self.aStat = None
         self.type = None

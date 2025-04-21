@@ -44,6 +44,7 @@ class stratux_wifi(Input):
         self.targetData_index = 0
         self.targetData = None
         self.dataship = None
+        self.address_map = {} # Map ICAO address to {'n_number': str, 'flight_number': str | None}
 
     def initInput(self, num, dataship: Dataship):
         Input.initInput( self,num, dataship )  # call parent init Input.
@@ -422,46 +423,83 @@ class stratux_wifi(Input):
                         callsign = re.sub(r'[^A-Za-z0-9]+', '', msg[20:28].rstrip().decode('ascii', errors='ignore') ) # clean the N number.
                         targetStatus = _thunkByte(msg[2], 0x0b11110000, -4) # status
                         targetType = _thunkByte(msg[2], 0b00001111) # type
+                        address =  (msg[3] << 16) + (msg[4] << 8) + msg[5] # address
 
-                        target = Target(callsign)
+                        # --- Logic to handle N-Number vs Flight Number ---
+                        n_number, flight_number = self._get_n_number_and_flight_number(address, callsign)
+                        # --- End N-Number/Flight Number Logic ---
+
+                        target = Target(n_number) # Use N-Number as the primary identifier
+                        target.flightNumber = flight_number # Set the flight number attribute (needs adding to Target class)
+
                         target.aStat = targetStatus
                         target.type = targetType
-                        target.address =  (msg[3] << 16) + (msg[4] << 8) + msg[5] # address
+                        target.address = address # Store the address in the target object as well
+
                         # get lat/lon
                         latLongIncrement = 180.0 / (2**23)
                         target.lat = _signed24(msg[6:]) * latLongIncrement
                         target.lon = _signed24(msg[9:]) * latLongIncrement
                         # alt of target.
-                        alt = _thunkByte(msg[12], 0xff, 4) + _thunkByte(msg[13], 0xf0, -4)
-                        target.alt = (alt * 25) - 1000 # alt in feet MSL (from GDL90 format)
+                        alt_raw = _thunkByte(msg[12], 0xff, 4) + _thunkByte(msg[13], 0xf0, -4)
+                        if alt_raw == 0xFFF: # 4095 indicates invalid/unavailable altitude
+                            target.alt = None
+                        else:
+                            target.alt = (alt_raw * 25) - 1000 # alt in feet MSL (from GDL90 format)
 
-                        target.misc = _thunkByte(msg[13], 0x0f) # misc
-                        target.NIC = _thunkByte(msg[14], 0xf0, -4) # NIC
-                        target.NACp = _thunkByte(msg[14], 0x0f) # NACp
 
-                        #speed
+                        target.misc = _thunkByte(msg[13], 0x0f) # misc bits 3..0. Bit 3 is VRSI (0=Baro, 1=GNSS)
+                        target.NIC = _thunkByte(msg[14], 0xf0, -4) # NIC bits 7..4
+                        target.NACp = _thunkByte(msg[14], 0x0f) # NACp bits 3..0
+
+                        #speed (Horizontal Velocity)
                         horzVelo = _thunkByte(msg[15], 0xff, 4) + _thunkByte(msg[16], 0xf0, -4)
-                        if horzVelo == 0xfff:  # no hvelocity info available
-                            horzVelo = 0
-                        target.speed = round(horzVelo * 1.15078,1) # convert to mph
-                        # heading
-                        trackIncrement = 360.0 / 256
-                        target.track = int(msg[18] * trackIncrement)  # track/heading, 0-358.6 degrees
-                        # vert speed. 12-bit signed value of 64 fpm increments
-                        vertVelo = _thunkByte(msg[16], 0x0f, 8) + _thunkByte(msg[17])
-                        if vertVelo == 0x800:   # not avail
-                            vertVelo = 0
-                        elif (vertVelo >= 0x1ff and vertVelo <= 0x7ff) or (vertVelo >= 0x801 and vertVelo <= 0xe01):  # not used, invalid
-                            vertVelo = 0
-                        elif vertVelo > 2047:  # two's complement, negative values
-                            vertVelo -= 4096
-                        target.vspeed = (vertVelo * 64) ;# vertical velocity
+                        if horzVelo == 0xfff:  # 4095 indicates no hvelocity info available
+                            target.speed = None
+                        else:
+                            target.speed = horzVelo # Speed in knots
+
+                        # heading/track
+                        heading_raw = msg[18]
+                        if heading_raw == 0xFF: # 255 indicates unavailable
+                            target.track = None
+                        else:
+                            trackIncrement = 360.0 / 256
+                            target.track = int(heading_raw * trackIncrement)  # track/heading, 0-358.6 degrees
+
+                        # Vertical Velocity (Rate) - GDL90 Sign/Magnitude format
+                        # Combined 12 bits: msg[16] bits 3..0 and msg[17] bits 7..0
+                        vertVeloRaw = (_thunkByte(msg[16], 0x0f) << 8) + msg[17]
+                        # Sign bit: msg[16] bit 3 (0x08)
+                        sign_bit = _thunkByte(msg[16], 0x08) >> 3 # 0 = up/increasing, 1 = down/decreasing
+
+                        magnitude = vertVeloRaw & 0x07FF # Mask out sign bit (which is bit 11 of 12-bit value)
+
+                        if magnitude == 0:
+                            target.vspeed = 0 # No vertical rate reported
+                        elif magnitude == 0x7FF: # 2047 indicates > +/- 32192 fpm
+                            target.vspeed = 32767 if sign_bit == 0 else -32767 # Indicate exceeding limit
+                        else:
+                            vertVelo = magnitude * 64 # Vertical velocity in fpm
+                            if sign_bit == 1: # Downward/decreasing rate is negative
+                                vertVelo = -vertVelo
+                            target.vspeed = vertVelo
+
+                        # Old vertical speed logic based on comments/possible misinterpretation removed
+
 
                         target.cat = int(msg[19]) # emitter category (type/size of aircraft)
 
                         self.targetData.addTarget(target) # add/update target to traffic list.
                         if(dataship.debug_mode>1):
-                            print(f"GDL 90 Target: {target.callsign} {target.type} {target.address} {target.lat} {target.lon} {target.alt} {target.speed} {target.track} {target.vspeed}")
+                            # Updated print statement to include flight number if available and format address as Hex
+                            flight_info = f" Flight: {target.flightNumber}" if target.flightNumber else ""
+                            addr_hex = f"{target.address:X}"
+                            alt_str = f"{target.alt}" if target.alt is not None else "N/A"
+                            spd_str = f"{target.speed}" if target.speed is not None else "N/A"
+                            trk_str = f"{target.track}" if target.track is not None else "N/A"
+                            vs_str = f"{target.vspeed}" if target.vspeed is not None else "N/A"
+                            print(f"GDL 90 Target: {target.callsign} ({addr_hex}) Type:{target.type}{flight_info} Loc:({target.lat:.4f}, {target.lon:.4f}) Alt:{alt_str} Spd:{spd_str} Trk:{trk_str} VS:{vs_str}")
 
                         self.targetData.msg_count += 1
                     else:
@@ -498,6 +536,60 @@ class stratux_wifi(Input):
             print(e)
             print(traceback.format_exc())
         return dataship
+
+    def _get_n_number_and_flight_number(self, address, callsign):
+        """Determines the N-Number and Flight Number based on the address map.
+
+        Args:
+            address (int): The ICAO 24-bit address.
+            callsign (str): The callsign from the current message.
+
+        Returns:
+            tuple: (n_number, flight_number)
+        """
+        n_number = None
+        flight_number = None
+
+        if address in self.address_map:
+            # Address seen before
+            stored_n_number = self.address_map[address]['n_number']
+            stored_flight_number = self.address_map[address].get('flight_number') # Get potentially existing flight number
+
+            # Always return the originally stored N-Number
+            n_number = stored_n_number
+
+            if callsign and callsign != stored_n_number:
+                # Current non-empty callsign is different from the stored N-Number.
+                # Assume this is the flight number.
+                flight_number = callsign
+                # Update map with the newly found flight number
+                self.address_map[address]['flight_number'] = flight_number
+            else:
+                # Callsign is the same as N-Number, empty, or hasn't changed to reveal a flight number yet.
+                # Keep the previously stored flight number (if any), otherwise it remains None.
+                flight_number = stored_flight_number
+
+        else:
+            # First time seeing this address
+            if callsign:
+                # Assume this non-empty callsign is the N-Number
+                n_number = callsign
+            else:
+                # No callsign on first message, create a placeholder N-Number
+                n_number = f"ADDR_{address:X}" # Use Hex Address as placeholder
+
+            # No flight number known yet for this new address
+            flight_number = None
+            # Store the initial N-Number in the map
+            self.address_map[address] = {'n_number': n_number, 'flight_number': None}
+
+
+        # Fallback check - should ideally not be needed with the logic above, but safe to keep.
+        if not n_number:
+             print(f"Warning: Fallback used for N-Number determination for address {address:X}.")
+             n_number = f"ADDR_{address:X}"
+
+        return n_number, flight_number
 
 
 def _unsigned24(data, littleEndian=False):

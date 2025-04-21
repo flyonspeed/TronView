@@ -23,6 +23,7 @@ class Target(object):
 
         self.callsign = callsign
         self.flightNumber = None # if flight has a flight number then set it here.
+        self.faa_db_record = None # faa database record for this target (if found)
         self.source = None
         self.aStat = None
         self.type = None

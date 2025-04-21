@@ -27,7 +27,9 @@ from ..common.dataship.dataship_targets import TargetData, Target
 from ._input import Input
 from ..common import shared
 from . import _input_file_utils
-
+import sqlite3
+import os
+from ..common.helpers.faa_aircraft_database import find_aircraft_by_n_number, FAA_Aircraft
 
 class stratux_wifi(Input):
     def __init__(self):
@@ -426,11 +428,12 @@ class stratux_wifi(Input):
                         address =  (msg[3] << 16) + (msg[4] << 8) + msg[5] # address
 
                         # --- Logic to handle N-Number vs Flight Number ---
-                        n_number, flight_number = self._get_n_number_and_flight_number(address, callsign)
+                        n_number, flight_number, faa_db_record = self._get_n_number_and_flight_number(address, callsign)
                         # --- End N-Number/Flight Number Logic ---
 
                         target = Target(n_number) # Use N-Number as the primary identifier
                         target.flightNumber = flight_number # Set the flight number attribute (needs adding to Target class)
+                        target.faa_db_record = faa_db_record
 
                         target.aStat = targetStatus
                         target.type = targetType
@@ -539,6 +542,8 @@ class stratux_wifi(Input):
 
     def _get_n_number_and_flight_number(self, address, callsign):
         """Determines the N-Number and Flight Number based on the address map.
+           This is cause the stratux always sends the N-Number when it first sees a new address.
+           Then later it will send the flight number if it is available.
 
         Args:
             address (int): The ICAO 24-bit address.
@@ -549,14 +554,17 @@ class stratux_wifi(Input):
         """
         n_number = None
         flight_number = None
+        faa_db_record = None
 
         if address in self.address_map:
             # Address seen before
             stored_n_number = self.address_map[address]['n_number']
             stored_flight_number = self.address_map[address].get('flight_number') # Get potentially existing flight number
+            self.address_map[address]['last_seen'] = time.time() # Update last seen time
 
             # Always return the originally stored N-Number
             n_number = stored_n_number
+            faa_db_record = self.address_map[address]['faa_db_record']
 
             if callsign and callsign != stored_n_number:
                 # Current non-empty callsign is different from the stored N-Number.
@@ -564,6 +572,14 @@ class stratux_wifi(Input):
                 flight_number = callsign
                 # Update map with the newly found flight number
                 self.address_map[address]['flight_number'] = flight_number
+
+                # check FAA database for matching aircraft because the N-Number has changed
+                matching_aircraft = find_aircraft_by_n_number(n_number)
+                if matching_aircraft:
+                    self.address_map[address]['faa_db_record'] = matching_aircraft
+                else:
+                    self.address_map[address]['faa_db_record'] = None
+
             else:
                 # Callsign is the same as N-Number, empty, or hasn't changed to reveal a flight number yet.
                 # Keep the previously stored flight number (if any), otherwise it remains None.
@@ -571,25 +587,26 @@ class stratux_wifi(Input):
 
         else:
             # First time seeing this address
-            if callsign:
-                # Assume this non-empty callsign is the N-Number
-                n_number = callsign
-            else:
-                # No callsign on first message, create a placeholder N-Number
-                n_number = f"ADDR_{address:X}" # Use Hex Address as placeholder
+            # Assume this non-empty callsign is the N-Number
+            n_number = callsign
 
             # No flight number known yet for this new address
             flight_number = None
-            # Store the initial N-Number in the map
-            self.address_map[address] = {'n_number': n_number, 'flight_number': None}
+            # Store the initial N-Number and last_seen time in the map
+            foundNew = {'n_number': n_number, 'flight_number': None, 'last_seen': time.time()}
+            # Search for matching aircraft using N-Number
+            faa_db_record = find_aircraft_by_n_number(n_number)
+            if faa_db_record:
+                print(f"Found {n_number}: {faa_db_record.aircraft_desc_mfr} {faa_db_record.aircraft_desc_model}")
+                foundNew['faa_db_record'] = faa_db_record
+            else:
+                print(f"No matching aircraft found for {n_number}")
+                foundNew['faa_db_record'] = None
+
+            self.address_map[address] = foundNew
 
 
-        # Fallback check - should ideally not be needed with the logic above, but safe to keep.
-        if not n_number:
-             print(f"Warning: Fallback used for N-Number determination for address {address:X}.")
-             n_number = f"ADDR_{address:X}"
-
-        return n_number, flight_number
+        return n_number, flight_number, faa_db_record
 
 
 def _unsigned24(data, littleEndian=False):

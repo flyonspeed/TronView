@@ -305,6 +305,13 @@ class trafficscope(Module):
             if t.payload_last is not None:
                 labelPayload = self.font_target.render("msg: "+t.payload_last.payload, False, (200,255,255), (0,0,0))
                 self.surface2.blit(labelPayload, (x_text, y_text + next_text_y_offset))
+                next_text_y_offset += labelPayload.get_rect().height
+
+            if t.faa_db_record:
+                labelFaa = self.font_target.render(f"{t.faa_db_record.aircraft_desc_mfr} {t.faa_db_record.aircraft_desc_model}", False, (200,255,255), (0,0,0))
+                self.surface2.blit(labelFaa, (x_text, y_text + next_text_y_offset))
+                next_text_y_offset += labelFaa.get_rect().height
+                
 
     # draw aircraft icon based on the type of aircraft
     def drawAircraftIcon(self, surface, target, xx, yy, scale):

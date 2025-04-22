@@ -48,6 +48,7 @@ class trafficscope(Module):
         self.targetData = TargetData()
         self.gpsData = GPSData()
         self.imuData = IMUData()
+        self.selectedTarget = None
 
 
     # called once for setup
@@ -161,6 +162,8 @@ class trafficscope(Module):
         # Clear using the base surface.
         self.surface2.blit(self.surfaceBase, (0, 0))
 
+        self.selectedTarget = self.targetData.get_selected_target()  # make sure we have the latest selected target.
+
         # Get aircraft heading or ground track, if both are None then use 0
         target_heading = self.imuData.yaw if self.imuData.yaw is not None else self.gpsData.GndTrack if self.gpsData.GndTrack is not None else 0
 
@@ -209,7 +212,7 @@ class trafficscope(Module):
             # Draw the target using smoothed positions
             if self.draw_icon:
                 direction_target_facing = ((t.track or brngToUse) - target_heading) % 360
-                t.targetDirection = math.radians(direction_target_facing - 90)
+                t.targetDirection = round(math.radians(direction_target_facing - 90), 2)
                 self.drawAircraftIcon(self.surface2, t, target_x, target_y, self.icon_scale)
             else:
                 hud_graphics.hud_draw_circle(self.surface2, (0, 255, 129), (target_x, target_y), 4, 0)
@@ -255,17 +258,15 @@ class trafficscope(Module):
         list(map(draw_target, selected_targets))
 
         # if there is a selected target then draw some buttons.
-        if self.targetData.selected_target is not None:
-            selectedTarget = self.targetData.get_selected_target()
-            if selectedTarget is not None:
-                if selectedTarget.type == 101:   # meshtastic type target.
-                    self.buttonsDraw(dataship, smartdisplay, pos)  # draw buttons
+        if self.selectedTarget is not None:
+            if self.selectedTarget.type == 101:   # meshtastic type target.
+                self.buttonsDraw(dataship, smartdisplay, pos)  # draw buttons
 
         self.pygamescreen.blit(self.surface2, pos)
 
     def draw_target_details(self, t: Target, xx, yy, x_text, y_text, label_rect, target_heading):
         if t.speed is not None and t.speed > -1 and t.track is not None:
-            t.targetBrngToUse = (t.track - target_heading) % 360
+            t.targetBrngToUse = round((t.track - target_heading) % 360, 2)
             radianTargetTrack = math.radians(t.targetBrngToUse - 90)
             d = min(t.speed / 3, 60)
             
@@ -273,44 +274,60 @@ class trafficscope(Module):
             arrowX, arrowY = xx + (d-2) * math.cos(math.radians(t.targetBrngToUse - 82)), yy + (d-2) * math.sin(math.radians(t.targetBrngToUse - 82))
             arrowX2, arrowY2 = xx + (d-2) * math.cos(math.radians(t.targetBrngToUse - 98)), yy + (d-2) * math.sin(math.radians(t.targetBrngToUse - 98))
 
+            # draw a line from the nose of target in direction it is heading.
             pygame.draw.line(self.surface2, (200,255,255), (xx,yy), (lineX, lineY), 1)
             pygame.draw.line(self.surface2, (200,255,255), (lineX,lineY), (arrowX, arrowY), 1)
             pygame.draw.line(self.surface2, (200,255,255), (lineX,lineY), (arrowX2, arrowY2), 1)
 
-            labelSpeed = self.font_target.render(f"{t.speed}mph", False, (200,255,255), (0,0,0))
-            labelSpeed_rect = labelSpeed.get_rect()
-            self.surface2.blit(labelSpeed, (x_text, y_text + label_rect.height))
+            next_text_y_offset = label_rect.height
+            if self.selectedTarget == None or self.selectedTarget and t.address == self.selectedTarget.address:
 
-            if t.altDiff is not None:
-                prefix = "+" if t.altDiff > 0 else ""
-                labelAlt = self.font_target.render(f"{prefix}{t.altDiff:,}ft", False, (200,255,255), (0,0,0))
-                self.surface2.blit(labelAlt, (x_text + labelSpeed_rect.width + 10, y_text + label_rect.height))
+                labelSpeed = self.font_target.render(f"{t.speed}mph", False, (200,255,255), (0,0,0))
+                labelSpeed_rect = labelSpeed.get_rect()
+                self.surface2.blit(labelSpeed, (x_text, y_text + label_rect.height))
 
-            labelDist = self.font_target.render(f"{t.dist:.1f}mi ", False, (200,255,255), (0,0,0))
-            self.surface2.blit(labelDist, (x_text + label_rect.width + 10, y_text))
-            next_text_y_offset = labelSpeed_rect.height + label_rect.height
+                if t.altDiff is not None:
+                    prefix = "+" if t.altDiff > 0 else ""
+                    labelAlt = self.font_target.render(f"{prefix}{t.altDiff:,}ft", False, (200,255,255), (0,0,0))
+                    self.surface2.blit(labelAlt, (x_text + labelSpeed_rect.width + 10, y_text + label_rect.height))
 
-            # Add time since last update
-            if hasattr(t, 'time'):
-                time_since_update = int(time.time() - t.time)
-                labelUpdate = self.font_target.render(f"{time_since_update}s ago", False, (200,255,255), (0,0,0))
-                self.surface2.blit(labelUpdate, (x_text, y_text + next_text_y_offset))
-                next_text_y_offset += labelUpdate.get_rect().height
+                labelDist = self.font_target.render(f"{t.dist:.1f}mi ", False, (200,255,255), (0,0,0))
+                self.surface2.blit(labelDist, (x_text + label_rect.width + 10, y_text))
+                next_text_y_offset += labelSpeed_rect.height 
 
-            if self.target_show_lat_lon:
-                labelLat = self.font_target.render(f"{t.lat:.6f} {t.lon:.6f}", False, (200,255,255), (0,0,0))
-                self.surface2.blit(labelLat, (x_text, y_text + next_text_y_offset))
-                next_text_y_offset += labelLat.get_rect().height
+                # Add time since last update
+                if hasattr(t, 'time'):
+                    time_since_update = int(time.time() - t.time)
+                    labelUpdate = self.font_target.render(f"{time_since_update}s ago", False, (200,255,255), (0,0,0))
+                    self.surface2.blit(labelUpdate, (x_text, y_text + next_text_y_offset))
+                    next_text_y_offset += labelUpdate.get_rect().height
 
-            if t.payload_last is not None:
-                labelPayload = self.font_target.render("msg: "+t.payload_last.payload, False, (200,255,255), (0,0,0))
-                self.surface2.blit(labelPayload, (x_text, y_text + next_text_y_offset))
-                next_text_y_offset += labelPayload.get_rect().height
+                if self.target_show_lat_lon:
+                    labelLat = self.font_target.render(f"{t.lat:.6f} {t.lon:.6f}", False, (200,255,255), (0,0,0))
+                    self.surface2.blit(labelLat, (x_text, y_text + next_text_y_offset))
+                    next_text_y_offset += labelLat.get_rect().height
 
-            if t.faa_db_record:
-                labelFaa = self.font_target.render(f"{t.faa_db_record.aircraft_desc_mfr} {t.faa_db_record.aircraft_desc_model}", False, (200,255,255), (0,0,0))
-                self.surface2.blit(labelFaa, (x_text, y_text + next_text_y_offset))
-                next_text_y_offset += labelFaa.get_rect().height
+                if t.payload_last is not None:
+                    labelPayload = self.font_target.render("msg: "+t.payload_last.payload, False, (200,255,255), (0,0,0))
+                    self.surface2.blit(labelPayload, (x_text, y_text + next_text_y_offset))
+                    next_text_y_offset += labelPayload.get_rect().height
+
+                if t.faa_db_record:
+                    labelFaa = self.font_target.render(f"{t.faa_db_record.aircraft_desc_mfr} {t.faa_db_record.aircraft_desc_model}", False, (200,255,255), (0,0,0))
+                    self.surface2.blit(labelFaa, (x_text, y_text + next_text_y_offset))
+                    next_text_y_offset += labelFaa.get_rect().height
+
+                    if t.faa_db_record.commerical_name:
+                        labelCommercial = self.font_target.render(f"{t.faa_db_record.commerical_name}", False, (200,255,255), (0,0,0))
+                        self.surface2.blit(labelCommercial, (x_text, y_text + next_text_y_offset))
+                        next_text_y_offset += labelCommercial.get_rect().height
+            
+            # if aircraft is selected then give some more details.
+            if self.selectedTarget and t.address == self.selectedTarget.address:
+                if t.faa_db_record:
+                    labelCommercial = self.font_target.render(f"{t.faa_db_record.owner_name}\n{t.faa_db_record.city},{t.faa_db_record.state}", False, (200,255,255), (0,0,0))
+                    self.surface2.blit(labelCommercial, (x_text, y_text + next_text_y_offset))
+                    next_text_y_offset += labelCommercial.get_rect().height
                 
 
     # draw aircraft icon based on the type of aircraft

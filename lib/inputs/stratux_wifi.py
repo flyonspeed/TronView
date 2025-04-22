@@ -29,7 +29,7 @@ from ..common import shared
 from . import _input_file_utils
 import sqlite3
 import os
-from ..common.helpers.faa_aircraft_database import find_aircraft_by_n_number, FAA_Aircraft
+from ..common.helpers.faa_aircraft_database import find_aircraft_by_n_number, FAA_Aircraft, check_commercial_name
 
 class stratux_wifi(Input):
     def __init__(self):
@@ -566,7 +566,8 @@ class stratux_wifi(Input):
             n_number = stored_n_number
             faa_db_record = self.address_map[address]['faa_db_record']
 
-            if callsign and callsign != stored_n_number:
+            if callsign and callsign != stored_n_number and callsign != stored_flight_number:
+                print(f"Flight number changed: old {stored_n_number} new {callsign} flight number: {stored_flight_number} address: {address}")
                 # Current non-empty callsign is different from the stored N-Number.
                 # Assume this is the flight number.
                 flight_number = callsign
@@ -576,6 +577,12 @@ class stratux_wifi(Input):
                 # check FAA database for matching aircraft because the N-Number has changed
                 matching_aircraft = find_aircraft_by_n_number(n_number)
                 if matching_aircraft:
+                    # check if the flight number is a commercial name
+                    commercial_name = check_commercial_name(flight_number)
+                    print(f"Commercial name: {commercial_name}")
+                    if commercial_name:
+                        matching_aircraft.commerical_name = commercial_name
+
                     self.address_map[address]['faa_db_record'] = matching_aircraft
                 else:
                     self.address_map[address]['faa_db_record'] = None
@@ -584,6 +591,7 @@ class stratux_wifi(Input):
                 # Callsign is the same as N-Number, empty, or hasn't changed to reveal a flight number yet.
                 # Keep the previously stored flight number (if any), otherwise it remains None.
                 flight_number = stored_flight_number
+                # don't search FAA database cause it's time consuming and we already did when we first found the N-Number.
 
         else:
             # First time seeing this address
@@ -597,10 +605,10 @@ class stratux_wifi(Input):
             # Search for matching aircraft using N-Number
             faa_db_record = find_aircraft_by_n_number(n_number)
             if faa_db_record:
-                print(f"Found {n_number}: {faa_db_record.aircraft_desc_mfr} {faa_db_record.aircraft_desc_model}")
+                #print(f"Found {n_number}: {faa_db_record.aircraft_desc_mfr} {faa_db_record.aircraft_desc_model}")
                 foundNew['faa_db_record'] = faa_db_record
             else:
-                print(f"No matching aircraft found for {n_number}")
+                #print(f"No matching aircraft found for {n_number}")
                 foundNew['faa_db_record'] = None
 
             self.address_map[address] = foundNew

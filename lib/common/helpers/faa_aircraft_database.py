@@ -39,6 +39,8 @@ class FAA_Aircraft:
         self.aircraft_desc_mfr = ""   # final resolved manufacturer (either from FAA or from kit_mfr)
         self.aircraft_desc_model = "" # final resolved model (either from FAA or from kit_model)
 
+        self.commerical_name = None  # commercial name of the aircraft (if any)
+
 
 def get_aircraft_description(db_file, mfr_mdl_code):
     """Get the manufacturer and model description for an aircraft code."""
@@ -110,6 +112,51 @@ def find_aircraft_by_n_number(n_number)->FAA_Aircraft: # returns an Aircraft obj
         aircraft.aircraft_desc_mfr = aircraft.kit_mfr
         aircraft.aircraft_desc_model = aircraft.kit_model
 
+    # if aircraft.aircraft_desc_mfr is to long then shorten it
+    if len(aircraft.aircraft_desc_mfr) > 10:
+        aircraft.aircraft_desc_mfr = aircraft.aircraft_desc_mfr[:10]
 
     conn.close()
     return aircraft
+
+FLIGHT_PREFIX_MAP = {
+    "AA": ("American"),
+    "DL": ("Delta"),
+    "DAL": ("Delta"),
+    "UAL": ("United"),
+    "UA": ("United"),
+    "US": ("US Airways"),
+    "NW": ("Northwest"),
+    "CO": ("Continental"),
+    "JZA": ("Jazz Air"),
+    "NK": ("Spirit Airlines"),
+    "KE": ("Korean Air"),
+    "B6": ("JetBlue"),
+    "JBU": ("JetBlue"),
+    "FX": ("FedEx"),
+    "LH": ("Lufthansa"),
+    "SKW": ("SkyWest"),
+    "ASA": ("Alaska"),
+    "AS": ("Alaska"),
+    "SWA": ("Southwest Airlines"),
+    "SW": ("Southwest Airlines"),
+    "AFR": ("Air France"),
+    "AF": ("Air France"),
+}
+
+def check_commercial_name(flightNumber):
+    """Check if the flight number corresponds to a known commercial airline and return the name and number."""
+    # Convert flightNumber to uppercase for case-insensitive matching
+    flightNumber_upper = flightNumber.upper()
+
+    for prefix, (name) in FLIGHT_PREFIX_MAP.items():
+        # Use uppercase prefix for comparison
+        if flightNumber_upper.startswith(prefix):
+            # Extract number based on original case flightNumber
+            number = flightNumber[len(prefix):]
+            # Always return name + space + number, handle empty number case
+            return f"{name} {number}".strip()
+    return None
+    
+    
+    

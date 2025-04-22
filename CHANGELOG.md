@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.0.33] - 2025-04-21
+
+- meshtastic target scope
+- meshtastic send messages and location
+- FAA database n number search
+- target scope update, mouse wheel support
+- track flight number vs n number from stratux
+
+
+
 ## [0.0.32] - 2025-04-07
 
 - meshtastic fixes for merging node data into dataship targets.

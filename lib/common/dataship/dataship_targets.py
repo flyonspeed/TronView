@@ -261,12 +261,12 @@ class TargetData(object):
                 # NaN. no distance found.  
                 pass
             elif(dist<500):
-                target.dist = dist
+                target.dist = round(dist, 3)
                 if(brng<0): target.brng = 360 - (abs(brng)) # convert foward azimuth to bearing to.
                 elif(brng!=brng):
                     #its NaN.
                     target.brng = None
-                else: target.brng = brng
+                else: target.brng = round(brng, 2)
 
         # target is beyond distance that we want to listen to.. so bye bye baby!
         # don't ignore meshtastic nodes.

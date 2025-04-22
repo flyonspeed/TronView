@@ -71,7 +71,12 @@ def get_aircraft_description(db_file, mfr_mdl_code):
 def find_aircraft_by_n_number(n_number)->FAA_Aircraft: # returns an Aircraft object
     """Search for an aircraft by N-Number using SQLite."""
     db_dir = "data/system/db"
-    db_file = os.path.join(db_dir, "faa_aircraft.db")
+    file_name = "faa_aircraft.db"
+    # check if the file exists
+    if not os.path.exists(os.path.join(db_dir, file_name)):
+        return None
+    
+    db_file = os.path.join(db_dir, file_name)
 
     # if it starts with a n or N then remove it
     if n_number.startswith("n") or n_number.startswith("N"):
@@ -80,8 +85,8 @@ def find_aircraft_by_n_number(n_number)->FAA_Aircraft: # returns an Aircraft obj
     try:
         conn = sqlite3.connect(db_file)
     except sqlite3.OperationalError as e:
-        #print(f"Error connecting to SQLite database: {e}")
-        return None, "", ""
+        print(f"Error connecting to SQLite database: {e}")
+        return None
 
     conn.row_factory = sqlite3.Row  # This enables column access by name
     cursor = conn.cursor()
@@ -142,6 +147,8 @@ FLIGHT_PREFIX_MAP = {
     "SW": ("Southwest Airlines"),
     "AFR": ("Air France"),
     "AF": ("Air France"),
+    "QXE": ("Horizon Air"),
+    "QX": ("Horizon Air"),
 }
 
 def check_commercial_name(flightNumber):

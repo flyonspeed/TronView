@@ -277,7 +277,7 @@ class TargetData(object):
                     if(self.contains(target)):
                         self.remove(target.callsign)
                     self.count = len(self.targets)
-                    print(f"ignoring target: {target.callsign} dist:{target.dist} > ignore_traffic_beyond_distance:{self.ignore_traffic_beyond_distance}")
+                    #print(f"ignoring target: {target.callsign} dist:{target.dist} > ignore_traffic_beyond_distance:{self.ignore_traffic_beyond_distance}")
                     return
             
         # check difference in altitude from self.

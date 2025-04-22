@@ -567,7 +567,7 @@ class stratux_wifi(Input):
             faa_db_record = self.address_map[address]['faa_db_record']
 
             if callsign and callsign != stored_n_number and callsign != stored_flight_number:
-                print(f"Flight number changed: old {stored_n_number} new {callsign} flight number: {stored_flight_number} address: {address}")
+                #print(f"Flight number changed: old {stored_n_number} new {callsign} flight number: {stored_flight_number} address: {address}")
                 # Current non-empty callsign is different from the stored N-Number.
                 # Assume this is the flight number.
                 flight_number = callsign
@@ -579,7 +579,7 @@ class stratux_wifi(Input):
                 if matching_aircraft:
                     # check if the flight number is a commercial name
                     commercial_name = check_commercial_name(flight_number)
-                    print(f"Commercial name: {commercial_name}")
+                    #print(f"Commercial name: {commercial_name}")
                     if commercial_name:
                         matching_aircraft.commerical_name = commercial_name
 

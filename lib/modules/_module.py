@@ -145,6 +145,9 @@ class Module:
         }
         self.buttons.append(button)
 
+    # clear all buttons
+    def buttonsClear(self):
+        self.buttons = []
 
     # draw all buttons (if any)
     def buttonsDraw(self, dataship: Dataship, smartdisplay, pos=(0,0)):
@@ -174,7 +177,7 @@ class Module:
         self.button_font = pygame.font.SysFont("Monospace", self.button_font_size)
     
     # check if a click was on a button and call the button's function if it was
-    def buttonsCheckClick(self, dataship: Dataship, mx, my):
+    def buttonsCheckClick(self, dataship: Dataship, mx, my, buttonNum):
         for button in self.buttons:
             if button["x"] <= mx <= button["x"] + button["width"] and button["y"] <= my <= button["y"] + button["height"]:
                 if button["function"]:

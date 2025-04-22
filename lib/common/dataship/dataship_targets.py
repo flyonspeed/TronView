@@ -1,6 +1,20 @@
 import time
 import math
 from geographiclib.geodesic import Geodesic
+from lib.common.dataship.dataship_gps import GPSData
+from lib.common import shared # global shared objects stored here.
+
+
+# class to store messages received from a target.
+# used for meshtastic nodes.
+class TargetPayloadMessage(object):
+    def __init__(self, from_address: str, from_callsign: str, to_address: str = None, payload: str = None):
+        self.address = from_address
+        self.callsign = from_callsign
+        self.to_address = to_address
+        self.payload = payload
+        self.time = time.time()
+
 # Target class
 class Target(object):
     def __init__(self, callsign):
@@ -8,6 +22,8 @@ class Target(object):
         self.inputSrcNum = None
 
         self.callsign = callsign
+        self.flightNumber = None # if flight has a flight number then set it here.
+        self.faa_db_record = None # faa database record for this target (if found)
         self.source = None
         self.aStat = None
         self.type = None
@@ -50,7 +66,11 @@ class Target(object):
         self.brng = None     # bearing to target from self
         self.altDiff = None  # difference in alt from self. (in feet MSL)
 
+        # last payload message received from this target.
+        self.payload_last: TargetPayloadMessage | None = None
+
         self.age = 0
+        self.meshtastic_node = None
 
     def get_cat_name(self):
         if self.cat == 1:
@@ -97,6 +117,7 @@ class Target(object):
 #     distance = (R * c) * 0.6213712 # convert to miles.
 #     return distance
 
+        
 
 #############################################
 ## Class: TargetData
@@ -112,21 +133,66 @@ class TargetData(object):
         self.src_gndtrack = None
         self.src_gndspeed = None
         self.lcl_time_string = ""
+        self.src_gps: GPSData | None = None  # if set then use this gps data as the source gps.
+
+        # meshtastic input source (if set then use this meshtastic input source to send messages to targets.)
+        from lib.inputs.meshtastic import meshtastic
+
+        self.src_meshtastic_input: meshtastic | None = None
 
         self.targets: list[Target] = [] # list of targets
         self.buoyCount = 0
         self.selected_target = None
 
-        # messages count (number of messages received from this source)
+        # messages count (number of input messages received from this source)
         self.msg_count = 0
         self.msg_last = None
         self.msg_bad = 0
 
-        # meshtastic node id
+        # meshtastic node id (if this is a meshtastic source)
+        self.meshtastic_node_num = None
         self.meshtastic_node_id = None
+        self.meshtastic_node_name = None
+        self.meshtastic_node_device_id = None
+        self.meshtastic_node_device_name = None
 
         # check if we should ignore traffic beyond a certain distance (in miles.)
         self.ignore_traffic_beyond_distance = 30
+
+        # list of target messages
+        self.target_payload_messages: list[TargetPayloadMessage] = []
+
+    def add_target_payload_message(self, from_address: str, from_callsign: str, to_address: str, payload: str):
+        tPayload = TargetPayloadMessage(from_address, from_callsign, to_address, payload)
+        self.target_payload_messages.append(tPayload)
+        # only keep the last 10 messages for each callsign.
+        self.target_payload_messages = self.target_payload_messages[-10:]
+        # check if the callsign is in the list of targets.
+        for target in self.targets:
+            if target.address == to_address:
+                target.payload_last = self.target_payload_messages[-1]
+                break
+        #print(f"add_target_payload_message: {self.target_payload_messages}")
+
+    def get_target_payload_messages(self, address: str) -> list[TargetPayloadMessage]:
+        # get all messages for a given address.
+        return [ msg for msg in self.target_payload_messages if msg.address == address ]
+
+    def get_all_messages_as_text(self) -> str:
+        # go through self.target_payload_messages and get the last payload message and add it to a list.
+        messages = []
+        for msg in self.target_payload_messages:
+            time_ago = time.time() - msg.time
+            messages.append(f"{msg.address}({msg.callsign}): {msg.payload} {time_ago:.0f}s ago")
+        return "\n".join(messages)
+
+    def get_last_target_payload_message(self, address: str) -> TargetPayloadMessage | None:
+        #print(f"get_last_target_payload_message: {address}")
+        messages = self.get_target_payload_messages(address)
+        if len(messages) > 0:
+            #print(f"get_last_target_payload_message(): {messages[-1]}")
+            return messages[-1]
+        return None
 
     def get_selected_target(self) -> Target | None:
         # find the target that has the same address as the selected target.
@@ -137,6 +203,8 @@ class TargetData(object):
 
     def contains(self, target: Target): # search for callsign
         for x in self.targets:
+            if x.address == target.address:
+                return True
             if x.callsign == target.callsign:
                 return True
         return False
@@ -149,7 +217,7 @@ class TargetData(object):
 
     def replace(self,target:Target): # replace target with new one..
         for i, t in enumerate(self.targets):
-            if t.callsign == target.callsign:
+            if t.address == target.address:
                 self.targets[i] = target
                 return
 
@@ -159,12 +227,31 @@ class TargetData(object):
 
         # check if the target.callsign is set.. if not then set it to the address.
         if target.callsign == None or target.callsign == "":
-            target.callsign = str(target.address)
+            if target.address != None and target.address != "":
+                target.callsign = str(target.address)
+            else:
+                target.callsign = "Unknown"
 
         # if dist&brng was not calculated... check distance and brng to target. if we know our location..
         # use geographiclib to solve this.
         # https://geographiclib.sourceforge.io/1.46/python/code.html#geographiclib.geodesic.Geodesic.Direct
-        # use lat/lon from traffic source. 
+        # use lat/lon from traffic source.
+
+        # check if target does not have a lat/lon.  if so then check if we have that target.address in our list of targets. and use that target's lat/lon.
+        if target.lat == None or target.lon == None:
+            for t in self.targets:
+                if t.address == target.address:
+                    target.lat = t.lat
+                    target.lon = t.lon
+                    break
+
+        if(self.src_gps != None):
+            self.src_lat = self.src_gps.Lat
+            self.src_lon = self.src_gps.Lon
+            self.src_alt = self.src_gps.Alt
+            self.src_gndtrack = self.src_gps.GndTrack
+            self.src_gndspeed = self.src_gps.GndSpeed
+
         if(self.src_lat != None and self.src_lon != None and target.lat != None and target.lon != None):
             solve = Geodesic.WGS84.Inverse(self.src_lat,self.src_lon,target.lat,target.lon)
             brng = solve['azi1'] # forward azimuth.
@@ -174,21 +261,24 @@ class TargetData(object):
                 # NaN. no distance found.  
                 pass
             elif(dist<500):
-                target.dist = dist
+                target.dist = round(dist, 3)
                 if(brng<0): target.brng = 360 - (abs(brng)) # convert foward azimuth to bearing to.
                 elif(brng!=brng):
                     #its NaN.
                     target.brng = None
-                else: target.brng = brng
+                else: target.brng = round(brng, 2)
 
         # target is beyond distance that we want to listen to.. so bye bye baby!
-        if(self.ignore_traffic_beyond_distance != 0):
-            if(target.dist == None or target.dist > self.ignore_traffic_beyond_distance):
-                # remove it.
-                if(self.contains(target)):
-                    self.remove(target.callsign)
-                self.count = len(self.targets)
-                return
+        # don't ignore meshtastic nodes.
+        if(target.type != 101):
+            if(self.ignore_traffic_beyond_distance != 0):
+                if(target.dist == None or target.dist > self.ignore_traffic_beyond_distance):
+                    # remove it.
+                    if(self.contains(target)):
+                        self.remove(target.callsign)
+                    self.count = len(self.targets)
+                    #print(f"ignoring target: {target.callsign} dist:{target.dist} > ignore_traffic_beyond_distance:{self.ignore_traffic_beyond_distance}")
+                    return
             
         # check difference in altitude from self.
         if(target.alt != None):
@@ -199,9 +289,14 @@ class TargetData(object):
             # elif(aircraft.gps.GPSAlt != None):
             #     target.altDiff = target.alt - aircraft.gps.GPSAlt
 
+        # update the last payload message received from this target.
+        target.payload_last = self.get_last_target_payload_message(target.address)
+
         if(self.contains(target)==False):
+            #print(f"Adding target: {target.callsign}")
             self.targets.append(target)
         else:
+            #print(f"Replacing target: {target.callsign}")
             self.replace(target)
 
         self.count = len(self.targets)
@@ -284,4 +379,17 @@ class TargetData(object):
             t.speed = 100 # default speed?
         self.addTarget(t)
         pass
+
+    # send a message to a target.
+    def sendMsg(self,text:str, target:Target=None):
+        # find the target that has the same address as the selected target.
+        if target is None:
+            # sending to all targets?
+            print("sending to all targets..")
+        else:
+            if self.src_meshtastic_input is not None:
+                self.src_meshtastic_input.sendPayloadMsg(text, target)
+            else:
+                print("no meshtastic input source set")
+
 

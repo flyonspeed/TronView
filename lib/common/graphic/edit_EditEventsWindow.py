@@ -1,6 +1,6 @@
 import pygame
 import pygame_gui
-from pygame_gui.elements import UIWindow, UIButton, UILabel, UITextEntryLine, UIDropDownMenu
+from pygame_gui.elements import UIWindow, UIButton, UILabel, UITextEntryLine, UITextEntryBox, UIDropDownMenu
 from lib.common import shared
 from lib.common.graphic.growl_manager import GrowlManager, GrowlPosition
 
@@ -191,9 +191,9 @@ class HandlerDetailsWindow:
                 text="Event Type:",
                 manager=self.pygame_gui_manager,
                 container=self.window)
-        self.event_type_dropdown = UIDropDownMenu(options_list=['key_down'],
-                                                  starting_option='on_click',
-                                                  relative_rect=pygame.Rect(100, y_offset, 180, 20),
+        self.event_type_dropdown = UIDropDownMenu(options_list=['key_down','lambda'],
+                                                  starting_option='key_down',
+                                                  relative_rect=pygame.Rect(100, y_offset, 180, 25),
                                                   manager=self.pygame_gui_manager,
                                                   container=self.window)
         y_offset += 30
@@ -202,10 +202,11 @@ class HandlerDetailsWindow:
                 text="Field:",
                 manager=self.pygame_gui_manager,
                 container=self.window)
-        self.field_entry = UITextEntryLine(relative_rect=pygame.Rect(100, y_offset, 180, 20),
+        
+        self.field_entry = UITextEntryBox(relative_rect=pygame.Rect(100, y_offset, 180, 50),
                                            manager=self.pygame_gui_manager,
                                            container=self.window)
-        y_offset += 30
+        y_offset += 60
 
         UILabel(relative_rect=pygame.Rect(10, y_offset, 80, 20),
                 text="Operator:",
@@ -284,7 +285,7 @@ class HandlerDetailsWindow:
         # update the UI with the current handler data (if any)
         if self.handler:
             self.id_entry.set_text(self.handler['id'])
-            self.event_type_dropdown.set_selected_option(self.handler['event_type'])
+            #self.event_type_dropdown.set_selected_option(self.handler['event_type'])
             self.field_entry.set_text(self.handler['field'])
             self.value_entry.set_text(str(self.handler['value']))
             self.target_id_entry.set_text(self.handler['target_id'])
@@ -301,6 +302,8 @@ class HandlerDetailsWindow:
             print("HandlerDetailsWindow handle_event UI_BUTTON_PRESSED %s type %s" % (self.screen_object.title, event.ui_element))
             if event.ui_element == self.save_button:
                 self.save_handler()
+            elif event.ui_element == self.event_type_dropdown:
+                print("clicked event_type_dropdown ")
             elif self.handler and event.ui_element == self.delete_button:
                 self.delete_handler()
         elif event.type == pygame_gui.UI_HORIZONTAL_SLIDER_MOVED:

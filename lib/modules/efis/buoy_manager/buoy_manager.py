@@ -91,8 +91,8 @@ class buoy_manager(Module):
 
 
     # handle mouse clicks
-    def processClick(self, aircraft: Dataship, mx, my):
-        self.buttonsCheckClick(aircraft, mx, my) # call parent.
+    def processClick(self, aircraft: Dataship, mx, my, buttonNum):
+        self.buttonsCheckClick(aircraft, mx, my, buttonNum) # call parent.
 
     # add a buoy (called by self.buttonsCheckClick)
     def addBuoy(self,dataship:Dataship,button):

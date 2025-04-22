@@ -35,6 +35,14 @@ class meshtastic(Input):
         self.onMessagePriority = None # None means onMessage is never called.
         self.dataship: Dataship = dataship
 
+        self.serial_port = hud_utils.readConfig(  # serial input... example: "/dev/cu.PL2303G-USBtoUART110"
+            self.name, "port", "/dev/ttyUSB0"
+        )
+
+        self.ignore_self = hud_utils.readConfigBool( self.name, "ignore_self", True)
+        self.auto_reply = hud_utils.readConfigBool( self.name, "auto_reply", True)
+        self.auto_reply_message = hud_utils.readConfig( self.name, "auto_reply_message", "ACK")
+
         # create targetData
         if (len(dataship.targetData) == 0):
             self.targetData = TargetData()
@@ -42,19 +50,25 @@ class meshtastic(Input):
             self.targetData.source = "meshtastic"
             self.targetData.name = self.name
             self.targetData_index = len(dataship.targetData)  # Start at 0
+            self.targetData.src_meshtastic_input = self # set the meshtastic input source.
             print("new meshtastic targets object "+str(self.targetData_index)+": "+str(self.targetData))
             dataship.targetData.append(self.targetData)
         else:
             print("meshtastic using existing targets object")
             self.targetData = dataship.targetData[0]
+            self.targetData.src_meshtastic_input = self # set the meshtastic input source.
 
         # create gpsData
         self.gpsData = GPSData()
         self.gpsData.id = "meshtastic_gps"
+        self.gpsData.inputSrcName = "meshtastic"
         self.gpsData.name = self.name
         self.gpsData_index = len(dataship.gpsData)  # Start at 0
         print("new meshtastic gps "+str(self.gpsData_index)+": "+str(self.gpsData))
         dataship.gpsData.append(self.gpsData)
+
+        # use the first gpsData object as the source gps.
+        self.targetData.src_gps = dataship.gpsData[0]
 
         if self.PlayFile is not None and self.PlayFile is not False:
             # load log file to playback.
@@ -65,7 +79,7 @@ class meshtastic(Input):
         else:
             try:
                 # Initialize meshtastic interface
-                self.interface = mt_serial.SerialInterface()
+                self.interface = mt_serial.SerialInterface(devPath=self.serial_port)
                 self.connected = True
                 
                 # Subscribe to message events
@@ -75,77 +89,105 @@ class meshtastic(Input):
                 
                 # Store our node info
                 if self.interface.myInfo:
-                    self.targetData.meshtastic_node_id = self.interface.myInfo.my_node_num
+                    print(f"meshtastic node id: {self.interface.myInfo.my_node_num}")
+                    print(f"{self.interface.myInfo}")
+                    print(f"{self.interface}")
+                    self.targetData.meshtastic_node_num = self.interface.myInfo.my_node_num
+                    self.targetData.meshtastic_node_device_name = self.interface.myInfo.pio_env
+                    self.targetData.meshtastic_node_device_id = self.interface.myInfo.device_id
+                
+                self.targetData.meshtastic_node_name = self.interface.getLongName()
 
                 # send startup message
-                self.interface.sendText(self.targetData.meshtastic_node_id, "TronView Startup")
+                self.sendPayloadMsg("TronView Startup", None)
                 
             except Exception as e:
                 print(f"Failed to initialize meshtastic interface: {e}")
                 traceback.print_exc()
                 self.connected = False
+    
+    def print_debug(self, message):
+        if self.dataship.debug_mode > 0:
+            print(f"Meshtastic: {message}")
 
     def onReceive(self, packet, interface):
         """Handle incoming meshtastic messages"""
         try:
-            print(f"Received meshtastic message: {packet}")
+            self.print_debug(f"packet: {packet}")
+            if self.ignore_self and packet["from"] == self.targetData.meshtastic_node_num:
+                # get nodeId from packet
+                self.targetData.meshtastic_node_id = packet["fromId"]
+                self.print_debug(f"Ignoring self packet from {self.targetData.meshtastic_node_id} {self.targetData.meshtastic_node_num}")
+                return
             if packet.get("decoded"):
                 decoded = packet["decoded"]
                 portnum = decoded["portnum"]  # what type of message is this?
                 if portnum == 'TELEMETRY_APP':
-                    print("Telemetry message")
+                    self.print_debug("Telemetry message")
                 elif portnum == 'POSITION_APP':
-                    print("Position message")
+                    self.print_debug("Position message")
                 elif portnum == 'TEXT_MESSAGE_APP':
-                    print("Text message")
+                    self.print_debug("Text message")
                 elif portnum == 'USER_LOCATION_APP':
-                    print("User location message")
+                    self.print_debug("User location message")
                 elif portnum == 'DEVICE_INFO_APP':
-                    print("Device info message")
+                    self.print_debug("Device info message")
                 elif portnum == 'DEVICE_STATUS_APP':
-                    print("Device status message")
+                    self.print_debug("Device status message")
                 elif portnum == 'DEVICE_SETTINGS_APP':
-                    print("Device settings message")
+                    self.print_debug("Device settings message")
                 else:
-                    print("Unknown message type")
+                    self.print_debug("Unknown message type")
+
+                node = self.interface.nodesByNum[packet["from"]];
+                #print(f"node: {node}")
+                #print(f"node.user: {node['user']}")
+                print(f"node.user.longName: {node['user']['longName']}")
 
                 # Create a new target for the sender
-                target = Target(str(packet["fromId"]))
+                target = Target(node['user']['longName'])
                 #target.inputSrcName = self.name
                 #target.inputSrcNum = self.num
-                target.address = packet["fromId"]
+                target.address = packet["from"] # node number
                 target.cat = 101  # meshtastic node type
                 target.type = 101  # meshtastic node type
-                
+                target.meshtastic_node = node
+
+                # text message payload so save to target payload messages.
+                if portnum == 'TEXT_MESSAGE_APP':
+                    # convert decoded['payload'] from bytes to string
+                    payload = decoded["payload"].decode('utf-8')
+                    print(f"Recv: from:{target.address} to:{self.targetData.meshtastic_node_num} msg: {payload}")
+                    # add the payload message to the target payload messages. (before adding the target to the target list)
+                    self.targetData.add_target_payload_message(target.address, target.callsign, packet["to"], payload)
+                    if(packet["to"] == self.targetData.meshtastic_node_num):
+                        # send a payload message to the sender.
+                        if payload != self.auto_reply_message: # don't send an ack to the sender.
+                            if self.auto_reply:
+                                self.sendPayloadMsg(self.auto_reply_message, target)
+
                 # Extract position data if available
                 if "position" in decoded:
                     pos = decoded["position"]
                     target.lat = pos.get("latitude")
                     target.lon = pos.get("longitude")
-                    target.alt = pos.get("altitude", 0) * 3.28084  # Convert meters to feet
+                    target.alt = int(pos.get("altitude", 0) * 3.28084) # Convert meters to feet and round to the nearest integer
                     
                     if "groundSpeed" in pos:
-                        target.speed = pos["groundSpeed"] * 2.23694  # Convert m/s to mph
+                        target.speed = int(pos["groundSpeed"] * 2.23694) # Convert m/s to mph and round to the nearest integer
                     if "groundTrack" in pos:
-                        target.track = pos["groundTrack"]
-                    print(f"Target Position: {target.lat}, {target.lon}, {target.alt}, {target.speed}, {target.track}")
-                
+                        target.track = int(pos["groundTrack"]) # round to the nearest integer
+                    self.print_debug(f"Target Position: {target.lat}, {target.lon}, {target.alt}, {target.speed}, {target.track}")
+
                 # Add the target to our target list
                 self.targetData.addTarget(target)
                 self.targetData.msg_count += 1
                 self.targetData.msg_last = time.time()
 
 
-                # send postion.
-                if len(self.dataship.gpsData) > 0:
-                    if self.dataship.gpsData[0].Lat is not None or self.dataship.gpsData[0].Lon is not None:
-                        alt = 0
-                        if self.dataship.gpsData[0].Alt is not None:
-                            alt = self.dataship.gpsData[0].Alt
-                        gps = self.dataship.gpsData[0]
-                        print("sending position {} {} {}".format(gps.Lat, gps.Lon, alt))
-                        self.interface.sendPosition(gps.Lat, gps.Lon, alt)
-                
+
+                # print(self.interface.showNodes())
+
         except Exception as e:
             print(f"Error processing meshtastic message: {e}")
             traceback.print_exc()
@@ -167,6 +209,31 @@ class meshtastic(Input):
         else:
             if self.interface and self.interface.isConnected:
                 self.interface.close()
+    
+    # send a payload message to a target.
+    def sendPayloadMsg(self,text:str, target:Target=None):
+        if self.interface and self.interface.isConnected:
+
+            # if text is "position", send a position message with gps lat/lon/alt
+            if text == "position":
+                if len(self.dataship.gpsData) > 0:
+                    if self.dataship.gpsData[0].Lat is not None or self.dataship.gpsData[0].Lon is not None:
+                        alt = 0
+                        if self.dataship.gpsData[0].Alt is not None:
+                            alt = self.dataship.gpsData[0].Alt
+                        gps = self.dataship.gpsData[0]
+                        print("sending position {} {} {}".format(gps.Lat, gps.Lon, alt))
+                        self.interface.sendPosition(gps.Lat, gps.Lon, alt)
+                else:
+                    print("meshtastic: no gps data. cant send position.")
+            else:
+                # else send a text message.
+                if target is not None:
+                    self.interface.sendText(text,target.address)
+                else:
+                    self.interface.sendText(text)
+        else:
+            print("no meshtastic interface connected")
 
 
 # vi: modeline tabstop=8 expandtab shiftwidth=4 softtabstop=4 syntax=python

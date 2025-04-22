@@ -10,7 +10,7 @@ from lib import hud_graphics
 from lib import hud_utils
 from lib import smartdisplay
 from lib.common.dataship.dataship import Dataship
-from lib.common.dataship.dataship_targets import TargetData
+from lib.common.dataship.dataship_targets import TargetData, Target
 from lib.common.dataship.dataship_gps import GPSData
 from lib.common.dataship.dataship_imu import IMUData
 
@@ -48,6 +48,7 @@ class trafficscope(Module):
         self.targetData = TargetData()
         self.gpsData = GPSData()
         self.imuData = IMUData()
+        self.selectedTarget = None
 
 
     # called once for setup
@@ -83,6 +84,10 @@ class trafficscope(Module):
         if len(shared.Dataship.imuData) > 0:
             self.imuData = shared.Dataship.imuData[0]
 
+        # setup buttons
+        self.buttonsClear()
+        self.buttonAdd("send_yo", "Send Yo", self.sendMsg)
+        self.buttonAdd("send_position", "Send position", self.sendMsg)
 
     def buildBaseSurface(self):
         self.surfaceBase = pygame.Surface((self.width, self.height),pygame.SRCALPHA)
@@ -157,10 +162,12 @@ class trafficscope(Module):
         # Clear using the base surface.
         self.surface2.blit(self.surfaceBase, (0, 0))
 
+        self.selectedTarget = self.targetData.get_selected_target()  # make sure we have the latest selected target.
+
         # Get aircraft heading or ground track, if both are None then use 0
         target_heading = self.imuData.yaw if self.imuData.yaw is not None else self.gpsData.GndTrack if self.gpsData.GndTrack is not None else 0
 
-        def draw_target(t):
+        def draw_target(t: Target):
             if t.dist is None or t.dist >= 100 or t.brng is None:
                 return
 
@@ -205,7 +212,7 @@ class trafficscope(Module):
             # Draw the target using smoothed positions
             if self.draw_icon:
                 direction_target_facing = ((t.track or brngToUse) - target_heading) % 360
-                t.targetDirection = math.radians(direction_target_facing - 90)
+                t.targetDirection = round(math.radians(direction_target_facing - 90), 2)
                 self.drawAircraftIcon(self.surface2, t, target_x, target_y, self.icon_scale)
             else:
                 hud_graphics.hud_draw_circle(self.surface2, (0, 255, 129), (target_x, target_y), 4, 0)
@@ -232,14 +239,34 @@ class trafficscope(Module):
                 self.targetDetails[t.callsign]["x"] = target_x
                 self.targetDetails[t.callsign]["y"] = target_y
 
-        # Use map() to apply draw_target to all targets
-        list(map(draw_target, filter(lambda t: t.dist is not None and t.dist < 100 and t.brng is not None, self.targetData.targets)))
+        # Separate targets into selected and non-selected lists
+        valid_targets = list(filter(lambda t: t.dist is not None and t.dist < 100 and t.brng is not None, self.targetData.targets))
+        
+        selected_targets = []
+        other_targets = []
+
+        for t in valid_targets:
+            if t.callsign in self.targetDetails and self.targetDetails[t.callsign]["selected"]:
+                selected_targets.append(t)
+            else:
+                other_targets.append(t)
+
+        # Draw non-selected targets first
+        list(map(draw_target, other_targets))
+        
+        # Draw selected targets last (so they appear on top)
+        list(map(draw_target, selected_targets))
+
+        # if there is a selected target then draw some buttons.
+        if self.selectedTarget is not None:
+            if self.selectedTarget.type == 101:   # meshtastic type target.
+                self.buttonsDraw(dataship, smartdisplay, pos)  # draw buttons
 
         self.pygamescreen.blit(self.surface2, pos)
 
-    def draw_target_details(self, t, xx, yy, x_text, y_text, label_rect, target_heading):
+    def draw_target_details(self, t: Target, xx, yy, x_text, y_text, label_rect, target_heading):
         if t.speed is not None and t.speed > -1 and t.track is not None:
-            t.targetBrngToUse = (t.track - target_heading) % 360
+            t.targetBrngToUse = round((t.track - target_heading) % 360, 2)
             radianTargetTrack = math.radians(t.targetBrngToUse - 90)
             d = min(t.speed / 3, 60)
             
@@ -247,38 +274,61 @@ class trafficscope(Module):
             arrowX, arrowY = xx + (d-2) * math.cos(math.radians(t.targetBrngToUse - 82)), yy + (d-2) * math.sin(math.radians(t.targetBrngToUse - 82))
             arrowX2, arrowY2 = xx + (d-2) * math.cos(math.radians(t.targetBrngToUse - 98)), yy + (d-2) * math.sin(math.radians(t.targetBrngToUse - 98))
 
+            # draw a line from the nose of target in direction it is heading.
             pygame.draw.line(self.surface2, (200,255,255), (xx,yy), (lineX, lineY), 1)
             pygame.draw.line(self.surface2, (200,255,255), (lineX,lineY), (arrowX, arrowY), 1)
             pygame.draw.line(self.surface2, (200,255,255), (lineX,lineY), (arrowX2, arrowY2), 1)
 
-            labelSpeed = self.font_target.render(f"{t.speed}mph", False, (200,255,255), (0,0,0))
-            labelSpeed_rect = labelSpeed.get_rect()
-            self.surface2.blit(labelSpeed, (x_text, y_text + label_rect.height))
+            next_text_y_offset = label_rect.height
+            if self.selectedTarget == None or self.selectedTarget and t.address == self.selectedTarget.address:
 
-            if t.altDiff is not None:
-                prefix = "+" if t.altDiff > 0 else ""
-                labelAlt = self.font_target.render(f"{prefix}{t.altDiff:,}ft", False, (200,255,255), (0,0,0))
-                self.surface2.blit(labelAlt, (x_text + labelSpeed_rect.width + 10, y_text + label_rect.height))
+                labelSpeed = self.font_target.render(f"{t.speed}mph", False, (200,255,255), (0,0,0))
+                labelSpeed_rect = labelSpeed.get_rect()
+                self.surface2.blit(labelSpeed, (x_text, y_text + label_rect.height))
 
-            labelDist = self.font_target.render(f"{t.dist:.1f} mi.", False, (200,255,255), (0,0,0))
-            self.surface2.blit(labelDist, (x_text + label_rect.width + 10, y_text))
-            next_text_y_offset = 0
+                if t.altDiff is not None:
+                    prefix = "+" if t.altDiff > 0 else ""
+                    labelAlt = self.font_target.render(f"{prefix}{t.altDiff:,}ft", False, (200,255,255), (0,0,0))
+                    self.surface2.blit(labelAlt, (x_text + labelSpeed_rect.width + 10, y_text + label_rect.height))
 
-            # Add time since last update
-            if hasattr(t, 'time'):
-                time_since_update = int(time.time() - t.time)
-                labelUpdate = self.font_target.render(f"{time_since_update}s ago", False, (200,255,255), (0,0,0))
-                self.surface2.blit(labelUpdate, (x_text, y_text + label_rect.height + labelSpeed_rect.height))
-                next_text_y_offset = labelUpdate.get_rect().height
+                labelDist = self.font_target.render(f"{t.dist:.1f}mi ", False, (200,255,255), (0,0,0))
+                self.surface2.blit(labelDist, (x_text + label_rect.width + 10, y_text))
+                next_text_y_offset += labelSpeed_rect.height 
 
+                # Add time since last update
+                if hasattr(t, 'time'):
+                    time_since_update = int(time.time() - t.time)
+                    labelUpdate = self.font_target.render(f"{time_since_update}s ago", False, (200,255,255), (0,0,0))
+                    self.surface2.blit(labelUpdate, (x_text, y_text + next_text_y_offset))
+                    next_text_y_offset += labelUpdate.get_rect().height
 
-            if self.target_show_lat_lon:
-                labelLat = self.font_target.render(f"{t.lat:.6f}", False, (200,255,255), (0,0,0))
-                self.surface2.blit(labelLat, (x_text, y_text + next_text_y_offset))
-                labelLat_rect = labelLat.get_rect()
-                labelLon = self.font_target.render(f"{t.lon:.6f}", False, (200,255,255), (0,0,0))
-                self.surface2.blit(labelLon, (x_text, y_text + next_text_y_offset + labelLat_rect.height))
+                if self.target_show_lat_lon:
+                    labelLat = self.font_target.render(f"{t.lat:.6f} {t.lon:.6f}", False, (200,255,255), (0,0,0))
+                    self.surface2.blit(labelLat, (x_text, y_text + next_text_y_offset))
+                    next_text_y_offset += labelLat.get_rect().height
 
+                if t.payload_last is not None:
+                    labelPayload = self.font_target.render("msg: "+t.payload_last.payload, False, (200,255,255), (0,0,0))
+                    self.surface2.blit(labelPayload, (x_text, y_text + next_text_y_offset))
+                    next_text_y_offset += labelPayload.get_rect().height
+
+                if t.faa_db_record:
+                    labelFaa = self.font_target.render(f"{t.faa_db_record.aircraft_desc_mfr} {t.faa_db_record.aircraft_desc_model}", False, (200,255,255), (0,0,0))
+                    self.surface2.blit(labelFaa, (x_text, y_text + next_text_y_offset))
+                    next_text_y_offset += labelFaa.get_rect().height
+
+                    if t.faa_db_record.commerical_name:
+                        labelCommercial = self.font_target.render(f"{t.faa_db_record.commerical_name}", False, (200,255,255), (0,0,0))
+                        self.surface2.blit(labelCommercial, (x_text, y_text + next_text_y_offset))
+                        next_text_y_offset += labelCommercial.get_rect().height
+            
+            # if aircraft is selected then give some more details.
+            if self.selectedTarget and t.address == self.selectedTarget.address:
+                if t.faa_db_record:
+                    labelCommercial = self.font_target.render(f"{t.faa_db_record.owner_name}\n{t.faa_db_record.city},{t.faa_db_record.state}", False, (200,255,255), (0,0,0))
+                    self.surface2.blit(labelCommercial, (x_text, y_text + next_text_y_offset))
+                    next_text_y_offset += labelCommercial.get_rect().height
+                
 
     # draw aircraft icon based on the type of aircraft
     def drawAircraftIcon(self, surface, target, xx, yy, scale):
@@ -339,6 +389,23 @@ class trafficscope(Module):
             pygame.draw.line(surface, (0, 255, 129), tail, blade_pos, 1)
             # draw a line through the middle of the helicopter.
             pygame.draw.line(surface, (0, 255, 129), nose, tail, 1)
+        elif(target.type == 101):
+            # Draw the Meshtastic logo ( /< )
+            logo_color = (0, 255, 129)
+            line_thickness = 2 # Adjusted thickness
+
+            # Diagonal line (/) - Adjust coordinates for better representation
+            start_diag = (int(xx - scale * 0.7), int(yy + scale * 0.6))
+            end_diag = (int(xx - scale * 0.1), int(yy - scale * 0.6))
+            pygame.draw.line(surface, logo_color, start_diag, end_diag, line_thickness)
+
+            # Angle line (<) - Adjust coordinates for better representation
+            point_top = (int(xx + scale * 0.3), int(yy - scale * 0.6))
+            point_mid_left = (int(xx - scale * 0.1), int(yy + scale * 0.6)) # Connects near the bottom-right of the diagonal
+            point_bottom_right = (int(xx + scale * 0.7), int(yy + scale * 0.6))
+
+            pygame.draw.line(surface, logo_color, point_top, point_mid_left, line_thickness)
+            pygame.draw.line(surface, logo_color, point_mid_left, point_bottom_right, line_thickness)
         else:
             # Draw a smiley face as the default
             # Main circle (face)
@@ -437,9 +504,14 @@ class trafficscope(Module):
             }
         }
 
-    def processClick(self, dataship:Dataship, mx, my):
+    # handle mouse clicks
+    def processClick(self, dataship:Dataship, mx, my, buttonNum):
+        # check if a button was clicked.
+        if self.buttonsCheckClick(dataship, mx, my, buttonNum): # call parent.
+            return
+
         if dataship.debug_mode > 0:
-            print("TrafficScope processClick: %d x %d" % (mx, my))
+            print("TrafficScope processClick: %d x %d" % (mx, my) + " buttonNum: %d" % buttonNum)
         # clear any selected targets from self.targetDetails
         for target in self.targetDetails:
             self.targetDetails[target]["selected"] = False
@@ -462,27 +534,36 @@ class trafficscope(Module):
                 if shared.Dataship.debug_mode > 0:
                     print("selected target: %s" % target)
                 break
+            
 
-    # handle events
-    def processEvent(self,event,aircraft,smartdisplay):
-        if(event.type=="modechange"):
-            if(event.key=="traffic"):
-                if(event.value==2):
-                    self.show_callsign = True
-                    print("TrafficScope showing callsigns. 5mi.")
-                    self.setScaleInMiles(5)
-                    self.show_details = True
-                elif(event.value==3):
-                    print("TrafficScope showing callsigns & details. 2mi.")
-                    self.show_details = True
-                    self.show_callsign = True
-                    self.setScaleInMiles(2)
-                else:
-                    self.setScaleInMiles(10)
-                    self.show_callsign = False
-                    self.show_details = False
+    # handle mouse wheel events
+    def processMouseWheel(self, dataship:Dataship, mx, my, wheel_position):
+        #print("TrafficScope processMouseWheel: %d x %d" % (mx, my))
+        if wheel_position > 0:
+            # zoom in
+            self.setScaleInMiles(self.scope_scale_miles + 5)
+        else:
+            # zoom out
+            self.scope_scale_miles = max(1, self.scope_scale_miles - 5)
+            self.setScaleInMiles(self.scope_scale_miles)
 
-        pass
+    # send a message to the selected target (called by self.buttonsCheckClick)
+    def sendMsg(self,dataship:Dataship,button):
+        # go through all buttons.
+        # for b in self.buttons:
+        #     if b["id"].startswith("send_yo"):
+        #         b["selected"] = False
+
+        # get the text from the button.
+        text = button["text"] # remove the "Send " from the text.
+        text = text.replace("Send ", "")
+        theTarget = self.targetData.get_selected_target()
+        if theTarget is not None:
+            print("targetScope: Sending Msg ", text, " to ", theTarget.address)
+        else:
+            print(f"targetScope: sendMsg: {text} to ALL")    
+        self.targetData.sendMsg(text, theTarget)
+        
 
 
 

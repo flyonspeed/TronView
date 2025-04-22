@@ -18,6 +18,7 @@ import time
 import math
 from geographiclib.geodesic import Geodesic
 import datetime
+import select
 from ..common.dataship.dataship import Dataship
 from ..common.dataship.dataship_imu import IMUData
 from ..common.dataship.dataship_gps import GPSData
@@ -26,7 +27,9 @@ from ..common.dataship.dataship_targets import TargetData, Target
 from ._input import Input
 from ..common import shared
 from . import _input_file_utils
-
+import sqlite3
+import os
+from ..common.helpers.faa_aircraft_database import find_aircraft_by_n_number, FAA_Aircraft, check_commercial_name
 
 class stratux_wifi(Input):
     def __init__(self):
@@ -43,6 +46,7 @@ class stratux_wifi(Input):
         self.targetData_index = 0
         self.targetData = None
         self.dataship = None
+        self.address_map = {} # Map ICAO address to {'n_number': str, 'flight_number': str | None}
 
     def initInput(self, num, dataship: Dataship):
         Input.initInput( self,num, dataship )  # call parent init Input.
@@ -96,6 +100,7 @@ class stratux_wifi(Input):
         # create a empty gps object.
         self.gpsData = GPSData()
         self.gpsData.id = "stratux_gps"
+        self.gpsData.inputSrcName = "stratux"
         self.gpsData.name = self.name
         self.gps_index = len(dataship.gpsData)  # Start at 0
         print("new stratux gps "+str(self.gps_index)+": "+str(self.gpsData))
@@ -125,53 +130,39 @@ class stratux_wifi(Input):
         else:
             self.ser.close()
 
-    def getNextChunck(self,aircraft):
-        if self.isPlaybackMode:
-            
-            x = 0
-            while x != 126: # read until ~
-                t = self.ser.read(1)
-                if len(t) != 0:
-                    x = ord(t)
-                    #print(str(x), end ="." )
-                else:
-                    self.ser.seek(0)
-                    print("Stratux file reset")
+    def getNextFileChunck(self,aircraft):
+        x = 0
+        while x != 126: # read until ~
+            t = self.ser.read(1)
+            if len(t) != 0:
+                x = ord(t)
+                #print(str(x), end ="." )
+            else:
+                self.ser.seek(0)
+                print("Stratux file reset")
 
-            #print("first ~", end ="." )
-            x = 0
-            data = bytearray(b"~")
-            while x != 126: # read until ~
-                t = self.ser.read(1)
-                if len(t) != 0:
-                    x = ord(t)
-                    data.extend(t)
-                    #print(str(x), end ="." )
-                else:
-                    self.ser.seek(0)
-                    print("Stratux file reset")
-            #print("end ~", end ="." )
-            return data
-            
-            #data = self.ser.read(80)
-            #if(len(data)==0): 
-            #    self.ser.seek(0)
-            #    print("Replaying file: "+self.input_logFileName)
-            #TODO: read to the next ~ in the file??
-            #print(type(data))
-            #return data
-        else:
-            try:
-                #Attempt to receive up to 1024 bytes of data
-                data = self.ser.recvfrom(1024)
-                return data[0]
-            except socket.timeout:
-                pass
-            except socket.error:
-                #If no data is received, you get here, but it's not an error
-                #Ignore and continue
-                pass
-        return bytes(0)
+        #print("first ~", end ="." )
+        x = 0
+        data = bytearray(b"~")
+        while x != 126: # read until ~
+            t = self.ser.read(1)
+            if len(t) != 0:
+                x = ord(t)
+                data.extend(t)
+                #print(str(x), end ="." )
+            else:
+                self.ser.seek(0)
+                print("Stratux file reset")
+        #print("end ~", end ="." )
+        return data
+        
+        #data = self.ser.read(80)
+        #if(len(data)==0): 
+        #    self.ser.seek(0)
+        #    print("Replaying file: "+self.input_logFileName)
+        #TODO: read to the next ~ in the file??
+        #print(type(data))
+        #return data
 
     #############################################
     ## Function: readMessage
@@ -179,12 +170,36 @@ class stratux_wifi(Input):
         if self.shouldExit == True: dataship.errorFoundNeedToExit = True
         if dataship.errorFoundNeedToExit: return dataship
         if self.skipReadInput == True: return dataship
-        msg = self.getNextChunck(dataship)
+
+        msg = bytes(0)
+        if self.isPlaybackMode:
+            # Playback mode: Read next chunk from file
+            msg = self.getNextFileChunck(dataship)
+        else:
+            # Live mode: Wait for data on UDP socket
+            readable, _, _ = select.select([self.ser], [], [], 0.1) # Timeout 0.1s
+            if self.ser in readable:
+                try:
+                    #Attempt to receive up to 1024 bytes of data
+                    data, addr = self.ser.recvfrom(1024)
+                    msg = data
+                except socket.timeout:
+                    pass # Should not happen with select, but good practice
+                except socket.error as e:
+                    # If no data is received, you get here, but it's not an error
+                    # Ignore and continue
+                    print(f"Stratux socket error on recvfrom: {e}") # Log error for debugging
+                    pass
+
+        if(len(msg)==0):
+            return dataship
         #count = msg.count(b'~~')
-        #print("-----------------------------------------------\nNEW Chunk len:"+str(len(msg))+" seperator count:"+str(count))
-        if(dataship.debug_mode>2):
+        #print("-----------------------------------------------\nNEW Chunk len:" + str(len(msg)) + " seperator count:" + str(count))
+        if(dataship.debug_mode>1):
             if len(msg) >= 4:
                 print("stratux: "+str(msg[1])+" "+str(msg[2])+" "+str(msg[3])+" "+str(len(msg))+" "+str(msg))
+            else:
+                print("stratux: BAD? "+str(len(msg))+" "+str(msg))
             
 
         for line in msg.split(b'~~'):
@@ -287,7 +302,7 @@ class stratux_wifi(Input):
                     self.gpsData.GPSWAAS = WAASstatus
 
                     if(dataship.debug_mode>1):
-                        print(f"GPS status: {WAASstatus} Sats:{Sats} Power:{Power} OutRate:{OutRate}")
+                        print(f"stratux GPS status: {WAASstatus} Sats:{Sats} Power:{Power} OutRate:{OutRate}")
 
                 else:
                     #print("unkown message id:"+str(msg[3])+" len:"+str(len(msg)))
@@ -382,15 +397,15 @@ class stratux_wifi(Input):
 
                         self.gpsData.msg_count += 1
 
-                        if(dataship.debug_mode>0):
-                            print(f"GPS Data: {self.gpsData.GPSTime_string} {self.gpsData.Lat} {self.gpsData.Lon} {self.gpsData.GndSpeed} {self.gpsData.GndTrack}")
+                        if(dataship.debug_mode>1):
+                            print(f"stratux GPS Data: {self.gpsData.GPSTime_string} {self.gpsData.Lat} {self.gpsData.Lon} {self.gpsData.GndSpeed} {self.gpsData.GndTrack}")
 
 
                 elif(msg[1]==11): # GDL OwnershipGeometricAltitude
                     # get alt from GDL90
                     self.gpsData.AltPressure = _signed16(msg[2:]) * 5
                     if(dataship.debug_mode>1):
-                        print(f"GPS Altitude: {self.gpsData.AltPressure}m")
+                        print(f"stratux GPS Altitude: {self.gpsData.AltPressure}m")
 
                 elif(msg[1]==20): # Traffic report
                     '''
@@ -410,46 +425,84 @@ class stratux_wifi(Input):
                         callsign = re.sub(r'[^A-Za-z0-9]+', '', msg[20:28].rstrip().decode('ascii', errors='ignore') ) # clean the N number.
                         targetStatus = _thunkByte(msg[2], 0x0b11110000, -4) # status
                         targetType = _thunkByte(msg[2], 0b00001111) # type
+                        address =  (msg[3] << 16) + (msg[4] << 8) + msg[5] # address
 
-                        target = Target(callsign)
+                        # --- Logic to handle N-Number vs Flight Number ---
+                        n_number, flight_number, faa_db_record = self._get_n_number_and_flight_number(address, callsign)
+                        # --- End N-Number/Flight Number Logic ---
+
+                        target = Target(n_number) # Use N-Number as the primary identifier
+                        target.flightNumber = flight_number # Set the flight number attribute (needs adding to Target class)
+                        target.faa_db_record = faa_db_record
+
                         target.aStat = targetStatus
                         target.type = targetType
-                        target.address =  (msg[3] << 16) + (msg[4] << 8) + msg[5] # address
+                        target.address = address # Store the address in the target object as well
+
                         # get lat/lon
                         latLongIncrement = 180.0 / (2**23)
                         target.lat = _signed24(msg[6:]) * latLongIncrement
                         target.lon = _signed24(msg[9:]) * latLongIncrement
                         # alt of target.
-                        alt = _thunkByte(msg[12], 0xff, 4) + _thunkByte(msg[13], 0xf0, -4)
-                        target.alt = (alt * 25) - 1000 # alt in feet MSL (from GDL90 format)
+                        alt_raw = _thunkByte(msg[12], 0xff, 4) + _thunkByte(msg[13], 0xf0, -4)
+                        if alt_raw == 0xFFF: # 4095 indicates invalid/unavailable altitude
+                            target.alt = None
+                        else:
+                            target.alt = (alt_raw * 25) - 1000 # alt in feet MSL (from GDL90 format)
 
-                        target.misc = _thunkByte(msg[13], 0x0f) # misc
-                        target.NIC = _thunkByte(msg[14], 0xf0, -4) # NIC
-                        target.NACp = _thunkByte(msg[14], 0x0f) # NACp
 
-                        #speed
+                        target.misc = _thunkByte(msg[13], 0x0f) # misc bits 3..0. Bit 3 is VRSI (0=Baro, 1=GNSS)
+                        target.NIC = _thunkByte(msg[14], 0xf0, -4) # NIC bits 7..4
+                        target.NACp = _thunkByte(msg[14], 0x0f) # NACp bits 3..0
+
+                        #speed (Horizontal Velocity)
                         horzVelo = _thunkByte(msg[15], 0xff, 4) + _thunkByte(msg[16], 0xf0, -4)
-                        if horzVelo == 0xfff:  # no hvelocity info available
-                            horzVelo = 0
-                        target.speed = round(horzVelo * 1.15078,1) # convert to mph
-                        # heading
-                        trackIncrement = 360.0 / 256
-                        target.track = int(msg[18] * trackIncrement)  # track/heading, 0-358.6 degrees
-                        # vert speed. 12-bit signed value of 64 fpm increments
-                        vertVelo = _thunkByte(msg[16], 0x0f, 8) + _thunkByte(msg[17])
-                        if vertVelo == 0x800:   # not avail
-                            vertVelo = 0
-                        elif (vertVelo >= 0x1ff and vertVelo <= 0x7ff) or (vertVelo >= 0x801 and vertVelo <= 0xe01):  # not used, invalid
-                            vertVelo = 0
-                        elif vertVelo > 2047:  # two's complement, negative values
-                            vertVelo -= 4096
-                        target.vspeed = (vertVelo * 64) ;# vertical velocity
+                        if horzVelo == 0xfff:  # 4095 indicates no hvelocity info available
+                            target.speed = None
+                        else:
+                            target.speed = horzVelo # Speed in knots
+
+                        # heading/track
+                        heading_raw = msg[18]
+                        if heading_raw == 0xFF: # 255 indicates unavailable
+                            target.track = None
+                        else:
+                            trackIncrement = 360.0 / 256
+                            target.track = int(heading_raw * trackIncrement)  # track/heading, 0-358.6 degrees
+
+                        # Vertical Velocity (Rate) - GDL90 Sign/Magnitude format
+                        # Combined 12 bits: msg[16] bits 3..0 and msg[17] bits 7..0
+                        vertVeloRaw = (_thunkByte(msg[16], 0x0f) << 8) + msg[17]
+                        # Sign bit: msg[16] bit 3 (0x08)
+                        sign_bit = _thunkByte(msg[16], 0x08) >> 3 # 0 = up/increasing, 1 = down/decreasing
+
+                        magnitude = vertVeloRaw & 0x07FF # Mask out sign bit (which is bit 11 of 12-bit value)
+
+                        if magnitude == 0:
+                            target.vspeed = 0 # No vertical rate reported
+                        elif magnitude == 0x7FF: # 2047 indicates > +/- 32192 fpm
+                            target.vspeed = 32767 if sign_bit == 0 else -32767 # Indicate exceeding limit
+                        else:
+                            vertVelo = magnitude * 64 # Vertical velocity in fpm
+                            if sign_bit == 1: # Downward/decreasing rate is negative
+                                vertVelo = -vertVelo
+                            target.vspeed = vertVelo
+
+                        # Old vertical speed logic based on comments/possible misinterpretation removed
+
 
                         target.cat = int(msg[19]) # emitter category (type/size of aircraft)
 
                         self.targetData.addTarget(target) # add/update target to traffic list.
-                        if(dataship.debug_mode>0):
-                            print(f"GDL 90 Target: {target.callsign} {target.type} {target.address} {target.lat} {target.lon} {target.alt} {target.speed} {target.track} {target.vspeed}")
+                        if(dataship.debug_mode>1):
+                            # Updated print statement to include flight number if available and format address as Hex
+                            flight_info = f" Flight: {target.flightNumber}" if target.flightNumber else ""
+                            addr_hex = f"{target.address:X}"
+                            alt_str = f"{target.alt}" if target.alt is not None else "N/A"
+                            spd_str = f"{target.speed}" if target.speed is not None else "N/A"
+                            trk_str = f"{target.track}" if target.track is not None else "N/A"
+                            vs_str = f"{target.vspeed}" if target.vspeed is not None else "N/A"
+                            print(f"GDL 90 Target: {target.callsign} ({addr_hex}) Type:{target.type}{flight_info} Loc:({target.lat:.4f}, {target.lon:.4f}) Alt:{alt_str} Spd:{spd_str} Trk:{trk_str} VS:{vs_str}")
 
                         self.targetData.msg_count += 1
                     else:
@@ -459,7 +512,7 @@ class stratux_wifi(Input):
                     pass
                 
                 else: # unknown message id
-                    if(self.dataship.debug_mode>0):
+                    if(self.dataship.debug_mode>1):
                         print("stratuxmessage unkown id:"+str(msg[1])+" "+str(msg[2])+" "+str(msg[3])+" len:"+str(len(msg)))
                     pass
 
@@ -479,13 +532,89 @@ class stratux_wifi(Input):
             print(traceback.format_exc())
         except struct.error:
             #error with read in length.. ignore for now?
-            #print("Error with read in length")
+            print("stratux: Error with read in length")
             pass
         except Exception as e:
             dataship.errorFoundNeedToExit = True
             print(e)
             print(traceback.format_exc())
         return dataship
+
+    def _get_n_number_and_flight_number(self, address, callsign):
+        """Determines the N-Number and Flight Number based on the address map.
+           This is cause the stratux always sends the N-Number when it first sees a new address.
+           Then later it will send the flight number if it is available.
+
+        Args:
+            address (int): The ICAO 24-bit address.
+            callsign (str): The callsign from the current message.
+
+        Returns:
+            tuple: (n_number, flight_number)
+        """
+        n_number = None
+        flight_number = None
+        faa_db_record = None
+
+        if address in self.address_map:
+            # Address seen before
+            stored_n_number = self.address_map[address]['n_number']
+            stored_flight_number = self.address_map[address].get('flight_number') # Get potentially existing flight number
+            self.address_map[address]['last_seen'] = time.time() # Update last seen time
+
+            # Always return the originally stored N-Number
+            n_number = stored_n_number
+            faa_db_record = self.address_map[address]['faa_db_record']
+
+            if callsign and callsign != stored_n_number and callsign != stored_flight_number:
+                #print(f"Flight number changed: old {stored_n_number} new {callsign} flight number: {stored_flight_number} address: {address}")
+                # Current non-empty callsign is different from the stored N-Number.
+                # Assume this is the flight number.
+                flight_number = callsign
+                # Update map with the newly found flight number
+                self.address_map[address]['flight_number'] = flight_number
+
+                # check FAA database for matching aircraft because the N-Number has changed
+                matching_aircraft = find_aircraft_by_n_number(n_number)
+                if matching_aircraft:
+                    # check if the flight number is a commercial name
+                    commercial_name = check_commercial_name(flight_number)
+                    #print(f"Commercial name: {commercial_name}")
+                    if commercial_name:
+                        matching_aircraft.commerical_name = commercial_name
+
+                    self.address_map[address]['faa_db_record'] = matching_aircraft
+                else:
+                    self.address_map[address]['faa_db_record'] = None
+
+            else:
+                # Callsign is the same as N-Number, empty, or hasn't changed to reveal a flight number yet.
+                # Keep the previously stored flight number (if any), otherwise it remains None.
+                flight_number = stored_flight_number
+                # don't search FAA database cause it's time consuming and we already did when we first found the N-Number.
+
+        else:
+            # First time seeing this address
+            # Assume this non-empty callsign is the N-Number
+            n_number = callsign
+
+            # No flight number known yet for this new address
+            flight_number = None
+            # Store the initial N-Number and last_seen time in the map
+            foundNew = {'n_number': n_number, 'flight_number': None, 'last_seen': time.time()}
+            # Search for matching aircraft using N-Number
+            faa_db_record = find_aircraft_by_n_number(n_number)
+            if faa_db_record:
+                #print(f"Found {n_number}: {faa_db_record.aircraft_desc_mfr} {faa_db_record.aircraft_desc_model}")
+                foundNew['faa_db_record'] = faa_db_record
+            else:
+                #print(f"No matching aircraft found for {n_number}")
+                foundNew['faa_db_record'] = None
+
+            self.address_map[address] = foundNew
+
+
+        return n_number, flight_number, faa_db_record
 
 
 def _unsigned24(data, littleEndian=False):

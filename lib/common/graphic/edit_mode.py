@@ -558,10 +558,12 @@ def main_edit_loop():
                 if event.type == pygame.MOUSEBUTTONDOWN or event.type == pygame.FINGERDOWN:
                     if event.type == pygame.FINGERDOWN:
                         mx, my =  event.x, event.y
+                        buttonNum = 0
                     else:
                         mx, my = pygame.mouse.get_pos()
+                        buttonNum = event.button
                     if shared.Dataship.debug_mode > 0:
-                        print("Click %d x %d" % (mx, my))
+                        print("Click %d x %d" % (mx, my) + " buttonNum: %d" % buttonNum)
                     
                     # Check for GUI interactions first
                     gui_handled = False
@@ -707,6 +709,7 @@ def main_edit_loop():
                                     offset_x = mx - sObject.x 
                                     offset_y = my - sObject.y
                                     sObject.selected = True
+                                    sObject.buttonNum = buttonNum  # save the button number pressed for later.
                                     # Store initial positions when starting to drag
                                     if dragging:
                                         drag_start_positions = {obj: (obj.x, obj.y) for obj in selected_screen_objects}
@@ -720,9 +723,11 @@ def main_edit_loop():
                         if moves > 0:
                             #print("Dragging end, %d moves happened" % moves)
                             pass
-                        else: # send the click event to the screen object. translate the mouse position to the screen object.
+                        else: # else we are not dragging, so we can send the click event to the screen object now.  
+                            # because we are in edit mode, we send the button press on button up. 
+                            # send the click event to the screen object. translate the mouse position to the screen object.
                             for sObject in selected_screen_objects:
-                                sObject.click(shared.Dataship, mx - sObject.x, my - sObject.y)
+                                sObject.click(shared.Dataship, mx - sObject.x, my - sObject.y, sObject.buttonNum)
                     elif resizing and selected_screen_object:
                         if shared.Dataship.debug_mode > 0:
                             print("Resizing end")

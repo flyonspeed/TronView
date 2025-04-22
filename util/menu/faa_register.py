@@ -305,7 +305,7 @@ class Aircraft:
         self.mode_s_code_hex = data.get(33, "").strip() if len(data) > 33 else ""
 
 def download_file(url, filepath):
-    print(f"Downloading {url}...")
+    print(f"Downloading US FAA Aircraft Database: {url}...")
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36'
     }
@@ -707,6 +707,66 @@ def add_aircraft_reference_to_db(db_file, reference_file):
     conn.close()
     return True
 
+def update_database_timestamp(db_file):
+    """Update the timestamp for when the database was last updated."""
+    import datetime
+    
+    conn = sqlite3.connect(db_file)
+    cursor = conn.cursor()
+    
+    # Create the database_info table if it doesn't exist
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS database_info (
+        key TEXT PRIMARY KEY,
+        value TEXT
+    )
+    ''')
+    
+    # Get the current timestamp in ISO format
+    current_time = datetime.datetime.now().isoformat()
+    
+    # Update the last_updated timestamp
+    cursor.execute(
+        'INSERT OR REPLACE INTO database_info (key, value) VALUES (?, ?)',
+        ('last_updated', current_time)
+    )
+    
+    conn.commit()
+    conn.close()
+    
+    return current_time
+
+def get_database_timestamp(db_file):
+    """Get the timestamp for when the database was last updated."""
+    if not os.path.exists(db_file):
+        return "Database not found"
+        
+    conn = sqlite3.connect(db_file)
+    cursor = conn.cursor()
+    
+    # Check if the database_info table exists
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='database_info'")
+    if not cursor.fetchone():
+        conn.close()
+        return "Never updated"
+    
+    # Get the last_updated timestamp
+    cursor.execute('SELECT value FROM database_info WHERE key = ?', ('last_updated',))
+    result = cursor.fetchone()
+    
+    conn.close()
+    
+    if result:
+        # Convert ISO format to a more readable format
+        import datetime
+        try:
+            timestamp = datetime.datetime.fromisoformat(result[0])
+            return timestamp.strftime("%Y-%m-%d %H:%M:%S")
+        except:
+            return result[0]
+    else:
+        return "Never updated"
+
 def get_aircraft_description(db_file, mfr_mdl_code):
     """Get the manufacturer and model description for an aircraft code."""
     if not mfr_mdl_code:
@@ -738,6 +798,7 @@ def main():
     parser.add_argument('--download-only', action='store_true', help='Only download the database without searching')
     parser.add_argument('--rebuild-db', action='store_true', help='Force rebuild of the SQLite database')
     parser.add_argument('--describe', type=str, help='Get description for an aircraft code')
+    parser.add_argument('--show-timestamp', action='store_true', help='Show when the database was last updated')
     args = parser.parse_args()
 
     # Create directory structure for storing database files
@@ -750,6 +811,12 @@ def main():
     sqlite_db = os.path.join(db_dir, "faa_aircraft.db")
     acftref_file = os.path.join(db_dir, "ACFTREF.txt")
     
+    # Check if user just wants to see the timestamp
+    if args.show_timestamp:
+        timestamp = get_database_timestamp(sqlite_db)
+        print(f"FAA Database last updated: {timestamp}")
+        return
+    
     # Download and extract files if needed
     if not os.path.exists(master_file) or args.download_only:
         if not os.path.exists(zip_file) or args.download_only:
@@ -760,14 +827,20 @@ def main():
             return
     
     # Convert to SQLite if needed
+    db_updated = False
     if not os.path.exists(sqlite_db) or args.rebuild_db or args.download_only:
         if not convert_to_sqlite(master_file, sqlite_db):
             return
+        db_updated = True
         
         # Add aircraft reference data to the database
         if os.path.exists(acftref_file):
             if not add_aircraft_reference_to_db(sqlite_db, acftref_file):
                 print("Warning: Could not add aircraft reference data to the database")
+        
+        # Update the database timestamp
+        timestamp = update_database_timestamp(sqlite_db)
+        print(f"Database timestamp updated: {timestamp}")
     
     if args.download_only:
         print("Download and database conversion complete. Exiting.")
@@ -783,6 +856,10 @@ def main():
         print("Error: Missing required argument --n-number")
         parser.print_help()
         return
+    
+    # Show database timestamp
+    timestamp = get_database_timestamp(sqlite_db)
+    print(f"FAA Database last updated: {timestamp}")
     
     # Search for the aircraft in the SQLite database
     aircraft, model_code, kit_info = find_aircraft_by_n_number(sqlite_db, args.n_number)

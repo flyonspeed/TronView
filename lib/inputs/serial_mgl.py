@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+ #!/usr/bin/env python
 
 # Serial input source
 # MGL iEFIS
@@ -258,94 +258,94 @@ class serial_mgl(Input):
                         # if(self.textMode_showRaw==True): dataship.traffic.msg_last = binascii.hexlify(Message) # save last message.
 
 
-                    # elif msgType == 30:  # Navigation message
-                    #     Message = self.ser.read(56)
-                    #     if len(Message) == 56:
-                    #         # H     B            B         B        B       h=small int     H = Word        h       h     h       i=long  i       i     i     h=small h     h 
-                    #         Flags, HSISource, VNAVSource, APMode, Padding, HSINeedleAngle, HSIRoseHeading, HSIDev, VDev, HeadBug, AltBug, WPDist, WPLat,WPLon,WPTrack,vor1r,vor2r,dme1,dme2,ILSDev,GSDev,GLSHoriz,GLSVert,Padding,Checksum = struct.unpack(
-                    #             "<HBBBBhHhhhiiiihhhHHhhhhHi", Message
-                    #         )
-                    #         dataship.nav.NavStatus = hud_utils.get_bin(Flags)
-                    #         dataship.nav.HSISource = HSISource
-                    #         dataship.nav.VNAVSource = VNAVSource
-                    #         dataship.nav.AP = APMode
-                    #         dataship.nav.HSINeedle = HSINeedleAngle
-                    #         dataship.nav.HSIRoseHeading = HSIRoseHeading
-                    #         dataship.nav.HSIHorzDev = HSIDev
-                    #         dataship.nav.HSIVertDev = VDev
+                    elif msgType == 30:  # Navigation message
+                        Message = self.ser.read(56)
+                        if len(Message) == 56:
+                            # H     B            B         B        B       h=small int     H = Word        h       h     h       i=long  i       i     i     h=small h     h 
+                            Flags, HSISource, VNAVSource, APMode, Padding, HSINeedleAngle, HSIRoseHeading, HSIDev, VDev, HeadBug, AltBug, WPDist, WPLat,WPLon,WPTrack,vor1r,vor2r,dme1,dme2,ILSDev,GSDev,GLSHoriz,GLSVert,Padding,Checksum = struct.unpack(
+                                "<HBBBBhHhhhiiiihhhHHhhhhHi", Message
+                            )
+                            self.navData.NavStatus = hud_utils.get_bin(Flags)
+                            self.navData.HSISource = HSISource
+                            self.navData.VNAVSource = VNAVSource
+                            self.navData.AP = APMode
+                            self.navData.HSINeedle = HSINeedleAngle
+                            self.navData.HSIRoseHeading = HSIRoseHeading
+                            self.navData.HSIHorzDev = HSIDev
+                            self.navData.HSIVertDev = VDev
 
-                    #         dataship.nav.HeadBug = HeadBug
-                    #         dataship.nav.AltBug = AltBug
+                            self.navData.HeadBug = HeadBug
+                            self.navData.AltBug = AltBug
 
-                    #         dataship.nav.WPDist = round(WPDist * 0.0539957, 2) # KM (tenths) to NM (0.0539957), Statue Mile (.0621371) Conversion
-                    #         dataship.nav.WPLat = WPLat / 180000
-                    #         dataship.nav.WPLon = WPLon / 180000
+                            self.navData.WPDist = round(WPDist * 0.0539957, 2) # KM (tenths) to NM (0.0539957), Statue Mile (.0621371) Conversion
+                            self.navData.WPLat = WPLat / 180000
+                            self.navData.WPLon = WPLon / 180000
 
-                    #         dataship.nav.WPTrack = WPTrack
+                            self.navData.WPTrack = WPTrack
 
-                    #         dataship.nav.ILSDev = ILSDev
-                    #         dataship.nav.GSDev = GSDev
-                    #         dataship.nav.GLSHoriz = GLSHoriz
-                    #         dataship.nav.GLSVert = GLSVert
+                            self.navData.ILSDev = ILSDev
+                            self.navData.GSDev = GSDev
+                            self.navData.GLSHoriz = GLSHoriz
+                            self.navData.GLSVert = GLSVert
 
-                    #         dataship.nav.msg_count += 1
-                    #         if(self.textMode_showRaw==True): dataship.nav.msg_last = binascii.hexlify(Message) # save last message.
-                    #         else: dataship.nav.msg_last = None
+                            self.navData.msg_count += 1
+                            if(self.textMode_showRaw==True): self.navData.msg_last = binascii.hexlify(Message) # save last message.
+                            else: self.navData.msg_last = None
 
-                    # elif msgType == 4:  # Various input states and signals
-                    #     Message = self.ser.read(msgLength+6)
-                    #     # todo... read message
+                    elif msgType == 4:  # Various input states and signals
+                        Message = self.ser.read(msgLength+6)
+                        # todo... read message
 
-                    # elif msgType == 11:  # fuel levels
-                    #     Message = self.ser.read(4)
-                    #     # H = Word (16 bit unsigned integer),  h=small (16 bit signed integer), B = byte, i = long (32 bit signed integer)
-                    #     NumOfTanks  = struct.unpack( "<i", Message )
-                    #     for x in range(NumOfTanks[0]):
-                    #         TankMessage = self.ser.read(8)
-                    #         Level,Type,TankOn,TankSensors  = struct.unpack("<iBBH", TankMessage)
-                    #         dataship.fuel.FuelLevels[x] = round(Level * 0.02641729, 2) # convert liters to gallons
+                    elif msgType == 11:  # fuel levels
+                        Message = self.ser.read(4)
+                        # H = Word (16 bit unsigned integer),  h=small (16 bit signed integer), B = byte, i = long (32 bit signed integer)
+                        NumOfTanks  = struct.unpack( "<i", Message )
+                        for x in range(NumOfTanks[0]):
+                            TankMessage = self.ser.read(8)
+                            Level,Type,TankOn,TankSensors  = struct.unpack("<iBBH", TankMessage)
+                            self.fuelData.FuelLevels[x] = round(Level * 0.02641729, 2) # convert liters to gallons
 
-                    #     dataship.fuel.msg_count += 1
-                    #     if(self.textMode_showRaw==True): dataship.fuel.msg_last = binascii.hexlify(Message) # save last message.
-                    #     else: dataship.fuel.msg_last = None
+                        self.fuelData.msg_count += 1
+                        if(self.textMode_showRaw==True): self.fuelData.msg_last = binascii.hexlify(Message) # save last message.
+                        else: self.fuelData.msg_last = None
 
-                    # elif msgType == 10:  # Engine message
-                    #     Message = self.ser.read(40)
-                    #     if len(Message) == 40:
-                    #         # H = Word,  h=small, B = byte, i = long
-                    #         # B            B           B            B           H    H      H             H              H             h           h         h          h        h           h       h         H         H        H             H              h          H
-                    #         EngineNumber, EngineType, NumberOfEGT, NumberOfCHT, RPM, Pulse, OilPressure1, OilPressure2, FuelPressure, CoolantTemp, OilTemp1, OilTemp2, AuxTemp1, AuxTemp2, AuxTemp3, AuxTemp4, FuelFlow, AuxFuel, ManiPressure, BoostPressure, InletTemp, AmbientTemp  = struct.unpack(
-                    #             "<BBBBHHHHHhhhhhhhHHHHhH", Message
-                    #         )
+                    elif msgType == 10:  # Engine message
+                        Message = self.ser.read(40)
+                        if len(Message) == 40:
+                            # H = Word,  h=small, B = byte, i = long
+                            # B            B           B            B           H    H      H             H              H             h           h         h          h        h           h       h         H         H        H             H              h          H
+                            EngineNumber, EngineType, NumberOfEGT, NumberOfCHT, RPM, Pulse, OilPressure1, OilPressure2, FuelPressure, CoolantTemp, OilTemp1, OilTemp2, AuxTemp1, AuxTemp2, AuxTemp3, AuxTemp4, FuelFlow, AuxFuel, ManiPressure, BoostPressure, InletTemp, AmbientTemp  = struct.unpack(
+                                "<BBBBHHHHHhhhhhhhHHHHhH", Message
+                            )
 
-                    #         dataship.engine.NumberOfCylinders = NumberOfEGT
-                    #         dataship.engine.RPM = RPM
-                    #         dataship.engine.OilPress = round(OilPressure1 * 0.01450377,2) # In 10th of a millibar (Main oil pressure) convert to PSI
-                    #         dataship.engine.OilPress2 = round(OilPressure2 * 0.01450377,2)
-                    #         dataship.engine.FuelPress = round(FuelPressure * 0.01450377,2)
-                    #         dataship.engine.CoolantTemp = round((CoolantTemp * 1.8) + 32,1) # C to F
-                    #         dataship.engine.OilTemp = round((OilTemp1 * 1.8) + 32,1)  # convert from C to F
-                    #         dataship.engine.OilTemp2 = round((OilTemp2 * 1.8) + 32,1) # convert from C to F
-                    #         dataship.engine.FuelFlow = round(FuelFlow * 0.002642,2) # In 10th liters/hour convert to Gallons/hr
-                    #         dataship.engine.ManPress = round(ManiPressure * 0.0029529983071445, 2) #In 10th of a millibar to inches of mercury to 
+                            self.engineData.NumberOfCylinders = NumberOfEGT
+                            self.engineData.RPM = RPM
+                            self.engineData.OilPress = round(OilPressure1 * 0.01450377,2) # In 10th of a millibar (Main oil pressure) convert to PSI
+                            self.engineData.OilPress2 = round(OilPressure2 * 0.01450377,2)
+                            self.engineData.FuelPress = round(FuelPressure * 0.01450377,2)
+                            self.engineData.CoolantTemp = round((CoolantTemp * 1.8) + 32,1) # C to F
+                            self.engineData.OilTemp = round((OilTemp1 * 1.8) + 32,1)  # convert from C to F
+                            self.engineData.OilTemp2 = round((OilTemp2 * 1.8) + 32,1) # convert from C to F
+                            self.engineData.FuelFlow = round(FuelFlow * 0.002642,2) # In 10th liters/hour convert to Gallons/hr
+                            self.engineData.ManPress = round(ManiPressure * 0.0029529983071445, 2) #In 10th of a millibar to inches of mercury to 
 
-                    #         # Then read in a small int for each egt and cht.
-                    #         for x in range(NumberOfEGT):
-                    #             EGTCHTMessage = self.ser.read(2)
-                    #             if(len(EGTCHTMessage)==2):
-                    #                 EGTinC  = struct.unpack("<h", EGTCHTMessage)
-                    #                 dataship.engine.EGT[x] = round((EGTinC[0] * 1.8) + 32) # convert from C to F
-                    #         for x in range(NumberOfCHT):
-                    #             EGTCHTMessage = self.ser.read(2)
-                    #             if(len(EGTCHTMessage)==2):
-                    #                 CHTinC  = struct.unpack("<h", EGTCHTMessage)
-                    #                 dataship.engine.CHT[x] = round((CHTinC[0] * 1.8) + 32)
+                            # Then read in a small int for each egt and cht.
+                            for x in range(NumberOfEGT):
+                                EGTCHTMessage = self.ser.read(2)
+                                if(len(EGTCHTMessage)==2):
+                                    EGTinC  = struct.unpack("<h", EGTCHTMessage)
+                                    self.engineData.EGT[x] = round((EGTinC[0] * 1.8) + 32) # convert from C to F
+                            for x in range(NumberOfCHT):
+                                EGTCHTMessage = self.ser.read(2)
+                                if(len(EGTCHTMessage)==2):
+                                    CHTinC  = struct.unpack("<h", EGTCHTMessage)
+                                    self.engineData.CHT[x] = round((CHTinC[0] * 1.8) + 32)
 
-                    #         Checksum = self.ser.read(4) # read in last checksum part
+                            Checksum = self.ser.read(4) # read in last checksum part
 
-                    #         dataship.engine.msg_count += 1
-                    #         if(self.textMode_showRaw==True): dataship.engine.msg_last = binascii.hexlify(Message) # save last message.
-                    #         else: dataship.engine.msg_last = None
+                            self.engineData.msg_count += 1
+                            if(self.textMode_showRaw==True): self.engineData.msg_last = binascii.hexlify(Message) # save last message.
+                            else: self.engineData.msg_last = None
 
                     else:
                         self.msg_unknown += 1 #else unknown message.

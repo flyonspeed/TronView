@@ -35,6 +35,30 @@ def show_help_dialog(pygame_gui_manager):
     PAGE UP - Move selected object up in draw order
     PAGE DOWN - Move selected object down in draw order
     Ctrl Z - Undo last change
+
+    Text Formatting:
+    Use curly braces {{}} to display dynamic data in text objects.
+    
+    Basic Examples:
+    {{gpsData[0].latitude}} - Display GPS latitude
+    {{airData[0].IAS}} - Display indicated airspeed
+    {{gpsData[0].latitude:0.2f}} - Format to 2 decimal places
+    
+    Special Format Specifiers:
+    :kts - Convert MPH to knots
+    :kph - Convert MPH to kilometers per hour
+    :mph - Display as MPH (no conversion)
+    :km - Convert miles to kilometers
+    :nm - Convert miles to nautical miles
+    :ft - Display as feet (no conversion)
+    :m - Convert feet to meters
+    :c - Convert Fahrenheit to Celsius
+    :f - Display as Fahrenheit (no conversion)
+    :10th - Round to nearest 10 (101 becomes 100, 155 becomes 160)
+    
+    Advanced Examples:
+    {{airData[0].IAS:kts}} - convert MPH to knots
+    {{gpsData[0].altitude():ft}} - convert meters to feet
     """
 
     window_width = 500

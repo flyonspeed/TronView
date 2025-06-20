@@ -113,6 +113,14 @@ class meshtastic(Input):
     def onReceive(self, packet, interface):
         """Handle incoming meshtastic messages"""
         try:
+            # check gps data from meshtastic node
+            my_node_info = self.interface.getMyNodeInfo()
+            if my_node_info:
+                if my_node_info['position']:
+                    if my_node_info['position']['latitude'] is not None and my_node_info['position']['longitude'] is not None and my_node_info['position']['altitude'] is not None:
+                        self.print_debug(f"meshtastic gps! lat: {my_node_info['position']['latitude']} lon: {my_node_info['position']['longitude']} alt: {my_node_info['position']['altitude']}")
+                        self.gpsData.set_gps_location(my_node_info['position']['latitude'], my_node_info['position']['longitude'], my_node_info['position']['altitude'])
+
             self.print_debug(f"packet: {packet}")
             if self.ignore_self and packet["from"] == self.targetData.meshtastic_node_num:
                 # get nodeId from packet

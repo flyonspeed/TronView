@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.34] - 2025-06-20
+
+- text formating. and help updates.
+- meshtastic gps updates
+- fixed install icon on desktop for debian
+
+
+
 ## [0.0.33] - 2025-04-21
 
 - meshtastic target scope

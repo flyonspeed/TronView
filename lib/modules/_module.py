@@ -266,6 +266,9 @@ class Module:
         elif format_specifier == "f":
             # it's already in fahrenheit.
             return f"{theVariable:0.1f}"
+        elif format_specifier == "10th":
+            # round to the nearest 10.
+            return f"{round(theVariable / 10) * 10:0.0f}"
         else:
             # else just use the built in python format specifier.
             return f"{theVariable:{format_specifier}}"
@@ -286,7 +289,7 @@ class Module:
         %d - dictionary
         examples:
         {gpsData.latitude}
-        {gpsData.latitude:0.2f}
+        {gpsData.latitude:0.2f} # format to 2 decimal places
         {airData[0].IAS:kts}
         """
         result = inputText

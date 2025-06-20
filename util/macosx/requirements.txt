@@ -15,4 +15,5 @@ geographiclib
 pillow
 opencv-python
 prettytable
+meshtastic
 

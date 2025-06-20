@@ -173,7 +173,7 @@ temp_file=$(mktemp)
 #     fi
 # fi
 
-if [[ $selections == *"AutoRun"* ]] && [ $(cat /etc/os-release | grep "Debian GNU/Linux 12" | wc -l) -eq 1 ]; then
+if [ $(cat /etc/os-release | grep "Debian GNU/Linux 12" | wc -l) -eq 1 ]; then
     echo "Setting up autorun"
     sudo bash -c 'echo "[Desktop Entry]
 Type=Application
@@ -184,7 +184,7 @@ Terminal=true
 StartupNotify=false" > /etc/xdg/autostart/start_tronview.desktop'
 fi
 
-if [[ $selections == *"Desktop"* ]]; then
+if [ $(cat /etc/os-release | grep "Debian GNU/Linux 12" | wc -l) -eq 1 ]; then
 	echo "Creating desktop run shortcut"
 	# get user home directory
 	user_home=$(eval echo ~$(whoami))

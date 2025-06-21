@@ -188,12 +188,8 @@ class heading(Module):
         if self.current_display_hdg is None:
             self.current_display_hdg = hdg_hdg
 
-        # Smooth the heading transition
-        self.current_display_hdg = self.smooth_value(
-            self.current_display_hdg, 
-            hdg_hdg, 
-            self.smoothing_factor
-        )
+
+        self.current_display_hdg = hdg_hdg
 
         # Only redraw if the heading or track has changed significantly
         if (abs(self.current_display_hdg - (self.old_hdg_hdg or 0)) > 0.1 or 

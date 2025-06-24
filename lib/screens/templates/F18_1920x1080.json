@@ -1,0 +1,2108 @@
+{
+  "ver": {
+    "version": "1.0"
+  },
+  "screen": {
+    "title": "No Name",
+    "filename": "F18_Basic1.json",
+    "width": 1920,
+    "height": 1080,
+    "date_updated": "20250624_100413"
+  },
+  "screenObjects": [
+    {
+      "type": "module",
+      "title": "HUD Horizon V2",
+      "x": 239,
+      "y": 66,
+      "width": 1443,
+      "height": 831,
+      "grid_position": "MidM",
+      "grid_percentage_x": 1.0015625,
+      "grid_percentage_y": 0.8157894736842105,
+      "module": {
+        "name": "HUD Horizon V2",
+        "options": [
+          {
+            "name": "source_imu_index_name",
+            "value": "mgl_imu"
+          },
+          {
+            "name": "source_imu_index",
+            "value": 0
+          },
+          {
+            "name": "source_imu_index2_name",
+            "value": "NONE"
+          },
+          {
+            "name": "source_imu_index2",
+            "value": null
+          },
+          {
+            "name": "line_mode",
+            "value": 1
+          },
+          {
+            "name": "line_thickness",
+            "value": 2
+          },
+          {
+            "name": "MainColor",
+            "value": [
+              0,
+              255,
+              0
+            ]
+          },
+          {
+            "name": "flight_path_color",
+            "value": [
+              255,
+              0,
+              255
+            ]
+          },
+          {
+            "name": "show_targets",
+            "value": true
+          },
+          {
+            "name": "target_distance_threshold",
+            "value": 10
+          },
+          {
+            "name": "fov_x",
+            "value": 60
+          },
+          {
+            "name": "pxy_div",
+            "value": 31
+          },
+          {
+            "name": "target_smoothing",
+            "value": 0.2
+          },
+          {
+            "name": "horizon_line_color",
+            "value": [
+              255,
+              89,
+              89,
+              255
+            ]
+          },
+          {
+            "name": "horizon_line_thickness",
+            "value": 10
+          },
+          {
+            "name": "horizon_smoothing",
+            "value": 0.15
+          }
+        ]
+      },
+      "id": "M_86ytq"
+    },
+    {
+      "type": "module",
+      "title": "Traffic Scope",
+      "x": 1513,
+      "y": 687,
+      "width": 397,
+      "height": 337,
+      "grid_position": "BotR",
+      "grid_percentage_x": 1.3484375,
+      "grid_percentage_y": 1.0029239766081872,
+      "module": {
+        "name": "Traffic Scope",
+        "options": [
+          {
+            "name": "show_callsign",
+            "value": true
+          },
+          {
+            "name": "show_details",
+            "value": true
+          },
+          {
+            "name": "details_offset",
+            "value": 9
+          },
+          {
+            "name": "target_show_lat_lon",
+            "value": false
+          },
+          {
+            "name": "scope_scale_miles",
+            "value": 4
+          },
+          {
+            "name": "draw_icon",
+            "value": true
+          },
+          {
+            "name": "icon_scale",
+            "value": 13
+          },
+          {
+            "name": "enable_smoothing",
+            "value": true
+          },
+          {
+            "name": "smoothing_factor",
+            "value": 0.298
+          }
+        ]
+      },
+      "id": "M_5z62l"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 1609,
+      "y": 445,
+      "width": 271,
+      "height": 135,
+      "grid_position": "MidR",
+      "grid_percentage_x": 1.4515625,
+      "grid_percentage_y": 0.9970760233918129,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "text",
+            "value": "{airData[0].Alt}"
+          },
+          {
+            "name": "font_name",
+            "value": "arial"
+          },
+          {
+            "name": "font_size",
+            "value": 111
+          },
+          {
+            "name": "font_bold",
+            "value": false
+          },
+          {
+            "name": "text_min_size",
+            "value": 0
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "shrink_right_chars",
+            "value": 3
+          },
+          {
+            "name": "shrink_size",
+            "value": 20
+          },
+          {
+            "name": "show_text_bg",
+            "value": false
+          },
+          {
+            "name": "text_bg_color",
+            "value": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "name": "text_bg_alpha",
+            "value": 100
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 4
+          },
+          {
+            "name": "box_radius",
+            "value": 10
+          },
+          {
+            "name": "box_padding",
+            "value": 1
+          }
+        ]
+      },
+      "id": "M_8mw5j"
+    },
+    {
+      "type": "module",
+      "title": "HUD AOA",
+      "x": 23,
+      "y": 722,
+      "width": 64,
+      "height": 185,
+      "grid_position": "BotL",
+      "grid_percentage_x": 0.171875,
+      "grid_percentage_y": 0.7631578947368421,
+      "module": {
+        "name": "HUD AOA",
+        "options": [
+          {
+            "name": "showLDMax",
+            "value": true
+          },
+          {
+            "name": "aoa_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          }
+        ]
+      },
+      "id": "M_84djp"
+    },
+    {
+      "type": "module",
+      "title": "Slip Skid",
+      "x": 868,
+      "y": 898,
+      "width": 184,
+      "height": 43,
+      "grid_position": "BotM",
+      "grid_percentage_x": 1.0,
+      "grid_percentage_y": 1.3771929824561404,
+      "module": {
+        "name": "Slip Skid",
+        "options": [
+          {
+            "name": "MainColor",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "BallColor",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          }
+        ]
+      },
+      "id": "M_77451"
+    },
+    {
+      "type": "module",
+      "title": "Heading",
+      "x": 609,
+      "y": 12,
+      "width": 706,
+      "height": 113,
+      "grid_position": "TopM",
+      "grid_percentage_x": 1.00625,
+      "grid_percentage_y": 0.40058479532163743,
+      "module": {
+        "name": "Heading",
+        "options": [
+          {
+            "name": "label_color",
+            "value": [
+              255,
+              255,
+              0
+            ]
+          },
+          {
+            "name": "font1_size",
+            "value": 24
+          },
+          {
+            "name": "font2_size",
+            "value": 20
+          },
+          {
+            "name": "pixels_per_degree",
+            "value": 12
+          },
+          {
+            "name": "show_track",
+            "value": true
+          },
+          {
+            "name": "tick_color",
+            "value": [
+              0,
+              255,
+              0
+            ]
+          },
+          {
+            "name": "smoothing_factor",
+            "value": 0.15
+          }
+        ]
+      },
+      "id": "M_2399i"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 1825,
+      "y": 504,
+      "width": 63,
+      "height": 40,
+      "grid_position": "MidR",
+      "grid_percentage_x": 1.8015625,
+      "grid_percentage_y": 1.064327485380117,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "text",
+            "value": "ft"
+          },
+          {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 30
+          },
+          {
+            "name": "font_bold",
+            "value": false
+          },
+          {
+            "name": "text_min_size",
+            "value": 0
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "shrink_right_chars",
+            "value": 0
+          },
+          {
+            "name": "shrink_size",
+            "value": 30
+          },
+          {
+            "name": "show_text_bg",
+            "value": false
+          },
+          {
+            "name": "text_bg_color",
+            "value": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "name": "text_bg_alpha",
+            "value": 100
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 0
+          },
+          {
+            "name": "box_radius",
+            "value": 0
+          },
+          {
+            "name": "box_padding",
+            "value": 1
+          }
+        ]
+      },
+      "id": "M_zcoz3"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 1610,
+      "y": 406,
+      "width": 202,
+      "height": 37,
+      "grid_position": "MidR",
+      "grid_percentage_x": 1.346875,
+      "grid_percentage_y": 0.4824561403508772,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "text",
+            "value": "VSI: {airData[0].VSI} fpm"
+          },
+          {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 30
+          },
+          {
+            "name": "font_bold",
+            "value": true
+          },
+          {
+            "name": "text_min_size",
+            "value": 0
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "shrink_right_chars",
+            "value": 0
+          },
+          {
+            "name": "shrink_size",
+            "value": 30
+          },
+          {
+            "name": "show_text_bg",
+            "value": false
+          },
+          {
+            "name": "text_bg_color",
+            "value": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "name": "text_bg_alpha",
+            "value": 100
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 0
+          },
+          {
+            "name": "box_radius",
+            "value": 0
+          },
+          {
+            "name": "box_padding",
+            "value": 1
+          }
+        ]
+      },
+      "id": "M_kw9f4"
+    },
+    {
+      "type": "module",
+      "title": "Play Controls",
+      "x": 1445,
+      "y": 53,
+      "width": 289,
+      "height": 55,
+      "grid_position": "TopR",
+      "grid_percentage_x": 0.9671875,
+      "grid_percentage_y": 0.47076023391812866,
+      "module": {
+        "name": "Play Controls",
+        "options": [
+          {
+            "name": "button_font_size",
+            "value": 20
+          }
+        ]
+      },
+      "id": "M_bei3r"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 23,
+      "y": 407,
+      "width": 165,
+      "height": 26,
+      "grid_position": "MidL",
+      "grid_percentage_x": 0.3296875,
+      "grid_percentage_y": 0.45614035087719296,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "text",
+            "value": "TAS {airData[0].TAS:kts}"
+          },
+          {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 20
+          },
+          {
+            "name": "font_bold",
+            "value": true
+          },
+          {
+            "name": "text_min_size",
+            "value": 0
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "shrink_right_chars",
+            "value": 0
+          },
+          {
+            "name": "shrink_size",
+            "value": 30
+          },
+          {
+            "name": "show_text_bg",
+            "value": false
+          },
+          {
+            "name": "text_bg_color",
+            "value": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "name": "text_bg_alpha",
+            "value": 100
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 0
+          },
+          {
+            "name": "box_radius",
+            "value": 0
+          },
+          {
+            "name": "box_padding",
+            "value": 1
+          }
+        ]
+      },
+      "id": "M_p53xs"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 198,
+      "y": 496,
+      "width": 61,
+      "height": 34,
+      "grid_position": "MidL",
+      "grid_percentage_x": 0.7140625,
+      "grid_percentage_y": 1.0,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "text",
+            "value": "kts"
+          },
+          {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 20
+          },
+          {
+            "name": "font_bold",
+            "value": true
+          },
+          {
+            "name": "text_min_size",
+            "value": 0
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "shrink_right_chars",
+            "value": 0
+          },
+          {
+            "name": "shrink_size",
+            "value": 30
+          },
+          {
+            "name": "show_text_bg",
+            "value": false
+          },
+          {
+            "name": "text_bg_color",
+            "value": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "name": "text_bg_alpha",
+            "value": 100
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 0
+          },
+          {
+            "name": "box_radius",
+            "value": 0
+          },
+          {
+            "name": "box_padding",
+            "value": 1
+          }
+        ]
+      },
+      "id": "M_2ixfn"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 14,
+      "y": 571,
+      "width": 150,
+      "height": 24,
+      "grid_position": "MidL",
+      "grid_percentage_x": 0.278125,
+      "grid_percentage_y": 1.409356725146199,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "text",
+            "value": "GS {gpsData[0].GndSpeed:kts}"
+          },
+          {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 20
+          },
+          {
+            "name": "font_bold",
+            "value": true
+          },
+          {
+            "name": "text_min_size",
+            "value": 0
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "shrink_right_chars",
+            "value": 0
+          },
+          {
+            "name": "shrink_size",
+            "value": 30
+          },
+          {
+            "name": "show_text_bg",
+            "value": false
+          },
+          {
+            "name": "text_bg_color",
+            "value": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "name": "text_bg_alpha",
+            "value": 100
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 0
+          },
+          {
+            "name": "box_radius",
+            "value": 0
+          },
+          {
+            "name": "box_padding",
+            "value": 1
+          }
+        ]
+      },
+      "id": "M_lio90"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 13,
+      "y": 604,
+      "width": 102,
+      "height": 20,
+      "grid_position": "MidL",
+      "grid_percentage_x": 0.2,
+      "grid_percentage_y": 1.590643274853801,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "text",
+            "value": "{airData[0].OAT} OAT"
+          },
+          {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 20
+          },
+          {
+            "name": "font_bold",
+            "value": true
+          },
+          {
+            "name": "text_min_size",
+            "value": 0
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "shrink_right_chars",
+            "value": 0
+          },
+          {
+            "name": "shrink_size",
+            "value": 30
+          },
+          {
+            "name": "show_text_bg",
+            "value": false
+          },
+          {
+            "name": "text_bg_color",
+            "value": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "name": "text_bg_alpha",
+            "value": 100
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 0
+          },
+          {
+            "name": "box_radius",
+            "value": 0
+          },
+          {
+            "name": "box_padding",
+            "value": 1
+          }
+        ]
+      },
+      "id": "M_d9v6l"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 13,
+      "y": 639,
+      "width": 107,
+      "height": 23,
+      "grid_position": "MidL",
+      "grid_percentage_x": 0.2078125,
+      "grid_percentage_y": 1.804093567251462,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "text",
+            "value": "G's {imuData[0].vert_G:0.1f}"
+          },
+          {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 20
+          },
+          {
+            "name": "font_bold",
+            "value": true
+          },
+          {
+            "name": "text_min_size",
+            "value": 0
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "shrink_right_chars",
+            "value": 0
+          },
+          {
+            "name": "shrink_size",
+            "value": 30
+          },
+          {
+            "name": "show_text_bg",
+            "value": false
+          },
+          {
+            "name": "text_bg_color",
+            "value": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "name": "text_bg_alpha",
+            "value": 100
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 0
+          },
+          {
+            "name": "box_radius",
+            "value": 0
+          },
+          {
+            "name": "box_padding",
+            "value": 1
+          }
+        ]
+      },
+      "id": "M_cb4t8"
+    },
+    {
+      "type": "module",
+      "title": "object 3D",
+      "x": 0,
+      "y": 34,
+      "width": 206,
+      "height": 178,
+      "grid_position": "TopL",
+      "grid_percentage_x": 0.321875,
+      "grid_percentage_y": 0.7192982456140351,
+      "module": {
+        "name": "object 3D",
+        "options": [
+          {
+            "name": "source_imu_index_name",
+            "value": "mgl_imu"
+          },
+          {
+            "name": "source_imu_index",
+            "value": 0
+          },
+          {
+            "name": "source_imu_index2_name",
+            "value": "NONE"
+          },
+          {
+            "name": "source_imu_index2",
+            "value": null
+          },
+          {
+            "name": "MainColor",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "show_xyz",
+            "value": false
+          },
+          {
+            "name": "smoothing_factor",
+            "value": 0.1
+          }
+        ]
+      },
+      "id": "M_bw5hg"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 6,
+      "y": 437,
+      "width": 226,
+      "height": 152,
+      "grid_position": "MidL",
+      "grid_percentage_x": 0.371875,
+      "grid_percentage_y": 1.0,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "text",
+            "value": "{airData[0].IAS:kts}"
+          },
+          {
+            "name": "font_name",
+            "value": "arial"
+          },
+          {
+            "name": "font_size",
+            "value": 109
+          },
+          {
+            "name": "font_bold",
+            "value": false
+          },
+          {
+            "name": "text_min_size",
+            "value": 0
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "shrink_right_chars",
+            "value": 0
+          },
+          {
+            "name": "shrink_size",
+            "value": 30
+          },
+          {
+            "name": "show_text_bg",
+            "value": false
+          },
+          {
+            "name": "text_bg_color",
+            "value": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "name": "text_bg_alpha",
+            "value": 100
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 4
+          },
+          {
+            "name": "box_radius",
+            "value": 10
+          },
+          {
+            "name": "box_padding",
+            "value": 1
+          }
+        ]
+      },
+      "id": "M_40yb7"
+    },
+    {
+      "type": "module",
+      "title": "Wind",
+      "x": 21,
+      "y": 916,
+      "width": 60,
+      "height": 100,
+      "grid_position": "BotL",
+      "grid_percentage_x": 0.159375,
+      "grid_percentage_y": 1.6491228070175439,
+      "module": {
+        "name": "Wind",
+        "options": [
+          {
+            "name": "arrow_size",
+            "value": 50
+          }
+        ]
+      },
+      "id": "M_kch7a"
+    },
+    {
+      "type": "module",
+      "title": "RollIndicator",
+      "x": 779,
+      "y": 527,
+      "width": 362,
+      "height": 483,
+      "grid_position": "BotM",
+      "grid_percentage_x": 1.0,
+      "grid_percentage_y": 0.49415204678362573,
+      "module": {
+        "name": "RollIndicator",
+        "options": [
+          {
+            "name": "roll_point_size",
+            "value": 15
+          }
+        ]
+      },
+      "id": "M_zl8yd"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 24,
+      "y": 679,
+      "width": 82,
+      "height": 29,
+      "grid_position": "BotL",
+      "grid_percentage_x": 0.203125,
+      "grid_percentage_y": 0.05555555555555555,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "text",
+            "value": "aoa {airData[0].AOA}"
+          },
+          {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 20
+          },
+          {
+            "name": "font_bold",
+            "value": true
+          },
+          {
+            "name": "text_min_size",
+            "value": 0
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "shrink_right_chars",
+            "value": 0
+          },
+          {
+            "name": "shrink_size",
+            "value": 30
+          },
+          {
+            "name": "show_text_bg",
+            "value": false
+          },
+          {
+            "name": "text_bg_color",
+            "value": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "name": "text_bg_alpha",
+            "value": 100
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 0
+          },
+          {
+            "name": "box_radius",
+            "value": 0
+          },
+          {
+            "name": "box_padding",
+            "value": 1
+          }
+        ]
+      },
+      "id": "M_5dn6w"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 1608,
+      "y": 578,
+      "width": 200,
+      "height": 50,
+      "grid_position": "MidR",
+      "grid_percentage_x": 1.3375,
+      "grid_percentage_y": 1.5263157894736843,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "text",
+            "value": "Alt {airData[0].Alt_agl} AGL"
+          },
+          {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 30
+          },
+          {
+            "name": "font_bold",
+            "value": true
+          },
+          {
+            "name": "text_min_size",
+            "value": 0
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "shrink_right_chars",
+            "value": 0
+          },
+          {
+            "name": "shrink_size",
+            "value": 30
+          },
+          {
+            "name": "show_text_bg",
+            "value": false
+          },
+          {
+            "name": "text_bg_color",
+            "value": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "name": "text_bg_alpha",
+            "value": 100
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 0
+          },
+          {
+            "name": "box_radius",
+            "value": 0
+          },
+          {
+            "name": "box_padding",
+            "value": 1
+          }
+        ]
+      },
+      "id": "M_rkfdq"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 1251,
+      "y": 983,
+      "width": 200,
+      "height": 50,
+      "grid_position": "BotR",
+      "grid_percentage_x": 0.221875,
+      "grid_percentage_y": 1.894736842105263,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "text",
+            "value": "{gpsData[0].GPSTime_string} GMT"
+          },
+          {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 20
+          },
+          {
+            "name": "font_bold",
+            "value": true
+          },
+          {
+            "name": "text_min_size",
+            "value": 0
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "shrink_right_chars",
+            "value": 0
+          },
+          {
+            "name": "shrink_size",
+            "value": 30
+          },
+          {
+            "name": "show_text_bg",
+            "value": false
+          },
+          {
+            "name": "text_bg_color",
+            "value": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "name": "text_bg_alpha",
+            "value": 100
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 0
+          },
+          {
+            "name": "box_radius",
+            "value": 0
+          },
+          {
+            "name": "box_padding",
+            "value": 1
+          }
+        ]
+      },
+      "id": "M_78pta"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 1599,
+      "y": 640,
+      "width": 200,
+      "height": 50,
+      "grid_position": "MidR",
+      "grid_percentage_x": 1.309375,
+      "grid_percentage_y": 1.8888888888888888,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "text",
+            "value": "RPM {engineData[0].RPM}"
+          },
+          {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 20
+          },
+          {
+            "name": "font_bold",
+            "value": true
+          },
+          {
+            "name": "text_min_size",
+            "value": 0
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "shrink_right_chars",
+            "value": 0
+          },
+          {
+            "name": "shrink_size",
+            "value": 30
+          },
+          {
+            "name": "show_text_bg",
+            "value": false
+          },
+          {
+            "name": "text_bg_color",
+            "value": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "name": "text_bg_alpha",
+            "value": 100
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 0
+          },
+          {
+            "name": "box_radius",
+            "value": 0
+          },
+          {
+            "name": "box_padding",
+            "value": 1
+          }
+        ]
+      },
+      "id": "M_5po21"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 1602,
+      "y": 666,
+      "width": 200,
+      "height": 50,
+      "grid_position": "BotR",
+      "grid_percentage_x": 1.31875,
+      "grid_percentage_y": 0.04093567251461988,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "text",
+            "value": "WP Dist {navData[0].WPDist:nm} NM"
+          },
+          {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 20
+          },
+          {
+            "name": "font_bold",
+            "value": true
+          },
+          {
+            "name": "text_min_size",
+            "value": 0
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "shrink_right_chars",
+            "value": 0
+          },
+          {
+            "name": "shrink_size",
+            "value": 30
+          },
+          {
+            "name": "show_text_bg",
+            "value": false
+          },
+          {
+            "name": "text_bg_color",
+            "value": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "name": "text_bg_alpha",
+            "value": 100
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 0
+          },
+          {
+            "name": "box_radius",
+            "value": 0
+          },
+          {
+            "name": "box_padding",
+            "value": 1
+          }
+        ]
+      },
+      "id": "M_ndslx"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 1636,
+      "y": 936,
+      "width": 200,
+      "height": 50,
+      "grid_position": "BotR",
+      "grid_percentage_x": 1.425,
+      "grid_percentage_y": 1.6198830409356726,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "text",
+            "value": "NrstTgt {targetData[0].getNearestTarget().callsign}"
+          },
+          {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 20
+          },
+          {
+            "name": "font_bold",
+            "value": false
+          },
+          {
+            "name": "text_min_size",
+            "value": 0
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "shrink_right_chars",
+            "value": 0
+          },
+          {
+            "name": "shrink_size",
+            "value": 30
+          },
+          {
+            "name": "show_text_bg",
+            "value": false
+          },
+          {
+            "name": "text_bg_color",
+            "value": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "name": "text_bg_alpha",
+            "value": 100
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 0
+          },
+          {
+            "name": "box_radius",
+            "value": 0
+          },
+          {
+            "name": "box_padding",
+            "value": 1
+          }
+        ]
+      },
+      "id": "M_dmm62"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 1639,
+      "y": 972,
+      "width": 200,
+      "height": 50,
+      "grid_position": "BotR",
+      "grid_percentage_x": 1.434375,
+      "grid_percentage_y": 1.8304093567251463,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "text",
+            "value": "DAlt {targetData[0].getNearestTarget().altDiff} Ft"
+          },
+          {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 20
+          },
+          {
+            "name": "font_bold",
+            "value": false
+          },
+          {
+            "name": "text_min_size",
+            "value": 0
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "shrink_right_chars",
+            "value": 0
+          },
+          {
+            "name": "shrink_size",
+            "value": 30
+          },
+          {
+            "name": "show_text_bg",
+            "value": false
+          },
+          {
+            "name": "text_bg_color",
+            "value": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "name": "text_bg_alpha",
+            "value": 100
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 0
+          },
+          {
+            "name": "box_radius",
+            "value": 0
+          },
+          {
+            "name": "box_padding",
+            "value": 1
+          }
+        ]
+      },
+      "id": "M_97v9r"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 1639,
+      "y": 990,
+      "width": 200,
+      "height": 50,
+      "grid_position": "BotR",
+      "grid_percentage_x": 1.434375,
+      "grid_percentage_y": 1.935672514619883,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "text",
+            "value": "Rng {targetData[0].getNearestTarget().dist}NM"
+          },
+          {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 20
+          },
+          {
+            "name": "font_bold",
+            "value": false
+          },
+          {
+            "name": "text_min_size",
+            "value": 0
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "shrink_right_chars",
+            "value": 0
+          },
+          {
+            "name": "shrink_size",
+            "value": 30
+          },
+          {
+            "name": "show_text_bg",
+            "value": false
+          },
+          {
+            "name": "text_bg_color",
+            "value": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "name": "text_bg_alpha",
+            "value": 100
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 0
+          },
+          {
+            "name": "box_radius",
+            "value": 0
+          },
+          {
+            "name": "box_padding",
+            "value": 1
+          }
+        ]
+      },
+      "id": "M_s8dab"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 1777,
+      "y": 989,
+      "width": 200,
+      "height": 50,
+      "grid_position": "BotR",
+      "grid_percentage_x": 1.865625,
+      "grid_percentage_y": 1.9298245614035088,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "text",
+            "value": "{targetData[0].getNearestTarget().age} sec"
+          },
+          {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 20
+          },
+          {
+            "name": "font_bold",
+            "value": false
+          },
+          {
+            "name": "text_min_size",
+            "value": 0
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "shrink_right_chars",
+            "value": 0
+          },
+          {
+            "name": "shrink_size",
+            "value": 30
+          },
+          {
+            "name": "show_text_bg",
+            "value": false
+          },
+          {
+            "name": "text_bg_color",
+            "value": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "name": "text_bg_alpha",
+            "value": 100
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 0
+          },
+          {
+            "name": "box_radius",
+            "value": 0
+          },
+          {
+            "name": "box_padding",
+            "value": 1
+          }
+        ]
+      },
+      "id": "M_rye6g"
+    },
+    {
+      "type": "module",
+      "title": "Text",
+      "x": 1636,
+      "y": 954,
+      "width": 200,
+      "height": 50,
+      "grid_position": "BotR",
+      "grid_percentage_x": 1.425,
+      "grid_percentage_y": 1.7251461988304093,
+      "module": {
+        "name": "Text",
+        "options": [
+          {
+            "name": "text",
+            "value": "AirSpeed {targetData[0].getNearestTarget().speed} Kts"
+          },
+          {
+            "name": "font_name",
+            "value": "monospace"
+          },
+          {
+            "name": "font_size",
+            "value": 20
+          },
+          {
+            "name": "font_bold",
+            "value": false
+          },
+          {
+            "name": "text_min_size",
+            "value": 0
+          },
+          {
+            "name": "text_color",
+            "value": [
+              200,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "shrink_right_chars",
+            "value": 0
+          },
+          {
+            "name": "shrink_size",
+            "value": 30
+          },
+          {
+            "name": "show_text_bg",
+            "value": false
+          },
+          {
+            "name": "text_bg_color",
+            "value": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "name": "text_bg_alpha",
+            "value": 100
+          },
+          {
+            "name": "box_color",
+            "value": [
+              255,
+              255,
+              255
+            ]
+          },
+          {
+            "name": "box_weight",
+            "value": 0
+          },
+          {
+            "name": "box_radius",
+            "value": 0
+          },
+          {
+            "name": "box_padding",
+            "value": 1
+          }
+        ]
+      },
+      "id": "M_fy7qg"
+    },
+    {
+      "type": "module",
+      "title": "HUD gcross",
+      "x": 475,
+      "y": 68,
+      "width": 971,
+      "height": 828,
+      "grid_position": "MidM",
+      "grid_percentage_x": 1.0015625,
+      "grid_percentage_y": 0.8187134502923976,
+      "module": {
+        "name": "HUD gcross",
+        "options": [
+          {
+            "name": "GunSightMode",
+            "value": 4
+          },
+          {
+            "name": "GColor_color",
+            "value": [
+              0,
+              255,
+              0
+            ]
+          }
+        ]
+      },
+      "id": "M_7a21n"
+    }
+  ]
+}

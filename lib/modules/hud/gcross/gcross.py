@@ -12,11 +12,11 @@ from lib import smartdisplay
 from lib.common.dataship.dataship import Dataship
 from lib.common.dataship.dataship_imu import IMUData
 from lib.common.dataship.dataship_air import AirData
+from lib.common.dataship.dataship_targets import TargetData
 from lib.common import shared
 import pygame
 import math
 import time
-
 class gcross(Module):
     # called only when object is first created.
     def __init__(self):
@@ -27,6 +27,7 @@ class gcross(Module):
 
         self.imuData = IMUData()
         self.airData = AirData()
+        self.targetData = TargetData()
 
     # called once for setup
     def initMod(self, pygamescreen, width=None, height=None):
@@ -62,6 +63,8 @@ class gcross(Module):
             self.imuData = shared.Dataship.imuData[0]
         if len(shared.Dataship.airData) > 0:
             self.airData = shared.Dataship.airData[0]
+        if len(shared.Dataship.targetData) > 0:
+            self.targetData = shared.Dataship.targetData[0]
 
     # called every redraw for the mod
     def draw(self, dataship, smartdisplay, pos):
@@ -125,10 +128,13 @@ class gcross(Module):
             # Adjust all drawing operations to use self.surface instead of smartdisplay.pygamescreen or self.pygamescreen
             pipper_posn = (int(self.width / 2), int((self.height / 2 + self.y_offset) - (self.airData.VSI / 4)))
             color = self.GColor_color   
-            traffic_nm = 0.95
-
-            if traffic_nm <= 1.5:
-                gun_rng = ((270 * traffic_nm) / 1.5)
+            nearest_target = self.targetData.getNearestTarget()
+            if nearest_target is None:
+                return
+            
+            gun_arc = 0
+            if nearest_target.dist <= 1.5:
+                gun_rng = ((270 * nearest_target.dist) / 1.5)
                 gun_arc = ((270 - gun_rng) + 180)
             if gun_arc > 360: 
                 gun_arc = gun_arc - 360

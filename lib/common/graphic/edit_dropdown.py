@@ -15,9 +15,10 @@ COLOR_LIST_ACTIVE = (255, 255, 255)
 
 
 class menu_item:
-    def __init__(self, text, submenu=None):
+    def __init__(self, text, submenu=None, itemType=None):
         self.text = text
         self.submenus = []
+        self.itemType = itemType
         
         # Handle different types of submenu input
         if submenu is not None:
@@ -30,26 +31,30 @@ class menu_item:
                         # It's a [title, submenu_list] format
                         title = item[0]
                         submenu_list = item[1]
-                        self.submenus.append(menu_item(title, submenu_list))
+                        self.submenus.append(menu_item(title, submenu_list, itemType))
                     else:
                         # Simple string or other item
-                        self.submenus.append(menu_item(item))
+                        self.submenus.append(menu_item(item, itemType))
             elif isinstance(submenu, str):
                 # Single string submenu
-                self.submenus.append(menu_item(submenu))
+                self.submenus.append(menu_item(submenu, itemType))
             elif isinstance(submenu, menu_item):
                 # Single menu_item
                 self.submenus.append(submenu)
                 
-    def add_submenu(self, submenu):
+    def add_submenu(self, submenu, itemType=None):
         """Add a submenu item"""
+        # for debugging print the submenu type
+        #print(f"Adding submenu: {submenu.text} {type(submenu.)}")
+
         if isinstance(submenu, menu_item):
             self.submenus.append(submenu)
         elif isinstance(submenu, str):
-            self.submenus.append(menu_item(submenu))
+            self.submenus.append(menu_item(submenu, itemType))
         elif isinstance(submenu, (list, tuple)):
+            # if the submenu is a list or tuple, then add each item to the submenu
             for item in submenu:
-                self.add_submenu(item)
+                self.add_submenu(item, itemType)
                 
     def has_submenus(self):
         """Check if this menu item has submenus"""
@@ -106,11 +111,12 @@ Example of submenu structure:
 
 '''
 class DropDownOption:
-    def __init__(self, text, submenu=None):
+    def __init__(self, text, submenu=None, menu_item=None):
         self.text = text
         self.submenu = submenu  # List of DropDownOption objects or None
         self.rect = None  # Will store the pygame.Rect for this option
         self.is_expanded = False  # Track if submenu is expanded
+        self.menu_item = menu_item  # Reference to original menu_item if created from one
 
 class DropDown():
     def __init__(self, 
@@ -184,7 +190,8 @@ class DropDown():
                 if opt.submenus:
                     # Recursively convert submenu items
                     submenu_options = self._convert_options(opt.submenus)
-                converted.append(DropDownOption(opt.text, submenu_options))
+                dropdown_option = DropDownOption(opt.text, submenu_options, opt)
+                converted.append(dropdown_option)
             elif isinstance(opt, (list, tuple)) and len(opt) == 2:
                 # Get the title (first element)
                 title = opt[0]
@@ -386,6 +393,11 @@ class DropDown():
             if option.submenu:
                 indicator = self.expanded_indicator if option.is_expanded else self.submenu_indicator
                 text = f"{text} {indicator}"
+            # else:
+            #     if option.menu_item:
+            #         text = f"{text} ({option.menu_item.itemType})"
+            #     else:
+            #         text = f"{text}"
             text_surface = self.font.render(text, True, (0, 0, 0))
             text_width = text_surface.get_width() + 20  # Add padding
             max_width = max(max_width, text_width + indent)
@@ -489,6 +501,9 @@ class DropDown():
             if option.submenu:
                 indicator = self.expanded_indicator if option.is_expanded else self.submenu_indicator
                 text = f"{text} {indicator}"
+            # else:
+            #     if option.menu_item:
+            #         text = f"{text} ({option.menu_item.itemType})"
             
             msg = self.font.render(text, 1, (0, 0, 0))
             surf.blit(msg, msg.get_rect(midleft=(option_rect.left + 5 + indent, option_rect.centery)))

@@ -97,6 +97,9 @@ class Dataship(object):
 
         def add_field(name: str, value: Any, current_prefix: str):
             full_name = f"{current_prefix}{name}" if current_prefix else name
+
+            # for debugging print the full name, value, and type, and is a function or method
+            #print(f"full_name: {full_name}, value: {value}, type: {type(value)}, is_enum: {isinstance(value, Enum)}, is_function: {inspect.ismethod(value) or inspect.isfunction(value)}")
             
             # Add the basic field to the flat list
             if isinstance(value, str) or isinstance(value, int) or isinstance(value, float) or \
@@ -120,11 +123,16 @@ class Dataship(object):
                             if not attr.startswith('_') and not inspect.ismethod(attr_value) and not inspect.isfunction(attr_value):
                                 attr_full_name = f"{item_name}.{attr}"
                                 fields.append(attr_full_name)
-                                item_menu.add_submenu(menu_item(attr_full_name))
+                                item_menu.add_submenu(menu_item(attr_full_name, itemType="var"))
+                            else:
+                                # add function or method to the submenu
+                                # if it doesn't start with _ then add it to the submenu
+                                if not attr.startswith('_'):
+                                    item_menu.add_submenu(menu_item(f"{item_name}.{attr}()", itemType="func"))
                         
                         # Add the item submenu to the list submenu
                         if item_menu.submenus:
-                            list_menu_item.add_submenu(item_menu)
+                            list_menu_item.add_submenu(item_menu, itemType="list")
                     
                     # Add the list menu item to the structured fields
                     if list_menu_item.submenus:

@@ -40,10 +40,26 @@ class rollindicator(Module):
             None, int(self.height / 20)
         )
 
-        self.roll_point = pygame.image.load("lib/modules/hud/rollindicator/tick_w.bmp").convert()
-        self.roll_point.set_colorkey((0, 0, 0))
+        # Robust roll point tick image loading and scaling
+        self.roll_point_size = 20  # Set a reasonable default size
+        try:
+            self.roll_point_img = pygame.image.load("lib/modules/hud/rollindicator/tick_w.bmp").convert()
+            self.roll_point_img.set_colorkey((0, 0, 0))
+        except Exception as e:
+            print("Failed to load roll point image:", e)
+            self.roll_point_img = pygame.Surface((self.roll_point_size, self.roll_point_size), pygame.SRCALPHA)
+            pygame.draw.polygon(
+                self.roll_point_img,
+                (255, 255, 255),
+                [
+                    (self.roll_point_size // 2, 0),
+                    (0, self.roll_point_size),
+                    (self.roll_point_size, self.roll_point_size)
+                ]
+            )  # fallback: white triangle pointer
+
         self.roll_point_scaled = pygame.transform.scale(
-            self.roll_point, (self.roll_point_size, self.roll_point_size)
+            self.roll_point_img, (self.roll_point_size, self.roll_point_size)
         )
         self.roll_point_scaled_rect = self.roll_point_scaled.get_rect()
 
@@ -133,21 +149,18 @@ class rollindicator(Module):
         else:
             draw_pos = (x_center - 180, y_center - 180)
 
-        # Draw roll ticks
-        smartdisplay.pygamescreen.blit(self.roll_tick, draw_pos)
+        # Draw the roll ticks (arc) rotated by the roll angle
+        roll_angle = getattr(self.IMUData, 'roll', 0)
+        rotated_ticks = pygame.transform.rotate(self.roll_tick, -roll_angle)
+        rotated_ticks_rect = rotated_ticks.get_rect(center=(x_center, y_center))
+        smartdisplay.pygamescreen.blit(rotated_ticks, rotated_ticks_rect.topleft)
 
-        # Draw roll point
-        roll_point_rotated = pygame.transform.rotate(self.roll_point, self.IMUData.roll)
-        roll_point_rect = roll_point_rotated.get_rect()
-        smartdisplay.pygamescreen.blit(
-            roll_point_rotated,
-            (
-                x_center - roll_point_rect.center[0],
-                y_center - roll_point_rect.center[1],
-            ),
-        )
-
-
+        # Place the roll point tick at 70% of the arc radius used for the largest rotating arc ticks, at the -270° angle (bottommost point)
+        arc_radius = (self.hsi_size / 2.1) * 0.70
+        pointer_angle_rad = -3 * math.pi / 2  # -270 degrees, bottommost point of the arc
+        pointer_x = int(x_center + arc_radius * math.cos(pointer_angle_rad) - self.roll_point_size // 2)
+        pointer_y = int(y_center + arc_radius * math.sin(pointer_angle_rad) - self.roll_point_size // 2)
+        smartdisplay.pygamescreen.blit(self.roll_point_scaled, (pointer_x, pointer_y))
 
     # called before screen draw.  To clear the screen to your favorite color.
     def clear(self):
@@ -173,7 +186,7 @@ class rollindicator(Module):
     
     def update_roll_point_size(self):
         self.roll_point_scaled = pygame.transform.scale(
-            self.roll_point, (self.roll_point_size, self.roll_point_size)
+            self.roll_point_img, (self.roll_point_size, self.roll_point_size)
         )
         self.roll_point_scaled_rect = self.roll_point_scaled.get_rect()
     
